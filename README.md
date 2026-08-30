@@ -41,6 +41,7 @@ Lo que lo vuelve difícil no es integrar un modelo de lenguaje:
 | 11 | [Glosario y metadata](docs/11-glosario-y-metadata.md) | El vocabulario para la integración y las tres tablas que hay que crear ya |
 | 12 | [Almacenamiento e ingesta](docs/12-almacenamiento-e-ingesta.md) | Qué base de datos y cuántas, MinIO, y cómo se baja a texto un PDF con imágenes |
 | 13 | [La rúbrica y los prompts](docs/13-rubrica-y-prompts.md) | 📝 El artefacto central del equipo: las 5 dimensiones con sus anclas y los prompts de cada función |
+| 14 | [Sincronización con la guía didáctica](docs/14-sincronizacion-guia-didactica.md) | 🔄 **Comparación con el otro set de documentación**: los 6 conflictos, lo que hay que adoptar y lo que aportamos |
 
 > ### 📝 Sobre el contenido de ejemplo
 >
