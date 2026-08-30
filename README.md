@@ -24,6 +24,12 @@ Lo que lo vuelve difícil no es integrar un modelo de lenguaje:
 5. **El texto del alumno es a la vez el dato evaluado y un vector de ataque.**
 6. **Dependemos de cinco equipos y de docentes que no controlamos.**
 
+## 👉 Si te sumás al proyecto
+
+Empezá por **[15 · Estado actual y cómo continuar](docs/15-estado-y-como-continuar.md)**: dice dónde
+está todo, qué está decidido, qué bloquea y qué hacer a continuación, sin tener que leer los otros 14
+documentos primero.
+
 ## Documentación
 
 | # | Documento | Qué responde |
@@ -42,6 +48,7 @@ Lo que lo vuelve difícil no es integrar un modelo de lenguaje:
 | 12 | [Almacenamiento e ingesta](docs/12-almacenamiento-e-ingesta.md) | Qué base de datos y cuántas, MinIO, y cómo se baja a texto un PDF con imágenes |
 | 13 | [La rúbrica y los prompts](docs/13-rubrica-y-prompts.md) | 📝 El artefacto central del equipo: las 5 dimensiones con sus anclas y los prompts de cada función |
 | 14 | [Sincronización con la guía didáctica](docs/14-sincronizacion-guia-didactica.md) | 🔄 **Comparación con el otro set de documentación**: los 6 conflictos, lo que hay que adoptar y lo que aportamos |
+| 15 | [Estado actual y cómo continuar](docs/15-estado-y-como-continuar.md) | 👉 **Empezá por acá.** Dónde está todo, qué bloquea, qué hacer a continuación y las 7 decisiones que se revisaron |
 
 > ### 📝 Sobre el contenido de ejemplo
 >
