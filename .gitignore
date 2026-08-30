@@ -1,0 +1,7 @@
+# Material de origen (se distribuye por la catedra)
+*.pdf
+
+# Sistema
+.DS_Store
+Thumbs.db
+desktop.ini
