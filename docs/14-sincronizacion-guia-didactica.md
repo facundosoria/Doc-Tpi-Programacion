@@ -7,6 +7,85 @@
 > implementación que nosotros no tenemos; nosotros tenemos decisiones, alcance y economía que la guía
 > no cubre. **Pero hay seis conflictos reales que hay que resolver antes de escribir código.**
 
+---
+
+# Resumen ejecutivo
+
+> *Este es el resumen tal como se entregó al comparar los dos sets por primera vez. El detalle de cada
+> punto está en las secciones que siguen.*
+
+Pusheado — commit `4d30a1f`, con [14-sincronizacion-guia-didactica.md](14-sincronizacion-guia-didactica.md).
+
+## No está sincronizado, y son dos cosas distintas
+
+Esa guía es **un manual de implementación** (Python real, DDL, hiperparámetros). La nuestra es **de
+decisiones** (alcance, economía, riesgos, coordinación). **Leerlas juntas es mejor que cualquiera
+sola** — pero hay seis conflictos que hay que resolver antes de escribir código.
+
+## Los seis conflictos
+
+| # | Conflicto | Quién gana |
+|---|---|---|
+| **C-1** | **Python FastAPI vs Java Spring Boot** | 🔴 **Sin resolver — bloquea todo lo demás** |
+| **C-2** | ¿Streaming sí o no? | 🏆 **La guía nos gana** |
+| **C-3** | Modelos recomendados | Nosotros (los de ellos están viejos) |
+| **C-4** | Backend central: Node/Go/Django vs Java | La cátedra |
+| **C-5** | Falta Service Discovery y el contrato de eventos | La cátedra |
+| **C-6** | Redis obligatorio vs innecesario | Se mide, no se discute |
+
+## En C-2 tenían razón ellos y yo me equivoqué
+
+Yo dije **"sin streaming en desafíos prácticos"** porque RF-IA-20 obliga a bufferear. La guía diseña
+la solución en detalle: un **Buffer Interceptor** con máquina de estados — la prosa fluye en vivo, y
+**al detectar la apertura de un bloque de código congela la emisión y acumula en RAM**; al cerrarlo
+parsea el AST, compara y decide si emitir o descartar.
+
+**Es mejor que mi recomendación y resuelve lo que declaré bloqueante.** El alumno espera solo en los
+bloques de código, que es donde la espera se justifica. Hay que revisar el ADR-009.
+
+## Nueve cosas de la guía que conviene adoptar — dos son excelentes
+
+**`temperature: 0` + `seed` fijo en el evaluador.** Yo escribí que "un LLM puede darle 65 y 80 a la
+misma transcripción" y por eso propuse calcular dimensiones con código. **Temperatura cero y semilla
+fija atacan esa varianza directamente**, y son una línea de configuración. No reemplazan el scoring
+híbrido — lo complementan.
+
+**Triggers `BEFORE UPDATE OR DELETE` en PostgreSQL** para forzar inmutabilidad de las notas. Mi regla
+de "append-only" era **una convención que alguien puede romper sin darse cuenta**. Un trigger la
+vuelve imposible. Para algo que tiene que sostenerse en una apelación ocho meses después, la
+diferencia es grande.
+
+Más: timeouts concretos por rol, DDL completo, `tokens_usage_ledger`, PII scrubber, arquitectura
+Onion.
+
+## Lo que ellos no tienen
+
+El análisis de alcance (**la guía asume que hacemos las 5 funciones; el reparto oficial es más
+angosto**), el fundamento Java vs Python, los costos por consulta, el scoring híbrido, los eventos de
+IDE, el glosario, el proceso de calibración humana, las anclas concretas, el plan para 6 personas,
+los T&C y la ingesta de PDFs con imágenes.
+
+**Y lo que más me llamó la atención: coincidimos en diez decisiones estructurales** sin habernos
+coordinado — un solo microservicio, pgvector sin base vectorial dedicada, evaluador asincrónico por
+evento, AST al 70%, delimitadores para el texto del alumno, un único modelo evaluador. Que dos
+análisis independientes lleguen a lo mismo es buena señal.
+
+## Mi recomendación: no fusionarlas
+
+Fusionarlas produciría un documento enorme y **borraría la distinción entre "decisión abierta" e
+"implementación propuesta"**, que es justo lo que hay que mantener claro. Que cada una diga que la
+otra existe, y que los conflictos vivan en un solo lugar.
+
+Una cosa que conviene avisarle a quien escribió la guía: **le faltan Service Discovery y el contrato
+de eventos del Tema 11**, que la cátedra declara no negociables.
+
+Y si se resuelve por Java, **el DDL de PostgreSQL es 100% reutilizable** — es probablemente el aporte
+más directamente aprovechable de toda la guía.
+
+---
+
+# El detalle
+
 ## 1. Qué es cada set
 
 | | **Nuestra documentación** | **La guía didáctica** |
