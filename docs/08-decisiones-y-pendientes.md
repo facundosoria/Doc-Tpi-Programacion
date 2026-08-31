@@ -180,6 +180,29 @@ arranca** (RF-IA-36, sin override).
 
 ---
 
+## ⚠️ Decisiones que se revisaron durante el diseño
+
+**Leé esto antes de reabrir una discusión.** Siete decisiones cambiaron mientras se armaba la
+documentación, y los documentos ya reflejan la versión final — pero si encontrás una afirmación que
+parece contradecir a otra, probablemente sea una de estas.
+
+| # | Antes | Ahora | Por qué cambió |
+|---|---|---|---|
+| 1 | Monolito modular | **Microservicios** | La cátedra los declara no negociables |
+| 2 | pgvector en base compartida | **Base propia y exclusiva** | *"Cada servicio es dueño exclusivo de su base"* |
+| 3 | Python FastAPI | **Java Spring Boot** | La materia es de Java + fricción con Spring Cloud |
+| 4 | Sin streaming en prácticos | **Buffer Interceptor** | La guía didáctica lo resuelve mejor ([14](14-sincronizacion-guia-didactica.md) C-2) |
+| 5 | Redis obligatorio | **Probablemente innecesario** | A 120 usuarios, Postgres alcanza |
+| 6 | El corrector no usa el RAG | **Sí lo usa**, por el chunk trazado | La pregunta nació de un fragmento; ese fragmento sirve al corregir |
+| 7 | ~USD 125 por cuatrimestre | **USD 5 a 22** | Al optimizar el contexto del tutor |
+
+> **La #4 vino de afuera:** existe otro set de documentación (la *guía didáctica*) que en ese punto
+> tenía mejor solución que la nuestra. La comparación completa está en
+> [14](14-sincronizacion-guia-didactica.md).
+
+
+---
+
 ## Parte B — Preguntas abiertas para el Product Owner
 
 Van con recomendación, no solo con la pregunta.
@@ -327,6 +350,61 @@ de proteger, y sumar los de riesgo alto después con el guardarraíl ya probado.
 
 ---
 
+### ❓ P-09 — ¿La respuesta del propio agente `@mención` también se modera?
+
+**El hueco:** RF-CHT-09 dice que el moderador corre sobre *"todo mensaje... antes de que se entregue
+a los demás participantes"*. Leído literal, la respuesta del agente es un mensaje que se entrega a
+los demás participantes, así que sí. Pero el PRD nunca lo dice de forma explícita, y es la clase de
+cosa que se implementa como se leyó y después no coincide entre equipos.
+
+**Por qué importa:** es la defensa contra un prompt injection plantado en el canal. Si alguien
+consigue que el agente escriba algo que no debería, moderar la salida es lo único que lo detiene
+antes de que quince personas lo lean.
+
+**Recomendación: sí, se modera igual que cualquier otro mensaje.** Duplica el costo de una mención
+—dos llamadas en vez de una— y ese costo es despreciable frente al riesgo.
+
+**Prioridad:** Baja mientras el agente sea Fase 3. Sube a Alta el día que se adelante.
+
+📄 [04](04-funciones-de-ia.md) Parte 4
+
+---
+
+### ❓ P-10 — ¿Las menciones al agente cuentan contra los límites de RF-IA-22?
+
+**El hueco:** RF-IA-22 pide límites de uso de IA por usuario, y P-05 propone umbrales concretos para
+el tutor y el generador. **Ninguno contempla el chat.**
+
+**Por qué importa:** si las menciones no cuentan, son la vía libre para agotar la cuota del curso —y
+encima desde el canal más informal, que es donde menos se mira.
+
+**Recomendación: sí, el mismo pozo que el tutor.** Un alumno tiene N interacciones de IA por día,
+las gaste donde las gaste. Es más simple de explicar y no deja un agujero.
+
+**Prioridad:** Baja hoy; se resuelve junto con P-05.
+
+📄 [04](04-funciones-de-ia.md) Parte 4
+
+---
+
+### ❓ P-11 — ¿A cuántos agentes se puede mencionar, y cómo se llaman?
+
+**El hueco:** RF-CHT-05 dice *"agentes de IA"*, en plural, y `@agente` como ejemplo. No define si hay
+uno solo por curso o varios con roles distintos.
+
+**Por qué importa para nosotros:** cambia el ruteo del gateway. Un agente único es una fila más en la
+tabla `función → proveedor + modelo`. Varios agentes son varias funciones, cada una con su prompt, su
+perímetro y su costo.
+
+**Recomendación: uno solo cuando llegue la Fase 3.** Sumar `@material` o `@tutor` después es barato;
+arrancar con tres y descubrir que dos no se usan, no.
+
+**Prioridad:** Baja — no bloquea nada hasta Fase 3.
+
+📄 [04](04-funciones-de-ia.md) Parte 4
+
+---
+
 ## Parte C — Cosas por definir cuando llegue el momento
 
 No urgentes, pero anotadas para no redescubrirlas:
@@ -341,6 +419,16 @@ No urgentes, pero anotadas para no redescubrirlas:
   cuesta cero y después vale mucho.
 - Qué pasa con las evaluaciones en curso cuando el ADMIN cambia el modelo evaluador a mitad de
   cuatrimestre (RF-IA-28 lo permite; RF-IA-33 pide señalizar la cohorte afectada).
+- **Purga selectiva del chat social.** RF-CHT-08 borra el canal al archivar el curso, pero RF-CHT-14
+  retiene los mensajes con incidente y su contexto inmediato, y RF-CHT-08 retiene además los pares
+  mención-respuesta del agente. Son dos excepciones dentro del mismo canal: la purga no puede ser un
+  borrado por curso. Ver [04](04-funciones-de-ia.md) Parte 4.
+- **Dato personal escrito junto a una mención.** Si un alumno menciona al agente en el mismo mensaje
+  en el que escribe algo personal, ese mensaje queda bajo el régimen general de retención aunque el
+  resto del canal se borre. Se cruza con RSK-11 y con el mecanismo de supresión diferido.
+- **Umbral entre severidad baja y media del moderador.** RF-CHT-11 define las acciones pero no dónde
+  corta. Es lo que determina cuántos falsos positivos come el alumno; se afina con datos reales, no
+  antes.
 
 
 ---

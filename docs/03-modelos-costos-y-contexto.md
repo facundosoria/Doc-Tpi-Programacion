@@ -410,6 +410,56 @@ Funciona, **y la clave es que un pico solo es problema si alguien está esperand
 RF-IA-27 que hay que construir igual — solo cambia el disparador: en vez de "el proveedor falló", es
 "se acabó la cuota".
 
+### Qué usar para probar cada paso, sin pagar nada
+
+Los pasos son los de [10](10-entregables-y-plan.md) Parte 2, §8. **La mitad no necesita ningún
+modelo** — conviene verlo antes de preocuparse por cuotas.
+
+| Paso | Qué probás | Con qué | Costo |
+|---|---|---|---|
+| 0 · Glosario | — | Nada | — |
+| 1 · Esqueleto | Que `llamar_modelo()` ande contra un proveedor real | **Gemini free tier** | USD 0 |
+| 2 · Metadata | Captura de tiempos y ediciones | **Nada** — es código puro | USD 0 |
+| 3 · Rúbrica | Que el artefacto declarativo cargue y valide | **Nada** | USD 0 |
+| 4 · Features determinísticos | Conteos, tiempos, ediciones | **Nada** | USD 0 |
+| 5 · Evaluar una transcripción | Que devuelva 5 dimensiones válidas contra schema | **Gemini free tier** | USD 0 |
+| 6 · Golden set chico | Acuerdo entre dos personas | **Nada** — son humanos puntuando | USD 0 |
+| 7 · Runner de calibración | Comparar 3 modelos candidatos contra el golden set | **Free + los USD 5 de Anthropic** | ~USD 0,10 |
+| 8 · Endpoint de estado | Un JSON | **Nada** — puede ser mock | USD 0 |
+| 9 · RAG | Ingesta, chunking, embeddings, retrieval | **Nada** — embeddings locales (ADR-006) | USD 0 |
+| 10 · Generador | 5 preguntas desde un PDF, con fuente | **Gemini free tier** | USD 0 |
+| 11 · Guardarraíles | AST, comparación, filtro de entrada | **Nada** — es análisis estático | USD 0 |
+| 11b · Tutor | Latencia, RF-IA-04, los tres niveles de RF-IA-19 | **Gemini free tier** | USD 0 |
+| 12 · Corrector | Nota + justificación sobre respuesta abierta | **Gemini free tier** | USD 0 |
+| 13 · Moderador | 100 mensajes etiquetados, acierto en media/alta | **Gemini free tier**, y el pre-filtro sin modelo | USD 0 |
+
+**Los cuatro pasos que sí llaman a un modelo son 1, 5, 10 y 12** — más el 7, que es el único donde
+conviene gastar unos centavos a propósito.
+
+### El único proveedor con free tier realmente usable sigue siendo Gemini
+
+Ver la tabla de §8. **OpenAI y Anthropic dan USD 5 por única vez y vencen**: no sirven como motor de
+desarrollo, sí como **munición para el Paso 7**, que es exactamente donde hace falta comparar contra
+un modelo que no es Gemini. Guardá esos créditos para eso y no los quemes en el Paso 1.
+
+### El límite que te va a molestar no es el diario, son los 15 req/min
+
+1.500 requests por día alcanzan de sobra para seis personas desarrollando. **15 por minuto no**, si
+seis personas comparten una sola clave y alguien corre un lote.
+
+**La solución es trivial y hay que decirla el día 1: cada persona saca su propia clave del free
+tier.** Son gratis, no piden tarjeta, y el registro `función → proveedor + modelo` del Paso 1 ya
+soporta que la credencial venga de una variable de entorno distinta por máquina.
+
+> 🔴 **Lo que NO se hace con el free tier: datos reales de alumnos.** Los free tiers suelen permitir
+> al proveedor entrenar con lo enviado, y eso choca con RF-NFR-09 y RSK-01. **Para desarrollo y demo
+> todo es sintético**, así que no hay problema; el día que entre un curso real, la respuesta la da la
+> consulta legal de P-06 en [08](08-decisiones-y-pendientes.md), no nosotros.
+
+> ⚠️ **Probar con free no es elegir el modelo.** El evaluador se decide contra el golden set en el
+> Paso 7, y RF-IA-25 le prohíbe pool y enrutamiento. Que Flash-Lite ande bien en el Paso 5 no
+> significa que pase PAR-14 — eso lo dice la calibración, y **es la única forma legítima de decidirlo**.
+
 ## 9. Escenarios y presupuesto
 
 ### 🎯 Piso — si todo lo barato pasa sus pruebas

@@ -54,7 +54,8 @@ con él, del RAG y del resto de las funciones de IA.
 | **RAG** | 🟡 A confirmar | Nadie más lo tiene, y el tutor lo necesita |
 | **Generador de evaluaciones** | 🟡 A confirmar | Figura en Tema 04/03 como opcional |
 | **Corrector de respuestas abiertas** | 🟡 A confirmar | **Solo abiertas** — el resto se corrige con código |
-| **Moderador de chat** | 🟡 A confirmar | Figura en Tema 11 |
+| **Moderador de chat** | 🟡 A confirmar | Figura en Tema 11. **El chat es Fase 2**: se diseña ahora, se construye cuando el chat exista |
+| **Agente `@mención`** | 🔵 Fase 3 | RF-CHT-05. Diseñado en [04](04-funciones-de-ia.md) Parte 4, fuera de este cuatrimestre |
 
 ### Bloque 4 — Los artefactos académicos
 
@@ -230,10 +231,17 @@ explícita**, no un microservicio.
 | **M2 · RAG** | Ingesta de PDF, chunking, embeddings, retrieval | No |
 | **M3 · Evaluador** | Rúbrica versionada, prompt, scoring de la transcripción | M1 |
 | **M4 · Calibración** | Golden set, runner, comparación con PAR-14, deriva | M1 + M3 |
-| **M5 · Guardarraíles** | Filtro de entrada, salvaguarda anti-fuga con AST | M1 |
+| **M5 · Guardarraíles y moderación** | Filtro de entrada, salvaguarda anti-fuga con AST, y el moderador de chat (pre-filtro + clasificador) | M1 |
 | **M6 · Tutor** | Servicio del tutor + componente Angular | M1 + M2 + M5 |
 | **M7 · Generador y corrector** | Blueprint, generación por slot, validación, corrección | M1 + M2 |
 | **M8 · Plataforma** | Docker, API, contratos, cola, base, eventos | No |
+
+> **El moderador de chat vive en M5 y no es un módulo aparte.** Es un clasificador de texto corto sin
+> contexto: comparte el pre-filtro determinístico con el filtro de entrada y es del mismo
+> responsable. **No entra en las cuatro semanas de la demo** —el chat es Fase 2 del PRD— pero el
+> contrato sí conviene entregarlo temprano. El agente `@mención` (RF-CHT-05) es Fase 3 y, cuando
+> llegue, va en M6 junto al tutor: es un agente conversacional, no un filtro. Ver
+> [04](04-funciones-de-ia.md) Parte 4.
 
 ## 3. El reparto
 
@@ -243,7 +251,7 @@ explícita**, no un microservicio.
 | **P2** | **M2 · RAG** | **M7 · Generador** | El generador es el mayor consumidor del RAG. Quien lo construyó sabe cómo consultarlo |
 | **P3** | **M3 · Evaluador** | **M7 · Corrector** | El corrector es el mismo patrón de juez con otra rúbrica. Se reusa el 80% |
 | **P4** | **M4 · Calibración y golden set** | Perseguir a los docentes 😅 | Es el de **mayor riesgo de calendario**. Necesita a alguien dedicado y que empuje afuera del equipo |
-| **P5** | **M5 · Guardarraíles** | Comparación por AST multi-lenguaje | Es la parte más técnica y la más aislada. Se puede probar sin el resto |
+| **P5** | **M5 · Guardarraíles** | Comparación por AST multi-lenguaje, y el moderador de chat cuando el chat exista | Es la parte más técnica y la más aislada. Se puede probar sin el resto |
 | **P6** | **M8 · Plataforma** | **M6 · Tutor** + componente Angular | Arranca armando el esqueleto que todos usan, y sigue con lo que necesita Angular |
 
 ### Por qué P1 y P6 arrancan juntos y primero
@@ -353,7 +361,13 @@ Tres reglas que lo evitan:
 
 ## 8. El paso a paso concreto
 
-Doce pasos, en orden. Los primeros cuatro no requieren que nadie externo defina nada.
+Trece pasos, en orden. Los primeros cuatro no requieren que nadie externo defina nada, y el último
+no entra en la demo — está para que la frontera exista.
+
+> 💰 **Con qué modelo probar cada uno de estos pasos sin pagar nada** está en
+> [03](03-modelos-costos-y-contexto.md) §8. Resumen: solo los pasos 1, 5, 10 y 12 llaman a un modelo,
+> y los cuatro entran en el free tier de Gemini. El paso 7 es el único donde conviene gastar
+> centavos a propósito.
 
 ### Paso 0 — El glosario (medio día, y evita semanas de confusión)
 
@@ -461,6 +475,32 @@ porque junta latencia, RF-IA-04, los tres niveles de RF-IA-19 y el buffer de RF-
 
 **Solo para respuestas abiertas.** Multiple choice, V/F, ordenar, emparejar y tests se corrigen con
 código. Ver [04](04-funciones-de-ia.md) §1c.
+
+### Paso 13 — El moderador *(P5, cuando exista el chat)*
+
+**No va en las cuatro semanas de la demo.** El chat es Fase 2 del PRD; el moderador no tiene qué
+moderar todavía. Pero hay una parte que sí conviene entregar temprano y una parte que no:
+
+| Ahora | Cuando exista el chat |
+|---|---|
+| **El contrato**: `moderar(mensaje)` devuelve `categorias`, `severidad`, `confianza` | El clasificador contra el modelo |
+| El pre-filtro determinístico, que es código puro y se prueba sin proveedor | El registro de incidentes y el evento de severidad alta |
+| Los 100 mensajes etiquetados a mano — es una tarde, no un hito de calendario | La marca de retención de RF-CHT-14 |
+
+**Por qué el contrato ahora:** el Tema 11 está diseñando el chat. Si no sabe qué puede pedirnos ni
+cuánto tarda, lo va a diseñar asumiendo algo, y esa asunción va a estar mal. Es la misma lógica del
+Paso 8 con el endpoint de calibración.
+
+**Por qué el moderador es el mejor primer LLM del equipo, si alguien quiere arrancar por ahí:** no
+tiene contexto, no tiene historial, no tiene RAG, no tiene rúbrica y su salida es un JSON de tres
+campos. Es la función de IA más simple del proyecto entera. Como ejercicio de calentamiento sobre M1
+vale mucho; como prioridad de entrega, no compite con el evaluador.
+
+**Criterio de terminado:** le pasás 100 mensajes etiquetados y acierta más del 90% en severidad media
+y alta, con el pre-filtro resolviendo la mayoría sin llamar al modelo.
+
+> El agente `@mención` (RF-CHT-05) **no tiene paso**. Es Fase 3, está diseñado en
+> [04](04-funciones-de-ia.md) Parte 4 y ahí se queda hasta que alguien lo priorice.
 
 ## 9. ¿Hace falta DDD?
 

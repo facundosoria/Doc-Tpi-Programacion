@@ -118,7 +118,7 @@ No son ocho microservicios: son **ocho carpetas con una interfaz explícita cada
 | **M2 · RAG** | Ingesta, chunking, embeddings, retrieval | — |
 | **M3 · Evaluador** | Rúbrica versionada, prompt, scoring | M1 |
 | **M4 · Calibración** | Golden set, runner, comparación con PAR-14, deriva | M1 + M3 |
-| **M5 · Guardarraíles** | Filtro de entrada, salvaguarda anti-fuga con AST | M1 |
+| **M5 · Guardarraíles y moderación** | Filtro de entrada, salvaguarda anti-fuga con AST, moderador de chat | M1 |
 | **M6 · Tutor** | Servicio + componente Angular | M1 + M2 + M5 |
 | **M7 · Generador y corrector** | Blueprint, generación por slot, validación, corrección | M1 + M2 |
 | **M8 · Plataforma** | Docker, API, contratos, cola, base, eventos | — |

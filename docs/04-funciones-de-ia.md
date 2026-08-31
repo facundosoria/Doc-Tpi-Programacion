@@ -1,10 +1,11 @@
-# 04 — Las funciones de IA: generar, corregir y evaluar
+# 04 — Las funciones de IA: generar, corregir, evaluar y moderar
 
 > 🧪 **La transcripción de ejemplo del golden set y sus puntajes son inventados por nosotros**, para
 > ilustrar el formato. **Si un docente los toma como referencia, la calibración deja de medir nada**
 > (ítems E-07 y E-08 en [08](08-decisiones-y-pendientes.md), Parte C).
 
-> El generador de evaluaciones, los dos jueces del sistema, y el golden set que verifica que puntúen bien.
+> El generador de evaluaciones, los dos jueces del sistema, el golden set que verifica que puntúen
+> bien, y las dos funciones de IA que viven en el chat.
 
 ---
 
@@ -1104,3 +1105,243 @@ subestimada de las siete. Ver [01](01-problema-y-alcance.md) §3.2.
 | 5 | **¿Quién y para cuándo?** | 🔴 **26 h de trabajo docente, 3 semanas antes del inicio** | **PO — es P-04** |
 
 Los primeros cuatro los podés proponer vos. **El quinto no**, y es el que bloquea todo lo demás.
+
+
+---
+
+# Parte 4 — Las dos funciones del chat
+
+
+> El moderador y el agente `@mención`. Son **dos funciones distintas** que viven en la misma
+> superficie, y el PRD se toma el trabajo de aclarar que no se mezclan. Ninguna de las dos es MVP
+> —ver §4—, pero las dos están especificadas y las dos son nuestras.
+
+## 1. Son dos cosas separadas, y el PRD lo dice explícito
+
+RF-CHT-09 lo aclara en su propio texto: el moderador *"es una invocación de IA separada de los
+agentes conversacionales @mención y del evaluador de uso de IA de la Sección 15.1 — no comparte
+contexto ni conversación con ellos"*.
+
+Esa frase no es cosmética. **Prohíbe la optimización obvia** —una sola llamada que modere y responda
+al mismo tiempo— y con razón: si el moderador compartiera contexto con el agente, un mensaje
+malicioso podría usar la conversación para condicionar su propia clasificación.
+
+| | **Moderador** | **Agente `@mención`** |
+|---|---|---|
+| Requerimiento | RF-CHT-09 a 14 | RF-CHT-05 |
+| Se dispara con | **Todo** mensaje, siempre | Solo si el mensaje contiene `@agente` |
+| Canales | Grupales **y** 1:1 | Solo grupales de curso |
+| Contexto | **Ninguno** — cada mensaje es independiente | La conversación + RAG del curso |
+| Cuándo corre | **Antes** de entregar el mensaje | Después de entregarlo |
+| Sincronía | 🔴 Sincrónico, en el camino crítico | 🔴 Sincrónico |
+| Quién ve la salida | Nadie, o el profesor si hay incidente | **Todo el canal** |
+| Costo por llamada | ~USD 0,000027, ver [03](03-modelos-costos-y-contexto.md) | Del orden del tutor |
+| Retención | Solo el incidente (RF-CHT-14) | **Se conserva** como interacción de IA (RF-CHT-08) |
+
+```mermaid
+flowchart TD
+    A["Alumno escribe un mensaje"] --> B{"Pre-filtro<br/>deterministico"}
+    B -->|"Obvio: bloquea"| X["Mensaje no entregado<br/>RF-CHT-12"]
+    B -->|"Duda o limpio"| C["Moderador LLM<br/>sin contexto"]
+    C -->|"Severidad media o alta"| X
+    C -->|"Baja o limpio"| D["Mensaje entregado al canal"]
+    D --> E{"Contiene @agente?"}
+    E -->|"No"| F["Fin"]
+    E -->|"Si"| G["Agente conversacional<br/>contexto + RAG"]
+    G --> H["Respuesta al canal"]
+    H --> I["Se conserva como<br/>interaccion de IA"]
+```
+
+## 2. El moderador
+
+### 2.1 Las seis categorías (RF-CHT-10)
+
+La mitad de ellas **no necesita un modelo**. Vale la pena separarlas antes de diseñar el prompt:
+
+| Categoría | Ejemplo | ¿Hace falta LLM? |
+|---|---|---|
+| Lenguaje ofensivo o discriminatorio | Insultos, agravios | 🟡 Parcial — una lista de términos atrapa lo obvio, el matiz no |
+| Acoso | Hostigamiento sostenido a una persona | 🔴 Sí — es contextual y acumulativo |
+| Contenido sexual o de violencia | — | 🟡 Parcial |
+| Spam o fuera de fines académicos | Publicidad, cadenas | 🟡 Parcial — repetición y frecuencia son computables |
+| **Compartir soluciones de desafíos** | Pegar el código resuelto en el canal | 🔴 Sí — y es la más específica de este producto |
+| Eludir el "solo texto" (RF-CHT-07) | base64 disfrazando una imagen | 🟢 **No** — la entropía y la forma del string lo detectan sin modelo |
+
+> ⚠️ **La quinta es la interesante y la que nadie tiene resuelta.** "Compartir soluciones" no es
+> moderación de convivencia: es **integridad académica**, y para detectarla bien haría falta saber
+> cuál es la solución del desafío. Eso choca de frente con ADR-008 —*la solución de referencia nunca
+> entra al contexto*—. El camino viable es detectar la **forma**: un bloque de código extenso pegado
+> en un canal social durante un desafío activo. No el contenido. Genera falsos positivos y hay que
+> asumirlo.
+
+### 2.2 Severidad y acción (RF-CHT-11)
+
+| Severidad | Acción | Consecuencia para nosotros |
+|---|---|---|
+| **Baja** | No bloquea, sin acción visible | Se registra igual: es la línea base para medir |
+| **Media** | Bloquea el mensaje + incidente visible al profesor | Necesita el dashboard de incidentes |
+| **Alta** | Bloquea + notificación inmediata a profesor y ADMIN | Necesita un evento hacia notificaciones |
+
+**El umbral es una decisión de producto, no de ingeniería.** El modelo devuelve una confianza; dónde
+se corta entre baja y media define cuántos falsos positivos come el alumno.
+
+### 2.3 El pre-filtro se lleva el 70% de las llamadas
+
+Regex, listas de términos, longitud, frecuencia por usuario y detección de base64 resuelven la mayor
+parte sin tocar un modelo. El prompt completo está en [13](13-rubrica-y-prompts.md).
+
+Sirve para tres cosas, y la tercera es la importante:
+
+1. **Costo** — de USD 0,03 por mil mensajes a USD 0,01.
+2. **Latencia** — el camino crítico del chat no espera a un proveedor externo.
+3. **Es la red del fail-open.** Si el proveedor se cae, el pre-filtro sigue corriendo. Sin él,
+   fail-open significa *sin ninguna moderación*.
+
+### 2.4 Qué pasa si se cae — el hueco del PRD
+
+RF-CHT-09 dice que corre sobre todo mensaje antes de entregarlo. **El PRD no dice qué pasa si no está
+disponible**, y RF-IA-27 enumera la degradación del tutor y del evaluador pero se olvida del
+moderador.
+
+**Recomendación: fail-open con red.** El mensaje se entrega, el pre-filtro sigue corriendo, el
+mensaje queda marcado y se re-modera cuando el servicio vuelve; si ahí resulta media o alta, se
+retira y se genera el incidente. El fundamento está en [06](06-operacion-e-ingenieria.md).
+
+Es **decisión del Product Owner**: P-02 en [08](08-decisiones-y-pendientes.md).
+
+### 2.5 Feedback y apelación (RF-CHT-12 y RF-CHT-13)
+
+Al emisor se le avisa que el mensaje no se envió **sin explicar cómo se detectó** — mismo principio
+que RF-IA-10 con el jailbreak: no se le enseña al usuario a evadir el filtro. La apelación va al
+profesor, igual que RF-IA-18.
+
+**Consecuencia de diseño:** el motivo real y la categoría se guardan igual, porque el profesor los
+necesita para resolver la apelación. Lo que se recorta es lo que ve el emisor, no lo que se registra.
+
+### 2.6 RF-CHT-14 rompe la purga simple
+
+El chat social se purga físicamente al archivar el curso (RF-CHT-08) — es lo único de toda la
+plataforma que RF-NFR-01 permite borrar de verdad. **Salvo** que el mensaje haya sido reportado o
+bloqueado con severidad media o alta: en ese caso queda retenido **con su contexto inmediato**
+—mensaje anterior y posterior del mismo hilo— hasta que el incidente se resuelva.
+
+Eso significa que la purga no puede ser un borrado por curso. Necesita saber, mensaje por mensaje, si
+está retenido y por qué. Ver [07](07-datos-y-terminos.md).
+
+### 2.7 Qué construimos y qué no
+
+| Nuestro | De otro equipo |
+|---|---|
+| El clasificador y su pre-filtro | El chat completo: canales, hilos, citas, entrega |
+| El registro de incidentes | La pantalla del dashboard de incidentes |
+| El evento de severidad alta | El envío de la notificación (RF-NOT-05) |
+| La marca de retención de RF-CHT-14 | La ejecución de la purga al archivar |
+
+> El chat es del Tema 11. **Nosotros aportamos una función, no una funcionalidad.** El contrato con
+> ellos es un único llamado sincrónico: `moderar(mensaje)` devuelve `categorias`, `severidad` y
+> `confianza`.
+
+### 2.8 Cómo se mide que anda
+
+100 mensajes etiquetados a mano, más del 90% de acierto en severidad media y alta. Está en
+[03](03-modelos-costos-y-contexto.md). Es el golden set del moderador, en chico — y es **mucho más
+barato de producir** que el del evaluador: etiquetar un mensaje lleva segundos, no diez minutos.
+
+## 3. El agente `@mención`
+
+### 3.1 Lo que dice el PRD, que es poco
+
+RF-CHT-05, completo: *"Agentes de IA participan en canales grupales de curso solo si son invocados
+vía mención @agente."*
+
+Y una línea en RF-CHT-08: esas invocaciones **se conservan** como interacción con IA (RF-IA-02),
+aunque ocurran dentro de un canal social que se purga, *"porque son contenido pedagógico sujeto a las
+reglas de asistencia de RF-IA-04/19"*.
+
+Eso es todo. **Todo lo demás hay que diseñarlo.**
+
+### 3.2 No es el tutor del desafío con otra puerta de entrada
+
+Es la confusión que hay que evitar antes de escribir una línea:
+
+| | **Tutor en desafío** | **Agente `@mención`** |
+|---|---|---|
+| Audiencia | Un alumno | **Todo el canal del curso** |
+| Contexto | El desafío, su enunciado, el código del alumno | El curso, el hilo, el material |
+| ¿Sabe qué desafío está resolviendo quien pregunta? | Sí | **No necesariamente** |
+| ¿La conversación se evalúa? | Sí — es la transcripción de RF-IA-03 | **No está definido** |
+| Riesgo principal | Que resuelva el ejercicio | Que resuelva el ejercicio **para quince personas a la vez** |
+
+### 3.3 El problema nuevo: la respuesta es pública
+
+RF-IA-04 —*la IA nunca entrega la solución final*— ya rige. Pero en el desafío una fuga afecta a un
+alumno; en un canal grupal afecta al curso entero **y queda escrita**. Es el mismo guardarraíl con el
+impacto multiplicado.
+
+Peor: el agente no sabe en qué desafío está cada uno de los que leen. Un alumno pregunta algo
+inocente sobre un tema, y la respuesta le regala el razonamiento a otro que está trabado justo en el
+ejercicio de ese tema.
+
+**Mitigación mínima si esto entra:** el perímetro del agente en canal grupal tiene que ser **más
+restrictivo** que el del tutor, no igual. Teoría y documentación sí; razonamiento paso a paso sobre
+un problema concreto, no.
+
+### 3.4 La retención mixta es un problema de modelo de datos
+
+Dentro de un mismo canal social conviven mensajes que **se borran** y pares mención-respuesta que
+**se conservan**. La purga de RF-CHT-08 pasa de ser un borrado por canal a un borrado selectivo por
+mensaje, con dos excepciones simultáneas: la de RF-CHT-14 por incidentes, y esta.
+
+Y hay una arista fea: si un alumno escribe información personal en el mismo mensaje en el que
+menciona al agente, ese mensaje **se conserva bajo el régimen general** aunque el resto del canal se
+borre. Va a la Parte C de [08](08-decisiones-y-pendientes.md).
+
+> 📎 Detalle a tener en cuenta: RF-IA-02 habla de interacciones **en desafíos prácticos**. RF-CHT-08
+> lo extiende al chat de hecho, sin decirlo. No es contradictorio, pero sí es una ampliación
+> implícita del alcance de RF-IA-02 que conviene tener presente al modelar la tabla.
+
+### 3.5 Tres cosas que el PRD no responde
+
+| # | Pregunta | Por qué importa |
+|---|---|---|
+| 1 | ¿La respuesta **del agente** también se modera? | RF-CHT-09 dice "todo mensaje, antes de que se entregue a los demás participantes". Literalmente, sí. Y es sano: moderar la salida propia es la defensa contra un prompt injection plantado en el canal |
+| 2 | ¿Las menciones cuentan contra los límites de RF-IA-22? | Si no cuentan, son la vía libre para agotar la cuota del curso |
+| 3 | ¿Qué agente responde? RF-CHT-05 dice "agentes", en plural | ¿Hay uno solo por curso, o `@tutor` y `@material` son distintos? Cambia el ruteo del gateway |
+
+Las tres quedan anotadas como P-09, P-10 y P-11 en [08](08-decisiones-y-pendientes.md).
+
+## 4. Nada de esto es MVP, y conviene decirlo en voz alta
+
+Sección 18 del PRD, Tabla 11 — fuera de alcance del MVP:
+
+| Ítem | Destino | Referencia |
+|---|---|---|
+| Guided Tour completo y **chat interno** | Fase 2 | Sección 2 del PRD |
+| **Agentes de IA en canales grupales de chat** | Fase 3 | RF-CHT-05 |
+
+> 🔴 **La consecuencia que hay que ver:** el moderador **no** figura como fuera de alcance, pero
+> modera un chat que en el MVP no existe. Es una inconsistencia del PRD, no nuestra, y conviene
+> llevarla a la próxima revisión antes de que alguien la descubra planificando un sprint.
+
+**Qué hacer con eso:**
+
+- **El moderador se diseña ahora y se construye después.** Es barato, es la función de IA más simple
+  del proyecto y no bloquea a nadie. Entra cuando entre el chat.
+- **El agente `@mención` no se construye en este cuatrimestre.** Es Fase 3 y compite por tiempo con
+  el evaluador, que sí es el núcleo del tema.
+- **Lo que sí hay que hacer ahora es el contrato**: dejar escrito el llamado `moderar(mensaje)` para
+  que el Tema 11 pueda diseñar su chat sabiendo qué va a poder pedirnos.
+
+Si el PO decide adelantar el chat al MVP, el moderador pasa de "diseñado" a "camino crítico" — y con
+él la decisión de P-02, que ahí deja de ser teórica.
+
+## 5. Lo que hay que decidir
+
+| # | Pregunta | Propuesta | Quién decide |
+|---|---|---|---|
+| 1 | ¿Fail-open o fail-closed si el moderador se cae? | Fail-open con red | **PO — es P-02** |
+| 2 | ¿Dónde corta el umbral entre severidad baja y media? | Empezar permisivo y ajustar con datos | PO + nosotros |
+| 3 | ¿Se modera la respuesta del propio agente? | **Sí** | Nosotros — es P-09 |
+| 4 | ¿Las menciones cuentan en RF-IA-22? | **Sí**, el mismo pozo | Nosotros — es P-10 |
+| 5 | ¿Uno o varios agentes que se puedan mencionar? | **Uno** en Fase 3 | PO — es P-11 |
+| 6 | ¿Se adelanta el chat al MVP? | No | PO |

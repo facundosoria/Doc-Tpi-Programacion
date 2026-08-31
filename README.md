@@ -26,9 +26,14 @@ Lo que lo vuelve difícil no es integrar un modelo de lenguaje:
 
 ## 👉 Si te sumás al proyecto
 
-Empezá por **[15 · Estado actual y cómo continuar](docs/15-estado-y-como-continuar.md)**: dice dónde
-está todo, qué está decidido, qué bloquea y qué hacer a continuación, sin tener que leer los otros 14
-documentos primero.
+Tres documentos, en este orden, y no hace falta leer los otros doce:
+
+1. **[01 · Problema, alcance y equipo](docs/01-problema-y-alcance.md)** — qué construimos y qué no.
+2. **[10 · Qué entregamos y cómo](docs/10-entregables-y-plan.md), Parte 2** — el plan de trabajo: los
+   módulos, el reparto entre seis, las cuatro semanas de demo y **los 13 pasos concretos** de §8.
+   Con qué modelo free probar cada paso está en [03](docs/03-modelos-costos-y-contexto.md) §8.
+3. **[08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md)** — qué está decidido, qué
+   bloquea, y las decisiones que ya se revisaron una vez — conviene mirarlas antes de reabrir una discusión.
 
 ## Documentación
 
@@ -37,18 +42,18 @@ documentos primero.
 | 01 | [Problema, alcance y equipo](docs/01-problema-y-alcance.md) | Qué es nuestro, qué no, y qué reclamarle a los otros equipos |
 | 02 | [Arquitectura y stack](docs/02-arquitectura-y-stack.md) | Reglas de la cátedra, diagrama de sistema, los 8 módulos, el AI Gateway, y el fundamento completo de Java vs Python |
 | 03 | [Modelos, costos y contexto](docs/03-modelos-costos-y-contexto.md) | Qué modelo para cada función, costo por consulta, cuánto contexto meter, qué puede ser gratis |
-| 04 | [Las funciones de IA](docs/04-funciones-de-ia.md) | El generador de evaluaciones, los dos jueces del sistema, y el golden set |
+| 04 | [Las funciones de IA](docs/04-funciones-de-ia.md) | El generador, los dos jueces, el golden set, y las dos funciones del chat |
 | 05 | [Seguridad](docs/05-seguridad.md) | Prompt injection, fuga de solución, dónde corre cada guardarraíl, de dónde sale cada nota |
 | 06 | [Operación e ingeniería](docs/06-operacion-e-ingenieria.md) | Colas y prioridades, pico, degradación, caché — y cómo se prueba algo no determinístico |
 | 07 | [Datos y T&C](docs/07-datos-y-terminos.md) | Qué se guarda, quién lo ve, cuánto dura, y el borrador de Términos y Condiciones |
-| 08 | [Decisiones y pendientes](docs/08-decisiones-y-pendientes.md) | Registro de decisiones (ADR) y **lo que falta definir** |
+| 08 | [Decisiones y pendientes](docs/08-decisiones-y-pendientes.md) | Registro de decisiones (ADR), las que ya se revisaron, y **lo que falta definir** |
 | 09 | [Preguntas y respuestas](docs/09-preguntas-y-respuestas.md) | El porqué de cada decisión, **con el caso a favor y el caso en contra** |
-| 10 | [Qué entregamos y cómo](docs/10-entregables-y-plan.md) | El inventario del aporte del equipo y el plan de 12 pasos para 6 personas |
+| 10 | [Qué entregamos y cómo](docs/10-entregables-y-plan.md) | El inventario del aporte del equipo y el plan de 13 pasos para 6 personas |
 | 11 | [Glosario y metadata](docs/11-glosario-y-metadata.md) | El vocabulario para la integración y las tres tablas que hay que crear ya |
 | 12 | [Almacenamiento e ingesta](docs/12-almacenamiento-e-ingesta.md) | Qué base de datos y cuántas, MinIO, y cómo se baja a texto un PDF con imágenes |
 | 13 | [La rúbrica y los prompts](docs/13-rubrica-y-prompts.md) | 📝 El artefacto central del equipo: las 5 dimensiones con sus anclas y los prompts de cada función |
 | 14 | [Sincronización con la guía didáctica](docs/14-sincronizacion-guia-didactica.md) | 🔄 **Comparación con el otro set de documentación**: los 6 conflictos, lo que hay que adoptar y lo que aportamos |
-| 15 | [Estado actual y cómo continuar](docs/15-estado-y-como-continuar.md) | 👉 **Empezá por acá.** Dónde está todo, qué bloquea, qué hacer a continuación y las 7 decisiones que se revisaron |
+| 16 | [El pipeline de calidad](docs/16-pipeline-y-verificaciones.md) | ⚙️ Qué verifica el gate antes de cada integración, cómo funciona, y las verificaciones que conviene sumar más allá del flujo estándar de la materia |
 
 > ### 📝 Sobre el contenido de ejemplo
 >

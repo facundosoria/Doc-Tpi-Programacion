@@ -65,7 +65,14 @@ flowchart TB
 | 2 | **Generador de evaluaciones** | RF-DES-05 | Asincrónico, con gate humano |
 | 3 | **Evaluador de uso de IA** | RF-IA-12 a 18, 25, 28 a 36 | **Emite los números.** No asigna XP. Ver §2c |
 | 4 | **Corrector de respuestas** | (no especificado — ver P-01) | Asincrónico |
-| 5 | **Moderador de chat** | RF-CHT-09 a 14 | Es función de IA aunque el chat sea de otro equipo |
+| 5 | **Moderador de chat** | RF-CHT-09 a 14 | Es función de IA aunque el chat sea de otro equipo. Ver [04](04-funciones-de-ia.md) Parte 4 |
+| 6 | **Agente `@mención` en canales de curso** | RF-CHT-05 | 🟡 **Fase 3 en el PRD.** Se diseña, no se construye este cuatrimestre |
+
+> ⚠️ **Las dos piezas de chat no son MVP.** La Tabla 11 del PRD deja el **chat interno en Fase 2** y
+> los **agentes de IA en canales grupales en Fase 3**. El moderador no figura como fuera de alcance,
+> pero modera un chat que en el MVP no existe: es una inconsistencia del PRD que conviene llevar a
+> revisión. Lo que sí hay que entregar ahora es el **contrato** `moderar(mensaje)`, para que el Tema
+> 11 pueda diseñar su chat. El desarrollo completo está en [04](04-funciones-de-ia.md) Parte 4.
 
 Más lo transversal que las envuelve a todas: el **AI Gateway**, el **runner de calibración** y los
 **workers asincrónicos**.
@@ -197,7 +204,7 @@ Siete pantallas. **Ninguna la hacés vos, y sin ellas la IA no se puede usar ni 
 
 ### 3.3 Del Product Owner
 
-Las 8 preguntas abiertas de [08](08-decisiones-y-pendientes.md). Las tres que más te bloquean:
+Las 11 preguntas abiertas de [08](08-decisiones-y-pendientes.md). Las tres que más te bloquean:
 
 | # | Pregunta | Por qué te bloquea |
 |---|---|---|
