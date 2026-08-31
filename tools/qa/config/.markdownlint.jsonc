@@ -1,0 +1,41 @@
+{
+  // Reglas desactivadas porque chocan con decisiones de estilo DELIBERADAS de
+  // esta documentacion. Pelearse con ellas no mejora nada y solo genera ruido
+  // que termina con el gate desactivado.
+
+  // Los documentos estan wrapeados a 100 columnas a proposito, y las tablas y
+  // los links largos exceden cualquier limite razonable.
+  "MD013": false,
+
+  // Varios documentos se dividen en "# Parte 1", "# Parte 2". Son 76 hallazgos
+  // que describen la estructura elegida, no un error.
+  "MD025": false,
+
+  // La documentacion usa **negrita** como sub-titulo dentro de una seccion. Es
+  // una decision de composicion, no un heading mal puesto.
+  "MD036": false,
+
+  // Los callouts del estilo "> ### Titulo" llevan una linea en blanco adentro
+  // de la cita a proposito.
+  "MD028": false,
+
+  // Hay saltos deliberados de nivel de heading en los indices.
+  "MD001": false,
+
+  // HTML inline para detalles puntuales de presentacion.
+  "MD033": false,
+
+  // El primer heading no siempre es h1: varios documentos arrancan con una cita.
+  "MD041": false,
+
+  // Headings repetidos entre secciones distintas del mismo documento son normales.
+  "MD024": { "siblings_only": true },
+
+  // Titulos con "?" son legitimos (el documento 09 es todo preguntas).
+  "MD026": { "punctuation": ".,;:!" }
+
+  // Lo que SI queda activo -MD012, MD022, MD032, MD040- es higiene de formato
+  // real y auto-corregible. Hoy da ~170 hallazgos sobre el corpus existente, y
+  // por eso el chequeo esta en `avisa` en los dos perfiles: se limpia de a poco
+  // y recien despues se sube a `bloquea`.
+}

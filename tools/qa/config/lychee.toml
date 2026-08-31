@@ -1,0 +1,20 @@
+# Verificacion de links.
+#
+# En el perfil rapido solo se miran links internos (--offline): los externos
+# dependen de la red y hacen la corrida no deterministica. En el perfil completo
+# se miran todos, pero sin bloquear.
+#
+# Los patrones van entre comillas SIMPLES: son cadenas literales de TOML, donde
+# la barra invertida no se interpreta. Con comillas dobles habria que escribir
+# '\\.' y es un error facil de cometer.
+
+max_concurrency = 8
+timeout = 10
+max_retries = 1
+
+exclude = [
+  # Los artefactos de claude.ai piden autenticacion: dan 401/403 aunque existan.
+  '^https://claude\.ai/',
+]
+
+exclude_mail = true

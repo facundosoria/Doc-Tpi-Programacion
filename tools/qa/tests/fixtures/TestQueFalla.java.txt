@@ -1,0 +1,14 @@
+package ar.edu.utn.frc.tup.piv.evaluacionllm;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+
+import org.junit.jupiter.api.Test;
+
+/** Fixture: un assert que falla, con el mismo caso del mockup (72 vs 65). */
+class TestQueFalla {
+
+    @Test
+    void scoreShouldMatchExpectedTotal() {
+        assertEquals(72, 65);
+    }
+}

@@ -1,0 +1,10 @@
+# Terminos permitidos en el codigo aunque no esten en el diccionario ingles.
+# Nombres propios, marcas, siglas del proyecto. NO uses esto para colar
+# identificadores en castellano: el codigo va en ingles.
+
+pgvector
+evaluacionllm
+utn
+frc
+tup
+piv

@@ -1,6 +1,16 @@
 # Material de origen (se distribuye por la catedra)
 *.pdf
 
+# Salida del gate de calidad
+.qa/
+
+# Python del gate
+__pycache__/
+*.pyc
+
+# Build de Java
+target/
+
 # Sistema
 .DS_Store
 Thumbs.db

@@ -1,0 +1,49 @@
+<?xml version="1.0"?>
+<ruleset name="tema07"
+         xmlns="http://pmd.sourceforge.net/ruleset/2.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://pmd.sourceforge.net/ruleset/2.0.0 https://pmd.sourceforge.io/ruleset_2_0_0.xsd">
+
+  <description>
+    Reglas de analisis estatico del Tema 07.
+
+    Arranca corto a proposito: solo cosas que son defectos objetivos, no estilo.
+    Segun la regla de operacion del gate, esta etapa esta en `avisa` hasta que
+    demuestre que encuentra cosas reales; recien ahi se sube a `bloquea`.
+
+    Para agregar una regla: sumala aca Y agrega su fixture en tools/qa/tests/.
+  </description>
+
+  <!-- Codigo muerto: el requisito original que motivo todo esto. -->
+  <rule ref="category/java/bestpractices.xml/UnusedLocalVariable"/>
+  <rule ref="category/java/bestpractices.xml/UnusedPrivateMethod"/>
+  <rule ref="category/java/bestpractices.xml/UnusedPrivateField"/>
+  <rule ref="category/java/bestpractices.xml/UnusedFormalParameter"/>
+
+  <!-- Defectos que compilan perfecto y fallan en produccion. -->
+  <rule ref="category/java/errorprone.xml/EmptyCatchBlock"/>
+  <rule ref="category/java/errorprone.xml/CompareObjectsWithEquals"/>
+  <rule ref="category/java/errorprone.xml/OverrideBothEqualsAndHashcode"/>
+
+  <!-- Complejidad. Es lo que mide SonarQube y no necesita SonarQube.
+       Los umbrales estan altos a proposito: la idea es cazar el metodo que se
+       volvio inmantenible, no discutir cada if. Se ajustan cuando haya codigo
+       real que los ejercite. -->
+  <rule ref="category/java/design.xml/CyclomaticComplexity">
+    <properties>
+      <property name="methodReportLevel" value="12"/>
+      <property name="classReportLevel" value="80"/>
+    </properties>
+  </rule>
+  <rule ref="category/java/design.xml/CognitiveComplexity">
+    <properties>
+      <property name="reportLevel" value="15"/>
+    </properties>
+  </rule>
+  <rule ref="category/java/design.xml/ExcessiveParameterList">
+    <properties>
+      <property name="minimum" value="7"/>
+    </properties>
+  </rule>
+  <rule ref="category/java/design.xml/NPathComplexity"/>
+</ruleset>

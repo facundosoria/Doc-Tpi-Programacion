@@ -1,0 +1,111 @@
+# La politica del gate. Toda decision de que corre, sobre que, y si frena o no
+# se toma aca. Los scripts no deciden nada.
+#
+# Niveles:
+#   bloquea  el hallazgo hace fallar la corrida
+#   avisa    se reporta y la corrida sigue
+#   arregla  solo formato: corrige en el working tree en vez de protestar
+#   off      no se ejecuta
+#
+# REGLA DE OPERACION: ninguna regla nace en `bloquea`. Nace en `avisa`.
+# Se la sube recien cuando demostro que encuentra cosas reales.
+
+perfiles:
+  rapido:
+    presupuesto_s: 120
+    descripcion: "./qa.sh en tu maquina, sobre lo que cambiaste"
+  completo:
+    presupuesto_s: 600
+    descripcion: "lo que corre el CI, sobre todo el repo"
+
+chequeos:
+
+  ortografia:
+    herramienta: cspell
+    aplica_a: ["**/*.md"]
+    rapido: bloquea
+    completo: bloquea
+
+  markdownlint:
+    herramienta: markdownlint-cli2
+    aplica_a: ["**/*.md"]
+    # En `avisa` en los dos perfiles, aplicando la regla de operacion: es un
+    # chequeo nuevo y todavia no demostro nada. Sobre el corpus actual da ~170
+    # hallazgos de higiene de formato (MD012, MD022, MD032, MD040), todos
+    # auto-corregibles. Cuando se limpien, subilo a `bloquea` en completo.
+    rapido: avisa
+    completo: avisa
+
+  links:
+    herramienta: lychee
+    solo_regresiones: true
+    rapido: avisa
+    completo: bloquea
+
+  referencias:
+    herramienta: check_refs
+    solo_regresiones: true
+    rapido: bloquea
+    completo: bloquea
+
+  workflows:
+    herramienta: check_workflows
+    # Bloquea desde el dia uno, sin periodo de prueba: no hay margen de duda
+    # sobre si un hallazgo es real, y el costo de dejarlo pasar es que el equipo
+    # entero se quede sin CI a mitad de mes.
+    rapido: bloquea
+    completo: bloquea
+
+  secretos:
+    herramienta: gitleaks
+    rapido: bloquea
+    completo: bloquea
+
+  formato:
+    herramienta: spotless
+    aplica_a: ["**/*.java"]
+    rapido: arregla
+    completo: bloquea
+
+  compila:
+    herramienta: maven-compile
+    aplica_a: ["**/*.java"]
+    rapido: bloquea
+    completo: bloquea
+
+  tests:
+    herramienta: maven-test
+    aplica_a: ["**/*.java"]
+    rapido: bloquea
+    completo: bloquea
+    solo:
+      rapido: unitarios
+      completo: todos
+
+  duplicacion:
+    herramienta: cpd
+    aplica_a: ["**/*.java"]
+    # Copiar-pegar. Es lo que mide SonarQube, sin SonarQube: CPD viene con PMD.
+    rapido: avisa
+    completo: avisa
+
+  cobertura:
+    herramienta: diff-cover
+    aplica_a: ["**/*.java"]
+    # Cobertura de las LINEAS QUE AGREGASTE, no del proyecto. Un umbral global
+    # es inaplicable con 11 equipos y genera deuda retroactiva que nadie paga.
+    # El minimo se ajusta con QA_COBERTURA_MINIMA (default 70).
+    rapido: avisa
+    completo: avisa
+
+  analisis_estatico:
+    herramienta: pmd
+    aplica_a: ["**/*.java"]
+    rapido: avisa
+    completo: avisa
+
+  idioma_codigo:
+    herramienta: cspell-code
+    aplica_a: ["**/*.java"]
+    rapido: avisa
+    completo: avisa

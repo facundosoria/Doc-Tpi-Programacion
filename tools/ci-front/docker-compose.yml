@@ -1,0 +1,27 @@
+# Levanta el front del CI en el server del equipo.
+#
+#   docker compose -f tools/ci-front/docker-compose.yml up -d
+#
+# OJO con el puerto: el 80 y el 8088 ya los usa codemon_front en ese servidor.
+# Por eso el default es 8099. Cambialo con CI_PUERTO_HOST si hace falta.
+
+services:
+  ci-front:
+    build: .
+    container_name: tpi_ci_front
+    restart: unless-stopped
+    ports:
+      - "${CI_PUERTO_HOST:-8099}:8099"
+    environment:
+      # Sin CI_REPO y CI_TOKEN sirve los datos de prueba, y lo dice en pantalla.
+      CI_REPO: "${CI_REPO:-}"
+      CI_TOKEN: "${CI_TOKEN:-}"
+      # Cuantos runners self-hosted hay instalados. Define si las corridas van
+      # en paralelo o hacen fila: con 1, seis personas se encolan de a una.
+      CI_RUNNERS: "${CI_RUNNERS:-1}"
+      CI_CACHE_S: "${CI_CACHE_S:-15}"
+    healthcheck:
+      test: ["CMD", "python3", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8099/salud')"]
+      interval: 30s
+      timeout: 5s
+      retries: 3

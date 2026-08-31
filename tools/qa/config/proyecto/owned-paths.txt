@@ -1,0 +1,15 @@
+# Rutas que son nuestras. Lo que caiga fuera de aca se reporta como informativo
+# pero NUNCA bloquea, aunque lo toque un merge.
+#
+# Un glob por linea. Las lineas que empiezan con # son comentarios.
+# Cuando entre contenido de otro equipo al repo, NO lo agregues aca.
+
+docs/**
+*.md
+ms-evaluacion-llm/**
+tools/qa/**
+
+# Exclusiones (la exclusion siempre gana). Los fixtures del self-test estan
+# rotos a proposito: si el gate se chequeara a si mismo con ellos, fallaria
+# siempre y por las razones equivocadas.
+!tools/qa/tests/fixtures/**

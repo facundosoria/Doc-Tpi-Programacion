@@ -1,0 +1,8 @@
+package ar.edu.utn.frc.tup.piv.evaluacionllm;
+
+/** Fixture: formato roto a proposito. Spotless tiene que corregirlo o protestar. */
+public class MalFormateado {
+        public int suma( int a,int b ) {
+      return a+b;
+        }
+}

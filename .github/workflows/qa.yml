@@ -1,0 +1,28 @@
+name: qa
+
+# El workflow va FLACO a proposito: toda la logica vive en qa.sh y en la imagen.
+# Por eso "correr los mismos actions localmente" es literalmente ./qa.sh, sin
+# emular nada, y por eso mudarse de GitHub no toca una linea del motor.
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+    branches: [dev, main]
+
+jobs:
+  qa:
+    # Corre en el runner self-hosted del equipo: no consume minutos de Actions.
+    # El repo tiene que seguir siendo privado: un runner self-hosted en un repo
+    # publico deja que cualquiera ejecute codigo arbitrario en el server.
+    runs-on: self-hosted
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          # El gate compara contra el merge-base para bloquear solo lo que este
+          # cambio rompio. Sin el historial no hay con que comparar.
+          fetch-depth: 0
+
+      - name: Verificar
+        run: ./qa.sh --all --perfil completo

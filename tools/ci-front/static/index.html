@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CI · Tema 07</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;500&display=swap">
+<style>
+:root{
+  --ground:#F4F6FA; --surface:#FFFFFF; --sunk:#EDF0F6;
+  --ink:#10141C; --muted:#59637A; --faint:#8A93A6;
+  --line:#DCE2EC; --line-strong:#C4CDDC;
+  --accent:#4A5BD4;
+  --pass:#14804A; --pass-bg:#E4F3EA;
+  --block:#B32B3E; --block-bg:#FBE9EB;
+  --warn:#A05E00; --warn-bg:#FBF0DC;
+  --run:#4A5BD4;  --run-bg:#E7EAFB;
+  --idle:#8A93A6; --idle-bg:#EDF0F6;
+  --f-display:"Archivo","Helvetica Neue",Arial,sans-serif;
+  --f-body:"Source Sans 3","Helvetica Neue",Arial,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --ground:#0E1116; --surface:#171B22; --sunk:#12161D;
+  --ink:#E7EBF2; --muted:#8892A6; --faint:#6A7386;
+  --line:#242B36; --line-strong:#333C4A;
+  --accent:#8093F5;
+  --pass:#4ADE80; --pass-bg:#12251B;
+  --block:#F87171; --block-bg:#2A1518;
+  --warn:#F5B544; --warn-bg:#2A2011;
+  --run:#8093F5;  --run-bg:#191E33;
+  --idle:#6A7386; --idle-bg:#1A1F27;
+}}
+:root[data-theme="dark"]{
+  --ground:#0E1116; --surface:#171B22; --sunk:#12161D;
+  --ink:#E7EBF2; --muted:#8892A6; --faint:#6A7386;
+  --line:#242B36; --line-strong:#333C4A;
+  --accent:#8093F5;
+  --pass:#4ADE80; --pass-bg:#12251B;
+  --block:#F87171; --block-bg:#2A1518;
+  --warn:#F5B544; --warn-bg:#2A2011;
+  --run:#8093F5;  --run-bg:#191E33;
+  --idle:#6A7386; --idle-bg:#1A1F27;
+}
+*{box-sizing:border-box}
+body{background:var(--ground);color:var(--ink);font-family:var(--f-body);
+  font-size:15px;line-height:1.6;margin:0;padding:2rem 1.25rem 4rem;-webkit-font-smoothing:antialiased}
+.wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:1.75rem}
+h1{font-family:var(--f-display);font-size:1.5rem;font-weight:700;letter-spacing:-.015em;margin:0}
+h2{font-family:var(--f-display);font-size:1rem;font-weight:600;margin:0}
+.eyebrow{font-family:var(--f-mono);font-size:.7rem;font-weight:500;letter-spacing:.12em;
+  text-transform:uppercase;color:var(--faint);margin:0}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+
+header{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:1rem}
+.vive{display:flex;align-items:center;gap:.45rem;font-size:.8rem;color:var(--muted)}
+.latido{width:7px;height:7px;border-radius:50%;background:var(--pass);
+  animation:pulso 2s ease-in-out infinite}
+@keyframes pulso{0%,100%{opacity:1}50%{opacity:.3}}
+@media (prefers-reduced-motion:reduce){.latido{animation:none}}
+
+/* franja de runners y cola */
+.franja{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:1px;
+  background:var(--line);border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.celda{background:var(--surface);padding:.9rem 1.1rem;display:flex;flex-direction:column;gap:.1rem}
+.celda .n{font-family:var(--f-display);font-size:1.35rem;font-weight:600;font-variant-numeric:tabular-nums}
+.celda .l{font-size:.78rem;color:var(--muted)}
+.celda.alerta .n{color:var(--warn)}
+
+.aviso{background:var(--warn-bg);color:var(--warn);border-radius:8px;padding:.7rem 1rem;
+  font-size:.85rem;font-family:var(--f-mono)}
+
+/* corrida */
+.corrida{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+  padding:1.1rem 1.35rem;display:flex;flex-direction:column;gap:.95rem}
+.corrida.destaca{border-color:var(--line-strong)}
+.fila1{display:flex;flex-wrap:wrap;align-items:center;gap:.6rem .85rem}
+.pill{font-family:var(--f-mono);font-size:.72rem;font-weight:500;padding:.2rem .65rem;
+  border-radius:100px;letter-spacing:.03em;white-space:nowrap}
+.pill.ok{background:var(--pass-bg);color:var(--pass)}
+.pill.fallo{background:var(--block-bg);color:var(--block)}
+.pill.corriendo{background:var(--run-bg);color:var(--run)}
+.pill.en_cola{background:var(--idle-bg);color:var(--idle)}
+.pill.cancelada{background:var(--idle-bg);color:var(--idle)}
+.num{font-family:var(--f-mono);font-size:.85rem;color:var(--faint)}
+.quien{display:flex;align-items:center;gap:.5rem;margin-left:auto}
+.ini{width:26px;height:26px;border-radius:50%;background:var(--sunk);color:var(--muted);
+  display:flex;align-items:center;justify-content:center;font-family:var(--f-mono);
+  font-size:.68rem;font-weight:500;flex-shrink:0}
+.quien .nom{font-size:.85rem;font-weight:600}
+.quien .gh{font-family:var(--f-mono);font-size:.72rem;color:var(--faint)}
+.fila2{display:flex;flex-wrap:wrap;gap:.4rem .8rem;align-items:baseline;font-size:.85rem}
+.rama{font-family:var(--f-mono);font-size:.8rem;color:var(--accent)}
+.msg{color:var(--muted);flex:1;min-width:180px}
+.tiempos{font-family:var(--f-mono);font-size:.75rem;color:var(--faint);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+
+/* etapas */
+.etapas{display:flex;flex-wrap:wrap;gap:.2rem;align-items:flex-start}
+.et{flex:1 1 62px;min-width:62px;display:flex;flex-direction:column;align-items:center;
+  gap:.4rem;position:relative}
+.et::after{content:"";position:absolute;top:13px;left:calc(50% + 16px);right:calc(-50% + 16px);
+  height:2px;background:var(--line)}
+.et:last-child::after{display:none}
+.et.hecha::after{background:var(--line-strong)}
+.pt{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  font-family:var(--f-mono);font-size:.78rem;font-weight:500;z-index:1}
+.pt.ok{background:var(--pass-bg);color:var(--pass)}
+.pt.aviso{background:var(--warn-bg);color:var(--warn)}
+.pt.fallo{background:var(--block);color:var(--surface)}
+.pt.corriendo{background:var(--run-bg);color:var(--run);animation:pulso 1.4s ease-in-out infinite}
+.pt.pendiente{background:var(--idle-bg);color:var(--idle);border:1px solid var(--line)}
+.et .nm{font-size:.64rem;text-align:center;line-height:1.2;color:var(--faint)}
+.sin-etapas{font-size:.82rem;color:var(--faint);font-style:italic}
+
+/* detalle del fallo */
+.fallo-det{background:var(--sunk);border-left:3px solid var(--block);border-radius:0 8px 8px 0;
+  padding:.9rem 1.1rem;display:grid;grid-template-columns:auto 1fr;gap:.4rem .9rem;font-size:.85rem}
+.fallo-det dt{font-family:var(--f-mono);font-size:.7rem;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--faint);padding-top:.2rem}
+.fallo-det dd{margin:0}
+.fallo-det .loc{font-family:var(--f-mono);font-size:.8rem;color:var(--accent);word-break:break-all}
+.fallo-det .val{font-family:var(--f-mono);font-size:.8rem}
+.fallo-det .esp{color:var(--pass)} .fallo-det .obt{color:var(--block)}
+
+.leyenda{display:flex;flex-wrap:wrap;gap:.3rem 1.15rem;font-size:.76rem;color:var(--muted)}
+.leyenda span{display:flex;align-items:center;gap:.35rem}
+.key{width:9px;height:9px;border-radius:50%}
+.grupo{display:flex;flex-direction:column;gap:.7rem}
+a{color:var(--accent)}
+a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <div>
+      <p class="eyebrow">Tema 07 · Evaluación LLM</p>
+      <h1>Corridas del CI</h1>
+    </div>
+    <div class="vive"><span class="latido"></span><span id="vive-txt">actualizando…</span></div>
+  </header>
+
+  <div id="aviso"></div>
+  <div class="franja" id="franja"></div>
+
+  <div class="leyenda">
+    <span><i class="key" style="background:var(--pass)"></i>pasó</span>
+    <span><i class="key" style="background:var(--warn)"></i>avisa, no frena</span>
+    <span><i class="key" style="background:var(--block)"></i>bloquea</span>
+    <span><i class="key" style="background:var(--run)"></i>corriendo</span>
+    <span><i class="key" style="background:var(--idle)"></i>no ejecutada</span>
+  </div>
+
+  <div class="grupo">
+    <h2>En curso y en cola</h2>
+    <div class="grupo" id="activas"></div>
+  </div>
+
+  <div class="grupo">
+    <h2>Historial</h2>
+    <div class="grupo" id="historial"></div>
+  </div>
+
+</div>
+
+<script>
+const SIMBOLO = {ok:"✓", aviso:"!", fallo:"✕", corriendo:"·", pendiente:"–"};
+const ETIQUETA = {ok:"pasó", fallo:"falló", corriendo:"corriendo", en_cola:"en cola", cancelada:"cancelada"};
+const CORTO = {secretos:"secretos", ortografia:"ortogr.", markdownlint:"markdown",
+  referencias:"refs", links:"links", formato:"formato", compila:"compila",
+  analisis_estatico:"estático", idioma_codigo:"idioma", tests:"tests"};
+
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
+  ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+
+const iniciales = n => String(n || "?").trim().split(/\s+/).slice(0,2)
+  .map(p => p[0] || "").join("").toUpperCase() || "?";
+
+const dur = s => s >= 60 ? `${Math.floor(s/60)}m ${s%60}s` : `${s}s`;
+
+function etapasHTML(c){
+  if(!c.etapas || !c.etapas.length){
+    return `<p class="sin-etapas">${c.estado === "en_cola"
+      ? "Todavía no arrancó: esperando un runner libre."
+      : "Sin detalle de etapas."}</p>`;
+  }
+  return `<div class="etapas">` + c.etapas.map(e => {
+    const hecha = e.estado === "ok" || e.estado === "aviso" || e.estado === "fallo";
+    return `<div class="et${hecha ? " hecha" : ""}">
+      <div class="pt ${e.estado}">${SIMBOLO[e.estado] || "?"}</div>
+      <span class="nm">${esc(CORTO[e.nombre] || e.nombre)}</span>
+    </div>`;
+  }).join("") + `</div>`;
+}
+
+function falloHTML(d){
+  if(!d) return "";
+  return `<dl class="fallo-det">
+    <dt>Dónde</dt><dd class="loc">${esc(d.archivo)}:${esc(d.linea)} · ${esc(d.regla)}</dd>
+    <dt>Qué pasó</dt><dd>${esc(d.que_paso)} — esperado <span class="val esp">${esc(d.esperado)}</span>, obtenido <span class="val obt">${esc(d.obtenido)}</span></dd>
+    <dt>Arreglo</dt><dd>${esc(d.arreglo)}</dd>
+  </dl>`;
+}
+
+function corridaHTML(c){
+  const tiempos = c.estado === "en_cola"
+    ? `esperando hace ${dur(c.espera_s)}`
+    : `${dur(c.duracion_s)}${c.espera_s ? ` · esperó ${dur(c.espera_s)}` : ""}`;
+  const activa = c.estado === "corriendo" || c.estado === "en_cola";
+  return `<article class="corrida${activa ? " destaca" : ""}">
+    <div class="fila1">
+      <span class="pill ${c.estado}">${ETIQUETA[c.estado] || c.estado}</span>
+      <span class="num">#${esc(c.numero)}</span>
+      <span class="tiempos">${tiempos}</span>
+      <div class="quien">
+        <div class="ini">${esc(iniciales(c.autor_git))}</div>
+        <div>
+          <div class="nom">${esc(c.autor_git)}</div>
+          ${c.autor_github ? `<div class="gh">@${esc(c.autor_github)}</div>` : ""}
+        </div>
+      </div>
+    </div>
+    <div class="fila2">
+      <span class="rama">${esc(c.rama)}</span>
+      <span class="rama">${esc(c.commit)}</span>
+      <span class="msg">${esc(c.mensaje)}</span>
+    </div>
+    ${etapasHTML(c)}
+    ${falloHTML(c.detalle_fallo)}
+  </article>`;
+}
+
+function franjaHTML(d){
+  const enCola = d.corridas.filter(c => c.estado === "en_cola").length;
+  const corriendo = d.corridas.filter(c => c.estado === "corriendo").length;
+  const libres = Math.max(0, d.runners.total - d.runners.ocupados);
+  return `
+    <div class="celda"><span class="n">${corriendo}</span><span class="l">corriendo en paralelo</span></div>
+    <div class="celda${enCola ? " alerta" : ""}"><span class="n">${enCola}</span><span class="l">esperando en cola</span></div>
+    <div class="celda"><span class="n">${libres} / ${d.runners.total}</span><span class="l">runners libres</span></div>
+    <div class="celda"><span class="n">${d.corridas.length}</span><span class="l">corridas recientes</span></div>`;
+}
+
+// Huella de lo que se esta mostrando. Redibujar cada 5 segundos aunque no haya
+// cambiado nada hace saltar la pagina mientras alguien la lee: se reconstruye el
+// DOM, se pierde la posicion y parpadea. Se redibuja solo cuando hay novedades.
+let ultimaHuella = null;
+
+async function refrescar(){
+  try{
+    const r = await fetch("/api/corridas", {cache:"no-store"});
+    const d = await r.json();
+
+    document.getElementById("vive-txt").textContent = "actualizado " + d.generado;
+
+    // `generado` cambia en cada corrida del reloj, asi que queda afuera de la huella.
+    const huella = JSON.stringify({
+      a: d.aviso, r: d.runners,
+      c: d.corridas.map(c => [c.numero, c.estado, c.duracion_s, c.espera_s,
+                              (c.etapas || []).map(e => e.estado).join("")])
+    });
+    if(huella === ultimaHuella) return;
+    ultimaHuella = huella;
+
+    document.getElementById("franja").innerHTML = franjaHTML(d);
+    document.getElementById("aviso").innerHTML = d.aviso
+      ? `<p class="aviso">${esc(d.aviso)}</p>` : "";
+
+    const activas = d.corridas.filter(c => c.estado === "corriendo" || c.estado === "en_cola");
+    const resto = d.corridas.filter(c => c.estado !== "corriendo" && c.estado !== "en_cola");
+
+    document.getElementById("activas").innerHTML = activas.length
+      ? activas.map(corridaHTML).join("")
+      : `<p class="sin-etapas">Ninguna corrida en curso.</p>`;
+    document.getElementById("historial").innerHTML = resto.map(corridaHTML).join("");
+  }catch(e){
+    document.getElementById("vive-txt").textContent = "sin conexión con el servidor";
+  }
+}
+
+refrescar();
+setInterval(refrescar, 5000);
+</script>
+</body>
+</html>

@@ -1,0 +1,61 @@
+# Registro de identificadores validos.
+#
+# RF-IA-* y PAR-* vienen del PRD, que no se versiona en este repo (esta en
+# .gitignore). Sin este registro no habria forma de detectar un RF-IA-99 mal
+# tipeado. Se sembro con los IDs efectivamente usados en la documentacion.
+#
+# Los ADR-* NO van aca: se validan directamente contra los headings
+# "### ADR-0NN" de docs/08-decisiones-y-pendientes.md, que si esta en el repo.
+#
+# Cuando el PRD incorpore un requisito nuevo, agregalo a la lista que corresponda.
+
+rf_ia:
+  - RF-IA-01
+  - RF-IA-02
+  - RF-IA-03
+  - RF-IA-04
+  - RF-IA-05
+  - RF-IA-06
+  - RF-IA-07
+  - RF-IA-08
+  - RF-IA-09
+  - RF-IA-10
+  - RF-IA-11
+  - RF-IA-12
+  - RF-IA-13
+  - RF-IA-14
+  - RF-IA-15
+  - RF-IA-16
+  - RF-IA-17
+  - RF-IA-18
+  - RF-IA-19
+  - RF-IA-20
+  - RF-IA-21
+  - RF-IA-22
+  - RF-IA-23
+  - RF-IA-24
+  - RF-IA-25
+  - RF-IA-26
+  - RF-IA-27
+  - RF-IA-28
+  - RF-IA-29
+  - RF-IA-30
+  - RF-IA-31
+  - RF-IA-32
+  - RF-IA-33
+  - RF-IA-34
+  - RF-IA-35
+  - RF-IA-36
+
+par:
+  - PAR-01
+  - PAR-02
+  - PAR-03
+  - PAR-04
+  - PAR-05
+  - PAR-10
+  - PAR-11
+  - PAR-14
+  - PAR-15
+  - PAR-16
+  - PAR-17
