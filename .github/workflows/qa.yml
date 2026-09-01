@@ -24,5 +24,36 @@ jobs:
           # cambio rompio. Sin el historial no hay con que comparar.
           fetch-depth: 0
 
+      # El perfil sale del evento, no de la persona.
+      #
+      # Cada push tiene que ser barato o el gate deja de ser una red y pasa a ser
+      # un embudo: `rapido` son 120s sobre lo que cambiaste. La corrida cara
+      # --600s sobre todo el repo-- se paga una sola vez, al abrir el PR, que es
+      # donde branch protection decide si entra o no.
+      #
+      # Un push directo a dev o main tambien va en `completo`: ahi no hay PR que
+      # lo cubra, y ademas sobre la propia main el merge-base con origin/main da
+      # vacio, asi que `rapido` no mirararia ni un archivo.
+      #
+      # El nombre de rama entra por env y no interpolado en el shell: un nombre
+      # de rama es texto que elige quien pushea, y `${{ }}` dentro de un run: lo
+      # ejecutaria.
+      - name: Elegir perfil
+        id: perfil
+        env:
+          EVENTO: ${{ github.event_name }}
+          RAMA: ${{ github.ref_name }}
+        run: |
+          if [ "$EVENTO" = "pull_request" ] || [ "$RAMA" = "main" ] || [ "$RAMA" = "dev" ]; then
+            echo "args=--all --perfil completo" >> "$GITHUB_OUTPUT"
+          else
+            echo "args=" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Verificar
-        run: ./qa.sh --all --perfil completo
+        env:
+          # En un PR el alcance se mide contra la base real del PR, no contra el
+          # fallback a origin/main de scope.py. En push va vacio a proposito: ahi
+          # el fallback es exactamente lo mismo que ves en tu maquina.
+          QA_BASE: ${{ github.event.pull_request.base.sha }}
+        run: ./qa.sh ${{ steps.perfil.outputs.args }}
