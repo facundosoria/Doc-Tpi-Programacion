@@ -1,141 +1,148 @@
-# Tema 07 — Evaluación LLM
+# 📚 Documentación Técnica y Estratégica Completa — Microservicio de IA (Tema 07)
 
-Documentación de diseño de la capa de inteligencia artificial de la **Plataforma de Aprendizaje
-Gamificado**.
-
-**UTN FRC · Tecnicatura Universitaria en Programación · Programación IV — Back End · 2.º año, 4.º cuatrimestre**
-
----
-
-## El problema
-
-**Construimos el servicio que le pone nota a *cómo* un alumno usó la IA, y tenemos que demostrar que
-esa nota es confiable.**
-
-Lo que lo vuelve difícil no es integrar un modelo de lenguaje:
-
-1. **Es una IA evaluando a otra IA**, y el resultado modifica el XP — que define si un alumno
-   promociona. Una nota mal puesta no es un bug: es un resultado académico que no se deshace.
-2. **Hay que demostrar que evalúa como un humano.** Y para eso primero hay que lograr que **dos
-   humanos se pongan de acuerdo entre ellos**, que es más difícil que el problema técnico.
-3. **La restricción es asimétrica:** un único modelo activo, sin fallback (RF-IA-25) — pero su caída
-   **no puede bloquear al alumno** (RF-IA-27). Un solo camino, y prohibido cortarlo.
-4. **Hay que evitar que la IA filtre la solución, sin que la IA vea la solución.**
-5. **El texto del alumno es a la vez el dato evaluado y un vector de ataque.**
-6. **Dependemos de cinco equipos y de docentes que no controlamos.**
-
-## 👉 Si te sumás al proyecto
-
-Empezá por **[15 · Estado actual y cómo continuar](docs/15-estado-y-como-continuar.md)**: dice dónde
-está todo, qué está decidido, qué bloquea y qué hacer a continuación, sin tener que leer los otros 14
-documentos primero.
-
-## Documentación
-
-| # | Documento | Qué responde |
-|---|---|---|
-| 01 | [Problema, alcance y equipo](docs/01-problema-y-alcance.md) | Qué es nuestro, qué no, y qué reclamarle a los otros equipos |
-| 02 | [Arquitectura y stack](docs/02-arquitectura-y-stack.md) | Reglas de la cátedra, diagrama de sistema, los 8 módulos, el AI Gateway, y el fundamento completo de Java vs Python |
-| 03 | [Modelos, costos y contexto](docs/03-modelos-costos-y-contexto.md) | Qué modelo para cada función, costo por consulta, cuánto contexto meter, qué puede ser gratis |
-| 04 | [Las funciones de IA](docs/04-funciones-de-ia.md) | El generador de evaluaciones, los dos jueces del sistema, y el golden set |
-| 05 | [Seguridad](docs/05-seguridad.md) | Prompt injection, fuga de solución, dónde corre cada guardarraíl, de dónde sale cada nota |
-| 06 | [Operación e ingeniería](docs/06-operacion-e-ingenieria.md) | Colas y prioridades, pico, degradación, caché — y cómo se prueba algo no determinístico |
-| 07 | [Datos y T&C](docs/07-datos-y-terminos.md) | Qué se guarda, quién lo ve, cuánto dura, y el borrador de Términos y Condiciones |
-| 08 | [Decisiones y pendientes](docs/08-decisiones-y-pendientes.md) | Registro de decisiones (ADR) y **lo que falta definir** |
-| 09 | [Preguntas y respuestas](docs/09-preguntas-y-respuestas.md) | El porqué de cada decisión, **con el caso a favor y el caso en contra** |
-| 10 | [Qué entregamos y cómo](docs/10-entregables-y-plan.md) | El inventario del aporte del equipo y el plan de 12 pasos para 6 personas |
-| 11 | [Glosario y metadata](docs/11-glosario-y-metadata.md) | El vocabulario para la integración y las tres tablas que hay que crear ya |
-| 12 | [Almacenamiento e ingesta](docs/12-almacenamiento-e-ingesta.md) | Qué base de datos y cuántas, MinIO, y cómo se baja a texto un PDF con imágenes |
-| 13 | [La rúbrica y los prompts](docs/13-rubrica-y-prompts.md) | 📝 El artefacto central del equipo: las 5 dimensiones con sus anclas y los prompts de cada función |
-| 14 | [Sincronización con la guía didáctica](docs/14-sincronizacion-guia-didactica.md) | 🔄 **Comparación con el otro set de documentación**: los 6 conflictos, lo que hay que adoptar y lo que aportamos |
-| 15 | [Estado actual y cómo continuar](docs/15-estado-y-como-continuar.md) | 👉 **Empezá por acá.** Dónde está todo, qué bloquea, qué hacer a continuación y las 7 decisiones que se revisaron |
-
-> ### 📝 Sobre el contenido de ejemplo
->
-> Varios documentos traen anclas, prompts, transcripciones y números **de ejemplo**, para que el
-> mecanismo se entienda y para no arrancar de cero. **Nada de eso es definitivo.**
-> El inventario completo —los 29 ítems, qué marca tiene cada uno, quién lo define y cuándo— está en
-> [08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md), **Parte C**.
-
-### Por dónde entrar
-
-- **Para entender antes que implementar** → [09 · Preguntas y respuestas](docs/09-preguntas-y-respuestas.md).
-  Es el razonamiento en lenguaje llano y el mejor material para la defensa.
-- **Para empezar a trabajar** → [11 · Glosario y metadata](docs/11-glosario-y-metadata.md) y
-  [10 · Plan](docs/10-entregables-y-plan.md).
-- **Para la sesión de integración** → [08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md), parte B.
-- **Para decidir modelos** → [03 · Modelos y costos](docs/03-modelos-costos-y-contexto.md).
-
-## Los hallazgos que ordenan todo
-
-1. **Nuestro alcance oficial es más angosto de lo que asumíamos.** El Tema 07 son seis cosas:
-   rúbrica, invocación del modelo, golden set, calibración, bloqueo de activación y salvaguarda
-   anti-fuga. **El RAG, el tutor y el generador no están asignados a ningún equipo.**
-
-2. **Pero la salvaguarda anti-fuga nos pone en el camino del tutor.** Corre sobre la respuesta del
-   tutor justo antes de que el alumno la vea: **no se puede ser dueño de ese guardarraíl sin estar
-   ahí.** Y sin tutor no hay transcripción, así que el evaluador se queda sin insumo.
-
-3. **El costo es de USD 5 a 22 por cuatrimestre.** Y la palanca principal **no es qué modelo elegís,
-   es cuántos tokens le mandás**: recortar el contexto del tutor de 6.000 a 3.000 ahorra más que
-   cambiar de modelo, sin costar calidad.
-
-4. **Buena parte de la rúbrica se puede calcular con código**, no con un modelo: entre el 45% y el
-   60% del score. Y no por ahorro — por **reproducibilidad, inmunidad a injection, auditabilidad y
-   ausencia de deriva**.
-
-5. **RF-IA-20 mata el streaming token a token** en desafíos prácticos: no se puede bloquear una
-   respuesta que el alumno ya está leyendo.
-
-6. **El golden set es el ítem de plazo más largo y no depende de nadie técnico.** Sin calibración
-   aprobada, **ningún curso pasa de borrador a activo** — sin override, ni de ADMIN.
-
-7. **La herramienta de carga del golden set tiene que existir antes** de que ese trabajo docente
-   pueda empezar. Parece "una pantalla de admin más" y en realidad destraba el camino crítico.
-
-## Diagramas
-
-- [Arquitectura interna](https://claude.ai/code/artifact/3289c8d8-1ecb-45b6-8ec8-f064b70089c5) —
-  los 8 módulos, cómo se conectan los modelos, el reparto entre 6
-- [Construcción del Tema 07](https://claude.ai/code/artifact/ddc1b820-b1aa-4dc2-ad20-aad24af54ca9) —
-  los 12 pasos en 4 semanas, con dependencias
-- [Java o Python](https://claude.ai/code/artifact/6bda78ed-698b-48dd-aa10-3268c107be13) —
-  comparación capa por capa de los dos stacks
-- [Pantalla del golden set](https://claude.ai/code/artifact/0854689d-1746-486e-b30f-a9cdced0a2d2) —
-  mockup con las 7 decisiones a debatir
-
-Los documentos incluyen además diagramas Mermaid, que GitHub renderiza directamente.
-
-## Lo que bloquea hoy
-
-| Qué | Quién decide |
-|---|---|
-| 🔴 Golden set: responsable con nombre y fecha | Product Owner |
-| 🔴 Free tier y datos de alumnos | Consulta legal |
-| 🔴 Tema 05: cómo accedemos a la solución esperada | Sesión de integración |
-| 🔴 Tema 11: nuestros campos en el contrato de eventos, **antes de que lo cierren** | Sesión de integración |
-| 🟡 Alcance: ¿RAG, tutor, generador y corrector son nuestros? | Sesión de integración |
-
-Detalle y recomendación de cada uno en [08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md).
-
-## Decisiones cerradas
-
-| Decisión | Fundamento |
-|---|---|
-| **Java Spring Boot** para el servicio | La materia es de Java y la integración con Spring Cloud pesa más que el ecosistema de IA de Python. [Detalle](docs/02-arquitectura-y-stack.md) |
-| **Un microservicio, no cinco** | Las cinco funciones comparten gateway, guardarraíles, cuotas y log. Separarlas multiplica la maquinaria transversal |
-| **Sin orquestador basado en LLM** | La ruta la sabe la UI. Un router agrega latencia, costo, un punto de falla y una superficie de injection |
-| **Sincrónico solo para tutor y moderador** | El resto va por cola: Batch al 50%, RF-IA-27 implementado por construcción, y el pico absorbido |
-| **La solución de referencia nunca entra al contexto del tutor** | No se puede filtrar lo que no se tiene |
-| **El perímetro temático lo hace cumplir el retrieval, no el prompt** | Una instrucción se sortea hablando; un filtro en el servidor no |
-
-## Fuentes
-
-- `PRD-Plataforma-Gamificada-TP.pdf` (v2.1) — definición funcional del producto
-- `TUP_PIV_BE_PROPUESTA_ARQ.pdf` — propuesta de arquitectura de la cátedra
-
-> Los PDF de origen no se versionan en este repositorio. Se distribuyen por los canales de la cátedra.
+> **Cátedra:** Programación IV — Back End · Tecnicatura Universitaria en Programación (2.º Año, 4.º Cuatrimestre) · **UTN FRC**  
+> **Proyecto:** Plataforma de Aprendizaje Gamificado · **Tema 07: Capa de Inteligencia Artificial y Evaluación LLM**  
+> **Estado:** Repositorio Documental Centralizado y Unificado (Consolida la Especificación Técnica, Fundamentos de Cátedra, Rúbricas y Planes de Ejecución)  
+> **Fecha de Actualización:** 2026-09-01
 
 ---
 
-*Documentación viva. Última actualización: 2026-08-30.*
+## 🗺️ Mapa General del Repositorio Unificado
+
+Esta carpeta consolida **todo el conocimiento del Tema 07** en un único lugar organizado, eliminando inconsistencias y preservando tanto la especificación formal del microservicio como los fundamentos estratégicos, planes de equipo, taxonomías de seguridad y borradores de prompts.
+
+```mermaid
+flowchart TD
+    ROOT["📂 Doc-TPI-Completa (Índice Maestro)"]
+
+    subgraph S1 ["01 · Especificación Técnica Oficial"]
+        T1["01 Alcance y Roles de IA"]
+        T2["02 Arquitectura Híbrida (Spring Boot + FastAPI)"]
+        T3["03 Pipeline Seguridad Anti-Jailbreak y AST"]
+        T4["04 Evaluación Analítica, Scoring y LLMOps"]
+        T5["05 Catálogo Modelos, Costos y FinOps"]
+        T6["06 Persistencia DDL e Inmutabilidad"]
+        T7["07 Registro de Decisiones ADR (001-016)"]
+        T8["08 Glosario, Metadata y Contratos Tema 11"]
+    end
+
+    subgraph S2 ["02 · Fundamentos y Defensa Oral"]
+        F1["01 Preguntas y Respuestas (Defensa Oral)"]
+        F2["02 Debate Arquitectura Java vs Python"]
+        F3["03 Análisis Económico y Contexto LLM"]
+        F4["04 Operación, Ingeniería y Carga"]
+        F5["05 Datos, Trazabilidad y Términos Legales"]
+        F6["06 Almacenamiento e Ingesta Multimodal"]
+        F7["07 Historial de Sincronización y Conflictos"]
+        F8["08 Seguridad, Fronteras y Guardarraíles"]
+    end
+
+    subgraph S3 ["03 · Rúbricas, Prompts y Calibración"]
+        R1["01 Rúbrica, Anclas y Prompts Completos"]
+        R2["02 Especificación Funciones y Jueces"]
+        R3["📁 planes_ejecucion (10 Planes Sección 15)"]
+    end
+
+    subgraph S4 ["04 · Gestión, Roadmap y Equipo"]
+        G1["01 Alcance y Fronteras Inter-Equipos"]
+        G2["02 Decisiones Abiertas y Pendientes"]
+        G3["03 Plan de Trabajo (12 Pasos / 6 Personas)"]
+        G4["04 Glosario y Metadata Integración"]
+        G5["05 Estado Actual, Bloqueos y Continuación"]
+    end
+
+    subgraph S5 ["05 · Investigación Seguridad y Jailbreak"]
+        J1["00-06 Taxonomía, Vectores de Ataque y Mitigaciones"]
+    end
+
+    ROOT --> S1
+    ROOT --> S2
+    ROOT --> S3
+    ROOT --> S4
+    ROOT --> S5
+```
+
+---
+
+## 🧭 Guías de Lectura según tu Rol o Necesidad
+
+| Tu Objetivo / Rol | Rutas recomendadas |
+|---|---|
+| 💻 **Desarrollador / Arquitecto Backend** | [01_ESPECIFICACION_TECNICA/02_ARQUITECTURA_HIBRIDA_Y_PLATAFORMA.md](./01_ESPECIFICACION_TECNICA/02_ARQUITECTURA_HIBRIDA_Y_PLATAFORMA.md)<br/>[01_ESPECIFICACION_TECNICA/06_PERSISTENCIA_DDL_E_INMUTABILIDAD.md](./01_ESPECIFICACION_TECNICA/06_PERSISTENCIA_DDL_E_INMUTABILIDAD.md)<br/>[01_ESPECIFICACION_TECNICA/03_PIPELINE_SEGURIDAD_ANTI_JAILBREAK_Y_AST.md](./01_ESPECIFICACION_TECNICA/03_PIPELINE_SEGURIDAD_ANTI_JAILBREAK_Y_AST.md) |
+| 🎓 **Defensa Oral frente a Docentes** | [02_FUNDAMENTOS_Y_DEFENSA_ORAL/01_PREGUNTAS_Y_RESPUESTAS_DEFENSA.md](./02_FUNDAMENTOS_Y_DEFENSA_ORAL/01_PREGUNTAS_Y_RESPUESTAS_DEFENSA.md) *(22 preguntas con pros y contras)*<br/>[01_ESPECIFICACION_TECNICA/07_REGISTRO_DE_DECISIONES_ADR.md](./01_ESPECIFICACION_TECNICA/07_REGISTRO_DE_DECISIONES_ADR.md) |
+| 🧑‍🏫 **Docente / Calibración Académica** | [03_RUBRICAS_PROMPTS_Y_CALIBRACION/01_RUBRICA_ANCLAS_Y_PROMPTS_COMPLETOS.md](./03_RUBRICAS_PROMPTS_Y_CALIBRACION/01_RUBRICA_ANCLAS_Y_PROMPTS_COMPLETOS.md)<br/>[01_ESPECIFICACION_TECNICA/04_EVALUACION_ANALITICA_SCORING_HIBRIDO_Y_LLMOPS.md](./01_ESPECIFICACION_TECNICA/04_EVALUACION_ANALITICA_SCORING_HIBRIDO_Y_LLMOPS.md) |
+| 🛡️ **Seguridad, Auditoría y Guardarraíles** | [01_ESPECIFICACION_TECNICA/03_PIPELINE_SEGURIDAD_ANTI_JAILBREAK_Y_AST.md](./01_ESPECIFICACION_TECNICA/03_PIPELINE_SEGURIDAD_ANTI_JAILBREAK_Y_AST.md)<br/>[05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/00_INDICE_ANALISIS_IBM.md](./05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/00_INDICE_ANALISIS_IBM.md) |
+| 👥 **Gestión y Coordinación de Integración** | [04_GESTION_ROADMAP_Y_EQUIPO/03_PLAN_DE_TRABAJO_12_PASOS_6_PERSONAS.md](./04_GESTION_ROADMAP_Y_EQUIPO/03_PLAN_DE_TRABAJO_12_PASOS_6_PERSONAS.md)<br/>[04_GESTION_ROADMAP_Y_EQUIPO/05_ESTADO_ACTUAL_BLOQUEOS_Y_CONTINUACION.md](./04_GESTION_ROADMAP_Y_EQUIPO/05_ESTADO_ACTUAL_BLOQUEOS_Y_CONTINUACION.md) |
+
+---
+
+## 📁 Estructura Detallada del Repositorio
+
+### Sección 1: [01_ESPECIFICACION_TECNICA/](./01_ESPECIFICACION_TECNICA/)
+*Especificación formal, arquitectura definitiva, bases de datos y decisiones de diseño consolidadas.*
+
+* **[01_ALCANCE_Y_ROLES_DE_IA.md](./01_ESPECIFICACION_TECNICA/01_ALCANCE_Y_ROLES_DE_IA.md)**: Los 5 roles de IA (Tutor, Evaluador, Generador, Corrector, Moderador), interfaces de servicio y frontera con el motor de desafíos (XP).
+* **[02_ARQUITECTURA_HIBRIDA_Y_PLATAFORMA.md](./01_ESPECIFICACION_TECNICA/02_ARQUITECTURA_HIBRIDA_Y_PLATAFORMA.md)**: Patrón Sidecar Spring Cloud (Eureka, Gateway, AMQP) conectado al motor FastAPI Python (Onion Architecture, uvloop).
+* **[03_PIPELINE_SEGURIDAD_ANTI_JAILBREAK_Y_AST.md](./01_ESPECIFICACION_TECNICA/03_PIPELINE_SEGURIDAD_ANTI_JAILBREAK_Y_AST.md)**: Las 5 capas de defensa activa, Buffer Interceptor en streaming SSE y comparación sintáctica AST (umbral 70%).
+* **[04_EVALUACION_ANALITICA_SCORING_HIBRIDO_Y_LLMOPS.md](./01_ESPECIFICACION_TECNICA/04_EVALUACION_ANALITICA_SCORING_HIBRIDO_Y_LLMOPS.md)**: Fórmula en 5 dimensiones (RF-IA-15), scoring determinístico, Golden Set y Circuit Breaker de deriva (PAR-14).
+* **[05_CATALOGO_MODELOS_COSTOS_Y_FINOPS.md](./01_ESPECIFICACION_TECNICA/05_CATALOGO_MODELOS_COSTOS_Y_FINOPS.md)**: Selección de modelos (Gemini Flash-Lite, Haiku 4.5, GPT-5 nano), hiperparámetros y cuotas en Redis.
+* **[06_PERSISTENCIA_DDL_E_INMUTABILIDAD.md](./01_ESPECIFICACION_TECNICA/06_PERSISTENCIA_DDL_E_INMUTABILIDAD.md)**: Scripts DDL PostgreSQL 16 + `pgvector`, triggers PL/pgSQL para inmutabilidad forense de notas e índices GIN/HNSW.
+* **[07_REGISTRO_DE_DECISIONES_ADR.md](./01_ESPECIFICACION_TECNICA/07_REGISTRO_DE_DECISIONES_ADR.md)**: Registro consolidado ADR-001 al ADR-016 con fundamentos y condiciones de revisión.
+* **[08_GLOSARIO_METADATA_Y_CONTRATOS_CATEDRA.md](./01_ESPECIFICACION_TECNICA/08_GLOSARIO_METADATA_Y_CONTRATOS_CATEDRA.md)**: Contratos de eventos AMQP compartidos con Tema 11, DTOs y glosario terminológico unificado.
+
+---
+
+### Sección 2: [02_FUNDAMENTOS_Y_DEFENSA_ORAL/](./02_FUNDAMENTOS_Y_DEFENSA_ORAL/)
+*Argumentación profunda, análisis con pros y contras, debates técnicos y marco legal.*
+
+* **[01_PREGUNTAS_Y_RESPUESTAS_DEFENSA.md](./02_FUNDAMENTOS_Y_DEFENSA_ORAL/01_PREGUNTAS_Y_RESPUESTAS_DEFENSA.md)**: 22 preguntas clave estructuradas en *Respuesta corta → Por qué sí → Por qué no (honesto) → Qué la cambiaría*.
+* **[02_DEBATE_ARQUITECTURA_JAVA_VS_PYTHON.md](./02_FUNDAMENTOS_Y_DEFENSA_ORAL/02_DEBATE_ARQUITECTURA_JAVA_VS_PYTHON.md)**: Comparativa capa por capa entre Java Spring Cloud y Python FastAPI, y por qué la solución híbrida es la óptima.
+* **[03_ANALISIS_ECONOMICO_Y_CONTEXTO_LLM.md](./02_FUNDAMENTOS_Y_DEFENSA_ORAL/03_ANALISIS_ECONOMICO_Y_CONTEXTO_LLM.md)**: Desglose de costos por token, presupuestos por cuatrimestre (~USD 5 a 22) y técnicas de compresión de contexto.
+* **[04_OPERACION_INGENIERIA_Y_CARGA.md](./02_FUNDAMENTOS_Y_DEFENSA_ORAL/04_OPERACION_INGENIERIA_Y_CARGA.md)**: Absorción de picos de carga (RF-NFR-03), colas con prioridades, idempotencia y testing de sistemas no determinísticos.
+* **[05_DATOS_TRAZABILIDAD_Y_TERMINOS_LEGALES.md](./02_FUNDAMENTOS_Y_DEFENSA_ORAL/05_DATOS_TRAZABILIDAD_Y_TERMINOS_LEGALES.md)**: Trazabilidad académica, transparencia de notas (RF-IA-16), borrador de Términos y Condiciones y retención de 5 años.
+* **[06_ALMACENAMIENTO_E_INGESTA_MULTIMODAL.md](./02_FUNDAMENTOS_Y_DEFENSA_ORAL/06_ALMACENAMIENTO_E_INGESTA_MULTIMODAL.md)**: Roles de PostgreSQL, Redis y MinIO, junto al pipeline de extracción de texto y diagramas desde PDFs docentes.
+* **[07_HISTORIAL_DE_SINCRONIZACION_Y_CONFLICTOS.md](./02_FUNDAMENTOS_Y_DEFENSA_ORAL/07_HISTORIAL_DE_SINCRONIZACION_Y_CONFLICTOS.md)**: Análisis histórico de los 6 conflictos originales entre la guía didáctica y la estrategia inicial del equipo.
+* **[08_SEGURIDAD_FRONTERAS_Y_GUARDARRAILES.md](./02_FUNDAMENTOS_Y_DEFENSA_ORAL/08_SEGURIDAD_FRONTERAS_Y_GUARDARRAILES.md)**: Mapa detallado de fronteras de confianza (Zona Roja, Amarilla, Verde) y guardarraíles de entrada y salida.
+
+---
+
+### Sección 3: [03_RUBRICAS_PROMPTS_Y_CALIBRACION/](./03_RUBRICAS_PROMPTS_Y_CALIBRACION/)
+*Ingeniería pedagógica, anclas de evaluación, plantillas de prompts y planes de ejecución técnica.*
+
+* **[01_RUBRICA_ANCLAS_Y_PROMPTS_COMPLETOS.md](./03_RUBRICAS_PROMPTS_Y_CALIBRACION/01_RUBRICA_ANCLAS_Y_PROMPTS_COMPLETOS.md)**: Definición completa de las 5 dimensiones, sus descriptores de ancla (Bajo, Medio, Alto) y las plantillas de prompts de cada rol.
+* **[02_ESPECIFICACION_FUNCIONES_Y_JUECES.md](./03_RUBRICAS_PROMPTS_Y_CALIBRACION/02_ESPECIFICACION_FUNCIONES_Y_JUECES.md)**: Detalle del generador de evaluaciones, los dos jueces del sistema (analítico y moderador) y el banco de calibración.
+* **[planes_ejecucion/](./03_RUBRICAS_PROMPTS_Y_CALIBRACION/planes_ejecucion/)**:
+  * `00_INDICE_MAESTRO.md`: Guía de los planes de ejecución.
+  * `01_PLAN_CLASIFICACION_RIESGO_FUGA.md`: Clasificación multinivel de riesgo de fuga.
+  * `02_PLAN_GOLDEN_SET_DOBLE_NIVEL.md`: Curación y validación del Golden Set docente.
+  * `03_PLAN_RESILIENCIA_Y_CALCULO_DIFERIDO.md`: Desacople de evaluación ante caídas de LLMs (RF-IA-27).
+  * `04_PLAN_BLOQUEO_CIERRE_CURSOS.md`: Regla de bloqueo estricta si la calibración no está aprobada.
+  * `05_PLAN_TRAZABILIDAD_CAMBIO_MODELO.md`: Auditoría ante rotación o actualización de modelos (RF-IA-25).
+  * `06_PLAN_AUDITORIA_UMBRALES_P90.md`: Monitoreo y ajuste estadístico del umbral AST.
+  * `07_PLAN_REGISTRO_JAILBREAK_INCIDENTES.md`: Registro estructurado de incidentes de seguridad (RF-IA-10).
+  * `08_PLAN_CALIBRACION_MULTILINGUE.md`: Soporte y calibración en lenguajes múltiples.
+  * `09_PLAN_FRONTEND_Y_WORKBENCH_TESTING.md`: Herramienta de interfaz para workbench de calibración docente.
+
+---
+
+### Sección 4: [04_GESTION_ROADMAP_Y_EQUIPO/](./04_GESTION_ROADMAP_Y_EQUIPO/)
+*Coordinación del grupo de 6 desarrolladores, dependencias con otros temas y semáforos de bloqueo.*
+
+* **[01_ALCANCE_Y_FRONTERAS_INTER_EQUIPOS.md](./04_GESTION_ROADMAP_Y_EQUIPO/01_ALCANCE_Y_FRONTERAS_INTER_EQUIPOS.md)**: Matriz de responsabilidades frente a los otros 5 equipos de la cátedra.
+* **[02_DECISIONES_ABIERTAS_Y_PENDIENTES.md](./04_GESTION_ROADMAP_Y_EQUIPO/02_DECISIONES_ABIERTAS_Y_PENDIENTES.md)**: Inventario de definiciones pendientes y puntos a acordar en las sesiones de integración.
+* **[03_PLAN_DE_TRABAJO_12_PASOS_6_PERSONAS.md](./04_GESTION_ROADMAP_Y_EQUIPO/03_PLAN_DE_TRABAJO_12_PASOS_6_PERSONAS.md)**: Hoja de ruta en 12 pasos agrupados en 4 semanas para 6 integrantes con entregables asignados.
+* **[04_GLOSARIO_Y_METADATA_INTEGRACION.md](./04_GESTION_ROADMAP_Y_EQUIPO/04_GLOSARIO_Y_METADATA_INTEGRACION.md)**: Diccionario de términos y tablas iniciales requeridas para coordinar con otros microservicios.
+* **[05_ESTADO_ACTUAL_BLOQUEOS_Y_CONTINUACION.md](./04_GESTION_ROADMAP_Y_EQUIPO/05_ESTADO_ACTUAL_BLOQUEOS_Y_CONTINUACION.md)**: Estado de situación, qué bloquea el camino crítico y tareas inmediatas a ejecutar.
+
+---
+
+### Sección 5: [05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/](./05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/)
+*Investigación avanzada de amenazas, taxonomía OWASP/NIST y matrices de mitigación.*
+
+* **[00_INDICE_ANALISIS_IBM.md](./05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/00_INDICE_ANALISIS_IBM.md)**: Introducción al reporte de seguridad y mitigación.
+* **[01_DEFINICION_ORIGEN_Y_VECTORES_DE_AMENAZA.md](./05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/01_DEFINICION_ORIGEN_Y_VECTORES_DE_AMENAZA.md)**: Fundamentos y vectores de amenaza en modelos generativos.
+* **[02_ESTADISTICAS_METRICAS_Y_PANORAMA_DE_RIESGO.md](./05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/02_ESTADISTICAS_METRICAS_Y_PANORAMA_DE_RIESGO.md)**: Métricas globales de ataques y tasas de éxito empíricas.
+* **[03_TAXONOMIA_Y_TECNICAS_DE_ATAQUE_JAILBREAK.md](./05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/03_TAXONOMIA_Y_TECNICAS_DE_ATAQUE_JAILBREAK.md)**: Clasificación de ataques directos, indirectos, multimodales y ofuscados.
+* **[04_ESTRATEGIAS_DE_MITIGACION_DEFENSA_EN_PROFUNDIDAD.md](./05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/04_ESTRATEGIAS_DE_MITIGACION_DEFENSA_EN_PROFUNDIDAD.md)**: Arquitectura de defensa en profundidad aplicada a pipelines LLM.
+* **[05_FRAMEWORKS_GOBERNANZA_Y_OPORTUNIDADES_DEFENSIVAS.md](./05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/05_FRAMEWORKS_GOBERNANZA_Y_OPORTUNIDADES_DEFENSIVAS.md)**: Alineamiento con NIST AI RMF, OWASP Top 10 LLM y marcos de gobernanza.
+* **[06_MATRIZ_DE_APLICACION_AL_SISTEMA_LOCAL.md](./05_INVESTIGACION_SEGURIDAD_Y_JAILBREAK/06_MATRIZ_DE_APLICACION_AL_SISTEMA_LOCAL.md)**: Mapeo directo entre vulnerabilidades conocidas y las defensas implementadas en el microservicio.
