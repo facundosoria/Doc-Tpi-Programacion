@@ -68,8 +68,23 @@ def nivel_de(config, chequeo, perfil):
     entrada = (config.get("chequeos") or {}).get(chequeo) or {}
     valor = entrada.get(perfil, "off")
     if isinstance(valor, dict):
-        return valor.get("nivel", "off")
-    return valor
+        valor = valor.get("nivel", "off")
+    return _degradar(config, valor)
+
+
+def _degradar(config, nivel):
+    """Aplica `degradacion_ci` de checks.yml segun el entorno.
+
+    En CI el working tree es efimero: el runner clona, corre y descarta. Un nivel
+    que escribe --hoy `arregla`-- corrige alla archivos que nadie va a ver, y la
+    corrida queda en verde sin que el arreglo llegue nunca a la rama.
+
+    Aca solo se detecta el entorno; que se degrada a que lo decide checks.yml.
+    GitHub Actions exporta CI=true, y qa.sh la propaga al contenedor.
+    """
+    if not os.environ.get("CI"):
+        return nivel
+    return (config.get("degradacion_ci") or {}).get(nivel, nivel)
 
 
 def ejecutar(comando, cwd=None):

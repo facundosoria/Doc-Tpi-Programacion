@@ -18,6 +18,16 @@ perfiles:
     presupuesto_s: 600
     descripcion: "lo que corre el CI, sobre todo el repo"
 
+# En CI no hay working tree que sobreviva: el runner clona, corre y descarta. Un
+# chequeo en `arregla` ahi corrige archivos que nadie va a ver y deja la corrida
+# en verde sin que el arreglo llegue nunca a la rama. Es el peor de los dos
+# mundos: no protesta y no arregla.
+#
+# La degradacion es del entorno, no del chequeo: vale para cualquier nivel que
+# escriba. Por eso vive aca y no repartida en cada entrada.
+degradacion_ci:
+  arregla: bloquea
+
 chequeos:
 
   ortografia:
