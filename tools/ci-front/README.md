@@ -9,7 +9,7 @@ están en cola, cuáles corren en paralelo y en qué etapa va cada una.
 sobre el runner self-hosted. Esto solo lee la API, normaliza la respuesta y la
 sirve. Si el front se cae, el CI sigue funcionando igual.
 
-Esa separación es la razón de que esto sean ~400 líneas y no un proyecto de semanas.
+Esa separación es la razón de que esto sean ~700 líneas y no un proyecto de semanas.
 La alternativa era construir un CI propio —cola, workers, base de datos, historial—
 y se descartó por eso.
 

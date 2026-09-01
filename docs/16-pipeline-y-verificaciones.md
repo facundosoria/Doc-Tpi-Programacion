@@ -356,10 +356,11 @@ un título en tu archivo rompe un ancla en el de otro.
 
 | Lenguaje | Líneas | Para qué |
 |---|---|---|
-| **Python 3** | ~1950 | El motor completo: alcance, orquestación, chequeos propios, reporte, self-test |
+| **Python 3** | 1891 | El motor: alcance, orquestación, chequeos propios, reporte, self-test |
 | **YAML y JSON** | ~390 | La política (`checks.yml`), el diagnóstico (`reglas.yml`) y la config de cada herramienta |
-| **Bash** | 85 | Solo los dos puntos de entrada: `qa.sh` y `run.sh` |
-| **HTML y JS** | ~290 | El front del CI, sin framework |
+| **Bash** | 255 | Los dos puntos de entrada, `qa.sh` y `run.sh`, más comentario que código |
+| **Python 3** (el front) | 398 | Lee la API de Actions y el buzón, normaliza las dos y las sirve |
+| **HTML y JS** | 306 | La página del front, sin framework |
 | **Java** | 33 | El esqueleto Spring Boot mínimo |
 
 **El motor no usa ningún framework.** Todo es biblioteca estándar de Python, con una
@@ -860,6 +861,7 @@ que el gate corrija allá se descarta. Es exactamente el motivo de la degradaci�
 | Falló `./qa.sh` en tu máquina | El resumen en `.qa/`. Es el mismo Markdown que GitHub muestra en la página del run |
 | Falló la corrida en GitHub | Pestaña **Actions**, la corrida, el step de verificación |
 | Querés ver la cola | El front, en el 8088 |
+| Querés ver una corrida tuya del server | El front, lista "Corridas en el server". Aparece apenas arranca `--remoto` |
 | El job no arranca nunca | **Settings, Actions, Runners**: si los tres figuran fuera de línea, el server está apagado o el servicio caído |
 | El job falla en segundos, sin llegar al gate | Casi siempre es el checkout: algo en el workspace que el usuario del runner no puede borrar |
 
