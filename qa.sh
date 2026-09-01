@@ -29,6 +29,16 @@ else
   HOST_ROOT="$ROOT"
 fi
 
+# GITHUB_STEP_SUMMARY es una ruta del HOST, fuera de /work. Sin montarla,
+# reportar.py la abre adentro del contenedor, no existe, y la corrida muere con
+# FileNotFoundError aunque el gate haya pasado: el verde o rojo terminaba
+# dependiendo de un archivo que nadie podia escribir. Montamos su carpeta en la
+# misma ruta para que el resumen llegue a la pagina del run.
+RESUMEN_CI=()
+if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
+  RESUMEN_CI=(-v "$(dirname "$GITHUB_STEP_SUMMARY"):$(dirname "$GITHUB_STEP_SUMMARY")")
+fi
+
 # Cada runner self-hosted necesita su PROPIO repositorio Maven. El volumen es
 # unico por host, asi que dos corridas concurrentes en el mismo server comparten
 # /root/.m2: descargas parciales, .lastUpdated y contencion de locks, que fallan
@@ -42,6 +52,7 @@ exec docker run --rm -i \
   -v "${HOST_ROOT}:/work" \
   -v "${QA_M2_VOLUME:-tpi-qa-m2}:/root/.m2" \
   -w /work \
+  "${RESUMEN_CI[@]}" \
   -e QA_BASE="${QA_BASE:-}" \
   -e CI="${CI:-}" \
   -e GITHUB_STEP_SUMMARY="${GITHUB_STEP_SUMMARY:-}" \
