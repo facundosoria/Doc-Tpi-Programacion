@@ -11,9 +11,6 @@ __pycache__/
 # Build de Java
 target/
 
-# Editor (Obsidian abre docs/ como vault)
-.obsidian/
-
 # Sistema
 .DS_Store
 Thumbs.db
