@@ -1,7 +1,8 @@
-# 16 — El pipeline de calidad y qué más conviene verificar
+# 16 — El pipeline de calidad: qué hace, cómo funciona y dónde corre
 
-> Qué hace el gate, cómo funciona, qué comprueba cada etapa, y las verificaciones
-> que valdría la pena sumar y que no están en el flujo estándar de la materia.
+> Todo el gate en un solo lugar: qué problema resuelve, con qué está hecho, qué
+> comprueba cada etapa, qué hace cada comando, dónde se ejecuta cada cosa, y qué
+> verificaciones conviene sumar más adelante.
 
 ---
 
@@ -37,7 +38,272 @@ corresponde. Por eso las reglas nuevas arrancan avisando y no frenando.
 
 ---
 
-# Parte 2 — Cómo funciona
+---
+
+# Parte 2 — Dónde corre cada cosa
+
+Todo el CI vive repartido en tres lugares distintos. La mayor parte de la confusión
+viene de mezclarlos.
+
+```mermaid
+flowchart LR
+    subgraph LOCAL["TU MAQUINA"]
+        L1["escribis codigo"]
+        L2["./qa.sh<br/>tu Docker, tu CPU"]
+        L3[".qa/resumen.md"]
+        L4["git push"]
+        L5["./qa.sh --remoto"]
+    end
+
+    subgraph GH["GITHUB"]
+        G1["el repositorio<br/>el origen"]
+        G2["lee qa.yml<br/>y encola el job"]
+        G3["marca el commit"]
+    end
+
+    subgraph SRV["EL SERVER · mk-luisao-02"]
+        S1["3 runners como servicio<br/>systemd, no paran nunca"]
+        S2["actions/checkout"]
+        S3["./qa.sh · docker run"]
+        S4["13 etapas de verificacion"]
+        S5["el front del CI"]
+        S6["remoto/usuario"]
+        S7[("corridas/<br/>un JSON por corrida")]
+    end
+
+    L1 --> L2
+    L2 -->|"verde"| L3
+    L2 -->|"rojo: corregis"| L1
+    L3 --> L4
+    L4 --> G1
+    G1 --> G2
+
+    S1 ==>|"hay trabajo?"| G2
+    G2 -.->|"el job baja en la respuesta"| S1
+    S1 --> S2
+    S2 ==>|"git clone"| G1
+    S2 --> S3
+    S3 --> S4
+    S4 ==>|"resultado y step summary"| G3
+    S5 ==>|"lee la API"| G3
+
+    L5 <-->|"por SSH: no pasa por GitHub"| S6
+    S6 --> S3
+
+    S4 -->|"registro con las 13 etapas"| S7
+    S7 --> S5
+```
+
+**Las flechas gruesas son las cuatro conexiones que salen del server**: el *"¿hay
+trabajo?"* de los runners, el `git clone` del checkout, el resultado de la corrida y la
+lectura de la API que hace el front. La punteada no es una conexión entrante: es el job
+bajando como respuesta a esa pregunta. Y `--remoto` es el único camino que puentea
+GitHub por completo.
+
+Fijate que `corridas/` recibe de las **dos** puntas que corren acá: una corrida del
+runner y una `--remoto` pasan las dos por las mismas 13 etapas y dejan el mismo
+registro. Por eso el front las puede poner una al lado de la otra.
+
+## Quién hace qué
+
+| | Tu máquina | GitHub | El server |
+|---|---|---|---|
+| Guarda el código | copia de trabajo | **origen** | copia efímera |
+| Se entera del push | — | **sí** | — |
+| Decide qué correr | — | **sí**, con `qa.yml` | — |
+| **Ejecuta el gate** | si vos lo pedís | **nunca** | **sí** |
+| Gasta CPU y disco | cuando corrés `qa.sh` | — | **en cada corrida** |
+| Guarda el resultado | — | **sí** | — |
+
+**GitHub no ejecuta nada.** Coordina: recibe el push, encola el trabajo y guarda el
+resultado. El trabajo lo hace el server.
+
+## La flecha que más se malinterpreta
+
+**El server sale hacia GitHub. GitHub nunca entra al server.**
+
+Los tres runners son procesos que no paran nunca y que cada pocos segundos abren una
+conexión saliente preguntando *"¿hay trabajo para mí?"*. Cuando la respuesta es sí, se
+bajan el job y lo ejecutan.
+
+Tres consecuencias prácticas:
+
+- **No hubo que abrir ningún puerto** en el firewall ni en el router. El server no
+  expone nada hacia afuera para esto.
+- Si el server se apaga, los jobs **quedan en cola**, no fallan. Cuando vuelve, los
+  agarra.
+- Es la razón de que un runner self-hosted funcione detrás de un NAT doméstico sin
+  configuración de red.
+
+## Por qué el resultado local y el del CI no pueden diferir
+
+`qa.sh` es **una receta, no un botón**. Ejecutarla en tu máquina no dispara nada en el
+server; ejecutarla en el server no necesita tu máquina.
+
+| Vos escribís | Dónde corre | Quién se entera |
+|---|---|---|
+| `./qa.sh` | Tu Docker, tu CPU | Nadie |
+| `./qa.sh --remoto` | El Docker del server | Nadie: no toca git |
+| `git push` | — | GitHub encola; un runner escribe `./qa.sh` allá |
+
+Son ejecuciones **independientes de la misma receta**. Y como el motor entero vive
+dentro de una imagen Docker cuyo tag es el hash del `Dockerfile`, las tres puntas corren
+exactamente el mismo binario. No hay emulación ni "equivalente local".
+
+## `--remoto`, y por qué existe
+
+`./qa.sh --remoto` manda tu working tree al server por SSH, corre el gate allá y te
+trae el mismo resumen. No toca git ni el push: viaja lo que tenés ahora, incluido lo
+que no commiteaste.
+
+Existe por una razón que hoy no se nota pero que va a importar: **el runner
+self-hosted solo sirve mientras el repositorio sea nuestro.** Darlo de alta necesita
+permisos de administrador sobre el repo, y en un repositorio compartido con los otros
+equipos ese runner le daría ejecución en nuestro server —como root, por el grupo
+`docker`— a cualquiera que pueda abrir un pull request.
+
+| | Runner self-hosted | `--remoto` |
+|---|---|---|
+| Permisos que hace falta tener en el repo | administrador | **ninguno** |
+| Quién puede ejecutar en nuestro server | todo el que pueda pushear | **solo quien tenga SSH** |
+| Anda con cambios sin commitear | no | **sí** |
+| Necesita Docker en tu máquina | sí | **no** |
+
+Medido sobre este repo: 9 segundos en perfil rápido y 63 en completo, transferencia
+incluida.
+
+## Las dos ramas de `qa.sh`
+
+El script tiene una sola decisión, y de ella salen los dos caminos de arriba. Todo lo
+demás es preparar el contenedor: la lógica de verificación vive adentro de la imagen.
+
+```mermaid
+flowchart TD
+    A["./qa.sh"] --> B{"esta --remoto?"}
+
+    B -->|"si"| R1["tar czf del working tree<br/>sin .qa/, commiteado o no"]
+    R1 --> R2["ssh a remoto/usuario<br/>un directorio por persona"]
+    R2 --> R3["bash qa.sh alla, ya sin --remoto"]
+    R3 --> R4["vuelve .qa/ y el codigo de salida<br/>el del gate, no el de ssh"]
+
+    B -->|"no"| D1["TAG = hash del Dockerfile"]
+    D1 --> D2{"existe la imagen?"}
+    D2 -->|"no"| D2B["docker build<br/>una vez por version del Dockerfile"]
+    D2B --> D3
+    D2 -->|"si"| D3["en Linux: --user UID:GID<br/>y el repo Maven a /qa-m2"]
+    D3 --> D4["docker run<br/>-v repo:/work, -v m2, -v step summary"]
+    D4 --> D5["run.sh, y adentro<br/>orquestar.py y reportar.py"]
+
+    R3 -.->|"cae por la misma rama, alla"| D1
+```
+
+La flecha punteada es lo que más se malinterpreta de `--remoto`: **no es otro gate**. La
+rama de la izquierda termina invocando la de la derecha en el server, sin el flag. Por
+eso el resumen que te vuelve es idéntico al que verías corriéndolo local.
+
+---
+
+---
+
+# Parte 3 — Todos los comandos
+
+Un solo punto de entrada, `./qa.sh`, y unos pocos flags. Lo único que hace falta
+instalado es Docker; con `--remoto`, ni siquiera eso.
+
+## Lo que vas a usar todos los días
+
+| Comando | Qué hace | Cuánto tarda |
+|---|---|---|
+| `./qa.sh` | Verifica **lo que cambiaste**, perfil `rapido` | ~2 s a 46 s |
+| `./qa.sh --remoto` | Lo mismo, pero ejecutado en el server | ~9 s |
+| `./qa.sh --all --perfil completo` | **Exactamente lo que corre el CI** al abrir un pull request | ~46 s |
+
+## Los flags, uno por uno
+
+| Flag | Qué controla | Detalle |
+|---|---|---|
+| *(ninguno)* | — | Perfil `rapido` sobre los archivos que cambiaste |
+| `--all` | **El alcance** | Mira todo el repo, no solo tu diff |
+| `--perfil completo` | **La severidad y el presupuesto** | Sube el presupuesto de 120 s a 600 s y endurece tres chequeos |
+| `--only <etapa>` | Corre una sola etapa | Útil para iterar: `--only tests` |
+| `--self-test` | Verifica **el gate, no el repo** | Quince fixtures, uno por chequeo |
+| `--json` | Vuelca los eventos crudos | El contrato para construir encima |
+| `--remoto` | **Dónde se ejecuta** | Manda el working tree al server por SSH |
+
+> ### `--perfil` necesita el guion doble
+>
+> El perfil se decide con `"--perfil" in argumentos and "completo" in argumentos`.
+> Escrito `perfil completo`, sin guiones, esas dos palabras **se ignoran y corre
+> `rapido` en silencio**, sin avisar. La forma correcta es
+> `./qa.sh --all --perfil completo`.
+
+## Alcance y severidad son ejes distintos
+
+Se confunden seguido, y son independientes:
+
+- **`--all`** decide *sobre qué archivos* mira.
+- **`--perfil completo`** decide *qué tan estricto* es y cuánto tiempo se permite.
+- **`--remoto`** decide *en qué máquina* corre, y no cambia nada de lo anterior.
+
+Se combinan libremente: `./qa.sh --remoto --all --perfil completo` es la corrida del
+CI, ejecutada en el server, sin pushear nada.
+
+## Las variables de entorno
+
+| Variable | Para qué | Default |
+|---|---|---|
+| `CI` | Si está definida, degrada `arregla` a `bloquea` | vacía |
+| `QA_BASE` | Contra qué commit medir el alcance | `origin/main` |
+| `QA_M2_VOLUME` | Qué volumen usar como repositorio Maven | `tpi-qa-m2` |
+| `QA_COBERTURA_MINIMA` | Umbral de cobertura sobre líneas nuevas | `70` |
+| `QA_REMOTO` | Destino SSH para `--remoto` | — |
+| `QA_REMOTO_PUERTO` | Puerto SSH | `22` |
+| `QA_REMOTO_DIR` | Dónde trabaja en el server | `/opt/TP-Pipelines/remoto` |
+| `QA_SPOOL` | Buzón donde dejar el registro de la corrida | vacía: no deja registro |
+| `QA_SPOOL_REMOTO` | Qué buzón usa `--remoto` en el server | `/opt/TP-Pipelines/corridas` |
+| `QA_ORIGEN` | Cómo se etiqueta la corrida en el buzón | `ci` si hay `CI`, si no `local` |
+
+**`CI=1 ./qa.sh` es el truco útil:** hace que `formato` te **reporte** en vez de
+reformatearte los archivos, usando el mismo mecanismo que aplica el CI.
+
+## Qué modifica cada forma de correrlo
+
+Es la pregunta que más aparece, y la respuesta corta es *casi nada*:
+
+| | ¿Te toca archivos? |
+|---|---|
+| `./qa.sh` local | **Solo el formato de los `.java`** que ya cambiaste |
+| `./qa.sh --remoto` | **Nada** |
+| `CI=1 ./qa.sh` | **Nada** |
+| El CI, al pushear | **Nada** |
+
+Ese único caso es `formato`, que en `rapido` está en nivel `arregla` y ejecuta
+`spotless:apply`: te ordena imports, indentación y espacios. **Nunca toca lógica** —
+si compilaba antes, compila después. Los otros doce chequeos solo reportan: una
+palabra mal escrita o un link roto te los informa, no te los corrige.
+
+## Cómo se leen los hallazgos
+
+Cada uno trae las cuatro cosas que hacen falta para arreglarlo:
+
+```text
+[bloquea] docs/16-pipeline-y-verificaciones.md:94     <- archivo y linea
+    Palabra que no esta en el diccionario             <- que paso
+    Unknown word (commiteaste)                        <- el detalle crudo
+    -> Corregila. Si es un termino del dominio,       <- como se arregla
+       agregala a tools/qa/config/proyecto/project-words.txt
+```
+
+Lo mismo queda en `.qa/resumen.md`, que es **el mismo Markdown** que GitHub muestra
+en la página del run. Esa carpeta está en el `.gitignore`: nunca se commitea.
+
+Como cada hallazgo incluye el arreglo, ese archivo sirve directamente como entrada
+para pedirle a una IA que los corrija: *"leé `.qa/resumen.md` y arreglá los
+hallazgos"*.
+
+---
+
+# Parte 4 — Cómo funciona por dentro
 
 ## El flujo
 
@@ -195,7 +461,9 @@ Todo se configura en `tools/qa/config/checks.yml`:
 
 ---
 
-# Parte 3 — Qué verifica cada etapa
+---
+
+# Parte 5 — Qué verifica cada etapa
 
 Corren de lo barato a lo caro, para que los segundos se gasten al final.
 
@@ -277,7 +545,340 @@ los encontró el self-test.
 
 ---
 
-# Parte 4 — Qué más conviene verificar
+## Cuánto tarda cada una, medido
+
+Sobre este repo, en una corrida `completo` con la imagen ya construida y el
+repositorio Maven tibio:
+
+| Etapa | Medido | | Etapa | Medido |
+|---|---|---|---|---|
+| workflows | <1 s | | análisis estático | 12 s |
+| secretos | 1 s | | duplicación | incluida arriba |
+| ortografía | 3 s | | idioma del código | 2 s |
+| markdownlint | 1 s | | tests | 7 s |
+| referencias | <1 s | | cobertura | <1 s |
+| links | 2 s | | | |
+| formato | 10 s | | **total** | **46 s** |
+
+Dos dependencias de orden no son negociables: el análisis estático necesita que
+haya compilado, y la cobertura necesita que los tests hayan corrido.
+
+---
+
+# Parte 6 — El recorrido de un push, paso a paso
+
+```mermaid
+sequenceDiagram
+    participant V as Vos
+    participant G as GitHub
+    participant R as Runner (server)
+    participant D as Docker (server)
+
+    V->>V: ./qa.sh (opcional)
+    V->>G: git push
+    G->>G: lee .github/workflows/qa.yml
+    G->>G: encola el job "qa"
+    R->>G: hay trabajo? (cada pocos segundos)
+    G-->>R: entrega el job
+    R->>G: actions/checkout: clona, fetch-depth 0
+    G-->>R: el repo, con historial completo
+    R->>R: elige perfil segun el evento
+    R->>D: ./qa.sh (docker run)
+    D->>D: 13 etapas de verificacion
+    D-->>R: codigo de salida y resumen
+    R-->>G: resultado y step summary
+    G->>G: marca el commit
+```
+
+## Qué pasa en cada fase, con tiempos reales
+
+Medidos sobre este repo, en `mk-luisao-02` (4 núcleos, 15 GB, Ubuntu 24.04).
+
+| # | Fase | Dónde | Cuánto tardó | Qué pasa exactamente |
+|---|---|---|---|---|
+| 1 | `git push` | Tu máquina | <1 s | Subís los commits. No se dispara nada tuyo |
+| 2 | Evento y encolado | GitHub | ~1 s | Detecta el push, lee `qa.yml`, crea el job con `runs-on: self-hosted` |
+| 3 | Asignación | Server hacia GitHub | 1-5 s | El primer runner libre pregunta y se lleva el job |
+| 4 | Checkout | Server | 2-4 s | Clona con `fetch-depth: 0`. El historial completo pesa 628 KB |
+| 5 | Elegir perfil | Server | <1 s | Un `if` de shell mira el evento y la rama |
+| 6 | Garantizar la imagen | Server | 0 s, o ~2 min | Si el tag ya existe, no hace nada. Si cambió el `Dockerfile`, la construye |
+| 7 | **El gate** | Server, en Docker | 2 s a 46 s | Las 13 etapas. Depende del perfil y de qué tocaste |
+| 8 | Reporte | Server hacia GitHub | ~1 s | Sube el resumen y el resultado |
+| 9 | El check | GitHub | inmediato | El commit queda marcado |
+
+## Los tres números que importan
+
+| Escenario | Medido |
+|---|---|
+| Corrida `rapido` de punta a punta, imagen ya construida | **12 segundos** |
+| Corrida `completo`, con Maven compilando y corriendo tests | **46 segundos** |
+| Primera corrida de todas, que tuvo que construir la imagen | **171 segundos** |
+
+El caso de 171 segundos pasa **una sola vez por versión del `Dockerfile`**. Como el tag
+de la imagen es el hash del archivo, se reconstruye únicamente cuando alguien cambia el
+`Dockerfile`, y a partir de ahí todas las corridas del host la reusan.
+
+---
+
+---
+
+# Parte 7 — El server por dentro
+
+## El server
+
+| Pieza | Tecnología | Versión |
+|---|---|---|
+| Sistema | Ubuntu Server | 24.04 LTS |
+| Contenedores | Docker Engine | 29.4.1 |
+| Compose | Docker Compose | v5.1.3 |
+| Agente de CI | GitHub Actions Runner | 2.337.0 |
+| Supervisión | systemd | 3 servicios, arrancan solos |
+| Proxy | nginx | 1.24 |
+| Front | Python 3.13, sin framework | biblioteca estándar |
+
+## Dónde vive cada cosa
+
+```text
+/opt/TP-Pipelines/
+├── front/                el front del CI, con su compose y su .env
+├── runners/
+│   ├── runner-1/         .env con QA_M2_VOLUME=tpi-qa-m2-1
+│   ├── runner-2/         .env con QA_M2_VOLUME=tpi-qa-m2-2
+│   └── runner-3/         .env con QA_M2_VOLUME=tpi-qa-m2-3
+├── remoto/               un directorio por persona, para ./qa.sh --remoto
+├── corridas/             un JSON por corrida: lo que el front muestra del server
+└── test/                 un checkout de prueba
+```
+
+`remoto/` y `corridas/` tienen el bit sticky, como `/tmp`: cada persona crea y borra
+lo suyo, y no puede tocar lo de otro.
+
+## El buzón de corridas
+
+Todo lo que el gate corre **en este server** deja un registro en `corridas/`: las
+corridas del runner y las de `./qa.sh --remoto`, en el mismo formato. Es lo que le
+permite al front mostrar las dos cosas por separado y compararlas etapa por etapa.
+
+Lo escribe `reportar.py` cuando existe la variable `QA_SPOOL`, y trae **siempre las
+13 etapas**, incluidas las que no se ejecutaron. Sin ese "no ejecutada" explícito,
+una corrida `rapido` y una `completo` se ven iguales en la pantalla, que es
+justamente lo que hay que poder distinguir.
+
+| | El runner | `--remoto` | `./qa.sh` en tu máquina |
+|---|---|---|---|
+| De dónde sale `QA_SPOOL` | el `.env` del runner | la invocación por SSH | de ningún lado |
+| Deja registro | **sí** | **sí** | no |
+
+El último caso no es un olvido: tu máquina no tiene cómo escribir en el server, y el
+camino que sí lo tiene ya existe y es `--remoto`.
+
+El alta es una vez sola:
+
+```text
+sudo install -d -m 1777 /opt/TP-Pipelines/corridas
+echo 'QA_SPOOL=/opt/TP-Pipelines/corridas' >> /opt/TP-Pipelines/runners/runner-1/.env
+```
+
+y lo mismo en `runner-2` y `runner-3`. Si el directorio no existe no se escribe nada
+y todo sigue igual: el registro es información para la pantalla, no parte del
+veredicto. Por el mismo motivo el barrido de registros viejos —una semana— va
+archivo por archivo: con el sticky bit, cada persona limpia lo suyo y no puede tocar
+lo de los demás.
+
+## Los usuarios, y por qué son dos
+
+| Usuario | Dueño de | Por qué |
+|---|---|---|
+| `runner-qa` | `runners/` | Corre los jobs. Está en el grupo `docker` |
+| `sorias` | `front/`, `test/` | Administración. No necesita correr jobs |
+
+**Estar en el grupo `docker` equivale a ser root en ese host.** Cualquiera que pueda
+disparar un workflow puede ejecutar lo que quiera en el server. De ahí salen dos reglas
+que no son negociables:
+
+1. **El repo tiene que seguir siendo privado.** Con el repo público, cualquiera que
+   abra un pull request ejecuta código en el server.
+2. **La máquina tiene que ser dedicada.** Ese server corría la producción de otro
+   proyecto, y bajarla fue condición previa a instalar el runner.
+
+## Por qué tres runners
+
+Un runner corre **una sola cosa por vez**. Con seis personas pusheando, el número sale
+de dos cargas distintas:
+
+- **Régimen normal.** Seis personas a unos cinco pushes por hora, a unos 12 segundos
+  cada corrida, ocupan una fracción mínima. Con dos ya no hay cola perceptible.
+- **La corrida cara.** Un pull request corre en perfil `completo` y puede ocupar un
+  runner hasta 600 segundos. Con dos instalados, esa corrida deja **uno solo** para las
+  otras cinco personas. Con tres, quedan dos libres, que es la capacidad de régimen.
+
+El que decide es el segundo caso. Por eso son tres y no dos.
+
+## Cada runner necesita su propio repositorio Maven
+
+El volumen de Docker es único por host. Sin separarlos, dos corridas simultáneas
+compartirían el mismo repositorio local de Maven y se pisarían las descargas: archivos
+a medio bajar, marcas de actualización y contención de locks. Falla de forma
+intermitente y difícil de atribuir.
+
+Por eso cada directorio de runner tiene un `.env` que el servicio carga al arrancar,
+con un nombre de volumen distinto.
+
+## La red
+
+| Puerto | Qué escucha | Alcance |
+|---|---|---|
+| 22 | SSH | LAN, y llega de afuera por NAT en el 2222 |
+| 80 | nginx hacia el front | **internet**, con usuario y contraseña |
+| 8088 | nginx hacia el front | LAN, para el túnel SSH |
+| 8099 | el contenedor del front | **solo** loopback |
+
+La cadena es: el contenedor escucha solo en loopback, y nginx con autenticación básica
+es la única puerta. Importa porque el front muestra nombres de rama, mensajes de commit
+y quién trabajó en qué.
+
+**El 80 sale a internet, y es una decisión tomada a sabiendas.** El router lo reenvía,
+así que la página es alcanzable por cualquiera que escanee esa IP, y como HTTP va en
+texto plano la contraseña del basic auth viaja sin cifrar. Se eligió así para poder
+mostrar el front sin depender de un dominio.
+
+Para cerrarlo hacen falta dos cosas que hoy no tenemos: **un registro DNS apuntando a
+`186.182.86.167`** y **el 443 reenviado** en el router. Con eso se pone Let's Encrypt
+--el desafío usa el 80, que ya funciona-- y queda con certificado válido.
+
+Mientras tanto, la alternativa cifrada y sin exponer nada es un túnel SSH:
+
+```text
+ssh -N -L 8088:192.168.10.102:8088 -p 2222 usuario@186.182.86.167
+```
+
+y abrir `http://localhost:8088`. Va cifrado de punta a punta.
+
+## El front
+
+Es de **solo lectura y no ejecuta nada**: si se cae, el CI sigue funcionando igual.
+
+Muestra **dos listas, de dos fuentes independientes**:
+
+| Lista | De dónde sale | Qué incluye |
+|---|---|---|
+| En curso e historial | la API de Actions | lo que se disparó con un push o un pull request |
+| Corridas en el server | el buzón `corridas/` | lo que se corrió con `--remoto`, y también las del runner |
+
+La segunda existe porque una corrida `--remoto` **no pasó por GitHub** —la API no
+sabe que ocurrió— y porque de las que sí conoce, GitHub expone los tres steps del
+workflow, no las 13 etapas del gate. El buzón se lee aunque no haya token y aunque
+la API esté caída.
+
+**Las dos se ven en vivo, y la del server con menos retraso.** El gate reescribe el
+registro en cada cambio de etapa, así que la corrida aparece apenas arranca y se la ve
+avanzar etapa por etapa.
+
+| Lista | Retraso | Por qué |
+|---|---|---|
+| Corridas en el server | ~5 s | solo el refresco de la página: el buzón es un directorio local |
+| GitHub | hasta ~20 s | 5 de la página más 15 del cache, que existe para no quemar el rate limit del token |
+
+El buzón queda deliberadamente **fuera del cache**: una corrida `rapido` dura unos 9
+segundos, así que entraría entera en una sola ventana de 15 y se vería ya terminada,
+sin etapas pasando. Que es justo lo que esta pantalla tiene que mostrar.
+
+Si un registro deja de moverse por más de 600 segundos —el presupuesto más largo del
+gate es 600 para la corrida entera—, el front la da por muerta y la muestra como
+cancelada en vez de dejarla girando para siempre.
+
+Necesita un token porque el repo es privado y GitHub no entrega esos datos sin
+credencial. Va con permiso mínimo: **solo lectura de Actions**. Si se filtra, lo peor que
+pasa es que alguien lea el historial de corridas.
+
+Detalle completo en [`tools/ci-front/README.md`](../tools/ci-front/README.md).
+
+---
+
+---
+
+# Parte 8 — Los dos perfiles
+
+| Cuándo | Perfil | Presupuesto | Sobre qué corre |
+|---|---|---|---|
+| Antes de pushear, a mano | `rapido` | 120 s | Lo que cambiaste |
+| Al pushear a tu rama | `rapido` | 120 s | Lo que cambiaste |
+| Al abrir el pull request a `dev` o `main` | `completo` | 600 s | Todo el repo |
+| Push directo a `dev` o `main` | `completo` | 600 s | Todo el repo |
+
+**Lo elige el evento, no la persona.** Cada push tiene que ser barato o el gate deja de
+ser una red y pasa a ser un embudo. La corrida cara se paga una sola vez, al abrir el
+pull request, que es donde branch protection decide si el código entra.
+
+El push directo a `dev` o `main` también va en `completo` por dos razones: ahí no hay
+pull request que lo cubra, y sobre la propia rama principal la comparación con el punto
+de partida da vacío, así que `rapido` no miraría ni un archivo.
+
+## Cómo se nota cuál corrió
+
+En el resumen, las etapas que el perfil `rapido` no necesitó aparecen como **"no
+ejecutada"**. En `completo` corren todas. Es la forma más rápida de confirmar qué perfil
+se usó.
+
+---
+
+---
+
+# Parte 9 — Lo que solo aparece cuando el CI corre en Linux
+
+Cuatro problemas que en Windows son invisibles y que rompieron las primeras corridas
+reales. Están arreglados; se documentan porque van a volver a aparecer si alguien toca
+esas piezas.
+
+| Qué pasaba | Por qué no se veía antes |
+|---|---|
+| **El bit de ejecución.** `qa.sh` estaba marcado como no ejecutable, y el job moría con un error de permisos antes de empezar | Git Bash ignora el bit de ejecución. `./qa.sh` a mano siempre funcionó |
+| **El contenedor escribía como root.** Dejaba archivos con dueño root dentro del working tree, y el checkout de la corrida siguiente no podía borrarlos | Windows no tiene dueños de archivo al estilo Unix. El CI se rompía solo cada dos corridas |
+| **El resumen apuntaba afuera del contenedor.** La variable con la ruta del resumen apunta a una carpeta del host que no estaba montada, y el reporte moría al final | Esa variable solo existe cuando quien invoca es el runner |
+| **El repositorio Maven compartido.** Los tres runners usaban el mismo volumen | Con un solo runner el problema no existe |
+
+El tercero era el más traicionero: el gate pasaba sin un solo hallazgo, pero la corrida
+quedaba en rojo. **El verde o el rojo dependía de un archivo que nadie podía escribir.**
+
+## Dos cosas del runner que conviene saber
+
+**El workspace sobrevive entre corridas.** No es un contenedor limpio: es un directorio
+que se reusa. Lo que una corrida ensucia queda para la siguiente.
+
+**El working tree es efímero igual.** El checkout lo resetea, así que cualquier archivo
+que el gate corrija allá se descarta. Es exactamente el motivo de la degradación de
+`arregla` a `bloquea` en CI.
+
+---
+
+---
+
+# Parte 10 — Dónde mirar cuando algo falla
+
+| Síntoma | Dónde mirar |
+|---|---|
+| Falló `./qa.sh` en tu máquina | El resumen en `.qa/`. Es el mismo Markdown que GitHub muestra en la página del run |
+| Falló la corrida en GitHub | Pestaña **Actions**, la corrida, el step de verificación |
+| Querés ver la cola | El front, en el 8088 |
+| El job no arranca nunca | **Settings, Actions, Runners**: si los tres figuran fuera de línea, el server está apagado o el servicio caído |
+| El job falla en segundos, sin llegar al gate | Casi siempre es el checkout: algo en el workspace que el usuario del runner no puede borrar |
+
+## Comandos útiles en el server
+
+```text
+systemctl status 'actions.runner.*'     estado de los tres servicios
+docker ps                               que esta corriendo ahora
+docker images tpi-qa                    version de la imagen del gate
+```
+
+Los logs de cada runner están en su propio directorio, bajo `_diag/`: unos registran la
+conexión con GitHub y otros cada job.
+
+---
+
+---
+
+# Parte 11 — Qué más conviene verificar
 
 Nada de esto está en el flujo estándar de la materia. Está ordenado por lo que más
 rinde para el Tema 07.
@@ -370,7 +971,9 @@ análisis. Sirve en el CI, no en algo que corrés cada media hora.
 
 ---
 
-# Parte 5 — En qué orden sumarlas
+---
+
+# Parte 12 — En qué orden sumarlas
 
 No todo junto. El criterio es el mismo de siempre: **nace avisando, se sube cuando
 demuestre que sirve.**
@@ -384,6 +987,24 @@ demuestre que sirve.**
 | 5 | Vulnerabilidades y licencias | Corrida diaria, no por push |
 | 6 | Golden set como corrida programada | Cuando haya golden set aprobado |
 | 7 | Mutación sobre el motor de scoring | Al final: es el más caro de correr y el más exigente de escribir |
+
+---
+
+---
+
+# Lo que todavía falta
+
+- **La rama `dev` y el branch protection.** Es lo único que hace que el gate frene
+  algo: hoy informa y marca el commit, pero no bloquea ningún merge. El
+  procedimiento está en [`tools/qa/README.md`](../tools/qa/README.md).
+- **El token del front.** Hasta que se cargue, muestra datos de prueba y lo aclara
+  en pantalla.
+- **El fixture de cobertura del self-test falla.** Espera un hallazgo y no obtiene
+  ninguno. Se verificó a mano que la cadena real funciona —JaCoCo produce el
+  reporte, diff-cover imprime el porcentaje y el adaptador lo parsea—, así que lo
+  roto es el arnés del fixture, no el chequeo. Igual hay que arreglarlo: un
+  self-test roto es exactamente lo que después esconde una regresión de verdad.
+- **ArchUnit**, cuando existan los ocho módulos.
 
 ---
 

@@ -14,10 +14,27 @@ Eventos que entiende:
 
 import json
 import os
+import subprocess
 import sys
+import time
 
 RUTA_LIB = os.path.dirname(os.path.abspath(__file__))
 RUTA_CONFIG = os.path.join(os.path.dirname(RUTA_LIB), "config")
+
+# Cuantos dias sobreviven los registros del buzon. Un directorio que solo crece es
+# una bomba de tiempo en un server que nadie mira: el barrido va en la escritura,
+# que es el unico momento en que sabemos que alguien esta usando esto.
+DIAS_BUZON = 7
+
+# Cuando arranco esta corrida. Se toma al importar, que es cuando el orquestador
+# arranca del otro lado del pipe.
+INICIO = time.time()
+
+# El registro de una corrida se reescribe muchas veces --una por etapa, para que el
+# front la vea avanzar-- y todas tienen que caer en el MISMO archivo, o el front
+# mostraria trece corridas en vez de una. El contexto (rama, commit, usuario) se
+# resuelve una sola vez: son subprocesos de git y no cambian a mitad de corrida.
+_BUZON = {"archivo": None, "contexto": None}
 
 # Un chequeo puede terminar de cuatro formas, y confundir "omitida" con "ok" es el
 # error mas peligroso de un CI: una etapa que no corrio no dijo que todo estaba
@@ -54,6 +71,10 @@ class Reporte:
         self.duracion = {}
         self.hallazgos = []
         self.reglas = cargar_reglas()
+        # Que etapa esta corriendo ahora mismo. Solo lo usa el registro del buzon:
+        # `estado` no se toca para que la consola y el Markdown no tengan que
+        # conocer un estado que, cuando ellos se imprimen, ya no existe.
+        self.en_curso = None
 
     def consumir(self, evento):
         tipo = evento.get("ev")
@@ -62,6 +83,7 @@ class Reporte:
             if etapa not in self.etapas:
                 self.etapas.append(etapa)
             self.estado.setdefault(etapa, "omitida")
+            self.en_curso = etapa
         elif tipo == "hallazgo":
             self.hallazgos.append(evento)
         elif tipo == "etapa_fin":
@@ -70,6 +92,8 @@ class Reporte:
                 self.etapas.append(etapa)
             self.estado[etapa] = evento.get("estado", "omitida")
             self.duracion[etapa] = evento.get("ms", 0)
+            if self.en_curso == etapa:
+                self.en_curso = None
 
     def _diagnostico(self, hallazgo):
         """Que paso y como se arregla, desde reglas.yml.
@@ -177,15 +201,153 @@ class Reporte:
     def bloqueado(self):
         return any(h.get("nivel") == "bloquea" for h in self.hallazgos)
 
+    def registro(self, terminado=True):
+        """El mismo dato que el Markdown, en forma de maquina.
+
+        Existe para el buzon del server: el front del CI necesita saber que etapa
+        corrio y cual no, y hasta ahora eso moria en el resumen.
+
+        La lista trae SIEMPRE todas las etapas, incluidas las omitidas. Es la razon
+        de ser de esto: sin el `no ejecutada` explicito, una corrida `rapido` y una
+        `completo` se ven iguales, y una etapa que no corrio no dijo que todo
+        estaba bien.
+        """
+        etapas = [
+            {
+                "nombre": etapa,
+                "estado": "corriendo"
+                if etapa == self.en_curso
+                else self.estado.get(etapa, "omitida"),
+                "ms": self.duracion.get(etapa, 0),
+                "hallazgos": sum(
+                    1 for h in self.hallazgos if h.get("etapa") == etapa
+                ),
+            }
+            for etapa in self.etapas
+        ]
+        return {
+            "version": 1,
+            "terminado": terminado,
+            "etapas": etapas,
+            "hallazgos": {
+                "bloquea": sum(
+                    1 for h in self.hallazgos if h.get("nivel") == "bloquea"
+                ),
+                "avisa": sum(
+                    1 for h in self.hallazgos if h.get("nivel") != "bloquea"
+                ),
+            },
+            "bloqueado": self.bloqueado(),
+            "duracion_s": round(sum(self.duracion.values()) / 1000.0),
+        }
+
+
+def _git(*argumentos):
+    """Un dato de git, o cadena vacia. Nunca revienta: esto es telemetria."""
+    try:
+        salida = subprocess.run(
+            ["git"] + list(argumentos),
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        return salida.stdout.strip() if salida.returncode == 0 else ""
+    except Exception:  # noqa: BLE001
+        return ""
+
+
+def escribir_en_buzon(registro, final=True):
+    """Deja el registro en QA_SPOOL, si esa variable apunta a un directorio real.
+
+    Se llama muchas veces por corrida: una por cada etapa que arranca o termina, y
+    una al final. Asi el front puede mostrar la corrida avanzando en vez de que
+    aparezca entera recien cuando termino. Siempre sobre el mismo archivo.
+
+    Las dos puntas que corren en el server --el runner y `./qa.sh --remoto`--
+    escriben el MISMO formato en el MISMO lugar. Por eso el front puede ponerlas
+    una al lado de la otra y comparar etapa contra etapa sin traducir nada.
+
+    Es telemetria, no parte del veredicto: cualquier error se traga. Que el buzon
+    no exista, este lleno o venga montado de solo lectura no puede cambiar el
+    resultado de una corrida.
+    """
+    buzon = os.environ.get("QA_SPOOL", "").strip()
+    if not buzon or not os.path.isdir(buzon):
+        return
+
+    try:
+        if _BUZON["contexto"] is None:
+            _BUZON["contexto"] = {
+                # El origen viene de afuera porque adentro del contenedor no hay
+                # forma de distinguir un runner de un `--remoto`: los dos son el
+                # mismo docker run en el mismo host.
+                "origen": os.environ.get("QA_ORIGEN")
+                or ("ci" if os.environ.get("CI") else "local"),
+                "usuario": os.environ.get("QA_USUARIO") or "?",
+                "invocacion": os.environ.get("QA_INVOCACION", "").strip() or "./qa.sh",
+                "rama": _git("rev-parse", "--abbrev-ref", "HEAD") or "?",
+                "commit": _git("rev-parse", "--short", "HEAD"),
+                # Lo que mas se malinterpreta de `--remoto`: viaja el working tree,
+                # asi que el commit dice poco si ademas habia cambios sin commitear.
+                "sucio": bool(_git("status", "--porcelain")),
+                "iniciado": int(INICIO),
+            }
+        registro.update(_BUZON["contexto"])
+
+        if _BUZON["archivo"] is None:
+            _BUZON["archivo"] = "%d-%s-%d.json" % (
+                INICIO,
+                registro["origen"],
+                os.getpid(),
+            )
+        destino = os.path.join(buzon, _BUZON["archivo"])
+        # Se escribe aparte y se renombra: el front lee este directorio cada pocos
+        # segundos y un JSON a medio escribir le explotaria en la cara.
+        parcial = destino + ".parcial"
+        with open(parcial, "w", encoding="utf-8") as fh:
+            json.dump(registro, fh, ensure_ascii=False)
+        os.replace(parcial, destino)
+
+        if not final:
+            return
+
+        # El barrido va archivo por archivo porque el buzon tiene el sticky bit,
+        # como remoto/: cada uno puede borrar lo suyo y nada mas. Un permiso
+        # denegado sobre el registro de otra persona no puede cortar la limpieza
+        # de los propios.
+        limite = time.time() - DIAS_BUZON * 86400
+        for archivo in os.listdir(buzon):
+            # Los .parcial son de una corrida que murio entre el volcado y el
+            # renombre. No los lee nadie, pero sin barrerlos se acumulan para
+            # siempre.
+            if not archivo.endswith((".json", ".parcial")):
+                continue
+            try:
+                ruta = os.path.join(buzon, archivo)
+                if os.path.getmtime(ruta) < limite:
+                    os.remove(ruta)
+            except OSError:
+                continue
+    except Exception:  # noqa: BLE001
+        pass
+
 
 def main():
     reporte = Reporte()
-    for linea in sys.stdin:
+    # readline en vez de iterar sys.stdin: iterar lee de a bloques, y con eso los
+    # eventos llegarian todos juntos al final. El motor los emite con flush
+    # justamente para que se puedan seguir en vivo.
+    for linea in iter(sys.stdin.readline, ""):
         linea = linea.strip()
         if not linea:
             continue
         try:
-            reporte.consumir(json.loads(linea))
+            evento = json.loads(linea)
+            reporte.consumir(evento)
+            # Una escritura por cambio de etapa, no por hallazgo: son trece etapas
+            # y pueden ser cientos de hallazgos.
+            if evento.get("ev") in ("etapa_ini", "etapa_fin"):
+                escribir_en_buzon(reporte.registro(terminado=False), final=False)
         except json.JSONDecodeError:
             # Ruido de una herramienta que escribio fuera del protocolo: se muestra
             # tal cual en vez de tragarselo, para que no se pierda un error real.
@@ -203,6 +365,8 @@ def main():
     if summary:
         with open(summary, "a", encoding="utf-8") as fh:
             fh.write(md)
+
+    escribir_en_buzon(reporte.registro())
 
     return 1 if reporte.bloqueado() else 0
 

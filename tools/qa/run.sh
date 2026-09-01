@@ -41,6 +41,11 @@ for argumento in "$@"; do
   fi
 done
 
+# Con que flags corrio, para el registro que va al buzon. Es la unica forma de
+# distinguir en el front una corrida `rapido` de una `completo` sin adivinarlo por
+# las etapas que faltan.
+export QA_INVOCACION="./qa.sh $*"
+
 # PIPESTATUS para que el veredicto lo decida reportar.py (que sabe que hallazgos
 # bloquean) y no el motor (que solo los emite).
 python3 "$QA_LIB/orquestar.py" "$@" | python3 "$QA_LIB/reportar.py"

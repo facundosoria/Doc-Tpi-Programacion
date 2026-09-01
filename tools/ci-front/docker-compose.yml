@@ -12,6 +12,12 @@ services:
     restart: unless-stopped
     ports:
       - "${CI_PUERTO_HOST:-8099}:8099"
+    volumes:
+      # El buzon donde el gate deja un registro por corrida: es lo que alimenta la
+      # lista "Corridas en el server". Va de SOLO LECTURA, que es todo lo que el
+      # front necesita y ademas lo deja incapaz de borrar el historial de nadie.
+      # Si el directorio no existe en el host, la lista sale vacia y lo explica.
+      - "${CI_BUZON_HOST:-/opt/TP-Pipelines/corridas}:/buzon:ro"
     environment:
       # Sin CI_REPO y CI_TOKEN sirve los datos de prueba, y lo dice en pantalla.
       CI_REPO: "${CI_REPO:-}"
@@ -20,6 +26,9 @@ services:
       # en paralelo o hacen fila: con 1, seis personas se encolan de a una.
       CI_RUNNERS: "${CI_RUNNERS:-1}"
       CI_CACHE_S: "${CI_CACHE_S:-15}"
+      # Adentro del contenedor el buzon siempre esta en la misma ruta, sin importar
+      # donde este montado en el host.
+      CI_BUZON: "/buzon"
     healthcheck:
       test: ["CMD", "python3", "-c", "import urllib.request;urllib.request.urlopen('http://localhost:8099/salud')"]
       interval: 30s

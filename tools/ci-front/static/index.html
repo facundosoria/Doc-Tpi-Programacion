@@ -50,6 +50,7 @@ body{background:var(--ground);color:var(--ink);font-family:var(--f-body);
 .wrap{max-width:1040px;margin:0 auto;display:flex;flex-direction:column;gap:1.75rem}
 h1{font-family:var(--f-display);font-size:1.5rem;font-weight:700;letter-spacing:-.015em;margin:0}
 h2{font-family:var(--f-display);font-size:1rem;font-weight:600;margin:0}
+h2 .de{font-family:var(--f-body);font-size:.8rem;font-weight:400;color:var(--faint);margin-left:.5rem}
 .eyebrow{font-family:var(--f-mono);font-size:.7rem;font-weight:500;letter-spacing:.12em;
   text-transform:uppercase;color:var(--faint);margin:0}
 .mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
@@ -156,12 +157,17 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
   </div>
 
   <div class="grupo">
-    <h2>En curso y en cola</h2>
+    <h2>En curso y en cola<span class="de">desde GitHub: push y pull request</span></h2>
     <div class="grupo" id="activas"></div>
   </div>
 
   <div class="grupo">
-    <h2>Historial</h2>
+    <h2>Corridas en el server<span class="de">qa.sh --remoto y las del runner, con las 13 etapas</span></h2>
+    <div class="grupo" id="servidor"></div>
+  </div>
+
+  <div class="grupo">
+    <h2>Historial<span class="de">desde GitHub</span></h2>
     <div class="grupo" id="historial"></div>
   </div>
 
@@ -170,9 +176,12 @@ a:focus-visible,button:focus-visible{outline:2px solid var(--accent);outline-off
 <script>
 const SIMBOLO = {ok:"✓", aviso:"!", fallo:"✕", corriendo:"·", pendiente:"–"};
 const ETIQUETA = {ok:"pasó", fallo:"falló", corriendo:"corriendo", en_cola:"en cola", cancelada:"cancelada"};
+// Las tres ultimas no las devuelve la API de GitHub --el workflow tiene tres steps,
+// no trece-- pero si vienen en los registros del buzon.
 const CORTO = {secretos:"secretos", ortografia:"ortogr.", markdownlint:"markdown",
   referencias:"refs", links:"links", formato:"formato", compila:"compila",
-  analisis_estatico:"estático", idioma_codigo:"idioma", tests:"tests"};
+  analisis_estatico:"estático", idioma_codigo:"idioma", tests:"tests",
+  workflows:"workflows", duplicacion:"duplicación", cobertura:"cobertura"};
 
 const esc = s => String(s ?? "").replace(/[&<>"']/g, c =>
   ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
@@ -214,7 +223,7 @@ function corridaHTML(c){
   return `<article class="corrida${activa ? " destaca" : ""}">
     <div class="fila1">
       <span class="pill ${c.estado}">${ETIQUETA[c.estado] || c.estado}</span>
-      <span class="num">#${esc(c.numero)}</span>
+      <span class="num">${c.numero ? "#" + esc(c.numero) : esc(c.etiqueta || "")}</span>
       <span class="tiempos">${tiempos}</span>
       <div class="quien">
         <div class="ini">${esc(iniciales(c.autor_git))}</div>
@@ -258,10 +267,13 @@ async function refrescar(){
     document.getElementById("vive-txt").textContent = "actualizado " + d.generado;
 
     // `generado` cambia en cada corrida del reloj, asi que queda afuera de la huella.
+    const qa = d.corridas_qa || [];
     const huella = JSON.stringify({
       a: d.aviso, r: d.runners,
       c: d.corridas.map(c => [c.numero, c.estado, c.duracion_s, c.espera_s,
-                              (c.etapas || []).map(e => e.estado).join("")])
+                              (c.etapas || []).map(e => e.estado).join("")]),
+      q: qa.map(c => [c.autor_git, c.commit, c.estado, c.duracion_s, c.mensaje,
+                      (c.etapas || []).map(e => e.estado).join("")])
     });
     if(huella === ultimaHuella) return;
     ultimaHuella = huella;
@@ -277,6 +289,11 @@ async function refrescar(){
       ? activas.map(corridaHTML).join("")
       : `<p class="sin-etapas">Ninguna corrida en curso.</p>`;
     document.getElementById("historial").innerHTML = resto.map(corridaHTML).join("");
+
+    document.getElementById("servidor").innerHTML = qa.length
+      ? qa.map(corridaHTML).join("")
+      : `<p class="sin-etapas">Todavía nadie corrió el gate en el server. Se llena
+         con <code>./qa.sh --remoto</code>, y con cada corrida del runner.</p>`;
   }catch(e){
     document.getElementById("vive-txt").textContent = "sin conexión con el servidor";
   }

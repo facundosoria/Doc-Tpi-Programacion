@@ -11,12 +11,25 @@ son indistinguibles para la pagina, y conectar la API no toca el front.
 
 Sin dependencias: solo biblioteca estandar, para que corra en un python:alpine.
 
+Hay DOS fuentes, y son independientes a proposito:
+
+    GitHub    lo que se disparo con un push o un pull request.
+    El buzon  lo que se corrio en el server con ./qa.sh --remoto, y ademas las
+              corridas del runner, que tambien lo escriben.
+
+El buzon es un directorio donde el gate deja un JSON por corrida (ver QA_SPOOL en
+reportar.py). Existe porque la API de Actions no sabe nada de una corrida
+`--remoto` --nunca paso por GitHub-- y porque de las que si conoce solo expone los
+tres steps del workflow, no las 13 etapas del gate.
+
 Configuracion por entorno:
     CI_REPO         owner/repo. Sin esto, sirve datos de prueba.
     CI_TOKEN        token de GitHub con permiso de lectura de Actions.
     CI_RUNNERS      cuantos runners hay instalados (default 1).
     CI_PUERTO       default 8099.
     CI_CACHE_S      segundos de cache de la API (default 15).
+    CI_BUZON        directorio de registros (default /opt/TP-Pipelines/corridas).
+    CI_BUZON_MAX    cuantas corridas del buzon se muestran (default 12).
 """
 
 import json
@@ -36,6 +49,29 @@ TOKEN = os.environ.get("CI_TOKEN", "").strip()
 RUNNERS = int(os.environ.get("CI_RUNNERS", "1"))
 PUERTO = int(os.environ.get("CI_PUERTO", "8099"))
 CACHE_S = int(os.environ.get("CI_CACHE_S", "15"))
+BUZON = os.environ.get("CI_BUZON", "/opt/TP-Pipelines/corridas")
+BUZON_MAX = int(os.environ.get("CI_BUZON_MAX", "12"))
+
+# El gate marca una etapa que no corrio como `omitida`; el front, que ademas
+# muestra pasos de la API de GitHub, la llama `pendiente`. Son la misma casilla
+# vacia y se dibujan igual, asi que se traduce en el borde y no en la pagina.
+ESTADO_ETAPA = {
+    "ok": "ok",
+    "aviso": "aviso",
+    "fallo": "fallo",
+    "omitida": "pendiente",
+    # La etapa que esta corriendo AHORA. Sin esta entrada caia en el default y se
+    # dibujaba gris, como si no hubiera corrido: se veia que la corrida estaba en
+    # curso, pero no en que etapa iba, que es la mitad del sentido de mirar esto.
+    "corriendo": "corriendo",
+}
+
+ORIGENES = {"remoto": "qa.sh --remoto", "ci": "runner", "local": "qa.sh local"}
+
+# Cuanto puede pasar sin que una corrida escriba nada antes de darla por muerta. El
+# presupuesto mas largo del gate es 600 s para la corrida entera, asi que 600 s de
+# silencio en una sola etapa ya es otra cosa.
+CORRIDA_ZOMBI_S = 600
 
 # El nombre de las etapas del gate, en el orden en que corren. Se usa para
 # ordenar los steps que devuelve GitHub, que no garantiza orden.
@@ -165,6 +201,88 @@ def desde_github():
     }
 
 
+def _corrida_de_registro(registro, visto_hace):
+    """Un registro del gate, con la misma forma que una corrida de GitHub.
+
+    La pagina dibuja las dos listas con el mismo componente. Si las formas se
+    separan, el front pasa a tener que saber de donde vino cada cosa, que es
+    justo lo que esta normalizacion evita.
+    """
+    hallazgos = registro.get("hallazgos") or {}
+    mensaje = registro.get("invocacion") or "./qa.sh"
+    if registro.get("sucio"):
+        # Cambia como se lee el commit: en --remoto viaja el working tree, asi que
+        # lo verificado puede no ser lo que dice ese hash.
+        mensaje += "  ·  con cambios sin commitear"
+
+    if registro.get("terminado", True):
+        estado = "fallo" if registro.get("bloqueado") else "ok"
+        duracion = registro.get("duracion_s", 0)
+    else:
+        # El gate reescribe el registro en cada cambio de etapa. Si hace rato que
+        # nadie lo toca, esa corrida no esta corriendo: se colgo, la mataron o murio
+        # el contenedor. Sin esto quedaria girando en la pantalla para siempre.
+        estado = "cancelada" if visto_hace > CORRIDA_ZOMBI_S else "corriendo"
+        # Mientras corre, lo que importa es hace cuanto arranco, no cuanto sumaron
+        # las etapas que ya terminaron.
+        duracion = max(0, int(time.time() - registro.get("iniciado", 0)))
+
+    return {
+        "numero": None,
+        "origen": registro.get("origen", "local"),
+        "etiqueta": ORIGENES.get(registro.get("origen"), "?"),
+        "estado": estado,
+        "rama": registro.get("rama", "?"),
+        "commit": registro.get("commit", ""),
+        "mensaje": mensaje,
+        "autor_git": registro.get("usuario", "?"),
+        "autor_github": "",
+        "espera_s": 0,
+        "duracion_s": duracion,
+        "hallazgos": {
+            "bloquea": hallazgos.get("bloquea", 0),
+            "avisa": hallazgos.get("avisa", 0),
+        },
+        "etapas": [
+            {
+                "nombre": etapa.get("nombre", "?"),
+                "estado": ESTADO_ETAPA.get(etapa.get("estado"), "pendiente"),
+                "ms": etapa.get("ms", 0),
+            }
+            for etapa in registro.get("etapas", [])
+        ],
+        "url": None,
+    }
+
+
+def desde_buzon():
+    """Las ultimas corridas que dejaron rastro en el server, mas nuevas primero.
+
+    Tolera que el buzon no exista (devuelve vacio) y que un archivo este roto (lo
+    saltea). Es una lista de mas: no puede tumbar la pagina.
+    """
+    try:
+        archivos = [a for a in os.listdir(BUZON) if a.endswith(".json")]
+    except OSError:
+        return []
+
+    corridas = []
+    # El nombre arranca con el epoch, asi que ordenar por nombre es ordenar por
+    # fecha sin abrir un solo archivo.
+    ahora = time.time()
+    for archivo in sorted(archivos, reverse=True)[:BUZON_MAX]:
+        ruta = os.path.join(BUZON, archivo)
+        try:
+            with open(ruta, encoding="utf-8") as fh:
+                registro = json.load(fh)
+            corridas.append(
+                _corrida_de_registro(registro, ahora - os.path.getmtime(ruta))
+            )
+        except (OSError, ValueError):
+            continue
+    return corridas
+
+
 def desde_prueba():
     with open(os.path.join(RUTA, "datos-prueba.json"), encoding="utf-8") as fh:
         datos = json.load(fh)
@@ -172,8 +290,8 @@ def desde_prueba():
     return datos
 
 
-def obtener():
-    """Datos con cache. El cache existe para no comerse el rate limit de GitHub."""
+def _github_con_cache():
+    """La parte que SI necesita cache: la API de GitHub tiene rate limit."""
     with _lock:
         ahora = time.time()
         if _cache["datos"] and ahora - _cache["ts"] < CACHE_S:
@@ -195,10 +313,41 @@ def obtener():
                 "corridas reales."
             )
 
-        datos["generado"] = time.strftime("%H:%M:%S")
         _cache["datos"] = datos
         _cache["ts"] = ahora
         return datos
+
+
+def obtener():
+    """Lo que consume la pagina: la API cacheada, y el buzon SIN cache.
+
+    El buzon se lee en cada pedido a proposito. Es un directorio local, no tiene
+    rate limit que cuidar, y meterlo en el cache de 15 s arruinaria justamente lo
+    que hace util esta pantalla: una corrida `rapido` dura unos 9 segundos, asi que
+    entraria entera en una sola ventana de cache y se veria ya terminada, sin
+    etapas pasando. Sin cache, la unica demora es el refresco de la pagina.
+
+    Ademas es independiente de GitHub: una corrida `--remoto` existe aunque no haya
+    token y aunque la API este caida.
+    """
+    # Copia: sin esto, el aviso que se arma aca quedaria pegado al dict cacheado.
+    datos = dict(_github_con_cache())
+
+    corridas_qa = desde_buzon()
+    if corridas_qa:
+        datos["corridas_qa"] = corridas_qa
+        if not (REPO and TOKEN):
+            # Mezclar corridas reales con inventadas sin decirlo seria la peor
+            # version de esta pantalla.
+            datos["aviso"] = (
+                "Las corridas de GitHub son datos de prueba: faltan CI_REPO y "
+                "CI_TOKEN. Las del server son reales."
+            )
+    else:
+        datos.setdefault("corridas_qa", [])
+
+    datos["generado"] = time.strftime("%H:%M:%S")
+    return datos
 
 
 # ---------------------------------------------------------------------------

@@ -53,7 +53,7 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 | 12 | [Almacenamiento e ingesta](docs/12-almacenamiento-e-ingesta.md) | Qué base de datos y cuántas, MinIO, y cómo se baja a texto un PDF con imágenes |
 | 13 | [La rúbrica y los prompts](docs/13-rubrica-y-prompts.md) | 📝 El artefacto central del equipo: las 5 dimensiones con sus anclas y los prompts de cada función |
 | 14 | [Sincronización con la guía didáctica](docs/14-sincronizacion-guia-didactica.md) | 🔄 **Comparación con el otro set de documentación**: los 6 conflictos, lo que hay que adoptar y lo que aportamos |
-| 16 | [El pipeline de calidad](docs/16-pipeline-y-verificaciones.md) | ⚙️ Qué verifica el gate antes de cada integración, cómo funciona, y las verificaciones que conviene sumar más allá del flujo estándar de la materia |
+| 16 | [El pipeline de calidad](docs/16-pipeline-y-verificaciones.md) | ⚙️ **Todo el gate en un solo lugar**: que problema resuelve, con que esta hecho, que hace cada comando, que comprueba cada etapa, donde corre cada cosa —tu maquina, GitHub y el server— y que verificaciones conviene sumar |
 
 > ### 📝 Sobre el contenido de ejemplo
 >

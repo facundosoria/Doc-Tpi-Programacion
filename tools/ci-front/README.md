@@ -13,6 +13,33 @@ Esa separación es la razón de que esto sean ~400 líneas y no un proyecto de s
 La alternativa era construir un CI propio —cola, workers, base de datos, historial—
 y se descartó por eso.
 
+## Las dos fuentes
+
+La página muestra dos listas separadas, y vienen de lugares distintos:
+
+| Lista | De dónde sale | Qué incluye |
+|---|---|---|
+| **En curso / Historial** | la API de Actions | lo que se disparó con un push o un pull request |
+| **Corridas en el server** | el buzón, un directorio del server | lo que se corrió con `./qa.sh --remoto`, y también las corridas del runner |
+
+El buzón existe por dos motivos. Una corrida `--remoto` **no pasó por GitHub**, así
+que la API no sabe que ocurrió. Y de las que sí conoce, GitHub expone los tres steps
+del workflow —checkout, elegir perfil, verificar—, no las 13 etapas del gate: para
+comparar una corrida tuya contra una de CI etapa por etapa hace falta el detalle, y
+ese detalle solo lo tiene el gate.
+
+Quien lo escribe es `reportar.py`, cuando la variable `QA_SPOOL` apunta a un
+directorio (ver [`tools/qa/README.md`](../qa/README.md)). Un JSON por corrida, con
+las 13 etapas, incluidas las que **no** se ejecutaron.
+
+Se reescribe en cada cambio de etapa, siempre sobre el mismo archivo, así que la
+corrida **se ve avanzar en vivo**: el motor ya emitía un evento por etapa con
+`flush`, solo faltaba no esperar al final para volcarlo. Un registro con
+`terminado: false` que hace más de 600 s que no se mueve se muestra como cancelada.
+
+Las dos fuentes son independientes a propósito: el buzón se lee aunque no haya token
+y aunque la API de GitHub esté caída.
+
 ## Levantarlo
 
 ```bash
@@ -40,15 +67,34 @@ encolan de a una; con tres, corren de a tres. El front lo muestra, no lo control
 El token va con el permiso mínimo — solo lectura de Actions. No necesita escribir
 nada, igual que el runner no necesita escribir en el repo.
 
+El buzón se configura aparte, y tiene default:
+
+```bash
+CI_BUZON_HOST=/opt/TP-Pipelines/corridas   # qué directorio del server se monta
+CI_BUZON_MAX=12                            # cuántas corridas muestra
+```
+
+El compose lo monta **de solo lectura** en `/buzon`, y `CI_BUZON` ya apunta ahí
+adentro del contenedor: por eso la ruta del host se puede mover sin tocar el código.
+De solo lectura a propósito — el front no tiene por qué poder borrar el historial de
+nadie.
+
+Si el directorio no existe, la lista sale vacía con un cartel que explica cómo se
+llena. No es un error: en una máquina que no es el server, no hay buzón.
+
 ## Cómo se conecta sin tocar el front
 
 `servidor.py` **traduce** la respuesta de GitHub a un formato propio, y la página
 consume solo ese formato:
 
 ```text
-API de Actions  ->  servidor.py  ->  { corridas: [...] }  ->  index.html
-datos-prueba.json  ->             ->  el mismo formato   ->
+API de Actions     ->                ->  { corridas: [...] }     ->
+el buzón del gate  ->  servidor.py   ->  { corridas_qa: [...] }  ->  index.html
+datos-prueba.json  ->                ->  el mismo formato        ->
 ```
+
+Las dos listas usan la **misma** forma de corrida, así que la página las dibuja con
+el mismo componente y no sabe de dónde salió cada una.
 
 Por eso los datos de prueba y los reales son indistinguibles para la página, y
 conectar la API no toca una línea del front. Es el mismo patrón que usa el gate con
@@ -77,9 +123,17 @@ docker-compose.yml
 
 ## Pendiente
 
-- Los contadores de hallazgos (`bloquea` / `avisa`) vienen en cero desde la API:
-  GitHub no los expone. Salen del step summary, que hay que parsear o publicar como
-  artifact del workflow.
-- El detalle del fallo (`detalle_fallo`) hoy solo existe en los datos de prueba, por
-  el mismo motivo.
-- Falta el repo oficial y el runner para que haya corridas reales que mostrar.
+- Los contadores de hallazgos (`bloquea` / `avisa`) vienen en cero **en la lista de
+  GitHub**: la API no los expone. En las corridas del server sí son reales, porque
+  el registro del buzón los trae.
+- El detalle del fallo (`detalle_fallo`) hoy solo existe en los datos de prueba. El
+  registro del buzón trae la cuenta por etapa, no el hallazgo en sí.
+- Las etapas de la lista de GitHub van a venir vacías: `ORDEN_ETAPAS` busca pasos
+  con el nombre de cada etapa del gate, y el workflow tiene tres steps. Para esa
+  lista, el detalle por etapa está en el buzón.
+- Falta instalar el runner para que haya corridas reales que mostrar. El
+  procedimiento está en [`tools/qa/README.md`](../qa/README.md), sección
+  "Puesta en marcha en el server".
+- `CI_RUNNERS` se configura a mano y no se valida: si no coincide con cuántos
+  runners hay instalados, la página miente sobre la capacidad y no hay forma de
+  notarlo desde acá.
