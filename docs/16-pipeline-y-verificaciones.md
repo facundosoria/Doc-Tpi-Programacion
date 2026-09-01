@@ -352,6 +352,34 @@ Con una excepción deliberada: **links y referencias no pasan por el primer filt
 Corren sobre el repo entero y comparan contra el punto de partida, porque renombrar
 un título en tu archivo rompe un ancla en el de otro.
 
+### El primer filtro es el que puede dejar el gate en nada
+
+Todo el alcance cuelga de una sola pregunta: contra qué commit se compara. Y ahí hubo
+un agujero que estuvo activo hasta el 1 de septiembre de 2026, y que conviene entender
+porque es fácil de volver a introducir.
+
+En tu máquina, `scope.py` compara contra el merge-base con el upstream de tu rama, y
+funciona porque **tu upstream está atrasado**: lo que estás por pushear todavía no está
+ahí. En el runner no: el checkout deja el upstream parado exactamente en `HEAD`. El
+merge-base daba `HEAD`, el diff daba vacío, y las nueve etapas que dependen de qué
+archivos cambiaste quedaban en `omitida`.
+
+La corrida terminaba **en verde sin haber mirado un solo archivo**. Es la misma trampa
+que el motor evita a nivel etapa —una etapa que no corrió no dijo que todo estaba
+bien— pero corrida entera.
+
+Por eso ahora **la base la define siempre el workflow**, nunca el fallback:
+
+| Evento | Base | Por qué |
+|---|---|---|
+| Pull request | la base real del PR | es contra lo que se va a mergear |
+| Push | `github.event.before` | lo que trajo ese push |
+| Rama nueva, o force-push | merge-base con `origin/main` | ahí `before` viene en ceros, o el commit ya no está en el clon |
+
+Se descubrió mirando el registro de la primera corrida de CI en el buzón: cuatro etapas
+en verde y nueve en gris, sobre un push que tocaba dos `.md`. Sin ese detalle por etapa
+—que es justo lo que la API de Actions no da— la corrida se veía simplemente verde.
+
 ## Con qué está hecho
 
 | Lenguaje | Líneas | Para qué |
