@@ -27,7 +27,7 @@ de modelo y varias además mejoran la calidad.**
 | Función | Modelo | Costo por consulta | Por qué |
 |---|---|---|---|
 | **Tutor** | Gemini 3.5 Flash-Lite | USD 0,00052 | Rápido y sigue instrucciones negativas razonablemente bien |
-| **Moderador** | GPT-5 nano | USD 0,000027 | Clasificación pura sobre texto corto |
+| **Moderador** | Capa clásica + `omni-moderation-latest` | **USD 0** | No es un LLM: listas y heurísticas resuelven 4 de 6 categorías, y el clasificador —que es gratuito— cubre el resto. Ver ADR-012 |
 | **Evaluador** | Claude Haiku 4.5 + Batch | USD 0,006 | Consistencia de criterio. **Acá no se ahorra** |
 | **Generador** | Gemini 3.5 Flash-Lite + Batch | USD 0,00083 | Hay revisión humana obligatoria |
 | **Corrector** | Claude Haiku 4.5 + Batch | USD 0,002 | Es una nota, sin gate de calibración |
@@ -63,7 +63,14 @@ no en el código (RF-IA-11).
 ### Fichas
 
 **GPT-5 nano** — precio imbatible, muy rápido, excelente para clasificación. **Flojo siguiendo
-instrucciones negativas complejas.** Para el moderador es ideal; para el tutor hay que probarlo antes.
+instrucciones negativas complejas.** Era el candidato del moderador hasta ADR-012; para el tutor hay
+que probarlo antes.
+
+**`omni-moderation-latest`** — el clasificador de moderación de OpenAI. **No es un LLM:** recibe texto
+y devuelve 13 categorías con score, sin prompt. **Es gratuito** (250 req/min, 5.000 req/día en el free
+tier) y su rendimiento en español supera al del inglés del modelo anterior. Sus categorías mapean casi
+uno a uno con RF-CHT-10, salvo las dos propias de este producto —integridad académica y elusión del
+solo-texto—, que resuelve la capa clásica.
 
 **Gemini 3.5 Flash-Lite** — free tier real (~1.500 req/día sin vencimiento), muy rápido, contexto de
 1M, multimodal para PDF escaneado. **Su salida es cara en proporción** (1,25 contra 0,15 de entrada):
@@ -132,7 +139,7 @@ Más útil que el precio por millón, porque es lo que realmente pasa.
 |---|---|---|
 | Una pregunta generada | Flash-Lite + Batch | USD 0,00083 → **un parcial de 15: 1,2 centavos** |
 | Corregir una respuesta | Haiku + Batch | USD 0,002 |
-| Moderar un mensaje | GPT-5 nano | USD 0,000027 → **mil mensajes: 3 centavos** |
+| Moderar un mensaje | Capa clásica + `omni-moderation-latest` | **USD 0** — no hay tokens que facturar (ADR-012) |
 
 ## 4. Qué significa "que funcione" y cómo probarlo
 
@@ -141,7 +148,7 @@ Cada barra es concreta y verificable. **Ninguna es una opinión.**
 | Función | "Funciona" significa | Cómo se prueba | ¿Barra dura? |
 |---|---|---|---|
 | **Tutor** | **Nunca emite la solución**, ni bajo presión | 30 intentos de jailbreak + 20 pedidos directos. **Cero fugas** | 🔴 Sí — RSK-09 |
-| **Moderador** | Detecta las 6 categorías de RF-CHT-10 | 100 mensajes etiquetados a mano. >90% en severidad media/alta | 🟡 Medible |
+| **Moderador** | Detecta las 6 categorías de RF-CHT-10 **sin comerse los falsos positivos rioplatenses** | 100 mensajes etiquetados a mano. >90% en severidad media/alta. **El set debe incluir *boludo* afectuoso y "cálculo"** | 🟡 Medible |
 | **Evaluador** | **Pasa PAR-14**: ±5 promedio, ±10 por dimensión | El golden set. **Es la prueba, literalmente** | 🔴 **Sí — sin esto el curso no arranca** |
 | **Generador** | El profesor usa las preguntas sin reescribirlas todas | 20 preguntas, un docente marca cuáles usaría. >70% | 🟢 Blanda — hay gate humano |
 | **Corrector** | Coincide con corrección humana | 30 respuestas corregidas a mano vs el modelo | 🟡 Medible |
@@ -190,7 +197,7 @@ profesor las descarta. Es el lugar más seguro para probar lo barato.
 | 3 | **Prompt caching** en tutor y evaluador | −60% del input efectivo | No |
 | 4 | Salida del tutor: 400 → **250 tokens** | −38% del costo de salida y **−40% de latencia** | **Mejora.** RF-IA-04 pide pistas, no ensayos |
 | 5 | **Batch** en evaluador, generador y corrector | −50% | No. Es la latencia que RF-IA-27 ya tolera |
-| 6 | **Pre-filtro determinístico** antes del moderador | −70% de las llamadas | No |
+| 6 | **Capa clásica** antes del clasificador | −70% de las llamadas o más — se mide con `origen` | No. **Además es la red del fail-open** |
 
 ### El caching del evaluador es la más subestimada
 
@@ -431,7 +438,7 @@ modelo** — conviene verlo antes de preocuparse por cuotas.
 | 11 · Guardarraíles | AST, comparación, filtro de entrada | **Nada** — es análisis estático | USD 0 |
 | 11b · Tutor | Latencia, RF-IA-04, los tres niveles de RF-IA-19 | **Gemini free tier** | USD 0 |
 | 12 · Corrector | Nota + justificación sobre respuesta abierta | **Gemini free tier** | USD 0 |
-| 13 · Moderador | 100 mensajes etiquetados, acierto en media/alta | **Gemini free tier**, y el pre-filtro sin modelo | USD 0 |
+| 13 · Moderador | 100 mensajes etiquetados, acierto en media/alta | **Nada** — capa clásica sin modelo + Moderation API gratuita (ADR-012) | USD 0 |
 
 **Los cuatro pasos que sí llaman a un modelo son 1, 5, 10 y 12** — más el 7, que es el único donde
 conviene gastar unos centavos a propósito.
@@ -467,7 +474,7 @@ soporta que la credencial venga de una variable de entorno distinta por máquina
 | Función | Modelo | Costo |
 |---|---|---|
 | Tutor | GPT-5 nano | USD 3,24 |
-| Moderador | nano + pre-filtro | USD 0,31 |
+| Moderador | Capa clásica + clasificador | **USD 0** |
 | Evaluador | Flash-Lite + Batch | USD 2,53 |
 | Generador | nano + Batch | USD 0,24 |
 | Corrector | Flash-Lite + Batch | USD 0,80 |
@@ -478,7 +485,7 @@ soporta que la credencial venga de una variable de entorno distinta por máquina
 | Función | Modelo | Costo |
 |---|---|---|
 | Tutor | Flash-Lite | USD 10,00 |
-| Moderador | nano + pre-filtro | USD 0,31 |
+| Moderador | Capa clásica + clasificador | **USD 0** |
 | **Evaluador** | **Haiku 4.5 + Batch + caching** | **USD 10,70** |
 | Generador | Flash-Lite + Batch | USD 0,70 |
 | Corrector | Flash-Lite + Batch | USD 0,80 |
@@ -505,7 +512,7 @@ soporta que la credencial venga de una variable de entorno distinta por máquina
 |---|---|---|
 | **Evaluador en un modelo que no calibró** | USD 11 | 🔴 **El curso no arranca.** RF-IA-36, sin override |
 | Evaluar solo una muestra de desafíos | ~USD 5 | 🔴 Desarma el mecanismo académico central (RF-IA-15) |
-| Sacar el moderador | USD 0,31 | 🔴 Viola RF-CHT-09 |
+| Sacar el moderador | **USD 0** — ya no cuesta nada | 🔴 Viola RF-CHT-09 |
 | Contexto del tutor bajo 2.500 tokens | centavos | 🔴 El tutor deja de ver el código del alumno |
 | Cachear respuestas del tutor entre alumnos | poco | 🔴 Contamina la evaluación de RF-IA-09 |
 

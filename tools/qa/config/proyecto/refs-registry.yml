@@ -59,3 +59,22 @@ par:
   - PAR-15
   - PAR-16
   - PAR-17
+
+# Chat y moderacion. Vienen de la Seccion 14 del PRD. Sin esto, toda la
+# documentacion del moderador quedaba sin validar: un RF-CHT-99 inventado
+# pasaba en silencio.
+rf_cht:
+  - RF-CHT-01
+  - RF-CHT-02
+  - RF-CHT-03
+  - RF-CHT-04
+  - RF-CHT-05
+  - RF-CHT-06
+  - RF-CHT-07
+  - RF-CHT-08
+  - RF-CHT-09
+  - RF-CHT-10
+  - RF-CHT-11
+  - RF-CHT-12
+  - RF-CHT-13
+  - RF-CHT-14

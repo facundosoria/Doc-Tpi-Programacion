@@ -16,6 +16,17 @@
 # Antes de sembrarlo se revisaron las 355 palabras una por una buscando faltas
 # reales. No habia ninguna: los seis casos sospechosos resultaron ser nombres de
 # archivo e identificadores dentro de diagramas Mermaid.
+#
+# Se sumo despues una cuarta familia, chica:
+#
+#   4. MALAS PALABRAS  rioplatenses ("boludo", "pelotudo", "chabon", "sorete").
+#                      NO son vocabulario del proyecto: aparecen citadas como
+#                      ejemplos en la documentacion del moderador de chat, que
+#                      justamente explica por que una lista peninsular no sirve
+#                      aca. Ver ADR-012 y docs/04 §2.3.3. Que esten en el
+#                      diccionario del corrector ortografico no dice nada sobre
+#                      si el moderador las bloquea: eso lo decide el nivel por
+#                      termino de su propia lista, que es otro archivo.
 
 acabás
 aceptás
@@ -64,6 +75,7 @@ avisá
 ayudame
 bloqueante
 bloqueantes
+boludo
 borrable
 bufferear
 buscable
@@ -74,6 +86,7 @@ capturás
 Centralizarlas
 centralizarlo
 Centralizarlos
+chabón
 chequeos
 commiteada
 Compará
@@ -91,6 +104,7 @@ contraindicación
 contraintuitiva
 contraintuitivo
 controlás
+copiás
 corré
 Corré
 correctitud
@@ -107,10 +121,12 @@ dejás
 delegás
 demostrás
 desactualiza
+desactualización
 desactualizados
 desarrollá
 desbordás
 descartás
+desfasaje
 detectás
 determinística
 Determinística
@@ -119,11 +135,13 @@ determinístico
 Determinístico
 determinísticos
 devolvés
+diacríticos
 didactica
 Diseñá
 distractores
 Distractores
 eado
+elusión
 Empezá
 encontrás
 entendés
@@ -161,6 +179,7 @@ Hacela
 hacelas
 hacés
 hardcodeado
+heurística
 heurísticas
 hiperparámetros
 Hiperparámetros
@@ -188,12 +207,15 @@ mandás
 manejás
 Mantenelo
 Marcalo
+matchea
+matchear
 Medilo
 mejorás
 mergean
 mergear
 metainformación
 Mezclarlos
+microsegundos
 milisegundo
 milisegundos
 minimización
@@ -223,6 +245,7 @@ pedagógicamente
 pedile
 pediles
 pedilos
+pelotudo
 pensá
 perdés
 Perdés
@@ -248,6 +271,7 @@ Pusheado
 pushear
 pusheás
 pusheen
+putazo
 quedás
 querés
 reaprueba
@@ -266,6 +290,7 @@ reclamarle
 reclamás
 Recortable
 redescubrirlas
+rediscuta
 reemplazalas
 reencuadre
 Reentrenar
@@ -306,7 +331,10 @@ Seudonimizar
 síncrona
 sincronizacion
 Síncronos
+sobreingeniería
 socráticas
+sorete
+subcadena
 subila
 subilo
 Sumale
@@ -335,6 +363,7 @@ usás
 Validable
 Verificalo
 Versionalo
+versionarlo
 vinculás
 calculás
 desincroniza

@@ -118,7 +118,7 @@ No son ocho microservicios: son **ocho carpetas con una interfaz explícita cada
 | **M2 · RAG** | Ingesta, chunking, embeddings, retrieval | — |
 | **M3 · Evaluador** | Rúbrica versionada, prompt, scoring | M1 |
 | **M4 · Calibración** | Golden set, runner, comparación con PAR-14, deriva | M1 + M3 |
-| **M5 · Guardarraíles y moderación** | Filtro de entrada, salvaguarda anti-fuga con AST, moderador de chat | M1 |
+| **M5 · Guardarraíles y moderación** | Filtro de entrada, salvaguarda anti-fuga con AST, moderador de chat (capa clásica + clasificador, ADR-012) | M1 |
 | **M6 · Tutor** | Servicio + componente Angular | M1 + M2 + M5 |
 | **M7 · Generador y corrector** | Blueprint, generación por slot, validación, corrección | M1 + M2 |
 | **M8 · Plataforma** | Docker, API, contratos, cola, base, eventos | — |
@@ -204,10 +204,17 @@ vuelven imposibles sin refactor.
 | Función | Latencia | Volumen | Riesgo si falla | Modo | Fallback de modelo |
 |---|---|---|---|---|---|
 | **Tutor** | < 2 s | Alto | Bajo — RF-IA-27: el alumno sigue sin él | Sincrónico | Sí |
-| **Moderador** | < 300 ms | Muy alto | Medio | Sincrónico | Sí |
+| **Moderador** | < 300 ms ⚠️ | Muy alto | Medio | Sincrónico | Sí |
 | **Evaluador** | Minutos | Bajo | **Alto — modifica XP, el XP define promoción** | Asincrónico | **NO (RF-IA-25)** |
 | **Generador** | Minutos | Muy bajo | Bajo — hay revisión humana | Asincrónico | Sí |
 | **Corrector** | Minutos | Medio | Alto — es una nota | Asincrónico | Sí |
+
+> ⚠️ **Los 300 ms del moderador son dos presupuestos distintos, no uno.** La capa clásica resuelve en
+> **< 1 ms** —es un match en memoria—, pero el clasificador externo se lleva un roundtrip HTTP que
+> consume casi todo el margen. Por eso ADR-012 empuja tanto trabajo como puede al lado determinístico:
+> **la latencia es uno de los dos motivos de esa decisión**, junto con el fail-open. El timeout hacia
+> el proveedor es de 1 s ([14](14-sincronizacion-guia-didactica.md) A-3), y al vencerse aplica la
+> degradación `prefiltro_solamente` del contrato.
 
 ## 6. Los contratos
 

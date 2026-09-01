@@ -31,11 +31,14 @@ RUTA_CONFIG = os.path.join(os.path.dirname(RUTA_LIB), "config")
 
 ETAPA = "referencias"
 
-RE_ID = re.compile(r"\b(RF-IA-\d+|PAR-\d+|ADR-\d+)\b")
+RE_ID = re.compile(r"\b(RF-IA-\d+|RF-CHT-\d+|PAR-\d+|ADR-\d+)\b")
 RE_LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 RE_HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*#*$", re.MULTILINE)
 RE_FENCE = re.compile(r"^```.*?^```", re.MULTILINE | re.DOTALL)
 RE_ADR_HEADING = re.compile(r"^#{1,6}\s+(ADR-\d+)\b", re.MULTILINE)
+# GitHub honra las anclas HTML explicitas, no solo las que genera de los titulos.
+# Sin esto, un <a name="q-01"></a> valido se reportaba como ancla rota.
+RE_ANCLA_HTML = re.compile(r"<a\s+(?:name|id)\s*=\s*[\"']([^\"']+)[\"']", re.IGNORECASE)
 
 
 def slug(texto):
@@ -60,7 +63,10 @@ def anclas_de(texto):
     """Todas las anclas de un documento, con el sufijo -1, -2 de los repetidos."""
     vistas = {}
     anclas = set()
-    for _, titulo in RE_HEADING.findall(sin_bloques(texto)):
+    limpio = sin_bloques(texto)
+    for nombre in RE_ANCLA_HTML.findall(limpio):
+        anclas.add(nombre.strip().lower())
+    for _, titulo in RE_HEADING.findall(limpio):
         base = slug(titulo)
         if not base:
             continue

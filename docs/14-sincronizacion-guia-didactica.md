@@ -26,7 +26,7 @@ sola** — pero hay seis conflictos que hay que resolver antes de escribir códi
 
 | # | Conflicto | Quién gana |
 |---|---|---|
-| **C-1** | **Python FastAPI vs Java Spring Boot** | 🔴 **Sin resolver — bloquea todo lo demás** |
+| **C-1** | **Python FastAPI vs Java Spring Boot** | ⚠️ **Desactualizado: ADR-005 ya lo resolvió por Java** |
 | **C-2** | ¿Streaming sí o no? | 🏆 **La guía nos gana** |
 | **C-3** | Modelos recomendados | Nosotros (los de ellos están viejos) |
 | **C-4** | Backend central: Node/Go/Django vs Java | La cátedra |
@@ -115,6 +115,17 @@ más directamente aprovechable de toda la guía.
 
 **A resolver:** confirmar con la cátedra si el servicio puede ir en Python. **Es la pregunta que
 decide, y hasta que se responda los dos sets divergen en todo lo demás.**
+
+> ⚠️ **Este conflicto quedó desactualizado.** **ADR-005 ya lo decidió: Java Spring Boot** —la decisión
+> figura además entre las siete revisadas de [08](08-decisiones-y-pendientes.md), fila 3—, el
+> `pom.xml` existe y el esqueleto compila. Lo que sigue abierto no es *qué lenguaje*, sino si algún
+> componente interno puede ser Python; el propio ADR-005 lo contempla como **componente interno, no
+> microservicio**.
+>
+> Que este documento siga diciendo "bloquea todo lo demás" es un desfasaje entre documentos, no una
+> decisión pendiente. **Nada que dependa del lenguaje debería estar frenado por C-1** — ADR-012, por
+> ejemplo, se tomó sin resolverlo, porque la Moderation API es HTTP y la elección de herramienta es
+> independiente del lenguaje.
 
 ---
 
@@ -275,9 +286,9 @@ que se puede pedir.**
 
 | # | Acción | Quién |
 |---|---|---|
-| 1 | 🔴 **Resolver Python vs Java** — es la que bloquea todo lo demás | Equipo + cátedra |
+| 1 | ✅ **Resolver Python vs Java** — ~~bloquea todo lo demás~~. **Ya resuelto por ADR-005: Java Spring Boot.** Queda solo confirmar si algún componente interno puede ser Python | Equipo + cátedra |
 | 2 | **Adoptar el Buffer Interceptor** y revisar el ADR-009 | P5 |
-| 3 | **Adoptar `temperature: 0` + `seed` fijo** en evaluador y moderador | P3 |
+| 3 | **Adoptar `temperature: 0` + `seed` fijo** en el evaluador. ⚠️ **Ya no aplica al moderador:** ADR-012 lo dejó sin LLM, y un clasificador no tiene esos parámetros | P3 |
 | 4 | **Adoptar los triggers de inmutabilidad** | P5 |
 | 5 | **Incorporar los timeouts por rol** | P1 |
 | 6 | **Avisarle al autor de la guía** los conflictos C-4 y C-5: le falta la infraestructura que la cátedra impone | Quien corresponda |

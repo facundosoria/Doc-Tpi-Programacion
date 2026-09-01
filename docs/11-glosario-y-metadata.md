@@ -106,9 +106,32 @@ No es formalismo: es lo único de DDD que urge.
 | **Función de IA** | Una de las cinco: tutor, evaluador, moderador, generador, corrector |
 | **Proveedor** | La empresa: Anthropic, Google, OpenAI |
 | **Modelo** | El modelo concreto. **Se asigna por función, y vive en una tabla editable por ADMIN** |
-| **Adapter** | El código que traduce nuestro formato interno al de cada proveedor |
+| **Adapter** | El código que traduce nuestro formato interno al de cada proveedor. Es un patrón GoF: por eso sumar un proveedor no toca ninguna función |
 | **Batch** | Modo asincrónico del proveedor, 50% más barato |
 | **Prompt caching** | Cobrar más barato el prefijo estable que se repite entre llamadas |
+
+### Patrones de diseño
+
+Los que aparecen por nombre en la documentación. **El mapa completo de qué patrón resuelve qué
+decisión está en [04](04-funciones-de-ia.md) §2.3.4b —pipeline contra cadena— y §2.3.4c.**
+
+| Término | Definición | Dónde se usa |
+|---|---|---|
+| **Pipes and Filters** (pipeline) | Etapas ordenadas; **corren todas** y cada una transforma el dato | La normalización previa al matching: acentos, leet, repetidos |
+| **Chain of Responsibility** (cadena) | Eslabones; **corta en el primero que resuelve**. No corren todos | Solo el corte capa clásica → clasificador. **Dos eslabones**, no cinco: es el único lugar donde hay trabajo caro que evitar |
+| **Strategy** | Varias implementaciones intercambiables detrás de una misma interfaz | Cada detector del moderador. Es lo que evita el `if/else` que crece con cada categoría |
+| **Composite** | Tratar a un grupo de objetos como si fuera uno solo | Los detectores clásicos: corren todos y fusionan veredictos, porque `categorias` es un array |
+| **Adapter** | Traduce entre nuestro formato y el de un tercero | Un adapter por proveedor de IA (M1, ADR-001) |
+| **Factory Method** | Construir el objeto concreto según configuración, no según código fijo | Elegir el modelo por función, que RF-IA-11 exige editable por ADMIN |
+| **Circuit Breaker** | Corta las llamadas a un servicio que está fallando y las reintenta más tarde | Todos los proveedores. **Resilience4j**, elegido en [02](02-arquitectura-y-stack.md) |
+| **Rate Limiter** (token bucket) | Limita cuántas operaciones por unidad de tiempo se permiten | Spam por usuario en el moderador. También Resilience4j |
+| **Idempotent Receiver** | Recibir dos veces el mismo pedido produce un solo efecto | El `idempotency_key` de todos los contratos `/ai/*` |
+| **Buffer Interceptor** | Retiene la salida en streaming hasta poder validarla | Salvaguarda anti-fuga del tutor ([14](14-sincronizacion-guia-didactica.md) A-1) |
+
+> ⚠️ **Pipeline y cadena se confunden todo el tiempo, y no son lo mismo.** En un **pipeline corren
+> todas** las etapas y cada una **transforma**; en una **cadena se corta** en la primera que
+> **decide**. El moderador usa los dos, en lugares distintos y por motivos distintos — el desarrollo
+> está en [04](04-funciones-de-ia.md) §2.3.4b.
 
 ### Versionado
 

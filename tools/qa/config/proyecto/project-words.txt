@@ -154,3 +154,24 @@ JaCoCo
 PyYAML
 Maven
 Dockerfile
+
+# Moderacion de chat (ADR-012): librerias, algoritmos y listas
+Corasick
+ahocorasick
+modernmt
+Detoxify
+RoBERTuito
+pysentimiento
+LDNOOBW
+Shutterstock
+Scunthorpe
+leet
+leetspeak
+homoglifo
+homoglifos
+Shannon
+Lucene
+stemming
+whitelist
+Levenshtein
+NFKD

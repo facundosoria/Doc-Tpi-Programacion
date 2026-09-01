@@ -180,6 +180,67 @@ arranca** (RF-IA-36, sin override).
 
 ---
 
+### ADR-012 — El moderador resuelve con técnica clásica; la IA solo cubre el residuo
+
+**Decisión:** el moderador resuelve con **tecnología clásica** todo lo resoluble —listas con nivel por
+término, heurísticas de spam, forma de código y detección de base64—, que cubre **cuatro de las seis
+categorías** de RF-CHT-10. La base de términos es el `dictionary.es`/`dictionary.en` de
+`com.modernmt.text:profanity-filter` (Apache-2.0), **verificado**: trae score por término en vez de
+booleano y está calibrado para el registro rioplatense. LDNOOBW queda como plan B. Para el residuo
+contextual —acoso y amenaza sin léxico explícito— invoca un **clasificador dedicado**
+(`omni-moderation-latest`), **no un LLM con prompt**.
+
+**Por qué:** el filtrado de lenguaje ofensivo es un problema resuelto desde antes de que existieran
+los LLM, y hay librerías Java maduras y listas publicadas que lo hacen. Cuatro razones concretas:
+
+1. **Latencia** — el presupuesto es < 300 ms ([02](02-arquitectura-y-stack.md)) y un roundtrip HTTP
+   externo se lo come casi entero. Un match en memoria es < 1 ms.
+2. **Es la red del fail-open** — sin capa clásica, el fail-open de P-02 significa *sin ninguna
+   moderación*.
+3. **Datos** — cuantos menos mensajes de alumnos salgan del sistema, mejor ([07](07-datos-y-terminos.md)).
+4. **Elimina el prompt del moderador** — y con él la superficie de prompt injection sobre el
+   moderador, la necesidad de `temperature: 0` + `seed` (A-3 de
+   [14](14-sincronizacion-guia-didactica.md)) y el pendiente E-05. Un clasificador no interpreta
+   instrucciones: recibe texto y devuelve etiquetas con score.
+
+> ⚠️ **El argumento no es el ahorro de tokens.** La Moderation API es **gratuita** y no consume
+> tokens del presupuesto. Quien justifique esta decisión por costo de tokens la está justificando
+> mal: las razones son latencia, resiliencia y datos.
+
+**Para que no quede duda de qué es cada pieza:** la capa clásica **no es IA** —son algoritmos y tablas
+de datos, cero tokens, cero red— y el clasificador **no es un LLM** —entra texto, salen etiquetas, sin
+prompt y sin tokens de salida—. **El moderador queda sin ningún LLM generativo adentro**, y su costo
+en [03](03-modelos-costos-y-contexto.md) es USD 0 porque no hay nada que facturar, no porque se haya
+estimado con optimismo. La tabla está en [04](04-funciones-de-ia.md) §2.0.
+
+**Se revisa si:** la medición del campo `origen` muestra que la capa clásica decide una proporción
+baja de los mensajes, o si los falsos positivos rioplatenses resultan inmanejables. Si además la
+política de datos llega a prohibir que los mensajes salgan del sistema, la alternativa evaluada es un
+modelo local —**pysentimiento** (RoBERTuito, entrenado en español rioplatense) o Detoxify
+multilingüe—, que ADR-005 contempla como *componente interno Python, no microservicio*.
+
+**¿Y si en algún momento hay que meterle un LLM?** Con esto alcanza para cumplir RF-CHT-09 a
+RF-CHT-14; no hay una fase 2 pendiente. Los cuatro escenarios que sí obligarían a revisarlo —y los
+seis pedidos habituales que **no** lo justifican— están enumerados en [04](04-funciones-de-ia.md)
+§2.10. El único serio es el **acoso acumulativo**, y ahí la observación importante es que **no se
+arregla cambiando de modelo sino cambiando el contrato**: el LLM más caro del mundo detrás de
+`moderar(mensaje)` tampoco lo detecta, porque el problema es que solo ve un mensaje.
+
+**Los patrones que implementan esta decisión** están mapeados uno a uno en
+[04](04-funciones-de-ia.md) §2.3.4b y §2.3.4c. En resumen: **Pipes and Filters** para la
+normalización, **Composite** de **Strategy** para los detectores clásicos —que corren **todos** y
+fusionan veredictos, porque `categorias` es un array—, y **Chain of Responsibility** de **solo dos
+eslabones** para el corte clásico → clasificador, que es el único lugar donde hay trabajo caro que
+evitar. El resto —**Adapter**, **Factory Method**, **Circuit Breaker**, **Rate Limiter**,
+**Idempotent Receiver**— ya venía de ADR-001 y de [02](02-arquitectura-y-stack.md).
+
+Ahí también está por qué **no** va un orquestador LLM (lo prohíbe ADR-002) ni eventos entre los
+detectores (el moderador es sincrónico, ADR-003).
+
+📄 [03](03-modelos-costos-y-contexto.md), [04](04-funciones-de-ia.md), [13](13-rubrica-y-prompts.md)
+
+---
+
 ## ⚠️ Decisiones que se revisaron durante el diseño
 
 **Leé esto antes de reabrir una discusión.** Siete decisiones cambiaron mientras se armaba la
@@ -760,8 +821,12 @@ dónde está, quién lo define y cuándo.
 | E-02 | Prompt del evaluador | [13](13-rubrica-y-prompts.md) §6 | 📝 | P3 | Paso 5 |
 | E-03 | Prompt del tutor + las 3 variantes de riesgo | [13](13-rubrica-y-prompts.md) §7 | 📝 | P5 + P6 | Paso 11 |
 | E-04 | Prompt del generador | [13](13-rubrica-y-prompts.md) §8 | 📝 | P2 | Paso 10 |
-| E-05 | Prompt del moderador | [13](13-rubrica-y-prompts.md) §9 | 📝 | — | Fase 2 |
+| ~~E-05~~ | ~~Prompt del moderador~~ | — | ✅ | **Cerrado por ADR-012** | — |
 | E-06 | Los schemas de salida | [13](13-rubrica-y-prompts.md) §6-9 | 📝 | Cada dueño de módulo | Con su función |
+
+> ✅ **E-05 quedó sin objeto.** ADR-012 reemplazó el LLM del moderador por un clasificador dedicado, y
+> un clasificador no lleva prompt. **El schema de salida sí sigue existiendo** —`moderacion.json`, bajo
+> E-06—: lo que desapareció es la plantilla, no el contrato.
 
 > **E-01 es el más importante de la tabla.** Nuestras anclas son un punto de partida para que los
 > docentes no arranquen de cero — **no son la rúbrica**. El proceso que las convierte en definitivas
