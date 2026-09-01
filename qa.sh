@@ -29,10 +29,20 @@ else
   HOST_ROOT="$ROOT"
 fi
 
+# Cada runner self-hosted necesita su PROPIO repositorio Maven. El volumen es
+# unico por host, asi que dos corridas concurrentes en el mismo server comparten
+# /root/.m2: descargas parciales, .lastUpdated y contencion de locks, que fallan
+# de forma intermitente y dificil de atribuir. QA_M2_VOLUME lo separa por runner.
+# En tu maquina no cambia nada: sin la variable, el volumen es el de siempre.
+
+# CI se propaga para que el motor sepa que el working tree es efimero: alla un
+# nivel `arregla` corregiria archivos que se descartan al terminar la corrida.
+# Ver degradacion_ci en tools/qa/config/checks.yml.
 exec docker run --rm -i \
   -v "${HOST_ROOT}:/work" \
-  -v tpi-qa-m2:/root/.m2 \
+  -v "${QA_M2_VOLUME:-tpi-qa-m2}:/root/.m2" \
   -w /work \
   -e QA_BASE="${QA_BASE:-}" \
+  -e CI="${CI:-}" \
   -e GITHUB_STEP_SUMMARY="${GITHUB_STEP_SUMMARY:-}" \
   "$IMAGE" bash tools/qa/run.sh "$@"
