@@ -231,13 +231,13 @@ explícita**, no un microservicio.
 | **M2 · RAG** | Ingesta de PDF, chunking, embeddings, retrieval | No |
 | **M3 · Evaluador** | Rúbrica versionada, prompt, scoring de la transcripción | M1 |
 | **M4 · Calibración** | Golden set, runner, comparación con PAR-14, deriva | M1 + M3 |
-| **M5 · Guardarraíles y moderación** | Filtro de entrada, salvaguarda anti-fuga con AST, y el moderador de chat (pre-filtro + clasificador) | M1 |
+| **M5 · Guardarraíles y moderación** | Filtro de entrada, salvaguarda anti-fuga con AST, y el moderador de chat (capa clásica + clasificador, ADR-012) | M1 |
 | **M6 · Tutor** | Servicio del tutor + componente Angular | M1 + M2 + M5 |
 | **M7 · Generador y corrector** | Blueprint, generación por slot, validación, corrección | M1 + M2 |
 | **M8 · Plataforma** | Docker, API, contratos, cola, base, eventos | No |
 
 > **El moderador de chat vive en M5 y no es un módulo aparte.** Es un clasificador de texto corto sin
-> contexto: comparte el pre-filtro determinístico con el filtro de entrada y es del mismo
+> contexto: comparte la capa clásica con el filtro de entrada y es del mismo
 > responsable. **No entra en las cuatro semanas de la demo** —el chat es Fase 2 del PRD— pero el
 > contrato sí conviene entregarlo temprano. El agente `@mención` (RF-CHT-05) es Fase 3 y, cuando
 > llegue, va en M6 junto al tutor: es un agente conversacional, no un filtro. Ver
@@ -483,21 +483,22 @@ moderar todavía. Pero hay una parte que sí conviene entregar temprano y una pa
 
 | Ahora | Cuando exista el chat |
 |---|---|
-| **El contrato**: `moderar(mensaje)` devuelve `categorias`, `severidad`, `confianza` | El clasificador contra el modelo |
-| El pre-filtro determinístico, que es código puro y se prueba sin proveedor | El registro de incidentes y el evento de severidad alta |
+| **El contrato**: `moderar(mensaje)` devuelve `categorias`, `severidad`, `confianza` y `origen` | La calibración contra mensajes reales, y cuánto resuelve cada capa según `origen` |
+| La capa clásica, que es código puro y se prueba sin proveedor | El registro de incidentes y el evento de severidad alta |
 | Los 100 mensajes etiquetados a mano — es una tarde, no un hito de calendario | La marca de retención de RF-CHT-14 |
 
 **Por qué el contrato ahora:** el Tema 11 está diseñando el chat. Si no sabe qué puede pedirnos ni
 cuánto tarda, lo va a diseñar asumiendo algo, y esa asunción va a estar mal. Es la misma lógica del
 Paso 8 con el endpoint de calibración.
 
-**Por qué el moderador es el mejor primer LLM del equipo, si alguien quiere arrancar por ahí:** no
-tiene contexto, no tiene historial, no tiene RAG, no tiene rúbrica y su salida es un JSON de tres
-campos. Es la función de IA más simple del proyecto entera. Como ejercicio de calentamiento sobre M1
+**⚠️ El moderador ya no sirve como primer ejercicio con un modelo:** ADR-012 lo dejó sin LLM. Sigue
+siendo la función más simple del proyecto —sin contexto, sin historial, sin RAG, sin rúbrica, y su
+salida es un JSON de cuatro campos—, pero por eso mismo dejó de ser práctica sobre M1: la capa
+clásica es código puro y el clasificador no lleva prompt. Como ejercicio de calentamiento sobre M1
 vale mucho; como prioridad de entrega, no compite con el evaluador.
 
 **Criterio de terminado:** le pasás 100 mensajes etiquetados y acierta más del 90% en severidad media
-y alta, con el pre-filtro resolviendo la mayoría sin llamar al modelo.
+y alta, con la capa clásica resolviendo la mayoría sin salir a la red.
 
 > El agente `@mención` (RF-CHT-05) **no tiene paso**. Es Fase 3, está diseñado en
 > [04](04-funciones-de-ia.md) Parte 4 y ahí se queda hasta que alguien lo priorice.

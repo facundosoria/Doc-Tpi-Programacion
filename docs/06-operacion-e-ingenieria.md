@@ -483,7 +483,7 @@ RF-CHT-09 dice que el moderador corre sobre **todo** mensaje, **antes** de que s
 |---|---|
 | **Fail-closed** — el chat se detiene | Cumple la regla de moderación. **Pero viola el espíritu de RF-IA-27**: una dependencia externa bloquea al usuario |
 | **Fail-open** — el mensaje se entrega sin moderar | El chat sigue. Riesgo: un mensaje de severidad alta se entrega |
-| **Fail-open con red** ✅ | Se entrega, pero: el pre-filtro determinístico sigue corriendo (atrapa lo obvio sin LLM), el mensaje se marca, y se re-modera cuando el servicio vuelve; si ahí resulta severidad media o alta, se retira y se genera el incidente |
+| **Fail-open con red** ✅ | Se entrega, pero: la capa clásica sigue corriendo (atrapa lo obvio sin salir a la red, ADR-012), el mensaje se marca, y se re-modera cuando el servicio vuelve; si ahí resulta severidad media o alta, se retira y se genera el incidente |
 
 **Recomendación: fail-open con red.** Fundamento: el chat social **no es producción académica** — es
 la única cosa que RF-NFR-01 permite borrar físicamente (RF-CHT-08). Bloquearlo por una caída externa

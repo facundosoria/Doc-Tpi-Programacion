@@ -1683,7 +1683,7 @@ RF-CHT-09 dice que corre sobre todo mensaje antes de entregarlo. **El PRD no dic
 disponible**, y RF-IA-27 enumera la degradación del tutor y del evaluador pero se olvida del
 moderador.
 
-**Recomendación: fail-open con red.** El mensaje se entrega, el pre-filtro sigue corriendo, el
+**Recomendación: fail-open con red.** El mensaje se entrega, la capa clásica sigue corriendo, el
 mensaje queda marcado y se re-modera cuando el servicio vuelve; si ahí resulta media o alta, se
 retira y se genera el incidente. El fundamento está en [06](06-operacion-e-ingenieria.md).
 
@@ -1712,7 +1712,7 @@ está retenido y por qué. Ver [07](07-datos-y-terminos.md).
 
 | Nuestro | De otro equipo |
 |---|---|
-| El clasificador y su pre-filtro | El chat completo: canales, hilos, citas, entrega |
+| La capa clásica y el clasificador | El chat completo: canales, hilos, citas, entrega |
 | El registro de incidentes | La pantalla del dashboard de incidentes |
 | El evento de severidad alta | El envío de la notificación (RF-NOT-05) |
 | La marca de retención de RF-CHT-14 | La ejecución de la purga al archivar |

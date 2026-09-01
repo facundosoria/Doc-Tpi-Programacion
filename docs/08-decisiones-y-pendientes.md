@@ -155,6 +155,10 @@ bloques de código hasta validarlos.
 con Batch, moderador en GPT-5 nano con pre-filtro. Contexto del tutor recortado a ~3.000 tokens con
 prompt caching.
 
+> ⚠️ **La cláusula del moderador quedó superada por ADR-012**, que lo dejó sin LLM: esa línea del
+> presupuesto pasó de USD 0,31 a **USD 0**. El resto del escenario sigue vigente, y el total apenas se
+> mueve. Se conserva el texto original porque un ADR se anota, no se reescribe.
+
 **Por qué:** entra en el objetivo de USD 15-20, y los ~USD 7 de diferencia contra la opción más
 barata compran la única cosa que el PRD marca como bloqueante del arranque del curso (RF-IA-36).
 
@@ -292,7 +296,7 @@ idéntico. Si el PO decide que no, que sea una decisión consciente y quede regi
 enumera la degradación del tutor y del evaluador, pero **no dice nada del moderador**.
 
 **Opciones:** fail-closed (se detiene el chat) / fail-open (se entrega sin moderar) / fail-open con
-red (se entrega, el pre-filtro determinístico sigue corriendo, se marca y se re-modera al volver).
+red (se entrega, la capa clásica sigue corriendo, se marca y se re-modera al volver).
 
 **Recomendación: fail-open con red.** El chat social no es producción académica — es lo único que
 RF-NFR-01 permite borrar físicamente. Bloquearlo por una caída externa contradice el principio rector
@@ -701,7 +705,7 @@ El PRD monta toda la maquinaria de calibración para el **evaluador de uso de IA
 
 Solo aplica si el moderador es tuyo. RF-CHT-09 dice que corre sobre todo mensaje antes de entregarlo; **el PRD no dice qué pasa si no está disponible**.
 
-**Recomendación: fail-open con red.** Se entrega, el pre-filtro determinístico sigue corriendo, se marca y se re-modera al volver. El chat social no es producción académica — es lo único que RF-NFR-01 permite borrar.
+**Recomendación: fail-open con red.** Se entrega, la capa clásica sigue corriendo, se marca y se re-modera al volver. El chat social no es producción académica — es lo único que RF-NFR-01 permite borrar.
 
 ---
 
