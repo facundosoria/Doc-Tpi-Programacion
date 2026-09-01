@@ -39,6 +39,35 @@ if [ -n "${GITHUB_STEP_SUMMARY:-}" ]; then
   RESUMEN_CI=(-v "$(dirname "$GITHUB_STEP_SUMMARY"):$(dirname "$GITHUB_STEP_SUMMARY")")
 fi
 
+# En Linux el contenedor corre como root, y todo lo que escribe en el working
+# tree --.qa/, __pycache__, y los target/ que deja Maven-- queda con dueno root.
+# En Windows y macOS no importa, porque el montaje traduce los dueños. En el
+# runner si: el checkout de la corrida siguiente corre como el usuario del runner,
+# no puede borrar nada de eso, y el job muere en dos segundos sin llegar a
+# ejecutar el gate. El CI se rompia solo cada dos corridas.
+#
+# Por eso en Linux corremos con tu UID. Como /root/.m2 deja de ser escribible, el
+# repositorio Maven se mueve a /qa-m2 por variable de entorno: la imagen no se
+# toca, asi que el tag --que es el hash del Dockerfile-- no cambia y nadie tiene
+# que reconstruir nada.
+VOLUMEN_M2="${QA_M2_VOLUME:-tpi-qa-m2}"
+IDENTIDAD=()
+DESTINO_M2=/root/.m2
+if [ "$(uname -s)" = "Linux" ]; then
+  UID_GID="$(id -u):$(id -g)"
+  DESTINO_M2=/qa-m2
+  IDENTIDAD=(
+    --user "$UID_GID"
+    -e HOME=/tmp
+    -e MAVEN_OPTS="-Dmaven.repo.local=/qa-m2/repository"
+  )
+  # Un volumen nuevo nace con dueno root: sin esto el usuario no podria escribirlo.
+  # Va con --entrypoint para saltear el de la imagen de Maven y no depender de
+  # como un shell interprete las comillas.
+  docker volume create "$VOLUMEN_M2" >/dev/null
+  docker run --rm -v "$VOLUMEN_M2:/qa-m2" --entrypoint chown "$IMAGE" -R "$UID_GID" /qa-m2
+fi
+
 # Cada runner self-hosted necesita su PROPIO repositorio Maven. El volumen es
 # unico por host, asi que dos corridas concurrentes en el mismo server comparten
 # /root/.m2: descargas parciales, .lastUpdated y contencion de locks, que fallan
@@ -50,9 +79,10 @@ fi
 # Ver degradacion_ci en tools/qa/config/checks.yml.
 exec docker run --rm -i \
   -v "${HOST_ROOT}:/work" \
-  -v "${QA_M2_VOLUME:-tpi-qa-m2}:/root/.m2" \
+  -v "${VOLUMEN_M2}:${DESTINO_M2}" \
   -w /work \
   "${RESUMEN_CI[@]}" \
+  "${IDENTIDAD[@]}" \
   -e QA_BASE="${QA_BASE:-}" \
   -e CI="${CI:-}" \
   -e GITHUB_STEP_SUMMARY="${GITHUB_STEP_SUMMARY:-}" \
