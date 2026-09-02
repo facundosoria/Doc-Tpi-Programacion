@@ -470,7 +470,15 @@ def correr_etapa(etapa, nivel, archivos, ruteo, perfil):
         return adaptar_eventos(salida, etapa, nivel), True
 
     if etapa == "links":
-        objetivos = ["docs", "README.md"]
+        # Corre sobre TODO el markdown que es nuestro, no solo sobre lo que
+        # cambiaste: un link se rompe en un archivo que no tocaste.
+        #
+        # Los objetivos salian de una lista fija --docs/ y README.md-- y eso deja
+        # de servir en cuanto esto viva en el monorepo de la materia: ahi `docs/` y
+        # el README de la raiz son de la catedra, no nuestros. Sacarlos de
+        # owned-paths.txt hace que la etapa siga mirando lo que corresponde sin
+        # tocar una linea de codigo.
+        objetivos = [a for a in scope.en_alcance(True) if a.endswith(".md")]
         objetivos = [o for o in objetivos if os.path.exists(o)]
         if not objetivos:
             return [], False

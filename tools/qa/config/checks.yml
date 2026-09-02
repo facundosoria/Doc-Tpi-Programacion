@@ -48,13 +48,18 @@ chequeos:
 
   links:
     herramienta: lychee
-    solo_regresiones: true
+    # Sin `solo_regresiones`: corre sobre todo el markdown propio y reporta lo que
+    # encuentra, tambien lo viejo. La clave estaba puesta y no la leia nadie, que
+    # es peor que no tenerla: decia que hacia algo que no hacia.
     rapido: avisa
     completo: bloquea
 
   referencias:
     herramienta: check_refs
-    solo_regresiones: true
+    # Corre sobre el repo entero --un ancla se rompe entre archivos-- pero pasa por
+    # diff_gate.py: se ejecuta en HEAD y en la base, y solo bloquea lo que ESTE
+    # cambio rompio. La deuda vieja queda informativa. Es lo que la clave
+    # `solo_regresiones` decia, y ahora lo dice donde efectivamente ocurre.
     rapido: bloquea
     completo: bloquea
 

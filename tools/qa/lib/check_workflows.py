@@ -32,7 +32,27 @@ HOSPEDADOS = re.compile(
 RE_RUNS_ON = re.compile(r"^\s*runs-on:", re.IGNORECASE)
 
 
-def revisar(directorio=DIRECTORIO):
+def _es_nuestro(ruta):
+    """Si el workflow cae fuera de owned-paths.txt, no es asunto nuestro.
+
+    Hoy no cambia nada: el repo es del equipo y todos los workflows son nuestros.
+    Importa el dia que esto viva en el monorepo de la materia, donde los otros
+    equipos van a tener sus propios workflows con `runs-on: ubuntu-latest` --que
+    para ellos es lo normal-- y este chequeo bloquea. Sin este filtro, nuestras
+    corridas se pondrian rojas por archivos ajenos, y sobre una decision que ya no
+    seria nuestra: si el repo gasta minutos de Actions no lo decidimos nosotros.
+
+    Si scope.py no esta disponible, se revisa todo: es el comportamiento de
+    siempre, y este chequeo no puede quedarse sin correr.
+    """
+    try:
+        import scope
+    except ImportError:
+        return True
+    return scope.es_propio(ruta, scope.globs_propios())
+
+
+def revisar(directorio=DIRECTORIO, solo_nuestros=True):
     hallazgos = []
     if not os.path.isdir(directorio):
         return hallazgos
@@ -41,6 +61,8 @@ def revisar(directorio=DIRECTORIO):
         if not nombre.endswith((".yml", ".yaml")):
             continue
         ruta = os.path.join(directorio, nombre).replace(os.sep, "/")
+        if solo_nuestros and not _es_nuestro(ruta):
+            continue
         try:
             with open(ruta, encoding="utf-8") as fh:
                 lineas = fh.readlines()
@@ -68,8 +90,12 @@ def revisar(directorio=DIRECTORIO):
 
 def main():
     # Acepta un directorio para que el self-test pueda apuntarle a su fixture.
-    directorio = sys.argv[1] if len(sys.argv) > 1 else DIRECTORIO
-    for hallazgo in revisar(directorio):
+    # Cuando alguien apunta a un directorio explicito, se revisa TODO lo que hay
+    # adentro: el filtro de propiedad es para la corrida normal, y los fixtures
+    # del self-test estan justamente excluidos de owned-paths.
+    explicito = len(sys.argv) > 1
+    directorio = sys.argv[1] if explicito else DIRECTORIO
+    for hallazgo in revisar(directorio, solo_nuestros=not explicito):
         sys.stdout.write(json.dumps(hallazgo, ensure_ascii=False) + "\n")
     return 0
 
