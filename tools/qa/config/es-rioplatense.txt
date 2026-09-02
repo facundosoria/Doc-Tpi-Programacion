@@ -332,6 +332,7 @@ síncrona
 sincronizacion
 Síncronos
 sobreingeniería
+socrático
 socráticas
 sorete
 subcadena

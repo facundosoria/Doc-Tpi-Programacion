@@ -56,6 +56,27 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 | 15 | [Sincronización con la U1 de Front End](docs/15-sincronizacion-arquitectura-y-despliegue.md) | 🔄 **Infraestructura y despliegue**: los tres «gateway», qué adoptamos de las seis estrategias de release y qué descartamos con fundamento |
 | 16 | [El pipeline de calidad](docs/16-pipeline-y-verificaciones.md) | ⚙️ **Todo el gate en un solo lugar**: que problema resuelve, con que esta hecho, que hace cada comando, que comprueba cada etapa, donde corre cada cosa —tu maquina, GitHub y el server— y que verificaciones conviene sumar |
 
+## Lo demás que hay en el repositorio
+
+| Carpeta | Qué hay adentro |
+|---|---|
+| **[`docs-extendidos/`](docs-extendidos/)** | 25 documentos que llegaron de la rama `doc-tpi-unificada`: especificación técnica, nueve planes de ejecución e investigación sobre jailbreak. Material de profundización, no de trabajo diario |
+| **[`codigo-ejemplo/`](codigo-ejemplo/)** | Los dos proyectos Java: [`ms-evaluacion-llm/`](codigo-ejemplo/ms-evaluacion-llm/), el esqueleto del servicio real, y [`demo-llm-spring-ai/`](codigo-ejemplo/demo-llm-spring-ai/), una demo funcional de tutor socrático con Spring AI |
+| **[`presentaciones/`](presentaciones/)** | La presentación de defensa (43 slides) y el PRD como wiki navegable |
+| **[`tools/`](tools/)** | El gate de calidad (`qa/`) y el panel que muestra sus corridas en vivo (`ci-front/`). Documentados en [16](docs/16-pipeline-y-verificaciones.md) |
+
+> ### Sobre el material que vino de otras ramas
+>
+> `docs-extendidos/` y `codigo-ejemplo/demo-llm-spring-ai/` se importaron **sin tocar
+> una sola línea**: cada archivo es byte a byte idéntico a su rama de origen. Lo que
+> había que corregir está anotado, no aplicado, en el `CORRECCIONES-SUGERIDAS.md` de
+> cada carpeta. **Hay una API key de Groq versionada en la demo que necesita rotarse**
+> — el detalle está en
+> [`codigo-ejemplo/CORRECCIONES-SUGERIDAS.md`](codigo-ejemplo/CORRECCIONES-SUGERIDAS.md).
+>
+> Las dos carpetas quedan fuera de `owned-paths.txt`, así que el gate las reporta como
+> informativas y nunca bloquea por ellas.
+
 > ### 📝 Sobre el contenido de ejemplo
 >
 > Varios documentos traen anclas, prompts, transcripciones y números **de ejemplo**, para que el
@@ -143,6 +164,23 @@ Detalle y recomendación de cada uno en [08 · Decisiones y pendientes](docs/08-
   despliegue. Sincronizado en [15](docs/15-sincronizacion-arquitectura-y-despliegue.md)
 
 > Los PDF de origen no se versionan en este repositorio. Se distribuyen por los canales de la cátedra.
+
+## Cómo se armó este repositorio
+
+Cuatro ramas consolidadas en una sola estructura:
+
+| Rama | Qué aportó |
+|---|---|
+| `main` | La base de los quince documentos originales |
+| `feat/qa-gate` | Los documentos evolucionados (01 a 16), el gate de calidad, el front del CI y el esqueleto del microservicio |
+| `lara` | La demo funcional de Spring AI, y dos de las presentaciones |
+| `doc-tpi-unificada` | Los 25 documentos de `docs-extendidos/` y la presentación que quedó como base del deck |
+
+Donde el mismo documento existía dos veces, **quedó la versión más nueva**. Quince
+archivos de `doc-tpi-unificada` eran copias byte a byte de versiones anteriores de
+`docs/01` a `docs/15` y se descartaron; la tabla de equivalencias, por si alguien busca
+uno por el nombre viejo, está en
+[`docs-extendidos/CORRECCIONES-SUGERIDAS.md`](docs-extendidos/CORRECCIONES-SUGERIDAS.md).
 
 ---
 

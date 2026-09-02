@@ -118,6 +118,7 @@ Gemini
 Claude
 Anthropic
 OpenAI
+Groq
 
 # Dominio academico y del PRD
 cuatrimestre
