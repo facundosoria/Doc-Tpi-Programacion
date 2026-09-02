@@ -169,8 +169,9 @@ equipos ese runner le daría ejecución en nuestro server —como root, por el g
 | Anda con cambios sin commitear | no | **sí** |
 | Necesita Docker en tu máquina | sí | **no** |
 
-Medido sobre este repo: 9 segundos en perfil rápido y 63 en completo, transferencia
-incluida.
+Medido sobre este repo: **7 segundos** en perfil rápido y **34** en completo,
+transferencia incluida. El recorrido completo, paso a paso, está en la
+[Parte 6](#el-otro-recorrido-una-corrida---remoto).
 
 ## Las dos ramas de `qa.sh`
 
@@ -602,6 +603,8 @@ sequenceDiagram
     participant G as GitHub
     participant R as Runner (server)
     participant D as Docker (server)
+    participant B as Buzon (server)
+    participant F as Front (server)
 
     V->>V: ./qa.sh (opcional)
     V->>G: git push
@@ -611,13 +614,20 @@ sequenceDiagram
     G-->>R: entrega el job
     R->>G: actions/checkout: clona, fetch-depth 0
     G-->>R: el repo, con historial completo
-    R->>R: elige perfil segun el evento
+    R->>R: elige la base del alcance y el perfil
     R->>D: ./qa.sh (docker run)
-    D->>D: 13 etapas de verificacion
+    loop en cada cambio de etapa
+        D->>B: reescribe el registro de la corrida
+        F->>B: lo lee, cada 5 segundos
+    end
     D-->>R: codigo de salida y resumen
     R-->>G: resultado y step summary
     G->>G: marca el commit
 ```
+
+Las dos ultimas flechas son las que llegan tarde: el check en el commit aparece cuando
+la corrida termina. El buzón, en cambio, se escribe **mientras** corre, y por eso el
+front puede mostrar la etapa en curso.
 
 ## Qué pasa en cada fase, con tiempos reales
 
@@ -629,11 +639,12 @@ Medidos sobre este repo, en `mk-luisao-02` (4 núcleos, 15 GB, Ubuntu 24.04).
 | 2 | Evento y encolado | GitHub | ~1 s | Detecta el push, lee `qa.yml`, crea el job con `runs-on: self-hosted` |
 | 3 | Asignación | Server hacia GitHub | 1-5 s | El primer runner libre pregunta y se lleva el job |
 | 4 | Checkout | Server | 2-4 s | Clona con `fetch-depth: 0`. El historial completo pesa 628 KB |
-| 5 | Elegir perfil | Server | <1 s | Un `if` de shell mira el evento y la rama |
+| 5 | Elegir la base y el perfil | Server | <1 s | Dos `if` de shell: contra qué commit se compara el alcance, y si va `rapido` o `completo` |
 | 6 | Garantizar la imagen | Server | 0 s, o ~2 min | Si el tag ya existe, no hace nada. Si cambió el `Dockerfile`, la construye |
 | 7 | **El gate** | Server, en Docker | 2 s a 46 s | Las 13 etapas. Depende del perfil y de qué tocaste |
-| 8 | Reporte | Server hacia GitHub | ~1 s | Sube el resumen y el resultado |
-| 9 | El check | GitHub | inmediato | El commit queda marcado |
+| 8 | El registro | Server, al buzón | incluido en el 7 | Se reescribe en cada cambio de etapa, así que se ve avanzar en el front |
+| 9 | Reporte | Server hacia GitHub | ~1 s | Sube el resumen y el resultado |
+| 10 | El check | GitHub | inmediato | El commit queda marcado |
 
 ## Los tres números que importan
 
@@ -646,6 +657,56 @@ Medidos sobre este repo, en `mk-luisao-02` (4 núcleos, 15 GB, Ubuntu 24.04).
 El caso de 171 segundos pasa **una sola vez por versión del `Dockerfile`**. Como el tag
 de la imagen es el hash del archivo, se reconstruye únicamente cuando alguien cambia el
 `Dockerfile`, y a partir de ahí todas las corridas del host la reusan.
+
+## El otro recorrido: una corrida `--remoto`
+
+El mismo gate, el mismo server, el mismo buzón — pero **GitHub no aparece en ningún
+lado**. Ni se entera, ni hace falta que exista.
+
+```mermaid
+sequenceDiagram
+    participant V as Vos
+    participant S as El server (por SSH)
+    participant D as Docker (server)
+    participant B as Buzon (server)
+    participant F as Front (server)
+
+    V->>V: tar czf del working tree, sin .qa/
+    V->>S: lo descomprime en remoto/tu-usuario
+    V->>S: bash qa.sh alla, ya sin --remoto
+    S->>D: docker run, con el buzon montado
+    loop en cada cambio de etapa
+        D->>B: reescribe el registro
+        F->>B: lo lee, cada 5 segundos
+    end
+    D-->>S: codigo de salida y .qa/
+    S-->>V: el mismo resumen, y el exit code del gate
+```
+
+### Por dónde pasa cada cosa
+
+| Qué viaja | Desde | Hasta |
+|---|---|---|
+| Tu working tree, sin `.qa/` | tu carpeta, commiteado o no | `/opt/TP-Pipelines/remoto/<tu-usuario>` |
+| El repositorio Maven | — | un volumen Docker por persona, `tpi-qa-m2-remoto-<usuario>` |
+| El registro de la corrida | `/qa-buzon` dentro del contenedor | `/opt/TP-Pipelines/corridas/` |
+| El resumen | `.qa/` en el server | `.qa/` en tu máquina |
+| El código de salida | el gate | tu shell: es el del gate, no el de `ssh` |
+
+Un directorio y un volumen **por persona**: seis personas corriendo a la vez no se
+pisan, por el mismo motivo por el que cada runner tiene el suyo.
+
+### Cuánto tarda, medido
+
+De punta a punta desde una máquina Windows, transferencia incluida, con la imagen ya
+construida y el repositorio Maven tibio:
+
+| Perfil | Medido |
+|---|---|
+| `rapido` | **7 segundos** |
+| `completo`, con Maven compilando y corriendo los tests | **34 segundos** |
+
+Y no necesitás Docker en tu máquina: el contenedor lo levanta el server.
 
 ---
 
