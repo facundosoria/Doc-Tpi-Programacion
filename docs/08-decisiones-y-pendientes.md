@@ -972,9 +972,16 @@ dónde está, quién lo define y cuándo.
 | E-28 | Los 7 estados del componente del tutor | [06](06-operacion-e-ingenieria.md) Parte 4 | 📝 | P6 |
 | E-29 | Los mensajes de error al usuario | [06](06-operacion-e-ingenieria.md) Parte 4 | 📝 | P6 + PO |
 
+### Infraestructura y despliegue
+
+| # | Qué | Dónde | Marca | Quién lo define |
+|---|---|---|---|---|
+| E-30 | **Quién provee el gestor de secretos en producción.** [06](06-operacion-e-ingenieria.md) Parte 5 dice *"secretos del orquestador"* sin decir cuál | [15](15-sincronizacion-arquitectura-y-despliegue.md) §7 | ⬜ | 🔴 **La sesión de integración**: es infraestructura compartida |
+| E-31 | El modo shadow del evaluador: dónde se activa, dónde va la salida descartada, cómo se compara | [15](15-sincronizacion-arquitectura-y-despliegue.md) §7 | ⬜ | Nosotros, con el módulo de calibración |
+
 ## Lo que hay que definir esta semana
 
-De los 29 ítems, **cinco no pueden esperar**:
+De los 31 ítems, **cinco no pueden esperar**:
 
 | # | Qué | Por qué ahora |
 |---|---|---|

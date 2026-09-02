@@ -60,7 +60,7 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 >
 > Varios documentos traen anclas, prompts, transcripciones y números **de ejemplo**, para que el
 > mecanismo se entienda y para no arrancar de cero. **Nada de eso es definitivo.**
-> El inventario completo —los 29 ítems, qué marca tiene cada uno, quién lo define y cuándo— está en
+> El inventario completo —los 31 ítems, qué marca tiene cada uno, quién lo define y cuándo— está en
 > [08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md), **Parte C**.
 
 ### Por dónde entrar

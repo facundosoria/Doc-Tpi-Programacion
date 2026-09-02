@@ -219,8 +219,8 @@ hay un canary, la respuesta no puede ser que no se nos ocurrió.
 |---|---|---|
 | 7 | Escribir el `Dockerfile` multietapa y el `docker-compose.yml` con healthchecks | Con el código del servicio |
 | 8 | Construir la mitad derecha del pipeline: imagen, registro, deploy | Después del `Dockerfile` |
-| 9 | Definir **quién** provee el gestor de secretos en producción. [06](06-operacion-e-ingenieria.md) dice *"secretos del orquestador"* sin decir cuál | Sesión de integración |
-| 10 | Diseñar el modo shadow del evaluador (A-2): dónde se activa, dónde va la salida descartada, cómo se compara | Con el módulo de calibración |
+| 9 | **E-30** · Definir **quién** provee el gestor de secretos en producción. [06](06-operacion-e-ingenieria.md) dice *"secretos del orquestador"* sin decir cuál | Sesión de integración |
+| 10 | **E-31** · Diseñar el modo shadow del evaluador (A-2): dónde se activa, dónde va la salida descartada, cómo se compara | Con el módulo de calibración |
 
 ### Cómo conviven los dos sets
 
