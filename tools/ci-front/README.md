@@ -22,6 +22,12 @@ La página muestra dos listas separadas, y vienen de lugares distintos:
 | **En curso / Historial** | la API de Actions | lo que se disparó con un push o un pull request |
 | **Corridas en el server** | el buzón, un directorio del server | lo que se corrió con `./qa.sh --remoto`, y también las corridas del runner |
 
+**El detalle por etapa de las dos listas sale del buzón.** A la API se le pide solo el
+listado de corridas: un pedido por ventana de cache, en vez de uno por corrida. Con 12
+corridas y un cache de 15 s eso pasó de ~3120 pedidos por hora a ~240, contra un límite
+de 5000 — y de paso el detalle es mejor, porque son las 13 etapas del gate y no los
+tres steps del workflow.
+
 El buzón existe por dos motivos. Una corrida `--remoto` **no pasó por GitHub**, así
 que la API no sabe que ocurrió. Y de las que sí conoce, GitHub expone los tres steps
 del workflow —checkout, elegir perfil, verificar—, no las 13 etapas del gate: para
@@ -123,14 +129,12 @@ docker-compose.yml
 
 ## Pendiente
 
-- Los contadores de hallazgos (`bloquea` / `avisa`) vienen en cero **en la lista de
-  GitHub**: la API no los expone. En las corridas del server sí son reales, porque
-  el registro del buzón los trae.
 - El detalle del fallo (`detalle_fallo`) hoy solo existe en los datos de prueba. El
-  registro del buzón trae la cuenta por etapa, no el hallazgo en sí.
-- Las etapas de la lista de GitHub van a venir vacías: `ORDEN_ETAPAS` busca pasos
-  con el nombre de cada etapa del gate, y el workflow tiene tres steps. Para esa
-  lista, el detalle por etapa está en el buzón.
+  registro del buzón trae la cuenta de hallazgos por etapa, no el hallazgo en sí.
+- Una corrida de GitHub que no dejó registro en el buzón —una anterior a que esto
+  existiera, o una que murió antes de escribir— se muestra sin detalle de etapas.
+  La API no lo puede suplir: expone los steps del workflow, y las 13 etapas del
+  gate viven todas adentro de uno.
 - Falta instalar el runner para que haya corridas reales que mostrar. El
   procedimiento está en [`tools/qa/README.md`](../qa/README.md), sección
   "Puesta en marcha en el server".

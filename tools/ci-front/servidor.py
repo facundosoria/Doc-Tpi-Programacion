@@ -22,6 +22,10 @@ reportar.py). Existe porque la API de Actions no sabe nada de una corrida
 `--remoto` --nunca paso por GitHub-- y porque de las que si conoce solo expone los
 tres steps del workflow, no las 13 etapas del gate.
 
+Por eso el detalle por etapa de LAS DOS listas sale del buzon: la de GitHub se
+empareja con su registro por commit. A la API se le pide solo la lista de corridas,
+un pedido por ventana de cache en vez de uno por corrida.
+
 Configuracion por entorno:
     CI_REPO         owner/repo. Sin esto, sirve datos de prueba.
     CI_TOKEN        token de GitHub con permiso de lectura de Actions.
@@ -73,13 +77,6 @@ ORIGENES = {"remoto": "qa.sh --remoto", "ci": "runner", "local": "qa.sh local"}
 # silencio en una sola etapa ya es otra cosa.
 CORRIDA_ZOMBI_S = 600
 
-# El nombre de las etapas del gate, en el orden en que corren. Se usa para
-# ordenar los steps que devuelve GitHub, que no garantiza orden.
-ORDEN_ETAPAS = [
-    "secretos", "ortografia", "markdownlint", "referencias", "links",
-    "formato", "compila", "analisis_estatico", "idioma_codigo", "tests",
-]
-
 _cache = {"datos": None, "ts": 0.0}
 _lock = threading.Lock()
 
@@ -97,20 +94,6 @@ def _estado_corrida(status, conclusion):
         return "ok"
     if conclusion in ("cancelled", "skipped"):
         return "cancelada"
-    return "fallo"
-
-
-def _estado_paso(status, conclusion):
-    if status == "queued":
-        return "pendiente"
-    if status == "in_progress":
-        return "corriendo"
-    if conclusion == "success":
-        return "ok"
-    if conclusion == "skipped":
-        return "pendiente"
-    if conclusion is None:
-        return "pendiente"
     return "fallo"
 
 
@@ -151,29 +134,15 @@ def desde_github():
         commit = run.get("head_commit") or {}
         autor = commit.get("author") or {}
 
-        etapas = []
-        # Los pasos solo existen una vez que el job arranco. Una corrida en cola
-        # no tiene nada que mostrar todavia, y eso es informacion, no un error.
-        if estado != "en_cola":
-            try:
-                jobs = _pedir("/repos/%s/actions/runs/%s/jobs" % (REPO, run["id"]))
-                pasos = {}
-                for job in jobs.get("jobs", []):
-                    for paso in job.get("steps", []):
-                        nombre = (paso.get("name") or "").strip().lower()
-                        pasos[nombre] = paso
-                for nombre in ORDEN_ETAPAS:
-                    paso = pasos.get(nombre)
-                    if not paso:
-                        continue
-                    etapas.append({
-                        "nombre": nombre,
-                        "estado": _estado_paso(paso.get("status"), paso.get("conclusion")),
-                        "ms": _segundos(paso.get("started_at"), paso.get("completed_at")) * 1000,
-                    })
-            except (urllib.error.URLError, urllib.error.HTTPError, KeyError):
-                pass  # Sin detalle de pasos igual se muestra la corrida.
-
+        # Las etapas NO salen de la API: las pone obtener() desde el buzon.
+        #
+        # GitHub expone los steps del workflow --checkout, elegir base, elegir
+        # perfil, verificar-- y las 13 etapas del gate viven todas adentro del
+        # ultimo. Preguntarle a la API por ellas devolvia una lista vacia.
+        #
+        # Ademas costaba un pedido POR CORRIDA: 13 por ventana de cache, unos 3120
+        # por hora contra un limite de 5000. Ahora es uno solo, y el detalle que se
+        # muestra es mejor que el que daba la API.
         corridas.append({
             "numero": run.get("run_number"),
             "estado": estado,
@@ -188,7 +157,7 @@ def desde_github():
             "duracion_s": _segundos(run.get("run_started_at"), run.get("updated_at")
                                     if estado not in ("corriendo", "en_cola") else None),
             "hallazgos": {"bloquea": 0, "avisa": 0},
-            "etapas": etapas,
+            "etapas": [],
             "url": run.get("html_url"),
         })
 
@@ -334,6 +303,35 @@ def obtener():
     datos = dict(_github_con_cache())
 
     corridas_qa = desde_buzon()
+
+    # Las etapas de una corrida de GitHub salen del registro que esa misma corrida
+    # dejo en el buzon, emparejado por commit. El runner escribe el registro
+    # mientras corre, asi que la lista de GitHub tambien avanza etapa por etapa, y
+    # sin gastar un pedido de API por corrida.
+    #
+    # El join va aca y no adentro del cache: si no, las etapas quedarian congeladas
+    # 15 segundos y se perderia justamente el avance en vivo.
+    # Los contadores de hallazgos viajan con las etapas: la API tampoco los expone,
+    # y el registro los tiene.
+    por_commit = {}
+    for corrida in corridas_qa:
+        if corrida["origen"] == "ci" and corrida["commit"]:
+            # desde_buzon() viene de la mas nueva a la mas vieja, asi que la
+            # primera de cada commit es la corrida mas reciente sobre el.
+            por_commit.setdefault(
+                corrida["commit"][:7],
+                {"etapas": corrida["etapas"], "hallazgos": corrida["hallazgos"]},
+            )
+
+    if por_commit:
+        # Copias de cada corrida: las de adentro son el mismo objeto que quedo en
+        # el cache, y escribirles encima lo iria ensuciando corrida tras corrida.
+        datos["corridas"] = [
+            dict(c, **por_commit[(c.get("commit") or "")[:7]])
+            if (c.get("commit") or "")[:7] in por_commit
+            else c
+            for c in datos.get("corridas", [])
+        ]
     if corridas_qa:
         datos["corridas_qa"] = corridas_qa
         if not (REPO and TOKEN):

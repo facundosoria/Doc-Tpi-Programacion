@@ -860,6 +860,11 @@ sabe que ocurrió— y porque de las que sí conoce, GitHub expone los tres step
 workflow, no las 13 etapas del gate. El buzón se lee aunque no haya token y aunque
 la API esté caída.
 
+Por eso **el detalle por etapa de las dos listas sale del buzón**: la corrida de GitHub
+se empareja con su registro por commit. A la API se le pide solo el listado, un pedido
+por ventana de cache en vez de uno por corrida — de ~3120 pedidos por hora a ~240,
+contra un límite de 5000.
+
 **Las dos se ven en vivo, y la del server con menos retraso.** El gate reescribe el
 registro en cada cambio de etapa, así que la corrida aparece apenas arranca y se la ve
 avanzar etapa por etapa.
