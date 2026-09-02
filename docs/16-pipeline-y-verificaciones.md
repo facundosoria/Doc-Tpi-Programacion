@@ -593,7 +593,7 @@ Corren de lo barato a lo caro, para que los segundos se gasten al final.
 | # | Etapa | Qué comprueba | Alcance |
 |---|---|---|---|
 | 1 | **workflows** | Que ningún workflow pida una máquina de GitHub y gaste minutos | repo |
-| 2 | **secretos** | Credenciales con formato conocido | repo |
+| 2 | **secretos** | Credenciales con formato conocido | repo, y lo ajeno solo avisa |
 | 3 | **ortografía** | Palabras fuera del diccionario, en español y en inglés | **tus `.md`** |
 | 4 | **markdownlint** | Formato del Markdown | **tus `.md`** |
 | 5 | **referencias** | `RF-IA-*` inexistentes, anclas rotas, documentos huérfanos | repo, solo regresiones |
@@ -605,6 +605,28 @@ Corren de lo barato a lo caro, para que los segundos se gasten al final.
 | 11 | **idioma del código** | Que los identificadores estén en inglés | **tus `.java`** |
 | 12 | **tests** | Que la suite pase | **módulo entero** |
 | 13 | **cobertura** | Que lo que agregaste tenga tests | **solo tus líneas** |
+
+## Por qué `secretos` mira todo el repo pero no bloquea por todo
+
+Un secreto se busca en todos lados o no se busca: filtrar la búsqueda por
+`owned-paths.txt` dejaría sin mirar justo el archivo que alguien puso donde no
+correspondía. Así que la etapa **escanea el repositorio entero**, siempre.
+
+Lo que sí pasa por el filtro es **el nivel del hallazgo**:
+
+| Dónde apareció | Qué hace |
+|---|---|
+| En una ruta nuestra | `bloquea`. Es nuestro y lo arreglamos nosotros |
+| Fuera de `owned-paths.txt` | `avisa`, con la regla `gitleaks-ajeno` |
+
+Sigue apareciendo en el resumen, con quién es el dueño y qué hacer. Lo que no hace
+es frenar la corrida.
+
+**En el monorepo esto deja de ser un detalle.** Sin esta distinción, un secreto que
+commitea cualquiera de los otros diez equipos pondría en rojo **nuestra línea**
+dentro del pipeline compartido, por un archivo que no podemos tocar. La regla que
+gobierna todo el resto del gate —lo que no es nuestro se reporta y no bloquea—
+también vale acá.
 
 ## La distinción que más se confunde
 
@@ -1304,6 +1326,32 @@ nuestra.
 
 **La decisión ya está escrita** en `checks.yml`, arriba de la entrada `workflows`: el
 día de la mudanza es descomentar, no volver a razonarlo.
+
+## Cuando el cambio no nos toca, no existimos
+
+El pipeline de la cátedra corre con cada push de los once equipos, y nuestra línea
+está adentro. Si el cambio no toca nuestra carpeta **no hay nada que verificar**, y
+quedarnos igual costaría los ~171 segundos de construir la imagen para no mirar un
+archivo.
+
+`qa.sh` se sale en 0 **antes de tocar Docker** —la salida temprana solo sirve si es
+barata— comparando el diff contra la carpeta del equipo. Mira las mismas tres
+fuentes que `scope.py`: lo commiteado desde la base, lo que está sin commitear y lo
+que todavía no entró al índice.
+
+```
+qa: este cambio no toca 'tema-07/'. No hay nada que verificar.
+```
+
+Dos condiciones para que aplique, y las dos importan:
+
+- **Solo con prefijo puesto.** Sin él somos el repositorio entero, y saltearse la
+  corrida sería saltearse todo.
+- **`QA_SIEMPRE=1` la desactiva**, para una corrida programada que tiene que correr
+  aunque nadie haya tocado nada.
+
+Medido sobre un monorepo simulado, con un push de otro equipo: **sale en 0 sin
+levantar Docker**. Con un push nuestro, corre las trece etapas como siempre.
 
 ## La checklist
 

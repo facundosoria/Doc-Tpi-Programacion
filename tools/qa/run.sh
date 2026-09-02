@@ -6,7 +6,9 @@
 # el reporte y decide el codigo de salida.
 set -uo pipefail
 
-QA_LIB="tools/qa/lib"
+# Prefijado igual que en qa.sh: adentro del contenedor el working dir es la raiz
+# del repositorio, no la carpeta del equipo. Ver config/proyecto/prefijo.txt.
+QA_LIB="${QA_PREFIJO:+$QA_PREFIJO/}tools/qa/lib"
 
 # El repo esta montado desde el host, asi que adentro del contenedor los archivos
 # pertenecen a otro UID y git se niega a operar por "dubious ownership".

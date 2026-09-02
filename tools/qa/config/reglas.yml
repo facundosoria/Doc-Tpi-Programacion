@@ -68,6 +68,10 @@ pmd-EmptyCatchBlock:
   que_paso: "Excepcion capturada y descartada en silencio"
   arreglo: "Logueala o volve a lanzarla. Un catch vacio esconde fallas reales"
 
+gitleaks-ajeno:
+  que_paso: "Credencial en un archivo que NO es nuestro"
+  arreglo: "No bloquea porque no esta en owned-paths.txt y no nos toca arreglarlo. Avisale a quien sea dueno de ese archivo: la credencial hay que rotarla, no solo borrarla"
+
 prefijo-inexistente:
   que_paso: "El prefijo del equipo apunta a una carpeta que no existe"
   arreglo: "Corregi tools/qa/config/proyecto/prefijo.txt (o QA_PREFIJO). Con un prefijo mal puesto ningun glob matchea y la corrida pasaria en verde sin mirar nada"

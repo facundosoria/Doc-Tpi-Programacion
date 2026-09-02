@@ -198,6 +198,36 @@ def correr_gitleaks(destino, config_dir):
     return salida
 
 
+def degradar_ajenos(hallazgos, etapa, regla_ajena):
+    """Lo que no es nuestro se reporta, pero no frena.
+
+    Hay etapas que por diseno miran el repositorio entero y no la lista filtrada
+    de scope.py: un secreto se busca en todos lados o no se busca. Eso esta bien
+    mientras el repositorio sea del equipo, y deja de estarlo en el monorepo,
+    donde un secreto que commiteo otro equipo pondria en rojo NUESTRA linea
+    dentro del pipeline compartido --y sobre un archivo que no podemos tocar.
+
+    La regla que ya gobierna todo lo demas aplica igual aca: lo que cae fuera de
+    owned-paths.txt se reporta como informativo y nunca bloquea. Se reemite con
+    otra regla en vez de bajarle el nivel a mano para que el resumen diga POR QUE
+    no bloquea, y para que el id del hallazgo siga siendo coherente con su
+    contenido.
+
+    Se sigue reportando, a proposito: que no sea nuestro no significa que no
+    convenga enterarse.
+    """
+    patrones = scope.globs_propios()
+    salida = []
+    for h in hallazgos:
+        archivo = (h.get("archivo") or "").replace("\\", "/")
+        if scope.es_propio(archivo, patrones):
+            salida.append(h)
+            continue
+        salida.append(_hallazgo(etapa, "avisa", archivo, h.get("linea"),
+                                regla_ajena, h.get("detalle", "")))
+    return salida
+
+
 def adaptar_gitleaks(salida, etapa, nivel):
     hallazgos = []
     try:
@@ -444,7 +474,8 @@ def correr_etapa(etapa, nivel, archivos, ruteo, perfil):
     if etapa == "secretos":
         # --no-git escanea el working tree, no el historial: interesa lo que
         # estas por subir, no una clave que alguien roto hace seis meses.
-        return adaptar_gitleaks(correr_gitleaks(".", RUTA_CONFIG), etapa, nivel), True
+        hallazgos = adaptar_gitleaks(correr_gitleaks(".", RUTA_CONFIG), etapa, nivel)
+        return degradar_ajenos(hallazgos, etapa, "gitleaks-ajeno"), True
 
     if etapa == "ortografia":
         if not md:

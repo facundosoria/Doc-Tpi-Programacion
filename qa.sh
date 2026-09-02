@@ -9,7 +9,52 @@ set -euo pipefail
 ROOT="$(git rev-parse --show-toplevel)"
 cd "$ROOT"
 
-QA_DIR="tools/qa"
+# La carpeta del equipo dentro del repositorio. Vacia mientras seamos la raiz.
+# El valor de verdad vive versionado; QA_PREFIJO lo pisa para probar sin commitear.
+# Ver tools/qa/config/proyecto/prefijo.txt.
+# La config se busca al lado de ESTE archivo, no en una ruta fija: para leer el
+# prefijo haria falta el prefijo, y qa.sh siempre esta en la carpeta del equipo.
+QA_AQUI="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+QA_PREFIJO="${QA_PREFIJO:-$(sed -e 's/#.*//' -e 's/[[:space:]]//g' \
+  "$QA_AQUI/tools/qa/config/proyecto/prefijo.txt" 2>/dev/null \
+  | grep -m1 . || true)}"
+QA_PREFIJO="${QA_PREFIJO#/}"
+QA_PREFIJO="${QA_PREFIJO%/}"
+
+# Con prefijo, el gate no vive en la raiz: todas las rutas de abajo cuelgan de el.
+QA_DIR="${QA_PREFIJO:+$QA_PREFIJO/}tools/qa"
+
+# CUANDO EL CAMBIO NO NOS TOCA, NO EXISTIMOS.
+#
+# En el monorepo el gate se invoca desde el pipeline de la catedra, que corre con
+# cada push de los once equipos. Si el cambio no toca nuestra carpeta no hay nada
+# que verificar, y quedarnos igual costaria los ~171 segundos de construir la
+# imagen para no mirar un archivo --y una linea nuestra en rojo en el build de
+# otro si algo saliera mal--.
+#
+# Se sale ANTES de tocar Docker, que es el punto: la salida temprana solo sirve si
+# es barata. Y solo aplica con prefijo puesto: sin el somos el repo entero y
+# saltearse la corrida seria saltearse todo.
+#
+# QA_SIEMPRE=1 la desactiva, para una corrida programada que tiene que correr
+# igual aunque nadie haya tocado nada.
+if [ -n "$QA_PREFIJO" ] && [ -z "${QA_SIEMPRE:-}" ] && [ "${1:-}" != "--self-test" ]; then
+  QA_DESDE="${QA_BASE:-$(git merge-base origin/main HEAD 2>/dev/null || true)}"
+  if [ -n "$QA_DESDE" ]; then
+    # Las tres fuentes que mira scope.py: lo commiteado desde la base, lo que
+    # esta sin commitear, y lo que todavia no entro al indice.
+    QA_TOCADO="$(
+      { git diff --name-only "$QA_DESDE" HEAD -- "$QA_PREFIJO" 2>/dev/null
+        git diff --name-only HEAD -- "$QA_PREFIJO" 2>/dev/null
+        git ls-files --others --exclude-standard -- "$QA_PREFIJO" 2>/dev/null
+      } | grep -m1 . || true
+    )"
+    if [ -z "$QA_TOCADO" ]; then
+      echo "qa: este cambio no toca '$QA_PREFIJO/'. No hay nada que verificar." >&2
+      exit 0
+    fi
+  fi
+fi
 
 # El nombre de usuario se usa en dos lados --la ruta del directorio remoto y el
 # registro que queda en el buzon-- asi que se resuelve una sola vez. En Git Bash
@@ -201,4 +246,4 @@ exec docker run --rm -i \
   -e QA_ORIGEN="${QA_ORIGEN:-}" \
   -e QA_USUARIO="${QA_USUARIO}" \
   -e GITHUB_STEP_SUMMARY="${GITHUB_STEP_SUMMARY:-}" \
-  "$IMAGE" bash tools/qa/run.sh "$@"
+  "$IMAGE" bash "$QA_DIR/run.sh" "$@"

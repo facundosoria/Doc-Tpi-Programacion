@@ -19,3 +19,12 @@ desktop.ini
 # IDE
 .idea/
 *.iml
+
+# Configuracion con secretos. docker compose levanta el .env que este al lado del
+# compose file sin que nadie se lo pida, y el README del front muestra las lineas
+# a pegar ahi --incluido CI_TOKEN--. Sin esta regla, el que las pegue commitea el
+# token sin darse cuenta. La etapa `secretos` lo agarraria igual, pero un cinturon
+# no es razon para no cerrar la puerta.
+.env
+.env.*
+!.env.example
