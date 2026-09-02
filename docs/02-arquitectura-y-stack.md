@@ -62,6 +62,7 @@ que haber dibujado seis cajitas.**
 ```mermaid
 flowchart TB
     FE["Front End - monolito Angular compartido"]
+    NX["nginx - borde<br/>sirve el Angular compilado · reverse proxy de /api"]
     GW["API GATEWAY<br/>unica puerta · valida token · propaga contexto"]
     SD["Service Discovery<br/>registro dinamico"]
 
@@ -85,7 +86,8 @@ flowchart TB
 
     BUS["BUS DE EVENTOS<br/>lo asincronico NO pasa por el gateway"]
 
-    FE --> GW
+    FE --> NX
+    NX --> GW
     GW <-.->|"resuelve instancia"| SD
     GW --> otros
     GW --> nuestro
@@ -107,6 +109,22 @@ flowchart TB
 
 **Los dos existen y no compiten.** Redis con workers es cómo resolvemos internamente el trabajo
 diferido; el bus es cómo le contamos al mundo que terminamos.
+
+### Tres cosas se llaman «gateway» — no confundirlas
+
+La [U1 de Front End](15-sincronizacion-arquitectura-y-despliegue.md) enseña **Nginx como gateway** de
+microservicios. Esa palabra ya nombra otras dos cosas en este proyecto, y las tres aparecen en este
+mismo documento:
+
+| Cuál | Qué es | Quién lo decide |
+|---|---|---|
+| **nginx (borde)** | Sirve el Angular compilado y hace de reverse proxy hacia adentro. Termina TLS | Infraestructura compartida |
+| **API Gateway** | La única puerta a los microservicios. Valida el token y resuelve instancia contra Service Discovery | La cátedra: es regla no negociable |
+| **AI Gateway** | El módulo M1, **adentro** de nuestro servicio: envuelve toda llamada a un LLM. No rutea tráfico HTTP entrante | Nosotros, es diseño interno |
+
+**Nginx no reemplaza al API Gateway: está antes.** Y ninguno de los dos es el AI Gateway. El detalle
+de por qué, y qué de esa unidad adoptamos, está en
+[15](15-sincronizacion-arquitectura-y-despliegue.md).
 
 ## 3. Adentro: los ocho módulos
 
@@ -303,8 +321,8 @@ externa al equipo."** Confirma con las mismas palabras el riesgo de calendario q
 
 | Contenedor | Stack | Réplicas | Nota |
 |---|---|---|---|
-| `ms-evaluacion-llm` | Python FastAPI | 1-2 | Sin puerto publicado |
-| `worker` | Python FastAPI | 2-6 | **Misma imagen, distinto comando** |
+| `ms-evaluacion-llm` | Java Spring Boot | 1-2 | Sin puerto publicado, ni siquiera detrás de nginx |
+| `worker` | Java Spring Boot | 2-6 | **Misma imagen, distinto comando** |
 | `postgres` | Postgres + pgvector | 1 | **Base propia y exclusiva** |
 | `redis` | Redis persistente | 1 | Cola + contadores de cuota |
 

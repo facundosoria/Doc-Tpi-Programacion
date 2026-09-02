@@ -53,6 +53,7 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 | 12 | [Almacenamiento e ingesta](docs/12-almacenamiento-e-ingesta.md) | Qué base de datos y cuántas, MinIO, y cómo se baja a texto un PDF con imágenes |
 | 13 | [La rúbrica y los prompts](docs/13-rubrica-y-prompts.md) | 📝 El artefacto central del equipo: las 5 dimensiones con sus anclas y los prompts de cada función |
 | 14 | [Sincronización con la guía didáctica](docs/14-sincronizacion-guia-didactica.md) | 🔄 **Comparación con el otro set de documentación**: los 6 conflictos, lo que hay que adoptar y lo que aportamos |
+| 15 | [Sincronización con la U1 de Front End](docs/15-sincronizacion-arquitectura-y-despliegue.md) | 🔄 **Infraestructura y despliegue**: los tres «gateway», qué adoptamos de las seis estrategias de release y qué descartamos con fundamento |
 | 16 | [El pipeline de calidad](docs/16-pipeline-y-verificaciones.md) | ⚙️ **Todo el gate en un solo lugar**: que problema resuelve, con que esta hecho, que hace cada comando, que comprueba cada etapa, donde corre cada cosa —tu maquina, GitHub y el server— y que verificaciones conviene sumar |
 
 > ### 📝 Sobre el contenido de ejemplo
@@ -138,9 +139,11 @@ Detalle y recomendación de cada uno en [08 · Decisiones y pendientes](docs/08-
 
 - `PRD-Plataforma-Gamificada-TP.pdf` (v2.1) — definición funcional del producto
 - `TUP_PIV_BE_PROPUESTA_ARQ.pdf` — propuesta de arquitectura de la cátedra
+- `TUP_PIV_FE_TEO_U1_ARQUITECTURA_DESPLIEGUE.pdf` — teórico de Front End, Unidad 1: arquitectura y
+  despliegue. Sincronizado en [15](docs/15-sincronizacion-arquitectura-y-despliegue.md)
 
 > Los PDF de origen no se versionan en este repositorio. Se distribuyen por los canales de la cátedra.
 
 ---
 
-*Documentación viva. Última actualización: 2026-08-30.*
+*Documentación viva. Última actualización: 2026-09-02.*

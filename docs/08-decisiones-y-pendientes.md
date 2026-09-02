@@ -245,6 +245,89 @@ detectores (el moderador es sincrónico, ADR-003).
 
 ---
 
+### ADR-013 — Rolling update como estrategia de despliegue
+
+**Decisión:** las versiones nuevas se publican con **rolling update**: las réplicas se reemplazan de
+a una y conviven las dos versiones durante la ventana. **Blue-Green, Canary y A/B Testing quedan
+descartados**, cada uno por un motivo distinto. El rollback es volver a desplegar el tag anterior, no
+un mecanismo aparte.
+
+**Por qué:** es lo que ya hace `docker compose up -d` con réplicas, así que la decisión no agrega
+infraestructura; solo le pone nombre a lo que ocurre y hace explícito el costo que trae. Ese costo es
+uno solo y ya estaba escrito: **las dos versiones tienen que poder convivir**, que es exactamente la
+regla de versionado del contrato de [02](02-arquitectura-y-stack.md) —*"un cambio incompatible sin
+aviso rompe al otro equipo en medio de su sprint"*—. Rolling update la convierte de recomendación en
+requisito de despliegue.
+
+Por qué no las otras tres:
+
+| Estrategia | Por qué no |
+|---|---|
+| **Blue-Green** | Duplica la infraestructura, y su punto débil declarado son las migraciones de base. Las nuestras son append-only ([07](07-datos-y-terminos.md) §3.3), y van camino a triggers de inmutabilidad en la base ([14](14-sincronizacion-guia-didactica.md) A-5): dos esquemas vivos a la vez es peor acá que en un CRUD |
+| **Canary** | Necesita repartir tráfico por porcentaje. Con 1-2 réplicas el mínimo alcanzable es 50%, que ya no es un canario |
+| **A/B Testing** | 🔴 **Inaceptable por el dominio, no por la infraestructura.** Compara versiones sobre poblaciones distintas: dos alumnos con la misma transcripción recibirían notas de versiones distintas. Una nota no es una tasa de conversión |
+
+**Shadow deployment sí se adopta, pero no como estrategia de release:** se usa para validar una
+`rubric_version` o un `prompt_version` nuevos contra tráfico real descartando la salida. Está en
+[15](15-sincronizacion-arquitectura-y-despliegue.md).
+
+**Se revisa si:** el servicio deja de correr sobre Docker Compose y pasa a un orquestador que dé
+balanceo por porcentaje, o si el número de réplicas crece lo suficiente como para que un canario del
+5% sea representable.
+
+📄 [06](06-operacion-e-ingenieria.md), [15](15-sincronizacion-arquitectura-y-despliegue.md)
+
+---
+
+### ADR-014 — El proveedor de LLM no entra en la sonda de readiness
+
+**Decisión:** el endpoint de salud de `ms-evaluacion-llm` chequea **Postgres y Redis**, y nada más.
+El estado del proveedor de modelos **no** afecta al readiness: va a métrica, a alerta y al circuit
+breaker, nunca a la sonda.
+
+**Por qué:** una sonda que incluyera al proveedor sacaría la instancia de rotación cuando el
+proveedor se cae. Y **RF-IA-27 dice justamente que la caída del proveedor no puede bloquear al
+alumno**: la escalera de degradación existe para que el servicio siga respondiendo sin modelo. Meter
+al proveedor en el readiness convierte una degradación prevista en una caída total, que es el único
+resultado que el requisito prohíbe.
+
+Es la asimetría del proyecto aplicada a la infraestructura: **un solo camino, y prohibido cortarlo**.
+El servicio está sano cuando puede aceptar trabajo y encolarlo; que ese trabajo termine con un modelo
+o con la degradación es otra pregunta.
+
+**Se revisa si:** aparece una función que sin modelo no tenga ninguna respuesta útil que dar ni
+siquiera degradada. Hoy no existe: el evaluador encola, y el tutor y el moderador tienen fail-open
+definido.
+
+📄 [06](06-operacion-e-ingenieria.md), [15](15-sincronizacion-arquitectura-y-despliegue.md)
+
+---
+
+### ADR-015 — Nginx vive en el borde; no rutea hacia nuestro servicio
+
+**Decisión:** nginx sirve el Angular compilado, termina TLS y hace de reverse proxy hacia el **API
+Gateway**. **No** hay bloque `location` ni `upstream` que apunte a `ms-evaluacion-llm`, y nuestro
+servicio sigue **sin puerto publicado**. El balanceo entre réplicas lo resuelve el gateway contra
+Service Discovery.
+
+**Por qué:** la [U1 de Front End](15-sincronizacion-arquitectura-y-despliegue.md) enseña a Nginx como
+gateway de microservicios, con un `location` por servicio. Aplicado acá chocaría de frente con dos
+reglas no negociables de [02](02-arquitectura-y-stack.md): *"el API Gateway es la única puerta de
+entrada"* y *"no hay comunicación directa entre microservicios"*. Un `proxy_pass` a nuestro servicio
+abre una segunda puerta que no valida el token, y deja el registro dinámico sin sentido.
+
+Las dos capas no compiten: **nginx es el borde, el gateway es el ruteo**. Lo que la unidad enseña
+sobre `upstream` y algoritmos de balanceo se aplica al frente web de la plataforma, no a nosotros; y
+`ip_hash` en particular no aplica en ningún caso, porque nuestro servicio es stateless por diseño —la
+identidad la deriva del token propagado, nunca de la conexión.
+
+**Se revisa si:** la plataforma abandona el API Gateway de Spring Cloud, o si aparece un requisito de
+tráfico que el gateway no pueda absorber y haya que balancear antes.
+
+📄 [02](02-arquitectura-y-stack.md), [15](15-sincronizacion-arquitectura-y-despliegue.md)
+
+---
+
 ## ⚠️ Decisiones que se revisaron durante el diseño
 
 **Leé esto antes de reabrir una discusión.** Siete decisiones cambiaron mientras se armaba la
@@ -865,7 +948,7 @@ dónde está, quién lo define y cuándo.
 |---|---|---|---|---|---|
 | E-15 | Nombres de campos y tablas | [11](11-glosario-y-metadata.md) Parte B | 📝 | P5 | 🔴 Paso 2 — esta semana |
 | E-16 | **Qué es un "mensaje trivial"** (¿menos de cuántos caracteres?) | [11](11-glosario-y-metadata.md) Parte B | ⬜ | P3, ajustando contra el golden set | Paso 4 |
-| E-17 | Las 7 colisiones del glosario | [11](11-glosario-y-metadata.md) Parte A | 📝 | 🔴 **La sesión de integración**, no nosotros solos | Esta semana |
+| E-17 | Las 8 colisiones del glosario | [11](11-glosario-y-metadata.md) Parte A | 📝 | 🔴 **La sesión de integración**, no nosotros solos | Esta semana |
 | E-18 | Campos del contrato de eventos | [02](02-arquitectura-y-stack.md) Parte 3 | 📝 | 🔴 **Tema 11**, antes de que lo cierren | Esta semana |
 
 ### Números y umbrales

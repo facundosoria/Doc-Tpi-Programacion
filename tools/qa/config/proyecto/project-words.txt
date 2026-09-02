@@ -175,3 +175,19 @@ stemming
 whitelist
 Levenshtein
 NFKD
+
+# Infraestructura y despliegue (U1 de Front End, doc 15)
+BFF
+Terraform
+Ansible
+Prometheus
+Grafana
+canary
+multietapa
+stateless
+healthcheck
+healthchecks
+readiness
+liveness
+TLS
+SHA
