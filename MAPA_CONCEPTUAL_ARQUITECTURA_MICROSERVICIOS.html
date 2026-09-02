@@ -1,0 +1,1921 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mapa Conceptual de Arquitectura de Microservicios — TPI Programación IV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            },
+            gateway: '#3b82f6',
+            eventbus: '#f59e0b',
+            danger: '#ef4444',
+            success: '#10b981',
+            purple: {
+              500: '#a855f7',
+              600: '#9333ea',
+              700: '#7e22ce'
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 1);
+    }
+    /* Pulsing animations */
+    @keyframes flow-pulse {
+      0% { stroke-dashoffset: 24; }
+      100% { stroke-dashoffset: 0; }
+    }
+    .animate-flow-sync {
+      stroke-dasharray: 6, 6;
+      animation: flow-pulse 1.2s linear infinite;
+    }
+    .animate-flow-async {
+      stroke-dasharray: 8, 8;
+      animation: flow-pulse 1.8s linear infinite reverse;
+    }
+    .animate-flow-param {
+      stroke-dasharray: 4, 4;
+      animation: flow-pulse 2s linear infinite;
+    }
+    /* Glassmorphism effects */
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.85);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+    }
+    .glass-card:hover {
+      border-color: rgba(56, 189, 248, 0.6);
+      transform: translateY(-2px);
+    }
+    /* Connection paths */
+    .conn-path {
+      transition: stroke 0.3s ease, stroke-width 0.3s ease, opacity 0.3s ease;
+    }
+    .node-selected {
+      box-shadow: 0 0 0 2px #38bdf8, 0 10px 25px -5px rgba(56, 189, 248, 0.4);
+    }
+    .node-dimmed {
+      opacity: 0.25 !important;
+      filter: grayscale(80%);
+    }
+    .node-highlighted {
+      box-shadow: 0 0 0 2px #10b981, 0 10px 25px -5px rgba(16, 185, 129, 0.4);
+    }
+    /* Smooth canvas transition */
+    #canvas-container {
+      cursor: grab;
+      user-select: none;
+    }
+    #canvas-container:active {
+      cursor: grabbing;
+    }
+    /* Grid background */
+    .bg-grid-pattern {
+      background-size: 32px 32px;
+      background-image: 
+        linear-gradient(to right, rgba(51, 65, 85, 0.15) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(51, 65, 85, 0.15) 1px, transparent 1px);
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased overflow-x-hidden">
+
+  <!-- TOP APP BAR -->
+  <header class="sticky top-0 z-40 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 py-3 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+    <div class="flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-sky-500/20 text-white font-bold text-lg">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/>
+        </svg>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <h1 class="text-base sm:text-lg font-extrabold tracking-tight bg-gradient-to-r from-sky-400 via-indigo-300 to-emerald-400 bg-clip-text text-transparent">
+            Mapa Conceptual de Microservicios & API Gateway
+          </h1>
+          <span class="px-2 py-0.5 text-xs font-semibold bg-sky-950 text-sky-400 border border-sky-800/80 rounded-full">TPI Programación IV</span>
+        </div>
+        <p class="text-xs text-slate-400 hidden sm:block">Arquitectura desacoplada, Service Discovery, Event Bus y Matriz de Dependencias</p>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <div class="flex items-center space-x-1 bg-slate-950/80 p-1 rounded-xl border border-slate-800 text-xs font-medium">
+      <button onclick="switchMainTab('map')" id="tab-btn-map" class="px-3 py-1.5 rounded-lg text-white bg-sky-600 shadow flex items-center space-x-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg>
+        <span>Mapa Interactivo</span>
+      </button>
+      <button onclick="switchMainTab('matrix')" id="tab-btn-matrix" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        <span>Matriz Cruzada</span>
+      </button>
+      <button onclick="switchMainTab('events')" id="tab-btn-events" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+        <span>Bus de Eventos (T11)</span>
+      </button>
+      <button onclick="switchMainTab('params')" id="tab-btn-params" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+        <span>Parámetros PAR-01..24</span>
+      </button>
+      <button onclick="switchMainTab('laminas')" id="tab-btn-laminas" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        <span>Las 7 Láminas</span>
+      </button>
+      <button onclick="switchMainTab('rules')" id="tab-btn-rules" class="px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+        <span>Reglas & Decisiones</span>
+      </button>
+    </div>
+
+    <!-- Right utilities -->
+    <div class="flex items-center space-x-2">
+      <button onclick="toggleSummaryModal()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-semibold border border-slate-700 flex items-center space-x-1.5 transition">
+        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        <span>Guía Rápida</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN WRAPPER -->
+  <main class="flex-1 flex flex-col relative overflow-hidden">
+
+    <!-- ==================== TAB 1: INTERACTIVE CONCEPTUAL MAP ==================== -->
+    <div id="main-tab-map" class="flex-1 flex flex-col lg:flex-row relative overflow-hidden">
+      
+      <!-- TOOLBAR & VIEW SELECTOR (Sticky sub-header inside Map Tab) -->
+      <div class="absolute top-3 left-3 z-30 flex flex-wrap items-center gap-2 max-w-[calc(100%-24px)]">
+        <!-- View Filters -->
+        <div class="glass-panel rounded-xl p-1.5 flex flex-wrap items-center gap-1 shadow-2xl">
+          <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 px-2 flex items-center space-x-1">
+            <svg class="w-3.5 h-3.5 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+            <span>Vistas:</span>
+          </span>
+          <button onclick="setFlowFilter('all')" id="btn-view-all" class="px-2.5 py-1 text-xs rounded-lg font-medium bg-sky-600 text-white shadow transition">
+            Global
+          </button>
+          <button onclick="setFlowFilter('gateway')" id="btn-view-gateway" class="px-2.5 py-1 text-xs rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            Sincrónico (Gateway)
+          </button>
+          <button onclick="setFlowFilter('eventbus')" id="btn-view-eventbus" class="px-2.5 py-1 text-xs rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            Asincrónico (Event Bus)
+          </button>
+          <button onclick="setFlowFilter('eval')" id="btn-view-eval" class="px-2.5 py-1 text-xs rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            Evaluación & Sandbox
+          </button>
+          <button onclick="setFlowFilter('economy')" id="btn-view-economy" class="px-2.5 py-1 text-xs rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            Economía (XP vs $)
+          </button>
+          <button onclick="setFlowFilter('backoffice')" id="btn-view-backoffice" class="px-2.5 py-1 text-xs rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            Backoffice (PAR-01..24)
+          </button>
+          <button onclick="setFlowFilter('identity')" id="btn-view-identity" class="px-2.5 py-1 text-xs rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition">
+            Token & Matrícula
+          </button>
+        </div>
+
+        <!-- Search input in toolbar -->
+        <div class="glass-panel rounded-xl px-2.5 py-1.5 flex items-center space-x-2 shadow-2xl">
+          <svg class="w-3.5 h-3.5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+          <input type="text" id="node-search" oninput="handleSearch(this.value)" placeholder="Buscar microservicio, tópico, rol..." class="bg-transparent border-none text-xs text-slate-200 placeholder-slate-500 focus:outline-none w-36 sm:w-48">
+          <button onclick="clearSearch()" id="clear-search-btn" class="hidden text-slate-400 hover:text-slate-200 text-xs">&times;</button>
+        </div>
+      </div>
+
+      <!-- CANVAS CONTROLS (Bottom-left in Map Tab) -->
+      <div class="absolute bottom-4 left-4 z-30 flex items-center space-x-2 glass-panel p-1.5 rounded-xl shadow-2xl">
+        <button onclick="zoomIn()" class="p-2 hover:bg-slate-800 rounded-lg text-slate-300 hover:text-white transition" title="Zoom In (+)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/></svg>
+        </button>
+        <button onclick="zoomOut()" class="p-2 hover:bg-slate-800 rounded-lg text-slate-300 hover:text-white transition" title="Zoom Out (-)">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 12H4"/></svg>
+        </button>
+        <button onclick="resetZoom()" class="px-2.5 py-1 text-xs font-semibold hover:bg-slate-800 rounded-lg text-slate-300 hover:text-white transition" title="Reset (0)">
+          100%
+        </button>
+        <div class="h-4 w-px bg-slate-700 mx-1"></div>
+        <button onclick="toggleLegend()" id="legend-btn" class="px-2 py-1 text-xs font-semibold hover:bg-slate-800 rounded-lg text-slate-300 hover:text-white transition flex items-center space-x-1">
+          <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+          <span>Leyenda</span>
+        </button>
+      </div>
+
+      <!-- FLOATING LEGEND MODAL -->
+      <div id="canvas-legend" class="absolute bottom-16 left-4 z-30 glass-panel rounded-2xl p-4 w-80 text-xs shadow-2xl transition-all duration-300">
+        <div class="flex items-center justify-between pb-2 mb-2 border-b border-slate-700">
+          <h4 class="font-bold text-slate-200 flex items-center space-x-1.5">
+            <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            <span>Convención de Conexiones</span>
+          </h4>
+          <button onclick="toggleLegend()" class="text-slate-400 hover:text-white">&times;</button>
+        </div>
+        <div class="space-y-2.5">
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-1 bg-sky-500 rounded"></div>
+            <span class="text-slate-300"><strong>Sincrónico (HTTP / REST)</strong>: Pasa por API Gateway.</span>
+          </div>
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-1 border-t-2 border-dashed border-amber-400"></div>
+            <span class="text-slate-300"><strong>Asincrónico (Event Bus)</strong>: Hechos consumados (T11).</span>
+          </div>
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-1 border-t-2 border-dotted border-purple-400"></div>
+            <span class="text-slate-300"><strong>Parámetros PAR-01..24</strong>: Distribuido por T12 Backoffice.</span>
+          </div>
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-1 bg-red-500 rounded relative flex items-center justify-center"><span class="text-[8px] bg-red-700 px-0.5 rounded text-white font-bold">X</span></div>
+            <span class="text-slate-300"><strong>Prohibido</strong>: Comunicación directa P2P o BD compartida.</span>
+          </div>
+          <div class="flex items-center space-x-2.5">
+            <div class="w-8 h-1 border-t-2 border-dashed border-emerald-400"></div>
+            <span class="text-slate-300"><strong>Service Discovery</strong>: Registro dinámico & health.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- INTERACTIVE MAP CANVAS AREA -->
+      <div id="canvas-container" class="flex-1 bg-slate-950 bg-grid-pattern relative overflow-auto p-8 flex items-center justify-center min-h-[700px]">
+        
+        <!-- Scalable Canvas Transform Container -->
+        <div id="canvas-stage" class="relative transition-transform duration-100 ease-out origin-top-left" style="width: 1400px; height: 960px;">
+          
+          <!-- SVG CONNECTIONS LAYER -->
+          <svg id="svg-connections" class="absolute inset-0 w-full h-full pointer-events-none z-10" xmlns="http://www.w3.org/2000/svg">
+            <defs>
+              <!-- Arrowhead Markers -->
+              <marker id="arrow-sync" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#0ea5e9" />
+              </marker>
+              <marker id="arrow-async" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b" />
+              </marker>
+              <marker id="arrow-param" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#a855f7" />
+              </marker>
+              <marker id="arrow-disc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+              </marker>
+              <marker id="arrow-danger" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                <path d="M 0 1 L 10 5 L 0 9 z" fill="#ef4444" />
+              </marker>
+            </defs>
+
+            <!-- Dynamic Paths will be rendered here by JavaScript -->
+          </svg>
+
+          <!-- DOM NODES LAYER (z-20) -->
+
+          <!-- 1. PERIMETER & PERIPHERY: FRONTEND & DISCOVERY -->
+          
+          <!-- Front End / Client Node -->
+          <div id="node-frontend" onclick="selectNode('frontend')" class="absolute glass-card rounded-2xl p-4 w-56 border-sky-500/50 hover:border-sky-400 z-20 cursor-pointer shadow-xl transition-all" style="left: 40px; top: 120px;">
+            <div class="flex items-center space-x-3 mb-2">
+              <div class="w-10 h-10 rounded-xl bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-sky-400">Cliente Perimetral</span>
+                <h3 class="font-extrabold text-sm text-white">Front End / Web & App</h3>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-300 leading-tight">Conoce únicamente la URL pública del API Gateway. Nunca llama microservicios directamente.</p>
+          </div>
+
+          <!-- API Gateway (Central Bastion) -->
+          <div id="node-gateway" onclick="selectNode('gateway')" class="absolute glass-panel rounded-2xl p-5 w-80 border-blue-500/80 hover:border-blue-400 z-20 cursor-pointer shadow-2xl shadow-blue-500/10 transition-all" style="left: 350px; top: 80px;">
+            <div class="flex items-center justify-between mb-2">
+              <div class="flex items-center space-x-3">
+                <div class="w-12 h-12 rounded-xl bg-blue-600/30 text-blue-400 flex items-center justify-center font-extrabold shadow-inner">
+                  <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>
+                </div>
+                <div>
+                  <span class="text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded bg-blue-900/60 text-blue-300 border border-blue-700/50">Única Puerta de Entrada</span>
+                  <h3 class="font-black text-base text-white">API Gateway</h3>
+                </div>
+              </div>
+              <span class="flex h-3 w-3 relative">
+                <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                <span class="relative inline-flex rounded-full h-3 w-3 bg-blue-500"></span>
+              </span>
+            </div>
+            <ul class="text-[11px] text-slate-300 space-y-1 list-disc list-inside">
+              <li>Valida firma y vigencia del JWT (emitido por T01).</li>
+              <li>Consulta Service Discovery para balanceo dinámico.</li>
+              <li>Reenvía llamadas inter-servicio (Regla Lámina 1).</li>
+              <li>Propaga contexto: UserID, Rol, Curso-Cohorte.</li>
+            </ul>
+          </div>
+
+          <!-- Service Discovery -->
+          <div id="node-discovery" onclick="selectNode('discovery')" class="absolute glass-card rounded-2xl p-4 w-64 border-emerald-500/50 hover:border-emerald-400 z-20 cursor-pointer shadow-xl transition-all" style="left: 770px; top: 80px;">
+            <div class="flex items-center space-x-3 mb-2">
+              <div class="w-10 h-10 rounded-xl bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"/></svg>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-emerald-400">Infraestructura</span>
+                <h3 class="font-extrabold text-sm text-white">Service Discovery</h3>
+              </div>
+            </div>
+            <p class="text-[11px] text-slate-300 leading-tight">Registro dinámico automático al iniciar cada MS. Health check activo, sin direcciones IP fijas.</p>
+          </div>
+
+          <!-- Event Bus (Central Asynchronous Backbone) -->
+          <div id="node-eventbus" onclick="selectNode('eventbus')" class="absolute glass-panel rounded-2xl p-4 border-amber-500/80 hover:border-amber-400 z-20 cursor-pointer shadow-2xl shadow-amber-500/10 transition-all flex items-center justify-between" style="left: 1070px; top: 80px; width: 290px;">
+            <div class="flex items-center space-x-3">
+              <div class="w-11 h-11 rounded-xl bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+              </div>
+              <div>
+                <span class="text-[10px] font-bold uppercase tracking-wider text-amber-400">Backbone Asincrónico</span>
+                <h3 class="font-black text-sm text-white">Bus de Eventos</h3>
+                <span class="text-[10px] text-amber-300/80 font-mono">Gobernado por Tema 11</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ==================== 12 MICROSERVICES GRID ==================== -->
+
+          <!-- ROW 1: IDENTIDAD, CURSOS, NUCLEO DESAFIOS, EVALUADORES -->
+
+          <!-- T01: Identidad y Usuarios -->
+          <div id="node-t01" onclick="selectNode('t01')" class="absolute glass-card rounded-2xl p-3.5 w-60 border-slate-700 hover:border-indigo-400 z-20 cursor-pointer shadow-lg transition-all" style="left: 40px; top: 300px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-indigo-950 text-indigo-400 border border-indigo-800">Tema 01</span>
+              <span class="text-[10px] font-mono text-slate-400">db_usuarios</span>
+            </div>
+            <h4 class="font-extrabold text-sm text-white mb-1">Identidad y Usuarios</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Autenticación, roles globales, token JWT, padrón de alta y auditoría (retención 5 años).</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded">Emite JWT</span>
+              <span class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">Padrón</span>
+              <span class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">Audit Log</span>
+            </div>
+          </div>
+
+          <!-- T02: Cursos y Matrícula -->
+          <div id="node-t02" onclick="selectNode('t02')" class="absolute glass-card rounded-2xl p-3.5 w-64 border-slate-700 hover:border-sky-400 z-20 cursor-pointer shadow-lg transition-all" style="left: 330px; top: 300px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-sky-950 text-sky-400 border border-sky-800">Tema 02</span>
+              <span class="text-[10px] font-mono text-slate-400">db_cursos</span>
+            </div>
+            <h4 class="font-extrabold text-sm text-white mb-1">Cursos y Matrícula</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Curso Template vs Cohorte, ciclo de vida (bloqueo sin calibración de T07), linaje y matrícula.</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-sky-900/40 text-sky-300 px-1.5 py-0.5 rounded">Contexto Cohorte</span>
+              <span class="bg-sky-900/40 text-sky-300 px-1.5 py-0.5 rounded">Linaje (T05)</span>
+              <span class="bg-amber-900/40 text-amber-300 px-1.5 py-0.5 rounded">Emite Eventos</span>
+            </div>
+          </div>
+
+          <!-- T03: Motor de Desafíos (Central Pedagogical Engine) -->
+          <div id="node-t03" onclick="selectNode('t03')" class="absolute glass-card rounded-2xl p-4 w-72 border-purple-500/70 hover:border-purple-400 z-20 cursor-pointer shadow-xl shadow-purple-500/10 transition-all" style="left: 620px; top: 300px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">Tema 03 • Núcleo</span>
+              <span class="text-[10px] font-mono text-slate-400">db_desafios</span>
+            </div>
+            <h4 class="font-black text-sm text-white mb-1">Motor de Desafíos</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Dueño único del ciclo de vida, entregas, estados y notas consolidadas de teóricos y prácticos.</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-purple-900/40 text-purple-300 px-1.5 py-0.5 rounded">Orquestador Entregas</span>
+              <span class="bg-amber-900/40 text-amber-300 px-1.5 py-0.5 rounded">Publica DesafioResuelto</span>
+              <span class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">Penalidad 30%</span>
+            </div>
+          </div>
+
+          <!-- T04: Teóricos y Encuestas -->
+          <div id="node-t04" onclick="selectNode('t04')" class="absolute glass-card rounded-2xl p-3.5 w-60 border-slate-700 hover:border-teal-400 z-20 cursor-pointer shadow-lg transition-all" style="left: 920px; top: 300px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-teal-950 text-teal-400 border border-teal-800">Tema 04</span>
+              <span class="text-[10px] font-mono text-slate-400">db_teoricos</span>
+            </div>
+            <h4 class="font-extrabold text-sm text-white mb-1">Teóricos y Encuestas</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Ítems teóricos, corrección. Encuesta anónima obligatoria que bloquea ver nota en T03.</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-teal-900/40 text-teal-300 px-1.5 py-0.5 rounded">Encuesta Anónima</span>
+              <span class="bg-teal-900/40 text-teal-300 px-1.5 py-0.5 rounded">Gatillo Nota</span>
+            </div>
+          </div>
+
+          <!-- T05: Desafíos Prácticos -->
+          <div id="node-t05" onclick="selectNode('t05')" class="absolute glass-card rounded-2xl p-3.5 w-60 border-slate-700 hover:border-cyan-400 z-20 cursor-pointer shadow-lg transition-all" style="left: 1195px; top: 300px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-cyan-950 text-cyan-400 border border-cyan-800">Tema 05</span>
+              <span class="text-[10px] font-mono text-slate-400">db_practicos</span>
+            </div>
+            <h4 class="font-extrabold text-sm text-white mb-1">Desafíos Prácticos</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Consignas de código, tests, control de originalidad 70% con linaje de T02 e invocación a Sandbox/LLM.</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-cyan-900/40 text-cyan-300 px-1.5 py-0.5 rounded">Plagio 70%</span>
+              <span class="bg-cyan-900/40 text-cyan-300 px-1.5 py-0.5 rounded">Llama T06 & T07</span>
+            </div>
+          </div>
+
+          <!-- ROW 2: EXECUTION ENGINES & ECONOMY -->
+
+          <!-- T06: Sandbox / Runtime -->
+          <div id="node-t06" onclick="selectNode('t06')" class="absolute glass-card rounded-2xl p-3.5 w-60 border-slate-700 hover:border-orange-400 z-20 cursor-pointer shadow-lg transition-all" style="left: 1195px; top: 510px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-orange-950 text-orange-400 border border-orange-800">Tema 06 • Utilitario</span>
+              <span class="text-[10px] font-mono text-slate-400">db_runtime</span>
+            </div>
+            <h4 class="font-extrabold text-sm text-white mb-1">Sandbox / Runtime</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Ejecución aislada en contenedor (CPU/RAM/tiempo). No conoce alumnos ni cursos.</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-orange-900/40 text-orange-300 px-1.5 py-0.5 rounded">Aislamiento Seguro</span>
+              <span class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">Cola de Cierre</span>
+            </div>
+          </div>
+
+          <!-- T07: Evaluación LLM -->
+          <div id="node-t07" onclick="selectNode('t07')" class="absolute glass-card rounded-2xl p-3.5 w-64 border-slate-700 hover:border-rose-400 z-20 cursor-pointer shadow-lg transition-all" style="left: 900px; top: 510px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-rose-950 text-rose-400 border border-rose-800">Tema 07 • Reutilizable</span>
+              <span class="text-[10px] font-mono text-slate-400">db_evaluacion</span>
+            </div>
+            <h4 class="font-extrabold text-sm text-white mb-1">Evaluación LLM</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Rúbricas 30/25/20/15/10, calibración obligatoria de curso, salvaguarda anti-fuga (70%) y deriva.</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-rose-900/40 text-rose-300 px-1.5 py-0.5 rounded">Golden Set</span>
+              <span class="bg-rose-900/40 text-rose-300 px-1.5 py-0.5 rounded">Calibra Curso (T02)</span>
+            </div>
+          </div>
+
+          <!-- T10: Roadmap y Progreso (Destino de XP y Vidas) -->
+          <div id="node-t10" onclick="selectNode('t10')" class="absolute glass-card rounded-2xl p-4 w-72 border-emerald-500/70 hover:border-emerald-400 z-20 cursor-pointer shadow-xl shadow-emerald-500/10 transition-all" style="left: 590px; top: 510px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-emerald-950 text-emerald-300 border border-emerald-800">Tema 10 • Progreso</span>
+              <span class="text-[10px] font-mono text-slate-400">db_gamificacion</span>
+            </div>
+            <h4 class="font-black text-sm text-white mb-1">Roadmap y Progreso</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Grafo de contenidos, XP (historial por ser reducible), 10 niveles, vidas, ranking P90/P10 y rachas.</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-emerald-900/40 text-emerald-300 px-1.5 py-0.5 rounded">XP No se gasta</span>
+              <span class="bg-amber-900/40 text-amber-300 px-1.5 py-0.5 rounded">Rachas pagan $ (T08)</span>
+              <span class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">Vidas (T10)</span>
+            </div>
+          </div>
+
+          <!-- T08: Banco (Destino de Monedas y Ledger) -->
+          <div id="node-t08" onclick="selectNode('t08')" class="absolute glass-card rounded-2xl p-3.5 w-64 border-slate-700 hover:border-yellow-400 z-20 cursor-pointer shadow-lg transition-all" style="left: 290px; top: 510px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-yellow-950 text-yellow-400 border border-yellow-800">Tema 08</span>
+              <span class="text-[10px] font-mono text-slate-400">db_banco</span>
+            </div>
+            <h4 class="font-extrabold text-sm text-white mb-1">Banco</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Ledger inmutable de movimientos, saldo de monedas acotado al curso, 2PC (reserva/confirmación) y reversión.</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded">Monedas = Compra</span>
+              <span class="bg-yellow-900/40 text-yellow-300 px-1.5 py-0.5 rounded">2PC Reserva</span>
+            </div>
+          </div>
+
+          <!-- T09: Mercado (Catálogo e Inventario) -->
+          <div id="node-t09" onclick="selectNode('t09')" class="absolute glass-card rounded-2xl p-3.5 w-56 border-slate-700 hover:border-amber-400 z-20 cursor-pointer shadow-lg transition-all" style="left: 40px; top: 510px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-1.5 py-0.5 rounded bg-amber-950 text-amber-400 border border-amber-800">Tema 09</span>
+              <span class="text-[10px] font-mono text-slate-400">db_mercado</span>
+            </div>
+            <h4 class="font-extrabold text-sm text-white mb-1">Mercado</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Catálogo de ítems, inventario del alumno acotado por curso, reserva contra Banco (T08) y subastas.</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-amber-900/40 text-amber-300 px-1.5 py-0.5 rounded">Inventario Curso</span>
+              <span class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">Subastas</span>
+            </div>
+          </div>
+
+          <!-- ROW 3: GOVERNANCE & CROSS-CUTTING -->
+
+          <!-- T11: Social y Notificaciones (Event Master) -->
+          <div id="node-t11" onclick="selectNode('t11')" class="absolute glass-card rounded-2xl p-4 w-72 border-indigo-500/70 hover:border-indigo-400 z-20 cursor-pointer shadow-xl shadow-indigo-500/10 transition-all" style="left: 200px; top: 730px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-indigo-950 text-indigo-300 border border-indigo-800">Tema 11 • Event Master</span>
+              <span class="text-[10px] font-mono text-slate-400">db_social</span>
+            </div>
+            <h4 class="font-black text-sm text-white mb-1">Social y Notificaciones</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2"><strong>Define el contrato de eventos para toda la plataforma</strong>. Chat efímero (purga al archivar curso salvo reporte) y notificaciones.</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded">Contratos Event Bus</span>
+              <span class="bg-indigo-900/40 text-indigo-300 px-1.5 py-0.5 rounded">Chat Efímero</span>
+              <span class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">Purga (T02)</span>
+            </div>
+          </div>
+
+          <!-- T12: Backoffice & Parámetros (Pure Consumer & Config Master) -->
+          <div id="node-t12" onclick="selectNode('t12')" class="absolute glass-card rounded-2xl p-4 w-96 border-purple-500/70 hover:border-purple-400 z-20 cursor-pointer shadow-xl shadow-purple-500/10 transition-all" style="left: 670px; top: 730px;">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[10px] font-extrabold uppercase px-2 py-0.5 rounded bg-purple-950 text-purple-300 border border-purple-800">Tema 12 • Consumidor Puro</span>
+              <span class="text-[10px] font-mono text-slate-400">db_backoffice</span>
+            </div>
+            <h4 class="font-black text-sm text-white mb-1">Backoffice & Parámetros Compartidos</h4>
+            <p class="text-[11px] text-slate-300 leading-tight mb-2">Sin dominio propio: compone vistas cruzando datos de 6 temas. Administra PAR-01 a PAR-24 y panel docente (alumno en riesgo máx 15 min).</p>
+            <div class="flex flex-wrap gap-1 text-[9px]">
+              <span class="bg-purple-900/40 text-purple-300 px-1.5 py-0.5 rounded">Parámetros PAR-01..24</span>
+              <span class="bg-purple-900/40 text-purple-300 px-1.5 py-0.5 rounded">Panel Docente (15 min)</span>
+              <span class="bg-slate-800 text-slate-300 px-1.5 py-0.5 rounded">KPIs CSAT 5★</span>
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <!-- RIGHT SIDE DRAWER: COMPONENT INSPECTOR -->
+      <div id="side-drawer" class="w-full lg:w-96 glass-panel border-l border-slate-800 flex flex-col z-30 transition-all duration-300 max-h-[50vh] lg:max-h-none overflow-y-auto">
+        <div class="p-4 border-b border-slate-800 flex items-center justify-between sticky top-0 bg-slate-900/95 backdrop-blur z-10">
+          <div class="flex items-center space-x-2.5">
+            <div id="drawer-icon" class="w-8 h-8 rounded-lg bg-sky-600/30 text-sky-400 flex items-center justify-center font-bold text-sm">
+              T
+            </div>
+            <div>
+              <span id="drawer-tag" class="text-[10px] font-bold uppercase tracking-wider text-sky-400">Detalle de Componente</span>
+              <h3 id="drawer-title" class="font-extrabold text-sm text-white leading-none">Selecciona un elemento</h3>
+            </div>
+          </div>
+          <button onclick="closeDrawer()" class="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white">&times;</button>
+        </div>
+
+        <div id="drawer-content" class="p-4 space-y-4 text-xs">
+          <!-- Dynamic Content Loaded by JS -->
+          <div class="p-6 text-center text-slate-400">
+            <svg class="w-12 h-12 mx-auto text-slate-600 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 15l-2 5L9 9l11 4-5 2zm0 0l5 5M7.188 2.239l.777 2.897M5.136 7.965l-2.898-.777M13.95 4.05l-2.122 2.122m-5.657 5.656l-2.12 2.122"/></svg>
+            <p class="font-medium text-slate-300">Haz clic en cualquier microservicio o bloque de la arquitectura</p>
+            <p class="text-[11px] text-slate-500 mt-1">Explora sus prioridades, base de datos exclusiva, endpoints expuestos, contratos de eventos y reglas no negociables.</p>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ==================== TAB 2: MATRIZ DE DEPENDENCIAS ==================== -->
+    <div id="main-tab-matrix" class="flex-1 p-6 overflow-y-auto hidden">
+      <div class="max-w-7xl mx-auto space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+          <div>
+            <h2 class="text-xl font-black text-white">Matriz de Interacciones y Dependencias Inter-Servicio</h2>
+            <p class="text-xs text-slate-400">Toda llamada sincrónica pasa por el API Gateway. Las notificaciones de estado viajan por el Bus de Eventos.</p>
+          </div>
+          <div class="flex items-center space-x-2 text-xs">
+            <span class="flex items-center space-x-1 text-sky-400"><span class="w-2.5 h-2.5 rounded-full bg-sky-500"></span><span>Sincrónico (HTTP/Gateway)</span></span>
+            <span class="flex items-center space-x-1 text-amber-400"><span class="w-2.5 h-2.5 rounded-full bg-amber-500"></span><span>Asincrónico (Bus)</span></span>
+            <span class="flex items-center space-x-1 text-purple-400"><span class="w-2.5 h-2.5 rounded-full bg-purple-500"></span><span>Configuración PAR-XX</span></span>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto glass-panel rounded-2xl p-4 shadow-xl">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-700 bg-slate-900/80 text-slate-300">
+                <th class="p-3 font-bold">Servicio Origen</th>
+                <th class="p-3 font-bold">Servicio Destino / Bus</th>
+                <th class="p-3 font-bold">Tipo</th>
+                <th class="p-3 font-bold">Contrato / Endpoint / Tópico</th>
+                <th class="p-3 font-bold">Propósito y Regla Arquitectónica</th>
+              </tr>
+            </thead>
+            <tbody id="matrix-tbody" class="divide-y divide-slate-800/60 text-slate-300">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 3: BUS DE EVENTOS (T11) ==================== -->
+    <div id="main-tab-events" class="flex-1 p-6 overflow-y-auto hidden">
+      <div class="max-w-7xl mx-auto space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="text-xl font-black text-white">Catálogo de Eventos del Bus</h2>
+              <span class="px-2 py-0.5 rounded-full bg-amber-950 text-amber-400 border border-amber-800 text-xs font-semibold">Gobernado por Tema 11</span>
+            </div>
+            <p class="text-xs text-slate-400">Los eventos representan hechos consumados. Quien publica no espera respuesta ni conoce a los consumidores.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4" id="events-grid">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 4: CATALOGO DE PARAMETROS (PAR-01..24) ==================== -->
+    <div id="main-tab-params" class="flex-1 p-6 overflow-y-auto hidden">
+      <div class="max-w-7xl mx-auto space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800">
+          <div>
+            <div class="flex items-center space-x-2">
+              <h2 class="text-xl font-black text-white">Catálogo de Parámetros de la Economía y Plataforma</h2>
+              <span class="px-2 py-0.5 rounded-full bg-purple-950 text-purple-400 border border-purple-800 text-xs font-semibold">PAR-01 a PAR-24</span>
+            </div>
+            <p class="text-xs text-slate-400">Administrados exclusivamente por Tema 12 (ADMIN) y consumidos por Temas 03, 05, 08 y 10 para evitar hardcodeo.</p>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto glass-panel rounded-2xl p-4 shadow-xl">
+          <table class="w-full text-left text-xs border-collapse">
+            <thead>
+              <tr class="border-b border-slate-700 bg-slate-900/80 text-slate-300">
+                <th class="p-3 font-bold w-20">ID</th>
+                <th class="p-3 font-bold">Nombre / Descripción del Parámetro</th>
+                <th class="p-3 font-bold">Valor Default de Referencia</th>
+                <th class="p-3 font-bold">Servicios Consumidores</th>
+                <th class="p-3 font-bold">Impacto / Fundamento de Balance</th>
+              </tr>
+            </thead>
+            <tbody id="params-tbody" class="divide-y divide-slate-800/60 text-slate-300">
+              <!-- Rendered via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 5: LAS 7 LAMINAS DE ARQUITECTURA ==================== -->
+    <div id="main-tab-laminas" class="flex-1 p-6 overflow-y-auto hidden">
+      <div class="max-w-7xl mx-auto space-y-6">
+        <div class="pb-4 border-b border-slate-800">
+          <h2 class="text-xl font-black text-white">Las 7 Láminas de Arquitectura y Procesos en Detalle</h2>
+          <p class="text-xs text-slate-400">Modelos conceptuales oficiales que resuelven los flujos transversales entre microservicios.</p>
+        </div>
+
+        <div class="space-y-6" id="laminas-container">
+          <!-- Rendered via JS -->
+        </div>
+      </div>
+    </div>
+
+    <!-- ==================== TAB 6: REGLAS NO NEGOCIABLES & DECISIONES ==================== -->
+    <div id="main-tab-rules" class="flex-1 p-6 overflow-y-auto hidden">
+      <div class="max-w-7xl mx-auto space-y-8">
+        <div>
+          <h2 class="text-xl font-black text-white">Reglas No Negociables y Decisiones de Arquitectura</h2>
+          <p class="text-xs text-slate-400">Directivas fijas establecidas por la cátedra que definen el marco del TPI.</p>
+        </div>
+
+        <!-- Non-negotiable rules grid -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          
+          <div class="glass-card rounded-2xl p-4 border-sky-500/40">
+            <div class="w-8 h-8 rounded-lg bg-sky-500/20 text-sky-400 flex items-center justify-center font-bold mb-3">1</div>
+            <h3 class="font-extrabold text-sm text-white mb-1.5">API Gateway: Única Puerta de Entrada</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">Ningún cliente accede a un microservicio por otro camino. Permite resolver autenticación, límites de uso y trazabilidad en un solo lugar.</p>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4 border-emerald-500/40">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center font-bold mb-3">2</div>
+            <h3 class="font-extrabold text-sm text-white mb-1.5">Registro Dinámico con Service Discovery</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">No hay direcciones IP fijas escritas en configuración. Cada servicio informa su nombre lógico, ubicación y salud al arrancar.</p>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4 border-red-500/40">
+            <div class="w-8 h-8 rounded-lg bg-red-500/20 text-red-400 flex items-center justify-center font-bold mb-3">3</div>
+            <h3 class="font-extrabold text-sm text-white mb-1.5">Prohibida Comunicación Directa P2P</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">Si un microservicio necesita llamar a otro de forma sincrónica, sale y vuelve a entrar por el API Gateway para mantener trazabilidad y balanceo.</p>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4 border-yellow-500/40">
+            <div class="w-8 h-8 rounded-lg bg-yellow-500/20 text-yellow-400 flex items-center justify-center font-bold mb-3">4</div>
+            <h3 class="font-extrabold text-sm text-white mb-1.5">Base de Datos Exclusiva (Database-per-Service)</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">Cada servicio es dueño exclusivo de su base de datos. Nadie lee la tabla del vecino ni comparte esquema o credenciales de conexión.</p>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4 border-amber-500/40">
+            <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center font-bold mb-3">5</div>
+            <h3 class="font-extrabold text-sm text-white mb-1.5">Event-Driven Backbone para lo Asincrónico</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">Lo que no requiere respuesta inmediata viaja por el Bus de Eventos. El Tema 11 define el contrato único de mensajes para toda la plataforma.</p>
+          </div>
+
+          <div class="glass-card rounded-2xl p-4 border-purple-500/40">
+            <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold mb-3">6</div>
+            <h3 class="font-extrabold text-sm text-white mb-1.5">Curso-Cohorte como Clave de Contexto</h3>
+            <p class="text-xs text-slate-300 leading-relaxed">Casi ninguna entidad existe fuera de una cohorte. Monedas, inventario, rankings y progreso están estrictamente acotados a la cohorte activa.</p>
+          </div>
+
+        </div>
+
+        <!-- Open Decisions from Architecture Document -->
+        <div class="glass-panel rounded-2xl p-6 border-amber-500/50">
+          <h3 class="text-base font-extrabold text-amber-400 flex items-center space-x-2 mb-4">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <span>Decisiones Abiertas que Afectan a Múltiples Equipos</span>
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+              <h4 class="font-bold text-slate-200 mb-1.5">1. Caída del Sandbox</h4>
+              <p class="text-slate-400 leading-relaxed">El PRD define qué ocurre si el LLM no responde (nota neutra o cálculo diferido), pero no define la regla equivalente ante la caída del Sandbox en picos de cierre.</p>
+            </div>
+            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+              <h4 class="font-bold text-slate-200 mb-1.5">2. Transversales sin Dueño</h4>
+              <p class="text-slate-400 leading-relaxed">Arquitectura multi-idioma (i18n), alcance de la versión móvil nativa vs responsive y marco global de observabilidad no tienen tema único asignado.</p>
+            </div>
+            <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800">
+              <h4 class="font-bold text-slate-200 mb-1.5">3. Desmatriculación a Mitad de Cuatrimestre</h4>
+              <p class="text-slate-400 leading-relaxed">Qué ocurre con las monedas (T08), el inventario (T09) y el progreso (T10) de un alumno que se da de baja de un curso (T02). Afecta a 4 temas simultáneamente.</p>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+  </main>
+
+  <!-- QUICK SUMMARY MODAL -->
+  <div id="summary-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+    <div class="glass-panel rounded-3xl max-w-2xl w-full p-6 space-y-4 border-slate-700 max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+        <div class="flex items-center space-x-2">
+          <div class="w-8 h-8 rounded-lg bg-sky-600 flex items-center justify-center text-white font-bold">?</div>
+          <h3 class="font-bold text-base text-white">Guía de Uso del Mapa Conceptual</h3>
+        </div>
+        <button onclick="toggleSummaryModal()" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+      </div>
+      <div class="text-xs text-slate-300 space-y-3 leading-relaxed">
+        <p>Este mapa conceptual interactivo reúne la arquitectura integral de la plataforma gamificada del TPI Programación IV basada en el <strong>PRD</strong> y la <strong>Propuesta de Arquitectura Backend</strong>.</p>
+        <div class="space-y-2">
+          <h4 class="font-bold text-sky-400">Cómo interactuar con el mapa:</h4>
+          <ul class="list-disc list-inside space-y-1 text-slate-300">
+            <li><strong>Hacer clic en cualquier microservicio</strong> para abrir el panel de inspección con sus 3 columnas de prioridad (Pedido para empezar, Para más adelante, Podría ser), base de datos, endpoints y eventos.</li>
+            <li><strong>Seleccionar filtros de vista en la barra superior</strong> para aislar flujos específicos (Sincrónico con Gateway, Asincrónico con Event Bus, Evaluación/Sandbox/LLM, Economía XP vs Monedas, Backoffice PAR-XX o Identidad).</li>
+            <li><strong>Usar el buscador</strong> para localizar componentes, tópicos o reglas rápidamente.</li>
+            <li><strong>Arrastrar el canvas o hacer zoom</strong> con los controles inferiores o rueda del ratón.</li>
+            <li><strong>Navegar entre las pestañas superiores</strong> para revisar la Matriz Cruzada de Dependencias, el Catálogo de Eventos, la Tabla de Parámetros PAR-01..24 y las 7 Láminas explicativas.</li>
+          </ul>
+        </div>
+      </div>
+      <div class="pt-3 border-t border-slate-800 flex justify-end">
+        <button onclick="toggleSummaryModal()" class="px-4 py-2 bg-sky-600 hover:bg-sky-500 text-white font-semibold rounded-xl text-xs transition">Entendido</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- APPLICATION DATA & SCRIPTS -->
+  <script>
+    // --- 1. DATA DEFINITIONS ---
+    const SERVICES_DATA = {
+      frontend: {
+        id: "frontend",
+        name: "Front End / Cliente Web & App",
+        tag: "Perímetro / Clientes",
+        cluster: "perimeter",
+        db: "N/A (Cliente)",
+        summary: "Punto de interacción de alumnos, profesores y administradores. Conoce únicamente la URL pública del API Gateway.",
+        priorities: {
+          start: ["Login y registro", "Visualización de Roadmap y progreso", "Entrega de desafíos", "Chat de cohorte", "Tienda e inventario"],
+          later: ["Versión móvil dedicada", "Subastas en tiempo real", "Modo offline limitado"],
+          maybe: ["Temas visuales personalizables", "Notificaciones push avanzadas"]
+        },
+        syncIn: [],
+        syncOut: [{ target: "gateway", desc: "Todas las solicitudes HTTP/REST con JWT" }],
+        eventsPub: [],
+        eventsSub: [],
+        params: [],
+        rules: ["NUNCA se comunica de forma directa con un microservicio interno."]
+      },
+      gateway: {
+        id: "gateway",
+        name: "API Gateway",
+        tag: "Infraestructura Central",
+        cluster: "perimeter",
+        db: "N/A (Stateless / Cache)",
+        summary: "Única puerta de entrada para clientes externos y llamadas sincrónicas inter-servicio. Autentica JWT y enruta dinámicamente consultando Service Discovery.",
+        priorities: {
+          start: ["Enrutamiento dinámico", "Validación criptográfica de JWT", "Propagación de contexto (User, Rol, Cohorte)", "Reenvío inter-servicio"],
+          later: ["Rate limiting por IP/usuario", "Caché de respuestas estáticas", "Correlation IDs para trazabilidad distribuida"],
+          maybe: ["Transformación de payloads", "Circuit breaker avanzado"]
+        },
+        syncIn: [{ source: "frontend", desc: "Tráfico entrante de clientes" }, { source: "Cualquier MS", desc: "Llamadas sincrónicas inter-servicio" }],
+        syncOut: [{ target: "discovery", desc: "Consulta ubicación y estado de instancias" }, { target: "Microservicio Destino", desc: "Reenvío de solicitud con headers enriquecidos" }],
+        eventsPub: [],
+        eventsSub: [],
+        params: [],
+        rules: ["Regla no negociable 1.1: Única puerta de entrada.", "Regla no negociable 1.3: No hay comunicación directa entre microservicios; toda llamada sincrónica pasa por el Gateway."]
+      },
+      discovery: {
+        id: "discovery",
+        name: "Service Discovery",
+        tag: "Infraestructura",
+        cluster: "perimeter",
+        db: "In-memory Registry",
+        summary: "Registro y descubrimiento dinámico de instancias vivas de microservicios con chequeo continuo de salud (Health Check).",
+        priorities: {
+          start: ["Alta dinámica de microservicios al arrancar", "Resolución de direcciones", "Baja automática ante caída (Health check)"],
+          later: ["Balanceo de carga Round Robin / Least Connections", "Zonas de disponibilidad"],
+          maybe: ["Métricas de latencia por nodo"]
+        },
+        syncIn: [{ source: "Todos los MS", desc: "Heartbeat y registro dinámico" }, { source: "gateway", desc: "Query de instancias vivas" }],
+        syncOut: [],
+        eventsPub: [],
+        eventsSub: [],
+        params: [],
+        rules: ["Regla 1.2: Ningún servicio tiene direcciones IP o puertos fijos en código."]
+      },
+      eventbus: {
+        id: "eventbus",
+        name: "Bus de Eventos (Event Backbone)",
+        tag: "Infraestructura Asincrónica",
+        cluster: "perimeter",
+        db: "Message Broker (RabbitMQ/Kafka)",
+        summary: "Backbone de mensajería asincrónica que desacopla productores de consumidores. El contrato único de eventos está gobernado por el Tema 11.",
+        priorities: {
+          start: ["Publicación y suscripción con tópicos definidos por T11", "Garantía de entrega At-Least-Once", "Manejo de Dead Letter Queue"],
+          later: ["Event replay para repoblar analítica", "Monitoreo de lag de consumidores"],
+          maybe: ["Compresión de payloads de eventos"]
+        },
+        syncIn: [],
+        syncOut: [],
+        eventsPub: [],
+        eventsSub: [],
+        params: [],
+        rules: ["Un evento es un hecho consumado: el productor no espera respuesta ni conoce a sus consumidores."]
+      },
+      t01: {
+        id: "t01",
+        name: "Tema 01 — Identidad y Usuarios",
+        tag: "MS Dominio",
+        cluster: "core",
+        db: "db_usuarios",
+        summary: "Dueño de la identidad de plataforma: alta, perfiles, roles globales (ADMIN, Profesor responsable, Profesor, Alumno), padrón institucional y emisión de JWT.",
+        priorities: {
+          start: ["Registro y autenticación", "Roles: ADMIN, responsable, profesor, alumno", "Perfil de usuario", "Contrato del token: claims y vigencia", "Validación de padrón en onboarding", "Borrado lógico en modelo", "Emisión de eventos de auditoría"],
+          later: ["Persistencia y consulta de auditoría", "Retención: 5 años configurable (PAR-16)", "Revocación de sesión", "Recuperación de contraseña por correo"],
+          maybe: ["Personalización avanzada de perfil", "Identidad institucional OAuth", "Doble factor (2FA)", "API Gateway (extra asignado)"]
+        },
+        syncIn: [{ source: "gateway", desc: "Login, perfil, padrón institucional, verificación de usuarios" }],
+        syncOut: [],
+        eventsPub: [{ name: "usuario.registrado", desc: "Nuevo usuario dado de alta" }, { name: "usuario.login_audit", desc: "Registro de auditoría de acceso" }],
+        eventsSub: [{ name: "curso.archivado", desc: "Auditoría de retención" }],
+        params: ["PAR-16 (Plazo conservación 5 años)", "PAR-17 (Preaviso ADMIN 90 días)"],
+        rules: ["Responde 'Quién sos y qué rol tenés'. No maneja pertenencia a cohorte.", "Purga y anonimización PII (RSK-11) queda fuera de alcance de MVP por decisión del PO."]
+      },
+      t02: {
+        id: "t02",
+        name: "Tema 02 — Cursos y Matrícula",
+        tag: "MS Dominio",
+        cluster: "core",
+        db: "db_cursos",
+        summary: "Dueño de la estructura académica: Template vs Cohorte, comisiones, matrícula de alumnos y docentes, linaje histórico y ciclo de vida de la cohorte.",
+        priorities: {
+          start: ["Alta de curso y comisiones", "Inscripción de alumnos con código de invitación de 1 solo uso", "Ciclo de vida y archivado", "Gatillo de purga de chat al archivar (hacia T11)", "Bloqueo de activación sin calibración aprobada (consulta a T07)"],
+          later: ["Clonado de cursos con linaje histórico", "Fechas relativas al clonar", "Calibración que se copia pero se reaprueba", "Bloqueo de cierre con notas diferidas pendientes"],
+          maybe: ["Servicio de presencialidad", "Plantillas de curso reutilizables", "Importación masiva de alumnos"]
+        },
+        syncIn: [{ source: "gateway", desc: "Gestión de cursos, comisiones, matrículas y consulta de linaje" }],
+        syncOut: [{ target: "t07", desc: "GET /calibracion/status (Verifica calibración aprobada antes de activar curso)" }],
+        eventsPub: [{ name: "curso.creado", desc: "Nueva cohorte instanciada" }, { name: "curso.activado", desc: "Cohorte iniciada tras calibración" }, { name: "curso.archivado", desc: "Gatillo para purga de chat en T11" }],
+        eventsSub: [],
+        params: ["PAR-08 (XP desbloqueo sección)", "PAR-12 (Vidas iniciales 3)"],
+        rules: ["El linaje de curso es prerrequisito para que el Tema 05 pueda ejecutar el control de originalidad contra ediciones anteriores.", "El curso no puede pasar a estado 'Activo' sin que T07 confirme calibración aprobada."]
+      },
+      t03: {
+        id: "t03",
+        name: "Tema 03 — Motor de Desafíos",
+        tag: "MS Núcleo Pedagógico",
+        cluster: "engine",
+        db: "db_desafios",
+        summary: "Núcleo orquestador de desafíos teóricos y prácticos. Gestiona ciclo de vida, entregas, estados, fechas, penalidades del 30% por entrega tardía y consolida notas.",
+        priorities: {
+          start: ["Ciclo de vida del desafío", "Publicación y asignación", "Entregas y estados", "Versionado de entregas", "Fechas de apertura y cierre", "Penalidad 30% tardía en 48h", "Prórroga individual auditada", "Vencimiento sin entrega que no descuenta vida"],
+          later: ["Desafíos personalizados por LLM (sin XP ni monedas)", "Límite semanal de generación", "Colaboración en equipo sobre una entrega"],
+          maybe: ["Agenda del alumno", "Plantillas de desafío"]
+        },
+        syncIn: [{ source: "gateway", desc: "Publicación de desafíos, envíos de entregas por alumnos" }],
+        syncOut: [
+          { target: "t04", desc: "POST /evaluar-teorico (Delega corrección de ítems y valida encuesta)" },
+          { target: "t05", desc: "POST /evaluar-practico (Delega compilación, ejecución y evaluación de código)" },
+          { target: "t12", desc: "GET /parametros (Lee PAR-01, PAR-04, PAR-13)" }
+        ],
+        eventsPub: [{ name: "desafio.publicado", desc: "Desafío disponible en el curso" }, { name: "desafio.resuelto", desc: "Entrega corregida con nota final consolidada" }],
+        eventsSub: [],
+        params: ["PAR-01 (XP base por dificultad)", "PAR-02 (XP desafíos LLM)", "PAR-04 (Variación ±15%)", "PAR-13 (Máximo reintentos)"],
+        rules: ["Teórico y práctico son dos tipos del mismo concepto 'Desafío'. Todo el ciclo vive en T03.", "T03 emite 'desafio.resuelto' y no le otorga XP ni monedas directamente: desacopla hacia T08 y T10."]
+      },
+      t04: {
+        id: "t04",
+        name: "Tema 04 — Teóricos y Encuestas",
+        tag: "MS Dominio",
+        cluster: "engine",
+        db: "db_teoricos",
+        summary: "Dueño del contenido y corrección teórica. Administra encuestas anónimas obligatorias con abstención explícita; su cumplimiento desbloquea la nota en T03.",
+        priorities: {
+          start: ["Ítems teóricos (multiple choice, V/F)", "Corrección automática", "Encuesta obligatoria con abstención explícita", "Marcador de cumplimiento desacoplado de la respuesta", "Contrato con T03: se dispara antes de revelar resultados"],
+          later: ["Exposición de resultados al profesor con umbral mínimo de 5 respuestas (PAR-18)", "Tipos de ítem adicionales", "Agregados por cohorte"],
+          maybe: ["Banco de ítems con etiquetado", "Analítica de dificultad por ítem", "Generación asistida de ítems"]
+        },
+        syncIn: [{ source: "gateway", desc: "Invocado por T03 para corregir teóricos y consultar estado de encuesta" }],
+        syncOut: [{ target: "t07", desc: "POST /evaluar-rubrica (Opcional para preguntas teóricas abiertas con LLM)" }],
+        eventsPub: [{ name: "encuesta.completada", desc: "Encuesta respondida o abstención registrada" }],
+        eventsSub: [],
+        params: ["PAR-18 (Umbral 5 respuestas para profesor)"],
+        rules: ["Dependencia crítica: T03 no muestra la nota al alumno hasta que T04 confirme que la encuesta fue completada o abstenida.", "Anonimato 100% por diseño en base de datos."]
+      },
+      t05: {
+        id: "t05",
+        name: "Tema 05 — Desafíos Prácticos",
+        tag: "MS Dominio",
+        cluster: "engine",
+        db: "db_practicos",
+        summary: "Dueño del contenido práctico: consignas, tests, control de originalidad (umbral 70% entre entregas y linaje histórico de T02). Invoca Sandbox (T06) y LLM (T07).",
+        priorities: {
+          start: ["Consignas de código y casos de prueba", "Formato de entrega y feedback al alumno", "Comunicación con el Sandbox (T06)", "Control de originalidad entre entregas (umbral 70% PAR-11)", "Comparación contra ediciones anteriores (linaje T02)", "Caso de originalidad con resolución humana obligatoria sin atribución automática"],
+          later: ["Múltiples lenguajes de programación", "Feedback enriquecido con trazas de ejecución"],
+          maybe: ["Pistas progresivas", "Análisis de complejidad algorítmica"]
+        },
+        syncIn: [{ source: "gateway", desc: "Invocado por T03 para evaluar entregas prácticas de código" }],
+        syncOut: [
+          { target: "t06", desc: "POST /runtime/execute (Ejecuta código en sandbox aislado)" },
+          { target: "t07", desc: "POST /evaluar-rubrica (Evaluación con rúbrica 30/25/20/15/10)" },
+          { target: "t02", desc: "GET /cursos/{id}/linaje (Obtiene IDs de cursos previos para control de plagio)" },
+          { target: "t12", desc: "GET /parametros (Lee PAR-11 umbral 70%)" }
+        ],
+        eventsPub: [{ name: "practico.caso_originalidad_detectado", desc: "Alerta de similitud >= 70% para revisión docente" }],
+        eventsSub: [],
+        params: ["PAR-05 (Bonus/penalidad IA ±20%)", "PAR-10 (Muestreo auditoría 10%)", "PAR-11 (Umbral similitud anti-fuga 70%)"],
+        rules: ["El control de originalidad es alcance obligatorio del PRD.", "Si hay plagio detectado, se abre un caso para resolución docente humana; nunca se sanciona automáticamente."]
+      },
+      t06: {
+        id: "t06",
+        name: "Tema 06 — Sandbox / Runtime",
+        tag: "MS Utilitario",
+        cluster: "engine",
+        db: "db_runtime",
+        summary: "Servicio utilitario que ejecuta código no confiable en contenedores aislados con límites estrictos de CPU, memoria y tiempo. No conoce cursos ni alumnos.",
+        priorities: {
+          start: ["Ejecución aislada segura", "Límites de CPU, memoria y timeout", "Captura de stdout/stderr y exit codes", "Contrato de invocación con Tema 05"],
+          later: ["Cola de ejecuciones y política ante picos de cierre", "Política ante caída del sandbox"],
+          maybe: ["Análisis estático de código (linters)", "Almacenamiento de artefactos de ejecución", "Más lenguajes"]
+        },
+        syncIn: [{ source: "gateway", desc: "POST /runtime/execute (desde T05)" }],
+        syncOut: [],
+        eventsPub: [],
+        eventsSub: [],
+        params: [],
+        rules: ["Servicio sin estado de negocio: no conoce alumnos, cursos ni notas.", "Decisión abierta de arquitectura: falta definir política de contingencia si el Sandbox cae durante un pico de cierre."]
+      },
+      t07: {
+        id: "t07",
+        name: "Tema 07 — Evaluación LLM & RAG",
+        tag: "MS Reutilizable & Inteligente",
+        cluster: "engine",
+        db: "db_evaluacion",
+        summary: "Servicio de evaluación pedagógica, RAG y generación de desafíos con IA. Rúbricas 30/25/20/15/10, calibración de curso (Golden Set), corrección diferida y vectorización.",
+        priorities: {
+          start: ["Rúbricas con pesos fijos 30/25/20/15/10", "Invocación del modelo LLM", "Golden set base y calibración por curso", "Bloqueo de activación de cohorte sin override", "Salvaguarda anti-fuga (PAR-11)", "Detección de deriva antes de activar modelo", "Caída del LLM: nota neutra o cálculo diferido"],
+          later: ["Evaluación diferida/batch de exámenes", "Generación asincrónica de desafíos personalizados", "Indexación asíncrona de documentos para RAG", "Bloqueo de cierre de curso con notas diferidas pendientes"],
+          maybe: ["Configuración centralizada de prompts", "Caché de evaluaciones", "Control de costo por curso"]
+        },
+        syncIn: [
+          { source: "gateway", desc: "GET /calibracion/status (desde T02)", isRule: true },
+          { source: "gateway", desc: "POST /evaluar-rubrica (desde T05 y T04)" }
+        ],
+        syncOut: [],
+        eventsPub: [
+          { name: "evaluacion.diferida_completada", desc: "Examen o entrega compleja evaluada en diferido (emite nota a T03/T10/T08)" },
+          { name: "desafio_ia.generado", desc: "Desafío personalizado generado asincrónicamente en background" },
+          { name: "rag.documento_indexado", desc: "Vectorización y embedding de material teórico completado para RAG" }
+        ],
+        eventsSub: [
+          { name: "evaluacion.solicitud_diferida", desc: "Encolado de entregas para corrección por lotes/background" },
+          { name: "curso.material_publicado", desc: "Gatillo para procesar e indexar nuevo material de estudio en el vector store" }
+        ],
+        params: ["PAR-02 (XP desafíos LLM)", "PAR-14 (Tolerancia desvío ±5 pts)", "PAR-15 (Recalibración mensual)"],
+        rules: ["Un curso NO se activa sin calibración aprobada por T07 y NO existe override.", "Pesos fijos de rúbrica: 30% Funcionalidad, 25% Calidad, 20% Buenas prácticas, 15% Justificación, 10% Claridad.", "Los desafíos personalizados autogenerados por IA no otorgan XP de ranking ni monedas."]
+      },
+      t08: {
+        id: "t08",
+        name: "Tema 08 — Banco",
+        tag: "MS Economía",
+        cluster: "economy",
+        db: "db_banco",
+        summary: "Dueño del ledger inmutable de movimientos y saldo de Monedas acotado estrictamente a cada cohorte. Implementa 2-Phase Commit (reservas) y reversión.",
+        priorities: {
+          start: ["Ledger de movimientos monetarios", "Transacciones y saldos con alcance por curso", "Reglas de acreditación", "Reservas (2PC para compras de T09)", "Reversión de movimientos (por XP/nota reducible)"],
+          later: ["Acreditación de rachas y misiones (desde T10)", "Multiplicador de eventos con techo de 3x", "Conciliación contable"],
+          maybe: ["Historial exportable", "Límites por período", "Tablero de circulante por curso"]
+        },
+        syncIn: [
+          { source: "gateway", desc: "POST /cuentas/{id}/reservar (desde T09)" },
+          { source: "gateway", desc: "POST /reservas/{id}/confirmar y liberar (desde T09)" }
+        ],
+        syncOut: [{ target: "t12", desc: "GET /parametros (Lee PAR-03, PAR-06, PAR-07)" }],
+        eventsPub: [{ name: "banco.monedas_acreditadas", desc: "Monedas sumadas al saldo" }, { name: "banco.saldo_actualizado", desc: "Actualización de saldo disponible" }],
+        eventsSub: [
+          { name: "desafio.resuelto", desc: "Acredita monedas por desafío aprobado (desde T03)" },
+          { name: "gamificacion.racha_completada", desc: "Acredita monedas por racha (desde T10)" }
+        ],
+        params: ["PAR-03 (Monedas por desafío 100/50)", "PAR-06 (Precio de 1 vida = 300 $)", "PAR-07 (Equipamiento mecánico = 500 $)"],
+        rules: ["NO existe saldo global: las monedas se usan únicamente en la cohorte donde se ganaron.", "Las rachas y misiones pagan en monedas e insignias, NUNCA en XP."]
+      },
+      t09: {
+        id: "t09",
+        name: "Tema 09 — Mercado",
+        tag: "MS Economía",
+        cluster: "economy",
+        db: "db_mercado",
+        summary: "Catálogo de ítems (vidas, cosméticos, potenciadores) e inventario del alumno acotado por cohorte. Ejecuta compras seguras contra reservas de T08.",
+        priorities: {
+          start: ["Catálogo de ítems", "Compra contra reserva previa del Banco (T08)", "Inventario del alumno con alcance por curso", "Consumo de ítems"],
+          later: ["Subastas con ventana temporal", "Acceso móvil a subastas", "Vencimiento de ítems"],
+          maybe: ["Intercambio entre alumnos", "Ítems por temporada", "Catálogo configurable por curso"]
+        },
+        syncIn: [{ source: "gateway", desc: "Consultar catálogo, comprar ítem, ver/consumir inventario" }],
+        syncOut: [
+          { target: "t08", desc: "POST /cuentas/{id}/reservar (Paso 1 del 2PC)" },
+          { target: "t08", desc: "POST /reservas/{id}/confirmar o liberar (Paso 2 del 2PC)" }
+        ],
+        eventsPub: [{ name: "mercado.item_comprado", desc: "Ítem entregado al inventario" }, { name: "mercado.item_consumido", desc: "Ítem utilizado en el curso" }],
+        eventsSub: [],
+        params: ["PAR-06 (Precio vida 300 $)", "PAR-07 (Precio equipamiento 500 $)"],
+        rules: ["Compra segura: No se debita y luego se entrega. Se reserva en T08, se asigna al inventario, y recién si todo fue exitoso se confirma la reserva."]
+      },
+      t10: {
+        id: "t10",
+        name: "Tema 10 — Roadmap y Progreso",
+        tag: "MS Gamificación",
+        cluster: "economy",
+        db: "db_gamificacion",
+        summary: "Dueño del grafo de contenidos, XP (historial completo por ser reducible), 10 niveles predefinidos, vidas, ranking con zonas P90/P10 y rachas.",
+        priorities: {
+          start: ["Grafo de contenidos y prerequisitos", "XP y niveles (10 niveles PAR-09)", "Logros e insignias", "Gestión de vidas (PAR-12)", "Ranking con zonas P90/P10", "XP retroactivamente reducible con historial"],
+          later: ["Rachas y misiones (emiten evento a T08)", "Temporadas como ventana de ranking sin reinicio de XP", "Bloque gamificado desactivable por curso"],
+          maybe: ["Visualización interactiva del recorrido", "Comparativas de cohorte", "Recomendación del siguiente contenido"]
+        },
+        syncIn: [{ source: "gateway", desc: "Consultar grafo, roadmap, nivel, vidas y ranking" }],
+        syncOut: [{ target: "t12", desc: "GET /parametros (Lee PAR-01, PAR-08, PAR-09, PAR-12)" }],
+        eventsPub: [
+          { name: "gamificacion.racha_completada", desc: "Paga en monedas hacia T08" },
+          { name: "gamificacion.nivel_alcanzado", desc: "Notificación de ascenso de nivel" },
+          { name: "gamificacion.vida_consumida", desc: "Consumo de vida tras reintento fallido" }
+        ],
+        eventsSub: [
+          { name: "desafio.resuelto", desc: "Calcula XP, evalúa nivel, desbloquea nodos y verifica vidas" }
+        ],
+        params: ["PAR-08 (Umbral XP roadmap 500)", "PAR-09 (Curva 10 niveles 0..12k)", "PAR-12 (3 vidas iniciales / max 3)"],
+        rules: ["El XP mide aprendizaje y NO se gasta. Las monedas son poder de compra y sí se gastan.", "El XP es retroactivamente reducible, por lo que el progreso exige historial y no contadores incrementales.", "Vencimiento sin entrega NO descuenta vida."]
+      },
+      t11: {
+        id: "t11",
+        name: "Tema 11 — Social y Notificaciones",
+        tag: "MS Transversal & Event Master",
+        cluster: "governance",
+        db: "db_social",
+        summary: "Define el contrato de eventos para toda la plataforma. Gestiona chat efímero por cohorte/equipo (purga al archivar curso), notificaciones y reportes de moderación.",
+        priorities: {
+          start: ["Contrato de eventos del bus para toda la plataforma", "Notificaciones que comunican hechos consumados", "Chat sin retención a largo plazo", "Purga de chat al archivar curso (con excepción por reporte activo)"],
+          later: ["Gestión de equipos de alumnos", "Reportes de contenido y moderación", "Preferencias de notificación"],
+          maybe: ["Mensajería asíncrona como servicio de plataforma", "Chat en app móvil", "Menciones y adjuntos"]
+        },
+        syncIn: [{ source: "gateway", desc: "Canales de chat, envío de mensajes, gestión de equipos, reportes" }],
+        syncOut: [],
+        eventsPub: [{ name: "social.reporte_creado", desc: "Alerta de moderación a profesores" }],
+        eventsSub: [
+          { name: "curso.archivado", desc: "Dispara purga automática de chats de la cohorte" },
+          { name: "desafio.resuelto", desc: "Despacha notificación de nota" },
+          { name: "practico.caso_originalidad_detectado", desc: "Notifica caso de originalidad" },
+          { name: "banco.monedas_acreditadas", desc: "Notifica acreditación" },
+          { name: "gamificacion.nivel_alcanzado", desc: "Notifica nuevo nivel" }
+        ],
+        params: [],
+        rules: ["Define los esquemas y contratos de eventos para los otros 11 temas.", "Chat sin retención: se purga al archivar la cohorte salvo mensajes con reporte pendiente de resolución."]
+      },
+      t12: {
+        id: "t12",
+        name: "Tema 12 — Backoffice & Parámetros",
+        tag: "MS Consumidor Transversal",
+        cluster: "governance",
+        db: "db_backoffice",
+        summary: "Consumidor transversal puro sin dominio transaccional propio. Centraliza parámetros PAR-01 a PAR-24, gestión de LLM (ADMIN), y panel docente (alumno en riesgo máx 15 min).",
+        priorities: {
+          start: ["Administración de plataforma", "Registro central de parámetros PAR-01 a PAR-24", "Gestión del proveedor LLM (exclusivo ADMIN)", "Contratos de lectura temprana con 6 temas proveedores"],
+          later: ["Panel del profesor con indicador de alumno en riesgo (frescura máx 15 min)", "Sin comparación entre docentes", "Reportes docentes y exportación de datos"],
+          maybe: ["KPIs con CSAT de 5 estrellas", "Alertas configurables personalizadas"]
+        },
+        syncIn: [{ source: "gateway", desc: "GET /parametros (Consumido por T03, T05, T08, T10), Dashboards ADMIN/Profesor" }],
+        syncOut: [
+          { target: "t01", desc: "GET /usuarios/metrics (Lectura para métricas)" },
+          { target: "t02", desc: "GET /cursos/metrics (Lectura de cohortes y matrículas)" },
+          { target: "t03", desc: "GET /desafios/metrics (Lectura de estados de entrega)" },
+          { target: "t05", desc: "GET /practicos/metrics (Lectura de plagio y tests)" },
+          { target: "t08", desc: "GET /banco/metrics (Lectura de circulante y balances)" },
+          { target: "t10", desc: "GET /gamificacion/metrics (Lectura de progreso y riesgo)" },
+          { target: "t11", desc: "GET /social/metrics (Lectura de moderación y reportes)" }
+        ],
+        eventsPub: [{ name: "backoffice.parametro_actualizado", desc: "Aviso de cambio en configuración" }],
+        eventsSub: [{ name: "desafio.resuelto", desc: "Actualiza analítica" }, { name: "encuesta.completada", desc: "Actualiza KPIs CSAT" }],
+        params: ["PAR-01 a PAR-24 (Administrador exclusivo)"],
+        rules: ["Consumidor puro: Si no se acuerdan contratos de lectura en sprint 1 con los 6 servicios fuente, queda totalmente bloqueado.", "Panel docente no debe mostrar comparativas entre docentes."]
+      }
+    };
+
+    // --- 2. PAR-01 TO PAR-24 PARAMETERS CATALOG ---
+    const PARAMS_DATA = [
+      { id: "PAR-01", name: "XP base por desafío superado por dificultad", defaultVal: "100 / 250 / 500 (Básico / Medio / Avanzado)", consumers: "Tema 03, Tema 10", desc: "Determina el puntaje base otorgado al aprobar un desafío oficial." },
+      { id: "PAR-02", name: "XP de desafíos personalizados generados por LLM", defaultVal: "10 / 20 / 30", consumers: "Tema 03, Tema 10", desc: "XP marginal para desafíos autogenerados sin valor monetario." },
+      { id: "PAR-03", name: "Monedas por desafío superado (obligatorio / opcional)", defaultVal: "100 / 50 $", consumers: "Tema 08", desc: "Recompensa económica acreditada al ledger del alumno." },
+      { id: "PAR-04", name: "Rango de variación de XP por calidad y tiempo", defaultVal: "±15% sobre XP base", consumers: "Tema 03, Tema 10", desc: "Modificador de XP según velocidad y pulcritud de entrega." },
+      { id: "PAR-05", name: "Rango de bonus/penalidad de XP por uso de IA", defaultVal: "±20% sobre XP base", consumers: "Tema 05, Tema 10", desc: "Bonificación por uso crítico o penalidad por delegación excesiva a IA." },
+      { id: "PAR-06", name: "Precio en monedas de 1 vida", defaultVal: "300 $", consumers: "Tema 08, Tema 09, Tema 10", desc: "Costo en la tienda para recuperar una vida consumida." },
+      { id: "PAR-07", name: "Precio en monedas de equipamiento mecánico", defaultVal: "500 $", consumers: "Tema 08, Tema 09", desc: "Costo de ítems funcionales en el Mercado." },
+      { id: "PAR-08", name: "Umbral de XP para desbloqueo de sección de roadmap", defaultVal: "500 XP (Ajustable por docente)", consumers: "Tema 02, Tema 10", desc: "Puntaje mínimo para acceder al siguiente nodo del grafo." },
+      { id: "PAR-09", name: "Curva de XP de los 10 niveles predefinidos", defaultVal: "0 / 250 / 600 / 1.1k / 1.8k / 2.8k / 4.2k / 6k / 8.5k / 12k", consumers: "Tema 10", desc: "Puntos necesarios para alcanzar cada uno de los 10 rangos." },
+      { id: "PAR-10", name: "Porcentaje de muestreo de auditoría humana de scores IA", defaultVal: "10%", consumers: "Tema 05, Tema 07, Tema 12", desc: "Muestra aleatoria de entregas evaluadas por LLM enviadas a revisión docente." },
+      { id: "PAR-11", name: "Umbral de similitud para salvaguarda anti-fuga / plagio", defaultVal: "70%", consumers: "Tema 05, Tema 07", desc: "Criterio de corte para abrir un caso de originalidad." },
+      { id: "PAR-12", name: "Vidas iniciales por cohorte / máximo de vidas", defaultVal: "3 / 3 vidas", consumers: "Tema 10", desc: "Capacidad de reintentos por defecto del alumno." },
+      { id: "PAR-13", name: "Máximo de reintentos configurable por desafío", defaultVal: "3 reintentos (Default 0)", consumers: "Tema 03", desc: "Límite de envíos permitidos antes de cerrar entrega." },
+      { id: "PAR-14", name: "Tolerancia máxima de desviación en calibración LLM", defaultVal: "±5 pts promedio (máx ±10 en dimensión)", consumers: "Tema 07", desc: "Criterio de aprobación del Golden Set para activar cohorte." },
+      { id: "PAR-15", name: "Periodicidad de re-calibración del evaluador LLM", defaultVal: "Mensual / ante cambio de modelo", consumers: "Tema 07, Tema 12", desc: "Frecuencia de revalidación contra deriva." },
+      { id: "PAR-16", name: "Plazo de conservación de datos académicos", defaultVal: "5 años", consumers: "Tema 01, Tema 12", desc: "Retención legal obligatoria de producción del alumno." },
+      { id: "PAR-17", name: "Ventana de preaviso al ADMIN antes de expirar datos", defaultVal: "90 días", consumers: "Tema 01, Tema 12", desc: "Alerta previa antes de ejecutar purgas históricas." },
+      { id: "PAR-18", name: "Umbral mínimo de respuestas de encuesta para docente", defaultVal: "5 respuestas", consumers: "Tema 04, Tema 12", desc: "Protección de anonimato para exponer resultados agregados." },
+      { id: "PAR-19", name: "Penalidad por entrega tardía en ventana de 48 hs", defaultVal: "30% sobre la nota obtenida", consumers: "Tema 03", desc: "Descuento automático aplicado a envíos posteriores al cierre formal." },
+      { id: "PAR-20", name: "Techo de multiplicador de eventos especiales", defaultVal: "3x", consumers: "Tema 08", desc: "Límite máximo para eventos de bonificación temporal de monedas." },
+      { id: "PAR-21", name: "Frescura máxima del indicador de Alumno en Riesgo", defaultVal: "15 minutos", consumers: "Tema 12", desc: "Latencia máxima de actualización en el panel del profesor." },
+      { id: "PAR-22", name: "Pesos fijos de dimensiones de rúbrica evaluadora", defaultVal: "30% Func / 25% Cal / 20% BP / 15% Just / 10% Clar", consumers: "Tema 07", desc: "Ponderación no negociable de evaluación de código." },
+      { id: "PAR-23", name: "Ventana de ranking por temporadas", defaultVal: "Cuatrimestral (sin reinicio de XP)", consumers: "Tema 10", desc: "Ventana temporal de competencia relativa entre alumnos." },
+      { id: "PAR-24", name: "Umbrales de percentiles de ranking de cohorte", defaultVal: "P90 (Zona alta) / P10 (Zona riesgo)", consumers: "Tema 10, Tema 12", desc: "Segmentación de la cohorte para alertas y condecoraciones." }
+    ];
+
+    // --- 3. CROSS MATRIX DATA ---
+    const MATRIX_DATA = [
+      { from: "API Gateway", to: "Service Discovery", type: "sync", contract: "GET /instances?service={name}", desc: "Resuelve dinámicamente IP y puerto de instancia saludable antes de enrutar." },
+      { from: "Tema 02 (Cursos)", to: "Tema 07 (LLM)", type: "sync", contract: "GET /calibracion/status?curso_id={id}", desc: "Bloquea activación de cohorte hasta obtener estado 'APROBADO' del modelo." },
+      { from: "Tema 03 (Desafíos)", to: "Tema 04 (Teóricos)", type: "sync", contract: "POST /evaluar-teorico", desc: "Delega corrección de ítems conceptuales y verifica estado de encuesta." },
+      { from: "Tema 03 (Desafíos)", to: "Tema 05 (Prácticos)", type: "sync", contract: "POST /evaluar-practico", desc: "Delega ejecución y evaluación de consignas de programación." },
+      { from: "Tema 05 (Prácticos)", to: "Tema 06 (Sandbox)", type: "sync", contract: "POST /runtime/execute", desc: "Ejecuta código no confiable con límites de CPU, memoria y tiempo." },
+      { from: "Tema 05 (Prácticos)", to: "Tema 07 (LLM)", type: "sync", contract: "POST /evaluar-rubrica", desc: "Envía código y salida para calificación según pesos fijos 30/25/20/15/10." },
+      { from: "Tema 05 (Prácticos)", to: "Tema 02 (Cursos)", type: "sync", contract: "GET /cursos/{id}/linaje", desc: "Obtiene IDs de ediciones previas para control de plagio histórico." },
+      { from: "Tema 09 (Mercado)", to: "Tema 08 (Banco)", type: "sync", contract: "POST /cuentas/{id}/reservar", desc: "Paso 1 del 2PC: Reserva saldo antes de entregar ítem en inventario." },
+      { from: "Tema 09 (Mercado)", to: "Tema 08 (Banco)", type: "sync", contract: "POST /reservas/{id}/confirmar", desc: "Paso 2 del 2PC: Confirma débito definitivo o libera reserva ante error." },
+      { from: "Temas 03, 05, 08, 10", to: "Tema 12 (Backoffice)", type: "sync", contract: "GET /parametros", desc: "Obtienen configuración PAR-01 a PAR-24 en vez de tenerla fija en código." },
+      { from: "Tema 12 (Backoffice)", to: "Temas 01, 02, 03, 05, 08, 10, 11", type: "sync", contract: "GET /{service}/metrics", desc: "Contratos de lectura para consolidar panel docente y métricas globales." },
+      { from: "Tema 02 (Cursos)", to: "Bus de Eventos", type: "async", contract: "curso.archivado", desc: "Tema 11 consume este hecho para gatillar la purga de chat del curso." },
+      { from: "Tema 03 (Desafíos)", to: "Bus de Eventos", type: "async", contract: "desafio.resuelto", desc: "T08 acredita monedas, T10 computa XP/vidas, T11 notifica y T12 actualiza analítica." },
+      { from: "Tema 05 (Prácticos)", to: "Bus de Eventos", type: "async", contract: "practico.caso_originalidad", desc: "Abre caso para revisión humana obligatoria de profesores (T11/T12)." },
+      { from: "Tema 10 (Progreso)", to: "Bus de Eventos", type: "async", contract: "gamificacion.racha_completada", desc: "Tema 08 consume y acredita monedas (las rachas NUNCA pagan XP)." }
+    ];
+
+    // --- 4. EVENT BUS TOPICS CATALOG ---
+    const EVENTS_DATA = [
+      { id: "curso.archivado", producer: "Tema 02 (Cursos)", consumers: ["Tema 11 (Social)", "Tema 01 (Auditoría)"], payload: "{ curso_id, fecha_archivo, responsable_id }", action: "Tema 11 purga el historial de chat de la cohorte, manteniendo únicamente mensajes con reportes activos." },
+      { id: "desafio.resuelto", producer: "Tema 03 (Desafíos)", consumers: ["Tema 08 (Banco)", "Tema 10 (Progreso)", "Tema 11 (Social)", "Tema 12 (Backoffice)"], payload: "{ entrega_id, alumno_id, desafio_id, cohorte_id, nota_final, tiempo_seg, score_ia }", action: "T08 acredita monedas; T10 calcula XP, sube nivel y desbloquea roadmap; T11 notifica al alumno." },
+      { id: "practico.caso_originalidad", producer: "Tema 05 (Prácticos)", consumers: ["Tema 11 (Social)", "Tema 12 (Backoffice)"], payload: "{ caso_id, cohorte_id, alumno_a, alumno_b, similitud_pct, linaje_curso_id }", action: "Alerta al panel docente para resolución humana obligatoria sin sanción automática." },
+      { id: "gamificacion.racha_completada", producer: "Tema 10 (Progreso)", consumers: ["Tema 08 (Banco)", "Tema 11 (Social)"], payload: "{ alumno_id, cohorte_id, dias_racha, recompensa_monedas, insignia_id }", action: "Tema 08 acredita monedas al saldo del alumno. Las rachas pagan exclusivamente en monedas e insignias, nunca en XP." },
+      { id: "gamificacion.nivel_alcanzado", producer: "Tema 10 (Progreso)", consumers: ["Tema 11 (Social)", "Tema 12 (Backoffice)"], payload: "{ alumno_id, cohorte_id, nuevo_nivel, xp_acumulado }", action: "Tema 11 emite notificación de felicitación y actualiza insignia en perfil." },
+      { id: "encuesta.completada", producer: "Tema 04 (Teóricos)", consumers: ["Tema 03 (Desafíos)", "Tema 12 (Backoffice)"], payload: "{ cohorte_id, desafio_id, alumno_id, abstencion: boolean }", action: "Tema 03 desbloquea la visibilidad de la nota de entrega para el alumno." },
+      { id: "banco.monedas_acreditadas", producer: "Tema 08 (Banco)", consumers: ["Tema 11 (Social)"], payload: "{ cuenta_id, alumno_id, monto, motivo, saldo_nuevo }", action: "Notificación in-app al alumno con su nuevo balance de monedas." },
+      { id: "mercado.item_comprado", producer: "Tema 09 (Mercado)", consumers: ["Tema 11 (Social)", "Tema 12 (Backoffice)"], payload: "{ item_id, alumno_id, cohorte_id, precio_monedas }", action: "Tema 11 notifica ítem disponible en inventario." },
+      { id: "evaluacion.diferida_completada", producer: "Tema 07 (LLM)", consumers: ["Tema 03 (Desafíos)", "Tema 10 (Progreso)", "Tema 11 (Social)"], payload: "{ entrega_id, alumno_id, cohorte_id, nota_rubrica, feedback_json }", action: "Emite la nota tras completar corrección por lotes o recuperación de caída de IA." },
+      { id: "desafio_ia.generado", producer: "Tema 07 (LLM)", consumers: ["Tema 03 (Desafíos)", "Tema 11 (Social)"], payload: "{ desafio_id, cohorte_id, alumno_id, prompt_usado, consigna_generada }", action: "Desafío personalizado listo en background (sin XP ni monedas, solo cosméticos)." },
+      { id: "rag.documento_indexado", producer: "Tema 07 (LLM)", consumers: ["Tema 12 (Backoffice)"], payload: "{ curso_id, documento_id, chunks_count, embeddings_status }", action: "Confirma indexación vectorial para el asistente pedagógico RAG del curso." }
+    ];
+
+    // --- 5. THE 7 LAMINAS SPECIFICATION ---
+    const LAMINAS_DATA = [
+      {
+        num: 1,
+        title: "Arquitectura Front End / Back End con API Gateway y Service Discovery",
+        subtitle: "Enrutamiento centralizado, registro dinámico y comunicación controlada entre microservicios",
+        keyPoint: "La comunicación directa entre microservicios está terminantemente prohibida. Si un servicio necesita a otro, sale y vuelve a entrar por el API Gateway.",
+        steps: [
+          "1. El cliente envía la solicitud únicamente al API Gateway con su token JWT.",
+          "2. Cada microservicio se registra dinámicamente al arrancar en el Service Discovery.",
+          "3. El API Gateway consulta Service Discovery para resolver una instancia viva y balancear carga.",
+          "4. El API Gateway reenvía la solicitud al microservicio resuelto con el token validado.",
+          "5. El microservicio procesa la lógica contra su propia base de datos (aislamiento total).",
+          "6. La respuesta regresa al cliente por el mismo camino.",
+          "7. Si un microservicio necesita llamar a otro, vuelve a pasar por el API Gateway (Regla Lámina 1)."
+        ],
+        warning: "Una llamada directa P2P rompe el balanceo, se acopla a un despliegue puntual, saltea la validación centralizada y desaparece de la traza distribuida."
+      },
+      {
+        num: 2,
+        title: "Institución, Curso Template y Curso-Cohorte",
+        subtitle: "Contención de entidades, bloques de contenido y ciclo de vida de la cohorte",
+        keyPoint: "El template define y se reutiliza; la cohorte ocurre. Casi ninguna entidad de negocio existe fuera de la caja de la cohorte.",
+        steps: [
+          "1. Institución: Marco general que contiene templates y cohortes.",
+          "2. Curso Template: Definición reutilizable de la materia (no se dicta directamente).",
+          "3. Instanciación: De un template nacen tantas cohortes como veces se dicte la materia.",
+          "4. Curso-Cohorte: Instancia real donde viven teóricos, prácticos, desafíos, roadmap y matrícula.",
+          "5. Ciclo de Vida: Creación -> Configuración -> Activación (Bloqueada hasta calibración de T07) -> Dictado -> Cierre (Bloqueado con diferidas) -> Archivado (Gatilla purga de chat en T11)."
+        ],
+        warning: "Regla de modelado rápida: Si una entidad no puede ubicarse dentro de la caja de la cohorte, probablemente esté mal modelada."
+      },
+      {
+        num: 3,
+        title: "Núcleo de Desafíos: Propiedad, Evaluación y Economía",
+        subtitle: "Teóricos y prácticos como tipos de desafío, con núcleo común en el Tema 03",
+        keyPoint: "Teórico y práctico no son dos entidades separadas: son dos tipos de desafío que comparten ciclo de vida y nota en el Tema 03.",
+        steps: [
+          "1. Tema 03 es el dueño único de la entidad 'Desafío', entregas, fechas, prórrogas y estados.",
+          "2. T04 (Teóricos) y T05 (Prácticos) son dueños del contenido y de producir la nota.",
+          "3. T05 invoca a T06 (Sandbox para ejecución aislada) y T07 (LLM para rúbrica).",
+          "4. T03 recibe la nota ya conformada y emite el evento 'desafio.resuelto'.",
+          "5. T10 (Roadmap) y T08 (Banco) leen el evento de forma desacoplada para otorgar XP y Monedas respectivamente."
+        ],
+        warning: "Ni el 04 ni el 05 otorgan XP por su cuenta; si lo hicieran, las reglas de la economía quedarían duplicadas en tres lugares distintos."
+      },
+      {
+        num: 4,
+        title: "Bus de Eventos: Publicación, Suscripción y Desacople",
+        subtitle: "Hechos consumados, consumidores desacoplados y diferencia entre sincrónico y eventos",
+        keyPoint: "Si necesito la respuesta para continuar, es sincrónico por el Gateway; si solo estoy avisando que algo pasó, es un evento.",
+        steps: [
+          "1. Un evento es un hecho consumado que ya ocurrió (ej. 'desafio.resuelto', 'curso.archivado').",
+          "2. Quien publica no sabe quién escucha, no espera respuesta y no conoce a los consumidores.",
+          "3. T02, T03 y T10 publican hechos del dominio.",
+          "4. T08, T10, T11, T01 y T12 reaccionan según sus suscripciones.",
+          "5. Tema 11 tiene el rol de gobernar y definir el contrato de eventos para toda la plataforma."
+        ],
+        warning: "El contrato de eventos de T11 condiciona a 5 equipos; debe acordarse tempranamente en el Sprint 1."
+      },
+      {
+        num: 5,
+        title: "Economía de Desafíos: XP, Monedas y Confirmación de Compra",
+        subtitle: "Separación entre progreso académico, acreditación monetaria y consumo transaccional",
+        keyPoint: "Hay dos monedas conceptuales: el XP mide progreso y no se gasta; las Monedas son poder de compra y sí se gastan.",
+        steps: [
+          "1. Tema 03 emite un solo hecho ('desafio.resuelto').",
+          "2. Tema 10 traduce el hecho a XP, niveles y vidas (desbloqueo de roadmap).",
+          "3. Tema 08 traduce el hecho a acreditación de Monedas en el ledger.",
+          "4. Las rachas y misiones pagan en monedas e insignias, nunca en XP (para que el ranking mida aprendizaje y no solo constancia).",
+          "5. Compra segura en Mercado (T09): Se reserva en T08 (2PC), se asigna ítem, y si todo sale bien se confirma."
+        ],
+        warning: "Como el XP puede bajar retroactivamente por reevaluación, ni el progreso ni el saldo son contadores incrementales: requieren historial completo y capacidad de reversión."
+      },
+      {
+        num: 6,
+        title: "Backoffice y Parámetros Compartidos: Consumidor Transversal",
+        subtitle: "El Tema 12 integra lecturas de otros dominios y administra configuración usada por múltiples servicios",
+        keyPoint: "El Tema 12 no tiene dominio propio: todo lo que muestra pertenece a otro. Su valor está en cruzar lecturas y administrar PAR-01..24.",
+        steps: [
+          "1. T12 integra lecturas de T01 (Usuarios), T02 (Cursos), T03 (Desafíos), T05 (Prácticos), T08 (Banco), T10 (Progreso) y T11 (Social).",
+          "2. Administra en exclusiva los parámetros PAR-01 a PAR-24 de la plataforma.",
+          "3. Temas 03, 05, 08 y 10 leen su configuración desde T12 en vez de tener valores fijos en el código.",
+          "4. Construye el Panel del Profesor con indicador de alumno en riesgo (frescura máxima de 15 minutos).",
+          "5. Provee analítica y KPIs con CSAT de 5 estrellas sin comparar docentes entre sí."
+        ],
+        warning: "Si los otros servicios no exponen contratos de lectura en el Sprint 1, el equipo de Backoffice queda completamente bloqueado sin nada demostrable."
+      },
+      {
+        num: 7,
+        title: "Identidad, Pertenencia y Autorización: Token, Cohorte y Gateway",
+        subtitle: "Separación entre identidad de plataforma, pertenencia a cohorte y decisión de autorización",
+        keyPoint: "Quién sos y qué rol tenés lo responde Tema 01; a qué cohorte pertenecés lo responde Tema 02. Validar no es autorizar.",
+        steps: [
+          "1. Padrón institucional valida al usuario antes del alta en Tema 01.",
+          "2. Al hacer login, Tema 01 emite el Token JWT con identificador, rol global y vigencia.",
+          "3. El API Gateway valida la firma y vigencia del JWT en cada solicitud entrante.",
+          "4. El servicio de negocio consulta a Tema 02 si la persona pertenece a la cohorte específica.",
+          "5. La decisión final de autorización (ej. 'solo el creador puede despublicar') reside en el servicio dueño de la regla de negocio."
+        ],
+        warning: "ADMIN es un rol de plataforma; profesor y alumno solo tienen sentido acompañados por la pertenencia a una cohorte concreta."
+      }
+    ];
+
+    // --- 6. SVG CONNECTION LINES MAP CONFIGURATION ---
+    const CONNECTIONS = [
+      // Frontend -> Gateway
+      { from: 'frontend', to: 'gateway', type: 'sync', mode: 'gateway' },
+      // Gateway <-> Discovery
+      { from: 'gateway', to: 'discovery', type: 'disc', mode: 'gateway' },
+      // Gateway -> MS
+      { from: 'gateway', to: 't01', type: 'sync', mode: 'identity' },
+      { from: 'gateway', to: 't02', type: 'sync', mode: 'gateway' },
+      { from: 'gateway', to: 't03', type: 'sync', mode: 'gateway' },
+      { from: 'gateway', to: 't08', type: 'sync', mode: 'economy' },
+      { from: 'gateway', to: 't09', type: 'sync', mode: 'economy' },
+      { from: 'gateway', to: 't10', type: 'sync', mode: 'economy' },
+      { from: 'gateway', to: 't11', type: 'sync', mode: 'eventbus' },
+      { from: 'gateway', to: 't12', type: 'sync', mode: 'backoffice' },
+      // Inter-service sincrónico: TODO PASA OBLIGATORIAMENTE POR EL API GATEWAY
+      // Flujo 1: T02 consulta calibración a T07 pasando por el Gateway
+      { from: 't02', to: 'gateway', type: 'sync', label: 'T02 ➜ GW (Calibración)', mode: 'eval' },
+      { from: 'gateway', to: 't07', type: 'sync', label: 'GW ➜ T07 (Enrutado)', mode: 'eval' },
+
+      // Flujo 2: T03 delega evaluación a T04 y T05 pasando por el Gateway
+      { from: 't03', to: 'gateway', type: 'sync', label: 'T03 ➜ GW (Eval)', mode: 'eval' },
+      { from: 'gateway', to: 't04', type: 'sync', label: 'GW ➜ T04 (Teórico)', mode: 'eval' },
+      { from: 'gateway', to: 't05', type: 'sync', label: 'GW ➜ T05 (Práctico)', mode: 'eval' },
+
+      // Flujo 3: T05 invoca Sandbox T06 y LLM T07 pasando por el Gateway
+      { from: 't05', to: 'gateway', type: 'sync', label: 'T05 ➜ GW (Exec/Rubric)', mode: 'eval' },
+      { from: 'gateway', to: 't06', type: 'sync', label: 'GW ➜ T06 (Sandbox)', mode: 'eval' },
+
+      // Flujo 4: T09 reserva monedas en T08 pasando por el Gateway (2PC)
+      { from: 't09', to: 'gateway', type: 'sync', label: 'T09 ➜ GW (Reserva)', mode: 'economy' },
+      { from: 'gateway', to: 't08', type: 'sync', label: 'GW ➜ T08 (2PC)', mode: 'economy' },
+      // Backoffice Params distribution
+      { from: 't12', to: 't03', type: 'param', label: 'PAR-XX', mode: 'backoffice' },
+      { from: 't12', to: 't05', type: 'param', label: 'PAR-XX', mode: 'backoffice' },
+      { from: 't12', to: 't08', type: 'param', label: 'PAR-XX', mode: 'backoffice' },
+      { from: 't12', to: 't10', type: 'param', label: 'PAR-XX', mode: 'backoffice' },
+      // Event Bus publish/subscribe
+      { from: 't02', to: 'eventbus', type: 'async', label: 'curso.archivado', mode: 'eventbus' },
+      { from: 't03', to: 'eventbus', type: 'async', label: 'desafio.resuelto', mode: 'eventbus' },
+      { from: 't07', to: 'eventbus', type: 'async', label: 'eval.diferida / rag.ok', mode: 'eventbus' },
+      { from: 't10', to: 'eventbus', type: 'async', label: 'racha.ok', mode: 'eventbus' },
+      { from: 'eventbus', to: 't07', type: 'async', label: 'batch.eval / rag.doc', mode: 'eventbus' },
+      { from: 'eventbus', to: 't08', type: 'async', mode: 'eventbus' },
+      { from: 'eventbus', to: 't10', type: 'async', mode: 'eventbus' },
+      { from: 'eventbus', to: 't11', type: 'async', mode: 'eventbus' },
+      { from: 'eventbus', to: 't12', type: 'async', mode: 'eventbus' },
+      { from: 'eventbus', to: 't01', type: 'async', mode: 'eventbus' }
+    ];
+
+    // --- 7. UI STATE & INTERACTIVITY ---
+    let currentMainTab = 'map';
+    let currentFlowFilter = 'all';
+    let selectedNodeId = null;
+    let zoomLevel = 1.0;
+    let panX = 0;
+    let panY = 0;
+    let isDragging = false;
+    let dragStartX = 0;
+    let dragStartY = 0;
+
+    function initApp() {
+      renderMatrix();
+      renderEvents();
+      renderParams();
+      renderLaminas();
+      renderConnections();
+      setupCanvasInteractions();
+      window.addEventListener('resize', () => renderConnections());
+    }
+
+    // Tab Switching
+    function switchMainTab(tabId) {
+      currentMainTab = tabId;
+      const tabs = ['map', 'matrix', 'events', 'params', 'laminas', 'rules'];
+      tabs.forEach(t => {
+        const el = document.getElementById(`main-tab-${t}`);
+        const btn = document.getElementById(`tab-btn-${t}`);
+        if (t === tabId) {
+          el.classList.remove('hidden');
+          btn.className = "px-3 py-1.5 rounded-lg text-white bg-sky-600 shadow flex items-center space-x-1.5 transition";
+        } else {
+          el.classList.add('hidden');
+          btn.className = "px-3 py-1.5 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800/60 flex items-center space-x-1.5 transition";
+        }
+      });
+      if (tabId === 'map') {
+        setTimeout(renderConnections, 50);
+      }
+    }
+
+    // Set Flow Filter in Map
+    function setFlowFilter(filter) {
+      currentFlowFilter = filter;
+      const buttons = ['all', 'gateway', 'eventbus', 'eval', 'economy', 'backoffice', 'identity'];
+      buttons.forEach(b => {
+        const el = document.getElementById(`btn-view-${b}`);
+        if (el) {
+          if (b === filter) {
+            el.className = "px-2.5 py-1 text-xs rounded-lg font-medium bg-sky-600 text-white shadow transition";
+          } else {
+            el.className = "px-2.5 py-1 text-xs rounded-lg font-medium bg-slate-800 text-slate-300 hover:bg-slate-700 transition";
+          }
+        }
+      });
+      renderConnections();
+      applyNodeFilterEffects();
+    }
+
+    function applyNodeFilterEffects() {
+      const allNodeElements = document.querySelectorAll('[id^="node-"]');
+      if (currentFlowFilter === 'all') {
+        allNodeElements.forEach(n => n.classList.remove('node-dimmed'));
+        return;
+      }
+
+      let relevantNodeIds = new Set();
+      if (currentFlowFilter === 'gateway') {
+        relevantNodeIds = new Set(['node-frontend', 'node-gateway', 'node-discovery', 'node-t01', 'node-t02', 'node-t03']);
+      } else if (currentFlowFilter === 'eventbus') {
+        relevantNodeIds = new Set(['node-eventbus', 'node-t11', 'node-t02', 'node-t03', 'node-t07', 'node-t08', 'node-t10', 'node-t12', 'node-t01']);
+      } else if (currentFlowFilter === 'eval') {
+        relevantNodeIds = new Set(['node-gateway', 'node-t03', 'node-t04', 'node-t05', 'node-t06', 'node-t07', 'node-t02']);
+      } else if (currentFlowFilter === 'economy') {
+        relevantNodeIds = new Set(['node-gateway', 'node-t03', 'node-t08', 'node-t09', 'node-t10']);
+      } else if (currentFlowFilter === 'backoffice') {
+        relevantNodeIds = new Set(['node-t12', 'node-t03', 'node-t05', 'node-t08', 'node-t10', 'node-t01', 'node-t02', 'node-t11']);
+      } else if (currentFlowFilter === 'identity') {
+        relevantNodeIds = new Set(['node-frontend', 'node-gateway', 'node-t01', 'node-t02', 'node-t03', 'node-t12']);
+      }
+
+      allNodeElements.forEach(n => {
+        if (relevantNodeIds.has(n.id)) {
+          n.classList.remove('node-dimmed');
+        } else {
+          n.classList.add('node-dimmed');
+        }
+      });
+    }
+
+    // Node Selection & Drawer Rendering
+    function selectNode(nodeId) {
+      selectedNodeId = nodeId;
+      const allNodes = document.querySelectorAll('[id^="node-"]');
+      allNodes.forEach(n => n.classList.remove('node-selected'));
+      
+      const targetEl = document.getElementById(`node-${nodeId}`);
+      if (targetEl) targetEl.classList.add('node-selected');
+
+      const data = SERVICES_DATA[nodeId];
+      if (!data) return;
+
+      // Update Drawer
+      document.getElementById('drawer-icon').innerText = data.id.toUpperCase().replace('NODE-', '').substring(0, 3);
+      document.getElementById('drawer-tag').innerText = data.tag;
+      document.getElementById('drawer-title').innerText = data.name;
+
+      let html = `
+        <div class="glass-card p-3 rounded-xl border-slate-700">
+          <span class="text-[10px] font-bold uppercase text-sky-400">Base de Datos Exclusiva</span>
+          <p class="font-mono text-xs text-white font-bold">${data.db}</p>
+          <p class="text-[11px] text-slate-300 mt-1">${data.summary}</p>
+        </div>
+      `;
+
+      if (data.priorities) {
+        html += `
+          <div class="space-y-2">
+            <h4 class="font-bold text-slate-200 text-xs flex items-center justify-between">
+              <span>Prioridades de Desarrollo</span>
+              <span class="text-[10px] font-mono text-slate-400">3 Columnas</span>
+            </h4>
+            
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-sky-900/60">
+              <span class="text-[10px] font-extrabold text-sky-400 uppercase tracking-wider block mb-1">1. Pedido para empezar (Núcleo)</span>
+              <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-300">
+                ${data.priorities.start.map(p => `<li>${p}</li>`).join('')}
+              </ul>
+            </div>
+
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+              <span class="text-[10px] font-extrabold text-indigo-400 uppercase tracking-wider block mb-1">2. Para más adelante (Previsto)</span>
+              <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-400">
+                ${data.priorities.later.map(p => `<li>${p}</li>`).join('')}
+              </ul>
+            </div>
+
+            <div class="bg-slate-900/90 p-2.5 rounded-xl border border-slate-800">
+              <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider block mb-1">3. Podría ser (Extras)</span>
+              <ul class="list-disc list-inside space-y-0.5 text-[11px] text-slate-500">
+                ${data.priorities.maybe.map(p => `<li>${p}</li>`).join('')}
+              </ul>
+            </div>
+          </div>
+        `;
+      }
+
+      // Sync & Async Details
+      html += `
+        <div class="space-y-3">
+          <div>
+            <span class="text-[10px] font-bold text-sky-400 uppercase tracking-wider block mb-1">Llamadas Sincrónicas (HTTP / Gateway)</span>
+            ${data.syncOut && data.syncOut.length > 0 ? `
+              <div class="space-y-1">
+                ${data.syncOut.map(s => `
+                  <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
+                    <span class="font-bold text-sky-300">➜ ${s.target.toUpperCase()}:</span>
+                    <span class="text-slate-300 ml-1">${s.desc}</span>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '<p class="text-slate-500 italic text-[11px]">No realiza llamadas sincrónicas salientes.</p>'}
+          </div>
+
+          <div>
+            <span class="text-[10px] font-bold text-amber-400 uppercase tracking-wider block mb-1">Eventos Asincrónicos (Bus de Eventos)</span>
+            ${data.eventsPub && data.eventsPub.length > 0 ? `
+              <div class="space-y-1 mb-2">
+                <span class="text-[10px] text-slate-400 font-semibold">Publica:</span>
+                ${data.eventsPub.map(e => `
+                  <div class="bg-amber-950/40 p-2 rounded-lg border border-amber-800/60">
+                    <span class="font-mono text-amber-300 font-bold">${e.name}</span>
+                    <p class="text-slate-300 text-[10px] mt-0.5">${e.desc}</p>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+
+            ${data.eventsSub && data.eventsSub.length > 0 ? `
+              <div class="space-y-1">
+                <span class="text-[10px] text-slate-400 font-semibold">Suscripto a:</span>
+                ${data.eventsSub.map(e => `
+                  <div class="bg-slate-900 p-2 rounded-lg border border-slate-800">
+                    <span class="font-mono text-amber-300">${e.name}</span>
+                    <p class="text-slate-400 text-[10px] mt-0.5">${e.desc}</p>
+                  </div>
+                `).join('')}
+              </div>
+            ` : ''}
+          </div>
+
+          ${data.params && data.params.length > 0 ? `
+            <div>
+              <span class="text-[10px] font-bold text-purple-400 uppercase tracking-wider block mb-1">Parámetros PAR-XX Asociados</span>
+              <div class="flex flex-wrap gap-1">
+                ${data.params.map(pr => `<span class="bg-purple-950 text-purple-300 border border-purple-800 px-2 py-0.5 rounded text-[10px] font-mono">${pr}</span>`).join('')}
+              </div>
+            </div>
+          ` : ''}
+
+          ${data.rules && data.rules.length > 0 ? `
+            <div class="bg-red-950/30 border border-red-900/50 p-2.5 rounded-xl">
+              <span class="text-[10px] font-bold text-red-400 uppercase tracking-wider block mb-1">Reglas No Negociables Clave</span>
+              <ul class="list-disc list-inside space-y-1 text-[11px] text-slate-300">
+                ${data.rules.map(r => `<li>${r}</li>`).join('')}
+              </ul>
+            </div>
+          ` : ''}
+        </div>
+      `;
+
+      document.getElementById('drawer-content').innerHTML = html;
+      renderConnections();
+    }
+
+    function closeDrawer() {
+      selectedNodeId = null;
+      document.querySelectorAll('[id^="node-"]').forEach(n => n.classList.remove('node-selected'));
+      document.getElementById('drawer-content').innerHTML = `
+        <div class="p-6 text-center text-slate-400">
+          <p class="font-medium text-slate-300">Selecciona un microservicio</p>
+          <p class="text-[11px] text-slate-500 mt-1">Explora sus prioridades, base de datos exclusiva, endpoints y eventos.</p>
+        </div>
+      `;
+      renderConnections();
+    }
+
+    // Dynamic Bezier SVG Connection Renderer
+    function renderConnections() {
+      const svg = document.getElementById('svg-connections');
+      if (!svg) return;
+
+      const stage = document.getElementById('canvas-stage');
+      const stageRect = stage.getBoundingClientRect();
+
+      let pathsHtml = '';
+
+      CONNECTIONS.forEach((conn, index) => {
+        // Filter check
+        if (currentFlowFilter !== 'all' && conn.mode !== currentFlowFilter && conn.mode !== 'all') {
+          return;
+        }
+
+        const fromEl = document.getElementById(`node-${conn.from}`);
+        const toEl = document.getElementById(`node-${conn.to}`);
+
+        if (!fromEl || !toEl) return;
+
+        const fromRect = fromEl.getBoundingClientRect();
+        const toRect = toEl.getBoundingClientRect();
+
+        // Calculate positions relative to stage coordinates
+        const x1 = (fromRect.left + fromRect.width / 2 - stageRect.left) / zoomLevel;
+        const y1 = (fromRect.top + fromRect.height / 2 - stageRect.top) / zoomLevel;
+        const x2 = (toRect.left + toRect.width / 2 - stageRect.left) / zoomLevel;
+        const y2 = (toRect.top + toRect.height / 2 - stageRect.top) / zoomLevel;
+
+        const dx = x2 - x1;
+        const dy = y2 - y1;
+        const cx1 = x1 + dx * 0.4;
+        const cy1 = y1;
+        const cx2 = x1 + dx * 0.6;
+        const cy2 = y2;
+
+        const pathD = `M ${x1} ${y1} C ${cx1} ${cy1}, ${cx2} ${cy2}, ${x2} ${y2}`;
+
+        let strokeColor = '#0ea5e9';
+        let marker = 'url(#arrow-sync)';
+        let strokeDash = '';
+        let animClass = 'animate-flow-sync';
+        let strokeWidth = '2.5';
+
+        if (conn.type === 'async') {
+          strokeColor = '#f59e0b';
+          marker = 'url(#arrow-async)';
+          strokeDash = 'stroke-dasharray="6,6"';
+          animClass = 'animate-flow-async';
+          strokeWidth = '2';
+        } else if (conn.type === 'param') {
+          strokeColor = '#a855f7';
+          marker = 'url(#arrow-param)';
+          strokeDash = 'stroke-dasharray="4,4"';
+          animClass = 'animate-flow-param';
+          strokeWidth = '1.8';
+        } else if (conn.type === 'disc') {
+          strokeColor = '#10b981';
+          marker = 'url(#arrow-disc)';
+          strokeDash = 'stroke-dasharray="3,3"';
+          animClass = 'animate-flow-sync';
+          strokeWidth = '1.8';
+        }
+
+        // Highlight selected node connections
+        let opacity = '0.65';
+        if (selectedNodeId) {
+          if (conn.from === selectedNodeId || conn.to === selectedNodeId) {
+            opacity = '1';
+            strokeWidth = '3.5';
+          } else {
+            opacity = '0.12';
+          }
+        }
+
+        pathsHtml += `
+          <g class="conn-group" opacity="${opacity}">
+            <path d="${pathD}" fill="none" stroke="${strokeColor}" stroke-width="${strokeWidth}" ${strokeDash} marker-end="${marker}" class="conn-path ${animClass}" />
+            ${conn.label ? `
+              <text x="${(x1 + x2) / 2}" y="${(y1 + y2) / 2 - 4}" fill="${strokeColor}" font-size="9" font-family="JetBrains Mono" font-weight="600" text-anchor="middle" class="bg-slate-900 px-1">
+                ${conn.label}
+              </text>
+            ` : ''}
+          </g>
+        `;
+      });
+
+      svg.innerHTML = `
+        <defs>
+          <marker id="arrow-sync" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#0ea5e9" />
+          </marker>
+          <marker id="arrow-async" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#f59e0b" />
+          </marker>
+          <marker id="arrow-param" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#a855f7" />
+          </marker>
+          <marker id="arrow-disc" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+            <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+          </marker>
+        </defs>
+        ${pathsHtml}
+      `;
+    }
+
+    // Canvas Zoom & Pan
+    function setupCanvasInteractions() {
+      const container = document.getElementById('canvas-container');
+      const stage = document.getElementById('canvas-stage');
+
+      container.addEventListener('wheel', (e) => {
+        if (e.ctrlKey || e.metaKey) {
+          e.preventDefault();
+          const zoomDelta = e.deltaY * -0.0015;
+          zoomLevel = Math.min(Math.max(0.4, zoomLevel + zoomDelta), 2.2);
+          updateCanvasTransform();
+        }
+      });
+
+      container.addEventListener('mousedown', (e) => {
+        if (e.target.closest('.glass-card') || e.target.closest('.glass-panel') || e.target.closest('button')) {
+          return;
+        }
+        isDragging = true;
+        dragStartX = e.clientX - panX;
+        dragStartY = e.clientY - panY;
+      });
+
+      window.addEventListener('mousemove', (e) => {
+        if (!isDragging) return;
+        panX = e.clientX - dragStartX;
+        panY = e.clientY - dragStartY;
+        updateCanvasTransform();
+      });
+
+      window.addEventListener('mouseup', () => {
+        isDragging = false;
+      });
+    }
+
+    function updateCanvasTransform() {
+      const stage = document.getElementById('canvas-stage');
+      stage.style.transform = `translate(${panX}px, ${panY}px) scale(${zoomLevel})`;
+      renderConnections();
+    }
+
+    function zoomIn() {
+      zoomLevel = Math.min(2.2, zoomLevel + 0.15);
+      updateCanvasTransform();
+    }
+
+    function zoomOut() {
+      zoomLevel = Math.max(0.4, zoomLevel - 0.15);
+      updateCanvasTransform();
+    }
+
+    function resetZoom() {
+      zoomLevel = 1.0;
+      panX = 0;
+      panY = 0;
+      updateCanvasTransform();
+    }
+
+    function toggleLegend() {
+      const el = document.getElementById('canvas-legend');
+      el.classList.toggle('hidden');
+    }
+
+    function toggleSummaryModal() {
+      const el = document.getElementById('summary-modal');
+      el.classList.toggle('hidden');
+    }
+
+    // Search Filter
+    function handleSearch(query) {
+      const q = query.toLowerCase().trim();
+      const clearBtn = document.getElementById('clear-search-btn');
+      if (q) {
+        clearBtn.classList.remove('hidden');
+      } else {
+        clearBtn.classList.add('hidden');
+      }
+
+      const allNodes = document.querySelectorAll('[id^="node-"]');
+      allNodes.forEach(node => {
+        const id = node.id.replace('node-', '');
+        const data = SERVICES_DATA[id];
+        if (!data) return;
+
+        const textToMatch = `${data.name} ${data.tag} ${data.summary} ${data.db} ${JSON.stringify(data.priorities || '')} ${JSON.stringify(data.eventsPub || '')}`.toLowerCase();
+        if (!q || textToMatch.includes(q)) {
+          node.classList.remove('node-dimmed');
+        } else {
+          node.classList.add('node-dimmed');
+        }
+      });
+    }
+
+    function clearSearch() {
+      document.getElementById('node-search').value = '';
+      handleSearch('');
+    }
+
+    // Render Matrix Tab
+    function renderMatrix() {
+      const tbody = document.getElementById('matrix-tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = MATRIX_DATA.map((item, idx) => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="p-3 font-semibold text-white flex items-center space-x-2">
+            <span class="w-2 h-2 rounded-full ${item.type === 'sync' ? 'bg-sky-500' : (item.type === 'async' ? 'bg-amber-500' : 'bg-purple-500')}"></span>
+            <span>${item.from}</span>
+          </td>
+          <td class="p-3 font-medium text-slate-300">${item.to}</td>
+          <td class="p-3">
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase ${item.type === 'sync' ? 'bg-sky-950 text-sky-300 border border-sky-800' : (item.type === 'async' ? 'bg-amber-950 text-amber-300 border border-amber-800' : 'bg-purple-950 text-purple-300 border border-purple-800')}">
+              ${item.type === 'sync' ? 'Sincrónico (HTTP)' : (item.type === 'async' ? 'Asincrónico (Bus)' : 'Configuración')}
+            </span>
+          </td>
+          <td class="p-3 font-mono text-[11px] text-sky-400 font-semibold">${item.contract}</td>
+          <td class="p-3 text-slate-400 text-xs">${item.desc}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Render Events Tab
+    function renderEvents() {
+      const grid = document.getElementById('events-grid');
+      if (!grid) return;
+
+      grid.innerHTML = EVENTS_DATA.map(ev => `
+        <div class="glass-card rounded-2xl p-4 border-slate-700 hover:border-amber-500/60 transition shadow-lg flex flex-col justify-between">
+          <div>
+            <div class="flex items-center justify-between mb-2">
+              <span class="font-mono text-xs font-bold text-amber-400 bg-amber-950/80 px-2 py-0.5 rounded border border-amber-800/80">${ev.id}</span>
+              <span class="text-[10px] text-slate-400 uppercase font-semibold">Tópico de Bus</span>
+            </div>
+            <div class="text-xs space-y-1.5 mb-3">
+              <p><strong class="text-slate-300">Publicador:</strong> <span class="text-white">${ev.producer}</span></p>
+              <p><strong class="text-slate-300">Consumidores:</strong> <span class="text-indigo-300">${ev.consumers.join(', ')}</span></p>
+            </div>
+            <div class="bg-slate-900/90 p-2 rounded-xl border border-slate-800 mb-3">
+              <span class="text-[10px] font-mono text-slate-500 block mb-0.5">Payload de Contrato:</span>
+              <code class="text-[10px] font-mono text-sky-300 break-all">${ev.payload}</code>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-800">
+            <span class="text-[10px] font-bold text-slate-400 uppercase">Efecto / Reacción:</span>
+            <p class="text-[11px] text-slate-300 mt-0.5">${ev.action}</p>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Render Params Tab
+    function renderParams() {
+      const tbody = document.getElementById('params-tbody');
+      if (!tbody) return;
+
+      tbody.innerHTML = PARAMS_DATA.map(p => `
+        <tr class="hover:bg-slate-800/40 transition">
+          <td class="p-3 font-mono font-bold text-purple-400">${p.id}</td>
+          <td class="p-3 font-medium text-white">${p.name}</td>
+          <td class="p-3 font-mono text-xs text-amber-300">${p.defaultVal}</td>
+          <td class="p-3">
+            <span class="bg-slate-900 px-2 py-0.5 rounded text-[11px] text-sky-300 border border-slate-800">${p.consumers}</span>
+          </td>
+          <td class="p-3 text-slate-400 text-xs">${p.desc}</td>
+        </tr>
+      `).join('');
+    }
+
+    // Render Laminas Tab
+    function renderLaminas() {
+      const container = document.getElementById('laminas-container');
+      if (!container) return;
+
+      container.innerHTML = LAMINAS_DATA.map(lam => `
+        <div class="glass-panel rounded-2xl p-6 border-slate-700 shadow-xl space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+            <div class="flex items-center space-x-3">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 text-white font-extrabold flex items-center justify-center text-sm shadow">
+                L${lam.num}
+              </div>
+              <div>
+                <span class="text-[10px] font-bold text-sky-400 uppercase tracking-widest">Lámina Oficial ${lam.num}</span>
+                <h3 class="font-extrabold text-base text-white">${lam.title}</h3>
+              </div>
+            </div>
+          </div>
+
+          <p class="text-xs text-indigo-300 font-semibold italic">"${lam.subtitle}"</p>
+
+          <div class="bg-slate-900/90 p-4 rounded-xl border border-slate-800">
+            <h4 class="font-bold text-xs text-sky-400 uppercase mb-2">Recorrido y Flujo de Decisión:</h4>
+            <ol class="space-y-1.5 text-xs text-slate-300">
+              ${lam.steps.map(s => `<li>${s}</li>`).join('')}
+            </ol>
+          </div>
+
+          <div class="bg-amber-950/20 border border-amber-900/50 p-3.5 rounded-xl flex items-start space-x-3">
+            <svg class="w-5 h-5 text-amber-400 shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            <div>
+              <strong class="text-amber-300 text-xs block mb-0.5">Principio Arquitectónico Crítico:</strong>
+              <p class="text-slate-300 text-xs leading-relaxed">${lam.keyPoint}</p>
+              <p class="text-red-300 text-[11px] mt-1"><strong>Atención:</strong> ${lam.warning}</p>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // Initialize on load
+    window.addEventListener('DOMContentLoaded', initApp);
+  </script>
+</body>
+</html>
