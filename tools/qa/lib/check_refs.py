@@ -261,11 +261,13 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("--root", action="append", default=[])
     parser.add_argument("--sin-huerfanos", action="store_true")
-    parser.add_argument("--decisiones", default="docs/08-decisiones-y-pendientes.md")
+    parser.add_argument("--decisiones",
+                        default=scope.con_prefijo("docs/08-decisiones-y-pendientes.md"))
     args = parser.parse_args()
 
     raices_explicitas = bool(args.root)
-    raices = args.root or ["docs", "README.md"]
+    raices = args.root or [scope.con_prefijo("docs"),
+                           scope.con_prefijo("README.md")]
     raices = [r for r in raices if os.path.exists(r)]
 
     adrs = set()

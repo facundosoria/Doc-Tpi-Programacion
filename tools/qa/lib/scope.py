@@ -110,8 +110,75 @@ def todos_los_archivos():
     return unicos
 
 
+def _primera_linea_util(ruta):
+    if not os.path.exists(ruta):
+        return ""
+    with open(ruta, encoding="utf-8") as fh:
+        for linea in fh:
+            linea = linea.strip()
+            if linea and not linea.startswith("#"):
+                return linea
+    return ""
+
+
+def prefijo():
+    """La carpeta del equipo dentro del repositorio. Vacio = somos la raiz.
+
+    Todas las rutas de la config son relativas a la raiz del repositorio porque
+    hoy el equipo ES la raiz. En el monorepo de la materia deja de serlo: todo
+    pasa a colgar de una carpeta, y sin este valor habria que reescribir a mano
+    los globs de owned-paths.txt, la ruta del proyecto Java y las raices de
+    check_refs.py --y alcanza con olvidarse de una para que el gate deje de
+    mirar algo sin avisar.
+
+    El valor vive versionado en prefijo.txt y no en el entorno de cada persona,
+    justamente para que no dependa de que alguien se acuerde de exportarlo.
+    QA_PREFIJO lo pisa, y es para probar el cambio antes de commitearlo.
+    """
+    valor = os.environ.get("QA_PREFIJO")
+    if valor is None:
+        valor = _primera_linea_util(
+            os.path.join(RUTA_CONFIG, "proyecto", "prefijo.txt")
+        )
+    return valor.strip().strip("/")
+
+
+def con_prefijo(ruta_relativa):
+    """Antepone el prefijo a una ruta de la config. Sin prefijo, no toca nada."""
+    p = prefijo()
+    if not p:
+        return ruta_relativa
+    if ruta_relativa.startswith("!"):
+        return "!%s/%s" % (p, ruta_relativa[1:])
+    return "%s/%s" % (p, ruta_relativa)
+
+
+def verificar_prefijo():
+    """Devuelve un mensaje de error, o None si esta bien.
+
+    Un prefijo que apunta a una carpeta inexistente deja TODOS los globs sin
+    matchear: la corrida termina en verde sin haber mirado un archivo. Es el
+    modo de falla silencioso que este gate existe para no tener, asi que se
+    chequea antes de empezar y se reporta fuerte.
+    """
+    p = prefijo()
+    if not p:
+        return None
+    if not os.path.isdir(os.path.join(raiz(), p)):
+        return (
+            "el prefijo '%s' no existe en el repositorio. Sin eso el gate no "
+            "mira ni un archivo. Revisa tools/qa/config/proyecto/prefijo.txt "
+            "o la variable QA_PREFIJO." % p
+        )
+    return None
+
+
 def globs_propios():
-    """Devuelve (incluidos, excluidos). Una linea con '!' delante excluye."""
+    """Devuelve (incluidos, excluidos). Una linea con '!' delante excluye.
+
+    Cada patron sale prefijado con la carpeta del equipo, asi que owned-paths.txt
+    se sigue escribiendo como si fueramos la raiz aunque no lo seamos.
+    """
     ruta = os.path.join(RUTA_CONFIG, "proyecto", "owned-paths.txt")
     incluidos, excluidos = [], []
     if os.path.exists(ruta):
@@ -121,9 +188,9 @@ def globs_propios():
                 if not linea or linea.startswith("#"):
                     continue
                 if linea.startswith("!"):
-                    excluidos.append(linea[1:].strip())
+                    excluidos.append(con_prefijo(linea[1:].strip()))
                 else:
-                    incluidos.append(linea)
+                    incluidos.append(con_prefijo(linea))
     return incluidos, excluidos
 
 

@@ -70,6 +70,24 @@ chequeos:
     # entero se quede sin CI a mitad de mes.
     rapido: bloquea
     completo: bloquea
+    #
+    # EL DIA DE LA MUDANZA AL MONOREPO, ESTA ENTRADA PASA A `off`.
+    #
+    # La etapa revisa solo los workflows que matchean owned-paths.txt, y ahi
+    # figura `.github/workflows/qa.yml` por nombre. En el monorepo ese archivo no
+    # se muda --se usa el CI de la catedra-- asi que a la etapa no le queda
+    # ningun archivo que revisar y pasaria en verde sin haber mirado nada. Un
+    # tilde que no verifico nada es peor que no tener la etapa, porque no se nota
+    # en el resumen.
+    #
+    # Dejarla en `off` con este comentario dice la verdad: no verifica nada, y
+    # se sabe por que. La alternativa --apuntar owned-paths.txt al workflow de la
+    # catedra-- solo vale si ademas nos dejan arreglar lo que encuentre; si no,
+    # es reportar sobre un archivo que no podemos tocar.
+    #
+    # El riesgo que cubria no desaparece: un workflow que pide una maquina de
+    # GitHub sigue quemando los minutos de la cuenta compartida. Lo que cambia es
+    # que pasa a ser decision de la catedra y no nuestra.
 
   secretos:
     herramienta: gitleaks

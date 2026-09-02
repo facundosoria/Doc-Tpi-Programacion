@@ -85,7 +85,7 @@ if [ "$REMOTO" = "1" ]; then
   # quedaria en verde sin que el arreglo llegue nunca a tu maquina: ni protesta ni
   # arregla. Con CI=1, degradacion_ci lo convierte en `bloquea` y te lo reporta.
   QA_CODIGO=0
-  ssh -p "$QA_PUERTO" "$QA_REMOTO" "cd '$QA_DESTINO' && CI=1 QA_BASE='${QA_BASE:-}' QA_M2_VOLUME='tpi-qa-m2-remoto-$QA_USUARIO' QA_SPOOL='$QA_BUZON_REMOTO' QA_ORIGEN=remoto QA_USUARIO='$QA_USUARIO' bash qa.sh$QA_ARGS" || QA_CODIGO=$?
+  ssh -p "$QA_PUERTO" "$QA_REMOTO" "cd '$QA_DESTINO' && CI=1 QA_BASE='${QA_BASE:-}' QA_PREFIJO='${QA_PREFIJO:-}' QA_M2_VOLUME='tpi-qa-m2-remoto-$QA_USUARIO' QA_SPOOL='$QA_BUZON_REMOTO' QA_ORIGEN=remoto QA_USUARIO='$QA_USUARIO' bash qa.sh$QA_ARGS" || QA_CODIGO=$?
 
   # El resumen vuelve, para que --remoto y local se lean exactamente igual.
   ssh -p "$QA_PUERTO" "$QA_REMOTO" "cd '$QA_DESTINO' && tar czf - .qa 2>/dev/null" | tar xzf - 2>/dev/null || true
@@ -196,6 +196,7 @@ exec docker run --rm -i \
   "${IDENTIDAD[@]}" \
   "${BUZON[@]}" \
   -e QA_BASE="${QA_BASE:-}" \
+  -e QA_PREFIJO="${QA_PREFIJO:-}" \
   -e CI="${CI:-}" \
   -e QA_ORIGEN="${QA_ORIGEN:-}" \
   -e QA_USUARIO="${QA_USUARIO}" \

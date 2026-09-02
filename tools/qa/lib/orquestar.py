@@ -44,7 +44,9 @@ ORDEN = [
     "cobertura",
 ]
 
-PROYECTO_JAVA = "codigo-ejemplo/ms-evaluacion-llm"
+# Prefijada con la carpeta del equipo: en el monorepo esta ruta deja de colgar
+# de la raiz. Ver tools/qa/config/proyecto/prefijo.txt.
+PROYECTO_JAVA = scope.con_prefijo("codigo-ejemplo/ms-evaluacion-llm")
 
 
 def emitir(evento):
@@ -582,6 +584,22 @@ def main():
             solo = argumentos[indice + 1]
 
     os.chdir(scope.raiz())
+
+    # Antes que nada: si el prefijo apunta a una carpeta que no existe, ningun
+    # glob matchea y la corrida terminaria en verde sin mirar un archivo. Se
+    # corta aca, y ruidosamente, porque un falso verde es peor que un rojo.
+    problema = scope.verificar_prefijo()
+    if problema:
+        emitir({"ev": "etapa_ini", "etapa": "prefijo"})
+        emitir(_hallazgo("prefijo", "bloquea",
+                         "tools/qa/config/proyecto/prefijo.txt", None,
+                         "prefijo-inexistente", problema))
+        emitir({"ev": "etapa_fin", "etapa": "prefijo",
+                "estado": "fallo", "ms": 0})
+        # El codigo de salida lo decide reportar.py mirando si hay algo que
+        # bloquea, asi que aca alcanza con emitir el hallazgo y no seguir.
+        return 0
+
     config = cargar_checks()
     archivos = scope.en_alcance(todo)
     ruteo = scope.rutear(archivos)

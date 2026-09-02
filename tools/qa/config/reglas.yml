@@ -68,6 +68,10 @@ pmd-EmptyCatchBlock:
   que_paso: "Excepcion capturada y descartada en silencio"
   arreglo: "Logueala o volve a lanzarla. Un catch vacio esconde fallas reales"
 
+prefijo-inexistente:
+  que_paso: "El prefijo del equipo apunta a una carpeta que no existe"
+  arreglo: "Corregi tools/qa/config/proyecto/prefijo.txt (o QA_PREFIJO). Con un prefijo mal puesto ningun glob matchea y la corrida pasaria en verde sin mirar nada"
+
 runner-hospedado:
   que_paso: "El workflow pide una maquina de GitHub y eso consume minutos"
   arreglo: "Cambia runs-on por `self-hosted`. El equipo corre todo en su propio runner, que es gratis e ilimitado"

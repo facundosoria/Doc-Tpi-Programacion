@@ -211,25 +211,84 @@ eso el resumen que te vuelve es idéntico al que verías corriéndolo local.
 Un solo punto de entrada, `./qa.sh`, y unos pocos flags. Lo único que hace falta
 instalado es Docker; con `--remoto`, ni siquiera eso.
 
+Están todos acá, incluidos los que casi nadie usa. Es más barato que sobren a tener
+que abrir el script para acordarse de cuál era el flag.
+
+## Dónde se escribe cada cosa
+
+Hay cuatro lugares donde se ejecuta algo, y solo en uno escribís vos:
+
+| Dónde | Qué se ejecuta ahí | Quién lo escribe |
+|---|---|---|
+| **Tu máquina** | todos los `./qa.sh ...` de esta parte | **vos** |
+| **El server**, por SSH | mantenimiento y diagnóstico: `systemctl`, `docker ps`, el alta del buzón | quien administra el server |
+| **Dentro del contenedor** | `run.sh`, `orquestar.py`, `reportar.py` | los llama `qa.sh`; nunca se escriben a mano |
+| **El CI** | `./qa.sh --all --perfil completo` | lo escribe el workflow solo, al pushear |
+
+Podés invocarlo desde cualquier subdirectorio: `qa.sh` resuelve la raíz con
+`git rev-parse --show-toplevel` y se para ahí antes de hacer nada. Lo que cambia es
+la ruta con la que lo llamás — `./qa.sh` desde la raíz, `../qa.sh` un nivel adentro.
+
+Los comandos que se escriben en el server están en la
+[Parte 10](#comandos-útiles-en-el-server); el alta del buzón y el túnel SSH, en la
+[Parte 7](#el-buzón-de-corridas).
+
 ## Lo que vas a usar todos los días
 
-| Comando | Qué hace | Cuánto tarda |
-|---|---|---|
-| `./qa.sh` | Verifica **lo que cambiaste**, perfil `rapido` | ~2 s a 46 s |
-| `./qa.sh --remoto` | Lo mismo, pero ejecutado en el server | ~9 s |
-| `./qa.sh --all --perfil completo` | **Exactamente lo que corre el CI** al abrir un pull request | ~46 s |
+| Comando | Dónde lo escribís | Dónde corre de verdad | Qué hace | Cuánto tarda |
+|---|---|---|---|---|
+| `./qa.sh` | tu máquina | tu Docker, tu CPU | Verifica **lo que cambiaste**, perfil `rapido` | ~2 s a 46 s |
+| `./qa.sh --remoto` | tu máquina | **el Docker del server** | Lo mismo, pero ejecutado allá | ~9 s |
+| `./qa.sh --all --perfil completo` | tu máquina | tu Docker, tu CPU | **Exactamente lo que corre el CI** al abrir un pull request | ~46 s |
+
+Ninguno de los tres toca git, ni pushea, ni dispara nada en GitHub.
+
+## Todos los comandos, uno por uno
+
+Para copiar y pegar, en tu máquina, desde la raíz del repo:
+
+```bash
+./qa.sh                                  # lo que cambiaste, perfil rapido
+./qa.sh --all                            # todo el repo, perfil rapido
+./qa.sh --perfil completo                # lo que cambiaste, perfil completo
+./qa.sh --all --perfil completo          # la corrida del CI, tal cual
+./qa.sh --only tests                     # una sola etapa
+./qa.sh --self-test                      # verifica el gate, no el repo
+./qa.sh --json                           # los eventos crudos, sin reporte
+./qa.sh --remoto                         # lo mismo, ejecutado en el server
+./qa.sh --remoto --all --perfil completo # la corrida del CI, en el server
+CI=1 ./qa.sh                             # como el CI: reporta en vez de arreglar
+QA_BASE=origin/dev ./qa.sh               # medir el alcance contra otra rama
+```
+
+Y el único que necesita preparación previa, una vez por máquina:
+
+```bash
+export QA_REMOTO=usuario@servidor
+export QA_REMOTO_PUERTO=2222   # opcional, default 22
+./qa.sh --remoto
+```
+
+Sin `QA_REMOTO` definida, `--remoto` corta con código 2 y te dice qué exportar. No
+llega a tocar Docker: esa comprobación es lo primero que hace el script, justamente
+para que sirva en una máquina que no puede correr el contenedor.
 
 ## Los flags, uno por uno
 
-| Flag | Qué controla | Detalle |
-|---|---|---|
-| *(ninguno)* | — | Perfil `rapido` sobre los archivos que cambiaste |
-| `--all` | **El alcance** | Mira todo el repo, no solo tu diff |
-| `--perfil completo` | **La severidad y el presupuesto** | Sube el presupuesto de 120 s a 600 s y endurece tres chequeos |
-| `--only <etapa>` | Corre una sola etapa | Útil para iterar: `--only tests` |
-| `--self-test` | Verifica **el gate, no el repo** | Quince fixtures, uno por chequeo |
-| `--json` | Vuelca los eventos crudos | El contrato para construir encima |
-| `--remoto` | **Dónde se ejecuta** | Manda el working tree al server por SSH |
+| Flag | Qué controla | Detalle | Dónde se ejecuta |
+|---|---|---|---|
+| *(ninguno)* | — | Perfil `rapido` sobre los archivos que cambiaste | tu Docker |
+| `--all` | **El alcance** | Mira todo el repo, no solo tu diff | tu Docker |
+| `--perfil completo` | **La severidad y el presupuesto** | Sube el presupuesto de 120 s a 600 s y endurece tres chequeos | tu Docker |
+| `--only <etapa>` | Corre una sola etapa | Útil para iterar: `--only tests` | tu Docker |
+| `--self-test` | Verifica **el gate, no el repo** | Quince fixtures, uno por chequeo | tu Docker |
+| `--json` | Vuelca los eventos crudos | El contrato para construir encima | tu Docker |
+| `--remoto` | **Dónde se ejecuta** | Manda el working tree al server por SSH | **el Docker del server** |
+
+`--self-test` y `--json` cortan antes que todo lo demás: `run.sh` los detecta y hace
+`exec` directo al programa que corresponde, así que no pasan por el reporte ni dejan
+registro en el buzón. Por eso `--json` no escribe `.qa/resumen.md`, y `--self-test`
+no mira tu código.
 
 > ### `--perfil` necesita el guion doble
 >
@@ -237,6 +296,20 @@ instalado es Docker; con `--remoto`, ni siquiera eso.
 > Escrito `perfil completo`, sin guiones, esas dos palabras **se ignoran y corre
 > `rapido` en silencio**, sin avisar. La forma correcta es
 > `./qa.sh --all --perfil completo`.
+
+> ### `--only` no valida el nombre de la etapa
+>
+> Falla igual de callado. Si el nombre no coincide con ninguna etapa, **no se
+> ejecuta ninguna y la corrida termina en verde** sin haber mirado nada. Los
+> nombres son los internos, sin tildes y con guion bajo:
+>
+> ```text
+> workflows  secretos           ortografia   markdownlint   referencias
+> links      formato            compila      duplicacion    cobertura
+> tests      analisis_estatico  idioma_codigo
+> ```
+>
+> Es `--only analisis_estatico`, no `--only "análisis estático"`.
 
 ## Alcance y severidad son ejes distintos
 
@@ -251,18 +324,24 @@ CI, ejecutada en el server, sin pushear nada.
 
 ## Las variables de entorno
 
-| Variable | Para qué | Default |
-|---|---|---|
-| `CI` | Si está definida, degrada `arregla` a `bloquea` | vacía |
-| `QA_BASE` | Contra qué commit medir el alcance | `origin/main` |
-| `QA_M2_VOLUME` | Qué volumen usar como repositorio Maven | `tpi-qa-m2` |
-| `QA_COBERTURA_MINIMA` | Umbral de cobertura sobre líneas nuevas | `70` |
-| `QA_REMOTO` | Destino SSH para `--remoto` | — |
-| `QA_REMOTO_PUERTO` | Puerto SSH | `22` |
-| `QA_REMOTO_DIR` | Dónde trabaja en el server | `/opt/TP-Pipelines/remoto` |
-| `QA_SPOOL` | Buzón donde dejar el registro de la corrida | vacía: no deja registro |
-| `QA_SPOOL_REMOTO` | Qué buzón usa `--remoto` en el server | `/opt/TP-Pipelines/corridas` |
-| `QA_ORIGEN` | Cómo se etiqueta la corrida en el buzón | `ci` si hay `CI`, si no `local` |
+| Variable | Para qué | Default | Quién la define en la práctica |
+|---|---|---|---|
+| `CI` | Si está definida, degrada `arregla` a `bloquea` | vacía | GitHub Actions; `--remoto` la fuerza a `1` |
+| `QA_BASE` | Contra qué commit medir el alcance | `origin/main` | el workflow; vos, para medir contra otra rama |
+| `QA_M2_VOLUME` | Qué volumen usar como repositorio Maven | `tpi-qa-m2` | el `.env` de cada runner |
+| `QA_COBERTURA_MINIMA` | Umbral de cobertura sobre líneas nuevas | `70` | nadie: se toca solo para experimentar |
+| `QA_REMOTO` | Destino SSH para `--remoto` | — | **vos**, una vez por máquina |
+| `QA_REMOTO_PUERTO` | Puerto SSH | `22` | **vos**, si el server no está en el 22 |
+| `QA_REMOTO_DIR` | Dónde trabaja en el server | `/opt/TP-Pipelines/remoto` | nadie: el default ya es el server del equipo |
+| `QA_SPOOL` | Buzón donde dejar el registro de la corrida | vacía: no deja registro | el `.env` del runner; `--remoto` la manda por SSH |
+| `QA_SPOOL_REMOTO` | Qué buzón usa `--remoto` en el server | `/opt/TP-Pipelines/corridas` | nadie: el default ya es el del server |
+| `QA_ORIGEN` | Cómo se etiqueta la corrida en el buzón | `ci` si hay `CI`, si no `local` | lo pone `qa.sh`: `remoto` en las corridas por SSH |
+| `QA_USUARIO` | Con qué nombre figurás en el buzón, y tu directorio en el server | `GITHUB_ACTOR`, o tu usuario del sistema | se resuelve solo; definila si el nombre sale mal |
+
+`QA_USUARIO` conviene conocerla aunque no se toque. En Git Bash tu usuario puede
+venir como `DOMINIO+usuario`, y en el server la cuenta SSH es compartida: por eso
+`--remoto` la resuelve **en tu máquina** y la manda. Sin eso, las corridas de las
+seis personas aparecerían en el front como si fueran de la misma.
 
 **`CI=1 ./qa.sh` es el truco útil:** hace que `formato` te **reporte** en vez de
 reformatearte los archivos, usando el mismo mecanismo que aplica el CI.
@@ -282,6 +361,9 @@ Ese único caso es `formato`, que en `rapido` está en nivel `arregla` y ejecuta
 `spotless:apply`: te ordena imports, indentación y espacios. **Nunca toca lógica** —
 si compilaba antes, compila después. Los otros doce chequeos solo reportan: una
 palabra mal escrita o un link roto te los informa, no te los corrige.
+
+Lo que sí aparece siempre es `.qa/`, con el resumen de la corrida. Está en el
+`.gitignore`, y `--remoto` la excluye del `tar`: nunca viaja ni se commitea.
 
 ## Cómo se leen los hallazgos
 
@@ -1163,14 +1245,34 @@ dispara para todos. Usar su CI evita la conversación entera.
 
 ## Los archivos que hay que editar
 
-**1. `owned-paths.txt`, prefijando cada ruta con la carpeta del equipo.** Hoy dice
-`docs/**`, `codigo-ejemplo/ms-evaluacion-llm/**`, `tools/qa/**` y `tools/ci-front/**`, que son rutas
-de raíz. Todo lo que no matchee ahí se cae del alcance, así que los archivos de los
-otros equipos se ignoran solos: **el mecanismo ya está, solo hay que apuntarlo.**
+**1. `prefijo.txt`, con el nombre de la carpeta del equipo.** Es **la única línea que
+hay que cambiar** para que todas las rutas se muevan juntas:
 
-Ojo con `*.md`: el glob tiene semántica de rutas —`*` no cruza barras, a propósito—
-así que matchea solo la raíz. En el monorepo eso sería el README de la cátedra. Ese
-hay que sacarlo.
+```bash
+echo "tema-07" > tools/qa/config/proyecto/prefijo.txt
+```
+
+El prefijo lo consumen los tres lugares que asumían ser la raíz: los globs de
+`owned-paths.txt`, la ruta del proyecto Java en `orquestar.py` y las raíces de
+`check_refs.py`. Ninguno de esos archivos se toca — `owned-paths.txt` se sigue
+escribiendo como si fuéramos la raíz, y el prefijo se antepone al leerlo.
+
+Un detalle que antes había que recordar y ahora sale gratis: `*.md` tiene semántica
+de rutas —`*` no cruza barras, a propósito— así que en la raíz de un monorepo
+matchearía el README de la cátedra. Prefijado pasa a ser `tema-07/*.md`, que es
+exactamente nuestro README y ninguno más.
+
+**Por qué el valor va versionado y no en una variable de entorno.** `QA_PREFIJO`
+existe y pisa al archivo, pero es para probar el cambio antes de commitearlo. Si el
+valor de verdad viviera en el entorno de cada persona, al que se olvide de exportarlo
+el gate le dejaría **todo** fuera de alcance, y la corrida terminaría en verde sin
+haber mirado un archivo. Medido sobre un monorepo simulado: sin prefijo el gate ve
+**1 archivo** —el README de la cátedra, que ni siquiera es nuestro— contra los **53**
+que ve con el prefijo puesto.
+
+Por la misma razón, un prefijo que apunta a una carpeta inexistente **corta la corrida
+antes de empezar**, con la etapa `prefijo` en rojo. El modo de falla que hay que
+evitar es el silencioso.
 
 **2. El disparo: una línea adentro del pipeline de la cátedra.** No hay job de Actions
 del equipo, así que el gate se invoca desde el de ellos:
@@ -1199,6 +1301,26 @@ Lo que **no** hay que hacer es dejarla como está. El riesgo que cubría —que 
 workflow pida una máquina de GitHub y queme los minutos de la cuenta compartida—
 sigue existiendo; lo que cambia es que pasa a ser decisión de la cátedra y no
 nuestra.
+
+**La decisión ya está escrita** en `checks.yml`, arriba de la entrada `workflows`: el
+día de la mudanza es descomentar, no volver a razonarlo.
+
+## La checklist
+
+En orden, y cada paso se verifica antes de pasar al siguiente:
+
+| # | Paso | Cómo se comprueba |
+|---|---|---|
+| 1 | Escribir la carpeta del equipo en `prefijo.txt` | `./qa.sh --all` no dice «el prefijo no existe» |
+| 2 | Ver qué archivos quedaron en alcance | `python3 tools/qa/lib/scope.py archivos --all` — tienen que ser los nuestros, todos, y ninguno ajeno |
+| 3 | Poner `workflows: off` en `checks.yml` | El bloque comentado dice exactamente qué descomentar |
+| 4 | Enganchar el gate al pipeline de la cátedra | Una línea: `./qa.sh --all --perfil completo` |
+| 5 | Correr el gate entero una vez | `./qa.sh --all --perfil completo`, y comparar el resumen con el de acá |
+| 6 | Correr el self-test | `./qa.sh --self-test` — quince fixtures, todos correctos |
+
+**El paso 2 es el que no se puede saltear.** Es el único que distingue «el gate corrió
+y está todo bien» de «el gate no miró nada». Un `wc -l` de esa salida contra el número
+de archivos que esperás es toda la verificación que hace falta.
 
 ## Lo que queda por resolver
 
