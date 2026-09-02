@@ -10,7 +10,7 @@
     "con un fallo adentro."
   ],
   "fuente": "prueba",
-  "runners": { "total": 2, "ocupados": 2 },
+  "runners": { "total": 3, "ocupados": 2 },
   "corridas": [
     {
       "numero": 47,
