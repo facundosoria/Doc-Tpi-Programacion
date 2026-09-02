@@ -15,3 +15,7 @@ target/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# IDE
+.idea/
+*.iml
