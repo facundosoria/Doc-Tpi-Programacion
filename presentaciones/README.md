@@ -2,8 +2,8 @@
 
 | Archivo | Qué es | Cómo se usa |
 |---|---|---|
-| [`presentacion-tpi-ia.html`](presentacion-tpi-ia.html) | **La presentación de defensa.** 43 slides | Se abre en el navegador. `←` `→` para navegar, `O` para el índice, `F` para pantalla completa |
-| [`prd-ia-referencia.html`](prd-ia-referencia.html) | El PRD, sección IA, como wiki navegable | Documento de consulta con barra lateral. **No es una presentación** |
+| [`defensa-43-slides.html`](defensa-43-slides.html) | **La presentación de defensa.** 43 slides | Se abre en el navegador. `←` `→` para navegar, `O` para el índice, `F` para pantalla completa |
+| [`prd-wiki-consulta.html`](prd-wiki-consulta.html) | El PRD, sección IA, como wiki navegable | Documento de consulta con barra lateral. **No es una presentación** |
 
 Los dos son archivos HTML autocontenidos: no necesitan servidor ni compilación. Se
 abren con doble clic.

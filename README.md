@@ -60,14 +60,14 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 
 | Carpeta | Quién lo hizo | Qué hay adentro |
 |---|---|---|
-| **[`docs-extendidos/`](docs-extendidos/)** | `Brf93` (`421562`) | 25 documentos: especificación técnica, nueve planes de ejecución e investigación sobre jailbreak. Material de profundización, no de trabajo diario |
+| **[`docs/importado/`](docs/importado/)** | `Brf93` (`421562`) | Anidado adentro de `docs/`, para que la raíz tenga una sola carpeta de documentación. 25 documentos: especificación técnica, nueve planes de ejecución e investigación sobre jailbreak. Material de profundización, no de trabajo diario |
 | **[`codigo-ejemplo/`](codigo-ejemplo/)** | una carpeta por autor | [`ms-evaluacion-llm/`](codigo-ejemplo/ms-evaluacion-llm/), el esqueleto del servicio real, del equipo · [`lara-heredia-demo-llm-spring-ai/`](codigo-ejemplo/lara-heredia-demo-llm-spring-ai/), la demo de tutor con Spring AI, de Lara Heredia |
-| **[`presentaciones/`](presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` | La presentación de defensa (43 slides) y el PRD como wiki navegable |
+| **[`presentaciones/`](presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` | [`defensa-43-slides.html`](presentaciones/defensa-43-slides.html), el deck de defensa · [`prd-wiki-consulta.html`](presentaciones/prd-wiki-consulta.html), el PRD como wiki de consulta — **no es una presentación** |
 | **[`tools/`](tools/)** | `facundosoria` | El gate de calidad (`qa/`) y el panel que muestra sus corridas en vivo (`ci-front/`). Documentados en [16](docs/16-pipeline-y-verificaciones.md) |
 
 > ### Sobre el material que vino de otras ramas
 >
-> `docs-extendidos/` y `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` se importaron **sin tocar
+> `docs/importado/` y `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` se importaron **sin tocar
 > una sola línea**: cada archivo es byte a byte idéntico a su rama de origen. Lo que
 > había que corregir está anotado, no aplicado, en el `CORRECCIONES-SUGERIDAS.md` de
 > cada carpeta. **Hay una API key de Groq versionada en la demo que necesita rotarse**
@@ -174,7 +174,7 @@ Cuatro ramas consolidadas en una sola estructura:
 | `main` | — | La base de los quince documentos originales |
 | `feat/qa-gate` | `facundosoria` | Los documentos evolucionados (01 a 16), el gate de calidad, el front del CI y el esqueleto del microservicio |
 | `lara` | `412181-HerediaLara` | La demo funcional de Spring AI, y dos de las presentaciones |
-| `doc-tpi-unificada` | `Brf93` (`421562`) | Los 25 documentos de `docs-extendidos/` y la presentación que quedó como base del deck |
+| `doc-tpi-unificada` | `Brf93` (`421562`) | Los 25 documentos de `docs/importado/` y la presentación que quedó como base del deck |
 
 La autoría de cualquier archivo sale del historial, que es la fuente que no se
 desactualiza:
@@ -187,7 +187,7 @@ Donde el mismo documento existía dos veces, **quedó la versión más nueva**. 
 archivos de `doc-tpi-unificada` eran copias byte a byte de versiones anteriores de
 `docs/01` a `docs/15` y se descartaron; la tabla de equivalencias, por si alguien busca
 uno por el nombre viejo, está en
-[`docs-extendidos/CORRECCIONES-SUGERIDAS.md`](docs-extendidos/CORRECCIONES-SUGERIDAS.md).
+[`docs/importado/CORRECCIONES-SUGERIDAS.md`](docs/importado/CORRECCIONES-SUGERIDAS.md).
 
 ---
 

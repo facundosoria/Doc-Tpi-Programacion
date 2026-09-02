@@ -21,3 +21,9 @@ tools/ci-front/**
 # rotos a proposito: si el gate se chequeara a si mismo con ellos, fallaria
 # siempre y por las razones equivocadas.
 !tools/qa/tests/fixtures/**
+
+# Material importado de otras ramas. Vive adentro de `docs/` para que la raiz
+# tenga una sola carpeta de documentacion, pero NO es nuestro: se importo sin
+# tocar una linea. Sin esta exclusion, `docs/**` lo volveria propio y el gate
+# empezaria a bloquear por texto que no escribimos ni podemos reescribir.
+!docs/importado/**

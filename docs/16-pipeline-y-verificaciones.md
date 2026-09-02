@@ -566,6 +566,18 @@ verificado: se renombró un título en `docs/08` y el gate bloqueó señalando
 bloquea, aunque lo arrastre un merge. Cuando entre contenido de otros equipos al
 repositorio, **no hay que agregarlo**.
 
+Una exclusión con `!` gana siempre, y hace falta cuando material ajeno vive adentro
+de una carpeta nuestra. Es el caso de [`docs/importado/`](importado/): está bajo
+`docs/`, que sí es nuestro, así que sin la línea `!docs/importado/**` el gate
+empezaría a bloquear por texto de otro autor que no podemos reescribir.
+
+La etapa `referencias` es la única que no recibe su lista de archivos del filtro:
+camina `docs/` y `README.md` por su cuenta, porque un ancla rota se detecta mirando
+también los documentos que nadie tocó. Por eso consulta `owned-paths.txt` ella
+misma. Cuando se le pasa `--root` explícito no filtra nada: ahí el que llama pidió
+un archivo puntual, y es el caso del self-test, cuyos fixtures están excluidos a
+propósito.
+
 ## El gate se verifica a sí mismo
 
 `./qa.sh --self-test` corre quince fixtures, uno por chequeo. Cada uno dispara su

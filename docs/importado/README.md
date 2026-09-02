@@ -1,25 +1,28 @@
 # Documentación extendida
 
 Material que llegó desde la rama `doc-tpi-unificada` y que **no está cubierto** por
-los documentos de [`docs/`](../docs/). Se conserva tal como fue escrito, con su
+los documentos de [`docs/`](../). Se conserva tal como fue escrito, con su
 estilo y su numeración propia.
 
 **Autor:** `Brf93` (`421562@tecnicatura.frc.utn.edu.ar`). Los 25 documentos son suyos
 y entraron sin modificar. La autoría de cualquiera de ellos sale del historial:
 
 ```bash
-git log --format='%an  %ad  %s' --date=short -- docs-extendidos/
+git log --format='%an  %ad  %s' --date=short -- docs/importado/
 ```
 
 > **Qué NO está acá:** los quince documentos de esa rama que eran copias exactas de
-> las versiones viejas de `docs/01` a `docs/15`. Los de [`docs/`](../docs/) son
+> las versiones viejas de `docs/01` a `docs/15`. Los de [`docs/`](../) son
 > posteriores y los reemplazan. Descartarlos fue la única forma de que no existan
 > dos versiones del mismo texto contradiciéndose.
 
-> **Alcance del gate de calidad:** esta carpeta queda fuera de `owned-paths.txt`, así
-> que el gate la reporta como informativa pero nunca bloquea por ella. Es material de
-> otra fuente y otro estilo de redacción; forzarlo al diccionario rioplatense sería
-> reescribirlo entero.
+> **Alcance del gate de calidad:** esta carpeta está excluida en `owned-paths.txt`
+> con la línea `!docs/importado/**`, así que el gate la reporta como informativa pero
+> nunca bloquea por ella. Es material de otra fuente y otro estilo de redacción;
+> forzarlo al diccionario rioplatense sería reescribirlo entero.
+>
+> La exclusión es explícita porque la carpeta vive adentro de `docs/`, y `docs/**`
+> sí es nuestro: sin esa línea, el anidado volvería propio material ajeno.
 
 ## `especificacion-tecnica/`
 

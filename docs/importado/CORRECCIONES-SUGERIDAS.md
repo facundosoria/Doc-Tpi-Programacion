@@ -15,7 +15,7 @@ anterior:
 | Archivo | Línea | Dice | Debería decir |
 |---|---|---|---|
 | `investigacion-jailbreak/00_INDICE_ANALISIS_IBM.md` | 15 | `investigacion_jailbreak/` | `investigacion-jailbreak/` |
-| `planes-de-ejecucion/00_INDICE_MAESTRO.md` | 5 | `planes_seccion_15/` | `docs-extendidos/planes-de-ejecucion/` |
+| `planes-de-ejecucion/00_INDICE_MAESTRO.md` | 5 | `planes_seccion_15/` | `docs/importado/planes-de-ejecucion/` |
 
 Son menciones en prosa, no enlaces: nada está roto, solo desactualizado. Todos los
 enlaces reales entre documentos son relativos y siguen funcionando, porque las
@@ -33,7 +33,7 @@ La rama traía también estas carpetas:
 
 Los quince eran **copias byte a byte** de los documentos `docs/01` a `docs/15` tal
 como estaban en `main`, solo que renombrados y repartidos en carpetas temáticas. Los
-de [`docs/`](../docs/) son posteriores: crecieron bastante desde entonces —
+de [`docs/`](../) son posteriores: crecieron bastante desde entonces —
 `04-funciones-de-ia.md` pasó de 54 KB a 101 KB, por ejemplo— y además se sumó
 `docs/16`.
 
@@ -44,21 +44,21 @@ conservó la más nueva.
 
 | Nombre en `doc-tpi-unificada` | Dónde está ahora |
 |---|---|
-| `04_GESTION.../01_ALCANCE_Y_FRONTERAS_INTER_EQUIPOS.md` | [`docs/01-problema-y-alcance.md`](../docs/01-problema-y-alcance.md) |
-| `02_FUNDAMENTOS.../02_DEBATE_ARQUITECTURA_JAVA_VS_PYTHON.md` | [`docs/02-arquitectura-y-stack.md`](../docs/02-arquitectura-y-stack.md) |
-| `02_FUNDAMENTOS.../03_ANALISIS_ECONOMICO_Y_CONTEXTO_LLM.md` | [`docs/03-modelos-costos-y-contexto.md`](../docs/03-modelos-costos-y-contexto.md) |
-| `03_RUBRICAS.../02_ESPECIFICACION_FUNCIONES_Y_JUECES.md` | [`docs/04-funciones-de-ia.md`](../docs/04-funciones-de-ia.md) |
-| `02_FUNDAMENTOS.../08_SEGURIDAD_FRONTERAS_Y_GUARDARRAILES.md` | [`docs/05-seguridad.md`](../docs/05-seguridad.md) |
-| `02_FUNDAMENTOS.../04_OPERACION_INGENIERIA_Y_CARGA.md` | [`docs/06-operacion-e-ingenieria.md`](../docs/06-operacion-e-ingenieria.md) |
-| `02_FUNDAMENTOS.../05_DATOS_TRAZABILIDAD_Y_TERMINOS_LEGALES.md` | [`docs/07-datos-y-terminos.md`](../docs/07-datos-y-terminos.md) |
-| `04_GESTION.../02_DECISIONES_ABIERTAS_Y_PENDIENTES.md` | [`docs/08-decisiones-y-pendientes.md`](../docs/08-decisiones-y-pendientes.md) |
-| `02_FUNDAMENTOS.../01_PREGUNTAS_Y_RESPUESTAS_DEFENSA.md` | [`docs/09-preguntas-y-respuestas.md`](../docs/09-preguntas-y-respuestas.md) |
-| `04_GESTION.../03_PLAN_DE_TRABAJO_12_PASOS_6_PERSONAS.md` | [`docs/10-entregables-y-plan.md`](../docs/10-entregables-y-plan.md) |
-| `04_GESTION.../04_GLOSARIO_Y_METADATA_INTEGRACION.md` | [`docs/11-glosario-y-metadata.md`](../docs/11-glosario-y-metadata.md) |
-| `02_FUNDAMENTOS.../06_ALMACENAMIENTO_E_INGESTA_MULTIMODAL.md` | [`docs/12-almacenamiento-e-ingesta.md`](../docs/12-almacenamiento-e-ingesta.md) |
-| `03_RUBRICAS.../01_RUBRICA_ANCLAS_Y_PROMPTS_COMPLETOS.md` | [`docs/13-rubrica-y-prompts.md`](../docs/13-rubrica-y-prompts.md) |
-| `02_FUNDAMENTOS.../07_HISTORIAL_DE_SINCRONIZACION_Y_CONFLICTOS.md` | [`docs/14-sincronizacion-guia-didactica.md`](../docs/14-sincronizacion-guia-didactica.md) |
-| `04_GESTION.../05_ESTADO_ACTUAL_BLOQUEOS_Y_CONTINUACION.md` | [`docs/15-sincronizacion-arquitectura-y-despliegue.md`](../docs/15-sincronizacion-arquitectura-y-despliegue.md) ⚠️ |
+| `04_GESTION.../01_ALCANCE_Y_FRONTERAS_INTER_EQUIPOS.md` | [`docs/01-problema-y-alcance.md`](../01-problema-y-alcance.md) |
+| `02_FUNDAMENTOS.../02_DEBATE_ARQUITECTURA_JAVA_VS_PYTHON.md` | [`docs/02-arquitectura-y-stack.md`](../02-arquitectura-y-stack.md) |
+| `02_FUNDAMENTOS.../03_ANALISIS_ECONOMICO_Y_CONTEXTO_LLM.md` | [`docs/03-modelos-costos-y-contexto.md`](../03-modelos-costos-y-contexto.md) |
+| `03_RUBRICAS.../02_ESPECIFICACION_FUNCIONES_Y_JUECES.md` | [`docs/04-funciones-de-ia.md`](../04-funciones-de-ia.md) |
+| `02_FUNDAMENTOS.../08_SEGURIDAD_FRONTERAS_Y_GUARDARRAILES.md` | [`docs/05-seguridad.md`](../05-seguridad.md) |
+| `02_FUNDAMENTOS.../04_OPERACION_INGENIERIA_Y_CARGA.md` | [`docs/06-operacion-e-ingenieria.md`](../06-operacion-e-ingenieria.md) |
+| `02_FUNDAMENTOS.../05_DATOS_TRAZABILIDAD_Y_TERMINOS_LEGALES.md` | [`docs/07-datos-y-terminos.md`](../07-datos-y-terminos.md) |
+| `04_GESTION.../02_DECISIONES_ABIERTAS_Y_PENDIENTES.md` | [`docs/08-decisiones-y-pendientes.md`](../08-decisiones-y-pendientes.md) |
+| `02_FUNDAMENTOS.../01_PREGUNTAS_Y_RESPUESTAS_DEFENSA.md` | [`docs/09-preguntas-y-respuestas.md`](../09-preguntas-y-respuestas.md) |
+| `04_GESTION.../03_PLAN_DE_TRABAJO_12_PASOS_6_PERSONAS.md` | [`docs/10-entregables-y-plan.md`](../10-entregables-y-plan.md) |
+| `04_GESTION.../04_GLOSARIO_Y_METADATA_INTEGRACION.md` | [`docs/11-glosario-y-metadata.md`](../11-glosario-y-metadata.md) |
+| `02_FUNDAMENTOS.../06_ALMACENAMIENTO_E_INGESTA_MULTIMODAL.md` | [`docs/12-almacenamiento-e-ingesta.md`](../12-almacenamiento-e-ingesta.md) |
+| `03_RUBRICAS.../01_RUBRICA_ANCLAS_Y_PROMPTS_COMPLETOS.md` | [`docs/13-rubrica-y-prompts.md`](../13-rubrica-y-prompts.md) |
+| `02_FUNDAMENTOS.../07_HISTORIAL_DE_SINCRONIZACION_Y_CONFLICTOS.md` | [`docs/14-sincronizacion-guia-didactica.md`](../14-sincronizacion-guia-didactica.md) |
+| `04_GESTION.../05_ESTADO_ACTUAL_BLOQUEOS_Y_CONTINUACION.md` | [`docs/15-sincronizacion-arquitectura-y-despliegue.md`](../15-sincronizacion-arquitectura-y-despliegue.md) ⚠️ |
 
 ⚠️ El último no es equivalencia directa: el `docs/15` de esta rama es un documento
 **distinto** —la sincronización con la U1 de Front End—, porque el «estado y cómo
@@ -77,4 +77,4 @@ Cuál manda, cuando difieren: los `docs/` son la documentación de trabajo del e
 tienen registro de decisiones (ADR) en `docs/08`. Lo de acá es material de
 profundización y defensa. Antes de la entrega conviene una pasada de conciliación,
 igual que la que quedó registrada en
-[`docs/14`](../docs/14-sincronizacion-guia-didactica.md) para el otro set.
+[`docs/14`](../14-sincronizacion-guia-didactica.md) para el otro set.

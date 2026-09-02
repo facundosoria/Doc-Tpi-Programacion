@@ -27,6 +27,8 @@ import sys
 import unicodedata
 
 RUTA_LIB = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, RUTA_LIB)
+import scope  # noqa: E402  -- despues de definir RUTA_LIB
 RUTA_CONFIG = os.path.join(os.path.dirname(RUTA_LIB), "config")
 
 ETAPA = "referencias"
@@ -104,7 +106,22 @@ def cargar_registro():
     return validos
 
 
-def archivos_markdown(raices):
+def archivos_markdown(raices, filtrar_propiedad=True):
+    """Los .md de las raices, menos lo que owned-paths.txt excluye.
+
+    El filtro de propiedad no es un detalle: `docs/` tiene adentro material
+    importado de otras ramas que se conserva sin tocar una linea. Sus anclas y
+    sus referencias son de otro autor y no las podemos arreglar, asi que
+    reportarlas seria pedirle al equipo que corrija texto ajeno. Quien decide
+    que es nuestro es owned-paths.txt, no una lista de rutas repetida aca.
+
+    `filtrar_propiedad=False` es para cuando la raiz vino por `--root`: ahi el
+    que llama pidio un archivo puntual y hay que mirarlo aunque no sea nuestro.
+    Es el caso del self-test, cuyos fixtures estan excluidos a proposito --si el
+    filtro corriera igual, cada regla pasaria en verde sin mirar nada y el
+    self-test dejaria de servir justo para lo que existe.
+    """
+    patrones = scope.globs_propios()
     encontrados = []
     for raiz in raices:
         if os.path.isfile(raiz):
@@ -116,7 +133,12 @@ def archivos_markdown(raices):
             for nombre in nombres:
                 if nombre.endswith(".md"):
                     encontrados.append(os.path.join(base, nombre))
-    return sorted(set(encontrados))
+    if not filtrar_propiedad:
+        return sorted(set(encontrados))
+    # os.walk usa el separador del sistema; los globs siempre hablan con "/".
+    return sorted(
+        {a for a in encontrados if scope.es_propio(a.replace(os.sep, "/"), patrones)}
+    )
 
 
 def linea_de(texto, posicion):
@@ -138,9 +160,10 @@ def hallazgo(archivo, linea, regla, detalle, nivel="bloquea"):
     }
 
 
-def revisar(raices, registro, adrs_definidos, comprobar_huerfanos):
+def revisar(raices, registro, adrs_definidos, comprobar_huerfanos,
+            filtrar_propiedad=True):
     resultados = []
-    documentos = archivos_markdown(raices)
+    documentos = archivos_markdown(raices, filtrar_propiedad)
     contenidos = {}
     linkeados = set()
 
@@ -241,6 +264,7 @@ def main():
     parser.add_argument("--decisiones", default="docs/08-decisiones-y-pendientes.md")
     args = parser.parse_args()
 
+    raices_explicitas = bool(args.root)
     raices = args.root or ["docs", "README.md"]
     raices = [r for r in raices if os.path.exists(r)]
 
@@ -249,7 +273,8 @@ def main():
         with open(args.decisiones, encoding="utf-8") as fh:
             adrs = set(RE_ADR_HEADING.findall(fh.read()))
 
-    for resultado in revisar(raices, cargar_registro(), adrs, not args.sin_huerfanos):
+    for resultado in revisar(raices, cargar_registro(), adrs, not args.sin_huerfanos,
+                             filtrar_propiedad=not raices_explicitas):
         sys.stdout.write(json.dumps(resultado, ensure_ascii=False) + "\n")
 
     return 0
