@@ -1114,8 +1114,21 @@ demuestre que sirve.**
 # Parte 13 — Qué cambia cuando esto se mude al monorepo
 
 El gate nació en un repositorio del equipo. Cuando la carpeta se mude al monorepo de
-la materia, la mayor parte sigue funcionando sin pedirle permiso a nadie. Hay tres
-archivos que tocar, una cosa que no conviene ni pedir, y una que queda por resolver.
+la materia, la mayor parte sigue funcionando sin pedirle permiso a nadie.
+
+> ### La decisión está tomada: el workflow no se muda
+>
+> En el monorepo el equipo va a usar **el CI de la cátedra**, no un job propio. Nuestro
+> `.github/workflows/qa.yml` se queda en este repositorio y no viaja.
+>
+> Eso resuelve de una las dos cosas que trababan la mudanza —no hay que pedir permiso
+> de administrador para dar de alta un runner, y nuestro workflow no dispara sobre los
+> pushes de los otros diez equipos— y **no cuesta una línea del motor**: el gate se
+> engancha al pipeline ajeno con un comando. Es exactamente para esto que el workflow
+> es flaco.
+>
+> Tiene dos consecuencias, y las dos están abajo: la corrida pasa a ser cuatro veces
+> más lenta, y una de las trece etapas se queda sin nada que verificar.
 
 ## Lo que no necesita permisos
 
@@ -1126,6 +1139,9 @@ Andan aunque no tengas permiso de escritura sobre el repositorio. Y la lista
 monorepo.**
 
 ## Lo que sí, y lo que no conviene ni pedir
+
+Esta tabla es el fundamento de la decisión de arriba: las dos primeras filas son las
+que la volvieron obvia.
 
 | Qué | Qué hace falta |
 |---|---|
@@ -1139,6 +1155,12 @@ monorepo.**
 cualquiera que pueda abrir un pull request ejecutaría código en nuestro server. Es
 exactamente la razón por la que existe `--remoto`.
 
+**Y lo del workflow tampoco.** El disparo de hoy es `push: branches: ["**"]`: en el
+monorepo eso corre con cada push de los once equipos y les deja una cruz roja en
+commits que no tienen nada que ver con el Tema 07. Acotarlo con un filtro `paths:`
+sería posible, pero es pedirle a los dueños del repo que acepten un archivo que
+dispara para todos. Usar su CI evita la conversación entera.
+
 ## Los archivos que hay que editar
 
 **1. `owned-paths.txt`, prefijando cada ruta con la carpeta del equipo.** Hoy dice
@@ -1150,26 +1172,48 @@ Ojo con `*.md`: el glob tiene semántica de rutas —`*` no cruza barras, a prop
 así que matchea solo la raíz. En el monorepo eso sería el README de la cátedra. Ese
 hay que sacarlo.
 
-**2. El workflow, que se identifica por nombre y no por carpeta.** `.github/` vive en
-la raíz del repositorio y en el monorepo es **una sola carpeta compartida**: no se
-puede prefijar. Hay que renombrar `qa.yml` a algo como `tema-07-qa.yml` y ajustar esa
-línea de `owned-paths.txt`. Sin ese ajuste, la etapa `workflows` dejaría de mirar el
-nuestro —revisa solo lo que matchea— y pasaría en verde sin verificar nada.
-
-**3. El disparo.** Sin runner propio no hay job de Actions del equipo: el pipeline
-pasa a ser `--remoto` antes de pushear. Si el monorepo tiene su propio CI, el gate se
-engancha con una línea, porque el workflow es flaco justamente para esto:
+**2. El disparo: una línea adentro del pipeline de la cátedra.** No hay job de Actions
+del equipo, así que el gate se invoca desde el de ellos:
 
 ```bash
 ./qa.sh --all --perfil completo
 ```
 
+Y `--remoto` sigue entero: no depende de GitHub ni de permisos de nadie, así que
+queda como la red de antes de pushear, corra donde corra el CI.
+
+**3. La etapa `workflows`, que se queda sin nada que mirar.** Revisa solo los archivos
+que matchean `owned-paths.txt`, y ahí figura `.github/workflows/qa.yml` por nombre. Si
+ese archivo no se muda, a la etapa no le queda ningún workflow para revisar y **pasa
+en verde sin haber mirado nada** — que es el peor resultado posible, porque no se nota
+en el resumen y genera confianza que no corresponde.
+
+Hay que elegir explícitamente, y las dos opciones son defendibles:
+
+| Opción | Cuándo |
+|---|---|
+| **`workflows: off`**, con un comentario que diga por qué | Si los workflows de la cátedra no son nuestros. Es lo honesto: la etapa no verifica nada y lo dice |
+| Apuntar `owned-paths.txt` al workflow de la cátedra | Solo si nos dejan además arreglar lo que encuentre. Reportar sobre un archivo ajeno que no podemos tocar es ruido |
+
+Lo que **no** hay que hacer es dejarla como está. El riesgo que cubría —que un
+workflow pida una máquina de GitHub y queme los minutos de la cuenta compartida—
+sigue existiendo; lo que cambia es que pasa a ser decisión de la cátedra y no
+nuestra.
+
 ## Lo que queda por resolver
 
-`qa.sh` resuelve la raíz con `git rev-parse --show-toplevel`, así que `--remoto`
-empaqueta **el repositorio entero** en cada corrida. Con este repo son 7 segundos;
-con un monorepo grande la transferencia pasa a dominar. Se arregla acotando el `tar`
-a la carpeta del equipo más `tools/`, pero hay que hacerlo.
+**1. La imagen se reconstruye en cada corrida.** La decisión la toma
+`docker image inspect`: si la imagen ya está en el host, `qa.sh` no la construye. `mk-luisao-02` la tiene, y
+por eso una corrida `completo` son 46 segundos. Un runner de la cátedra arranca limpio
+cada vez, así que paga los **171 segundos** del build siempre: la corrida pasa a ser
+unas cuatro veces más lenta. Se arregla cacheando la imagen entre corridas —el tag ya
+es el hash del `Dockerfile`, que es la mitad difícil del problema— pero hay que
+hacerlo.
+
+**2. `--remoto` manda el repositorio entero.** La raíz la resuelve
+`git rev-parse --show-toplevel`, así que `qa.sh` empaqueta todo en cada corrida. Con
+este repo son 7 segundos; con un monorepo grande la transferencia pasa a dominar. Se
+arregla acotando el `tar` a la carpeta del equipo más `tools/`, pero hay que hacerlo.
 
 ---
 
