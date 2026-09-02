@@ -349,9 +349,20 @@ flowchart LR
     D -->|"cualquiera"| G["secretos"]
 ```
 
-Con una excepción deliberada: **links y referencias no pasan por el primer filtro.**
-Corren sobre el repo entero y comparan contra el punto de partida, porque renombrar
-un título en tu archivo rompe un ancla en el de otro.
+Con una excepción deliberada: **links y referencias no pasan por el primer filtro**,
+el del diff. Corren sobre todo, no solo sobre lo que tocaste, porque renombrar un
+título en tu archivo rompe un ancla en el de otro.
+
+Pero se plantan distinto frente al segundo:
+
+| | Filtro del diff | Filtro de propiedad | Cómo evita bloquear por deuda ajena |
+|---|---|---|---|
+| `links` | no lo aplica | **sí** | solo mira el markdown que es nuestro |
+| `referencias` | no lo aplica | no lo aplica | corre dos veces, en HEAD y en la base: bloquea solo lo que **este** cambio rompió |
+
+Esa segunda pasada la hace [`diff_gate.py`](../tools/qa/lib/diff_gate.py), que
+materializa el árbol de la base con `git worktree` sin tocar tu working tree. Es lo
+que permite que un chequeo global no genere deuda retroactiva.
 
 ### El primer filtro es el que puede dejar el gate en nada
 
@@ -418,7 +429,7 @@ Docker.
 | **cspell** | 8.19 | Ortografía y control de idioma | npm |
 | **markdownlint-cli2** | 0.14 | Formato del Markdown | npm |
 | **gitleaks** | 8.28 | Secretos | binario |
-| **lychee** | 0.18 | Links rotos | binario |
+| **lychee** | 0.18 | Links rotos, sobre el markdown propio | binario |
 | **PyYAML** | 6.0 | Leer la configuración | apt |
 
 Los chequeos propios —referencias colgadas, anclas rotas, documentos huérfanos,
@@ -1088,13 +1099,90 @@ demuestre que sirve.**
 
 ---
 
+# Parte 13 — Qué cambia cuando esto se mude al monorepo
+
+El gate nació en un repositorio del equipo. Cuando la carpeta se mude al monorepo de
+la materia, la mayor parte sigue funcionando sin pedirle permiso a nadie. Hay tres
+archivos que tocar, una cosa que no conviene ni pedir, y una que queda por resolver.
+
+## Lo que no necesita permisos
+
+`./qa.sh` y `./qa.sh --remoto` no tocan git ni GitHub: son un script, Docker y SSH.
+Andan aunque no tengas permiso de escritura sobre el repositorio. Y la lista
+"Corridas en el server" del front se alimenta del buzón, que tampoco pasa por GitHub.
+**El gate y el tablero siguen enteros para el equipo, pase lo que pase con el
+monorepo.**
+
+## Lo que sí, y lo que no conviene ni pedir
+
+| Qué | Qué hace falta |
+|---|---|
+| Runner self-hosted | **administrador** sobre el repositorio |
+| Un archivo en `.github/workflows/` | que los dueños del repo acepten algo que dispara para todos |
+| Token del front | un PAT sobre un repo ajeno suele necesitar aprobación del owner |
+| Branch protection | no lo controla el equipo |
+
+**Lo del runner no es burocracia, es seguridad.** Estar en el grupo `docker` de
+`mk-luisao-02` equivale a ser root en esa máquina. En un repositorio compartido,
+cualquiera que pueda abrir un pull request ejecutaría código en nuestro server. Es
+exactamente la razón por la que existe `--remoto`.
+
+## Los archivos que hay que editar
+
+**1. `owned-paths.txt`, prefijando cada ruta con la carpeta del equipo.** Hoy dice
+`docs/**`, `ms-evaluacion-llm/**`, `tools/qa/**` y `tools/ci-front/**`, que son rutas
+de raíz. Todo lo que no matchee ahí se cae del alcance, así que los archivos de los
+otros equipos se ignoran solos: **el mecanismo ya está, solo hay que apuntarlo.**
+
+Ojo con `*.md`: el glob tiene semántica de rutas —`*` no cruza barras, a propósito—
+así que matchea solo la raíz. En el monorepo eso sería el README de la cátedra. Ese
+hay que sacarlo.
+
+**2. El workflow, que se identifica por nombre y no por carpeta.** `.github/` vive en
+la raíz del repositorio y en el monorepo es **una sola carpeta compartida**: no se
+puede prefijar. Hay que renombrar `qa.yml` a algo como `tema-07-qa.yml` y ajustar esa
+línea de `owned-paths.txt`. Sin ese ajuste, la etapa `workflows` dejaría de mirar el
+nuestro —revisa solo lo que matchea— y pasaría en verde sin verificar nada.
+
+**3. El disparo.** Sin runner propio no hay job de Actions del equipo: el pipeline
+pasa a ser `--remoto` antes de pushear. Si el monorepo tiene su propio CI, el gate se
+engancha con una línea, porque el workflow es flaco justamente para esto:
+
+```bash
+./qa.sh --all --perfil completo
+```
+
+## Lo que queda por resolver
+
+`qa.sh` resuelve la raíz con `git rev-parse --show-toplevel`, así que `--remoto`
+empaqueta **el repositorio entero** en cada corrida. Con este repo son 7 segundos;
+con un monorepo grande la transferencia pasa a dominar. Se arregla acotando el `tar`
+a la carpeta del equipo más `tools/`, pero hay que hacerlo.
+
+---
+
 # Lo que todavía falta
+
+> ### El hueco más grande es la mitad derecha del pipeline
+>
+> La [U1 de Front End](15-sincronizacion-arquitectura-y-despliegue.md) dibuja el recorrido completo:
+> **push → tests → build de imagen → registro → deploy**. Este documento cubre el tramo hasta los
+> tests, con un detalle que esa unidad no tiene —runners propios, dos perfiles, gate de regresión,
+> front del CI—. **De ahí a la derecha no hay nada construido.**
+>
+> Falta: construir la imagen del servicio, etiquetarla con el SHA del commit, empujarla a un
+> registro y disparar el despliegue. Es CD, y hoy el repositorio solo tiene CI. La estrategia de
+> despliegue que ese paso tendría que ejecutar ya está decidida —rolling update, ADR-013— y los
+> artefactos que faltan están especificados en [06](06-operacion-e-ingenieria.md) Parte 7 §6.
+>
+> **No es una omisión del gate:** el gate hace lo que promete. Es que el proyecto todavía no tiene
+> qué desplegar.
 
 - **La rama `dev` y el branch protection.** Es lo único que hace que el gate frene
   algo: hoy informa y marca el commit, pero no bloquea ningún merge. El
   procedimiento está en [`tools/qa/README.md`](../tools/qa/README.md).
-- **El token del front.** Hasta que se cargue, muestra datos de prueba y lo aclara
-  en pantalla.
+- ~~**El token del front.**~~ Cargado el 1 de septiembre de 2026: el front lee la
+  API real y ya no muestra datos de prueba.
 - **El fixture de cobertura del self-test falla.** Espera un hallazgo y no obtiene
   ninguno. Se verificó a mano que la cadena real funciona —JaCoCo produce el
   reporte, diff-cover imprime el porcentaje y el adaptador lo parsea—, así que lo
