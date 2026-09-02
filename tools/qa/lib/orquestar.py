@@ -532,8 +532,40 @@ def correr_etapa(etapa, nivel, archivos, ruteo, perfil):
             return [], False
 
         if etapa == "formato":
-            objetivo = "spotless:apply" if nivel == "arregla" else "spotless:check"
-            salida = maven([objetivo])
+            # `spotless:apply` sin acotar reformatea EL MODULO ENTERO, no lo que
+            # tocaste. Basta con que cambies un .java para que reescriba tambien
+            # los de tus companeros: los commiteas vos, y `git blame` te atribuye
+            # lineas que escribio otro. Es un problema de atribucion, no de
+            # formato, y no se ve: la corrida queda en verde.
+            #
+            # El filtro va por -DspotlessFiles, que toma regex contra la ruta
+            # absoluta. `ratchetFrom` seria mas expresivo pero el plugin no lo lee
+            # de la linea de comandos: probado, con y sin el flag da lo mismo.
+            #
+            # La lista NO es la misma para escribir que para revisar:
+            #
+            #   apply  lo que tenes sin commitear. Un commit de un companero en
+            #          esta misma rama esta en HEAD, asi que queda afuera y no lo
+            #          reescribis con tu nombre.
+            #   check  todo lo que la rama cambio desde la base, lo haya escrito
+            #          quien lo haya escrito. Revisar no le atribuye nada a nadie.
+            if nivel == "arregla":
+                objetivo = "spotless:apply"
+                alcance = [a for a in scope.archivos_sin_commitear()
+                           if a.endswith(".java")]
+            else:
+                objetivo = "spotless:check"
+                alcance = java
+
+            if not alcance:
+                return [], False
+
+            # Solo se escapa el punto: los otros caracteres de una ruta son
+            # literales en regex de Java, y re.escape() genera secuencias que
+            # Java rechaza.
+            patron = ",".join(".*" + a.replace(".", r"\.") for a in alcance)
+            salida = maven([objetivo, "-DspotlessFiles=" + patron])
+
             if nivel == "arregla":
                 return [], True
             if salida.returncode != 0:

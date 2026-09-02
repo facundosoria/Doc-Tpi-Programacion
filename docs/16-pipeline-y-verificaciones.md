@@ -352,7 +352,7 @@ Es la pregunta que más aparece, y la respuesta corta es *casi nada*:
 
 | | ¿Te toca archivos? |
 |---|---|
-| `./qa.sh` local | **Solo el formato de los `.java`** que ya cambiaste |
+| `./qa.sh` local | **Solo el formato de los `.java` que tenés sin commitear** |
 | `./qa.sh --remoto` | **Nada** |
 | `CI=1 ./qa.sh` | **Nada** |
 | El CI, al pushear | **Nada** |
@@ -361,6 +361,31 @@ Ese único caso es `formato`, que en `rapido` está en nivel `arregla` y ejecuta
 `spotless:apply`: te ordena imports, indentación y espacios. **Nunca toca lógica** —
 si compilaba antes, compila después. Los otros doce chequeos solo reportan: una
 palabra mal escrita o un link roto te los informa, no te los corrige.
+
+### Y toca *solo lo tuyo*, que no es lo mismo que «lo que cambió»
+
+`spotless:apply` sin acotar reformatea **el módulo entero**. Con eso alcanza para
+que tocar un solo `.java` te reescriba también los archivos de tus compañeros: los
+commiteás vos, y **`git blame` te atribuye líneas que escribió otro**. Es un problema
+de atribución, no de formato, y no se ve en la corrida — queda en verde.
+
+Por eso la etapa recibe una lista explícita de archivos (`-DspotlessFiles`), y **la
+lista no es la misma para escribir que para revisar**:
+
+| | Sobre qué | Por qué |
+|---|---|---|
+| `apply` (escribe) | Lo que tenés **sin commitear** | Es lo único que se puede afirmar que modificaste vos. El commit de un compañero en tu misma rama ya está en `HEAD`, así que queda afuera |
+| `check` (solo lee) | Todo lo que la rama cambió **desde la base** | La rama entera tiene que estar formateada antes de entrar. Revisar no le atribuye nada a nadie |
+
+Usar la base también para `apply` parece lo coherente y es justamente el error: mete
+adentro del formateo los commits de los demás que viven en tu rama.
+
+> `ratchetFrom` sería más expresivo que una lista de archivos, pero **el plugin de
+> Maven no lo lee de la línea de comandos**: probado, con y sin el flag el resultado
+> es idéntico. `-DspotlessFiles` sí funciona, y es lo que se usa.
+
+Y lo de otros equipos nunca entra: queda fuera de `owned-paths.txt`, así que el
+ruteo no le manda un solo archivo a esta etapa.
 
 Lo que sí aparece siempre es `.qa/`, con el resumen de la corrida. Está en el
 `.gitignore`, y `--remoto` la excluye del `tar`: nunca viaja ni se commitea.

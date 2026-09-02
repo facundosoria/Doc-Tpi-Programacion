@@ -91,6 +91,28 @@ def archivos_cambiados():
     return unicos
 
 
+def archivos_sin_commitear():
+    """Solo lo que tenes en el working tree: modificado o todavia sin trackear.
+
+    Es un subconjunto de archivos_cambiados(), que ademas incluye lo commiteado
+    desde la base. La diferencia importa cuando un chequeo ESCRIBE: en una rama
+    compartida, los commits de tus companeros tambien estan "cambiados desde la
+    base", y reformatearlos te los atribuye a vos en el `git blame`.
+
+    Lo que tenes sin commitear es lo unico que se puede afirmar que modificaste.
+    """
+    encontrados = _git("diff", "--name-only", "HEAD").splitlines()
+    encontrados += _git("ls-files", "--others", "--exclude-standard").splitlines()
+
+    vistos = set()
+    unicos = []
+    for archivo in encontrados:
+        if archivo and archivo not in vistos and os.path.exists(archivo):
+            vistos.add(archivo)
+            unicos.append(archivo)
+    return unicos
+
+
 def todos_los_archivos():
     """Trackeados MAS los no trackeados que no estan ignorados.
 
