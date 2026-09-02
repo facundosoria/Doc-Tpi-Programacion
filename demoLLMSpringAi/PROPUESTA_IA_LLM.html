@@ -1,0 +1,1390 @@
+﻿<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Propuesta de Integración IA — Microservicio LLM y SonarQube</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        navy: {
+                            900: '#0a1628',
+                            800: '#0f2035',
+                            700: '#152940',
+                        },
+                        brand: {
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                        },
+                        sky: {
+                            400: '#38bdf8',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                        },
+                        cyan: {
+                            400: '#22d3ee',
+                            500: '#06b6d4',
+                        },
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            background-color: #0a1628;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            opacity: 0;
+            transform: scale(0.98);
+            transition: opacity 0.35s ease-in-out, transform 0.35s ease-in-out;
+            width: 100%;
+            max-height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 1.5rem;
+        }
+
+        .slide.active {
+            display: block;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* Glassmorphism */
+        .glass-card {
+            background: rgba(15, 25, 45, 0.88);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(59, 130, 246, 0.12);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+
+        .glass-card-hover:hover {
+            border-color: rgba(59, 130, 246, 0.4);
+            box-shadow: 0 10px 40px -10px rgba(59, 130, 246, 0.3);
+        }
+
+        /* Gradient Text */
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #06b6d4 50%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        /* Slide label tag */
+        .slide-tag {
+            color: #06b6d4;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .slide-tag::before {
+            content: "";
+            display: inline-block;
+            width: 8px;
+            height: 8px;
+            background: #06b6d4;
+            border-radius: 50%;
+            box-shadow: 0 0 8px #06b6d4;
+        }
+
+        /* Code blocks */
+        pre {
+            font-family: 'JetBrains Mono', monospace;
+            background: #030712 !important;
+            border: 1px solid #1e293b;
+        }
+
+        code { font-family: 'JetBrains Mono', monospace; }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar { width: 5px; height: 5px; }
+        ::-webkit-scrollbar-track { background: rgba(10, 22, 40, 0.6); }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        /* Table styles */
+        .data-table {
+            width: 100%;
+            border-collapse: separate;
+            border-spacing: 0;
+            font-size: 0.78rem;
+        }
+
+        .data-table thead th {
+            background: #0f2035;
+            color: #60a5fa;
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.7rem;
+            padding: 0.6rem 0.75rem;
+            text-align: left;
+            border-bottom: 2px solid rgba(59, 130, 246, 0.3);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+
+        .data-table tbody td {
+            padding: 0.55rem 0.75rem;
+            border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+            color: #cbd5e1;
+            vertical-align: top;
+            line-height: 1.5;
+        }
+
+        .data-table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .data-table tbody tr:nth-child(even) {
+            background: rgba(15, 32, 53, 0.5);
+        }
+
+        .data-table tbody tr:nth-child(even):hover {
+            background: rgba(59, 130, 246, 0.07);
+        }
+
+        /* Pill badges */
+        .pill {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            margin-right: 4px;
+        }
+
+        .pill-info {
+            background: rgba(6, 182, 212, 0.15);
+            color: #22d3ee;
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .pill-success {
+            background: rgba(16, 185, 129, 0.15);
+            color: #34d399;
+            border: 1px solid rgba(16, 185, 129, 0.3);
+        }
+
+        .pill-danger {
+            background: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.3);
+        }
+
+        .pill-warning {
+            background: rgba(245, 158, 11, 0.15);
+            color: #fbbf24;
+            border: 1px solid rgba(245, 158, 11, 0.3);
+        }
+
+        /* Callout box */
+        .callout {
+            background: rgba(6, 182, 212, 0.06);
+            border: 1px solid rgba(6, 182, 212, 0.25);
+            border-left: 3px solid #06b6d4;
+            border-radius: 0 8px 8px 0;
+            padding: 0.85rem 1.1rem;
+        }
+
+        .callout-warning {
+            background: rgba(245, 158, 11, 0.06);
+            border-color: rgba(245, 158, 11, 0.25);
+            border-left-color: #f59e0b;
+        }
+
+        .callout-danger {
+            background: rgba(239, 68, 68, 0.06);
+            border-color: rgba(239, 68, 68, 0.25);
+            border-left-color: #ef4444;
+        }
+
+        /* Stat boxes */
+        .stat-box {
+            background: linear-gradient(135deg, rgba(15, 32, 53, 0.9), rgba(10, 22, 40, 0.9));
+            border: 1px solid rgba(59, 130, 246, 0.15);
+            border-radius: 12px;
+            padding: 1rem;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            font-family: 'JetBrains Mono', monospace;
+            margin-bottom: 0.25rem;
+            background: linear-gradient(135deg, #60a5fa, #06b6d4);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .stat-label {
+            font-size: 0.72rem;
+            color: #94a3b8;
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* Pipeline visualizer */
+        .pipeline-flow {
+            display: flex;
+            align-items: stretch;
+            gap: 0.75rem;
+            margin: 1rem 0;
+            overflow-x: auto;
+            padding-bottom: 0.5rem;
+        }
+
+        .pipe-step {
+            flex: 1;
+            min-width: 150px;
+            background: rgba(15, 25, 45, 0.88);
+            border: 1px solid rgba(59, 130, 246, 0.12);
+            border-radius: 10px;
+            padding: 0.9rem;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pipe-step::after {
+            content: "\2192";
+            position: absolute;
+            right: -14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #60a5fa;
+            font-size: 1.1rem;
+            font-weight: bold;
+            z-index: 2;
+        }
+
+        .pipe-step:last-child::after { display: none; }
+
+        .pipe-num {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: #06b6d4;
+            font-weight: 700;
+            margin-bottom: 0.2rem;
+        }
+
+        .pipe-title {
+            font-size: 0.9rem;
+            font-weight: 700;
+            margin-bottom: 0.4rem;
+            color: #f1f5f9;
+        }
+
+        .pipe-desc {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            line-height: 1.4;
+        }
+
+        /* Progress bar */
+        .progress-bar {
+            height: 4px;
+            background: rgba(255, 255, 255, 0.06);
+            width: 100%;
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            z-index: 100;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #3b82f6, #06b6d4);
+            width: 0%;
+            transition: width 0.4s ease;
+        }
+
+        /* Top header bar */
+        header {
+            height: 56px;
+            background: rgba(10, 22, 40, 0.95);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid rgba(59, 130, 246, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1.5rem;
+            z-index: 100;
+        }
+
+        /* Slides container */
+        main {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 0.75rem;
+        }
+
+        /* Print */
+        @media print {
+            body { overflow: auto; background: white; color: black; }
+            .slide { display: block !important; opacity: 1 !important; transform: none !important; page-break-after: always; height: auto; }
+            .no-print { display: none !important; }
+            header { display: none !important; }
+            .progress-bar { display: none !important; }
+        }
+    </style>
+</head>
+<body class="h-[100dvh] w-full flex flex-col select-none">
+
+    <!-- TOP BAR -->
+    <header class="no-print">
+        <div class="flex items-center gap-2 sm:gap-3 overflow-hidden">
+            <div class="p-1.5 bg-blue-600/20 border border-blue-500/40 rounded-lg text-blue-400 shrink-0">
+                <i data-lucide="cpu" class="w-4 h-4"></i>
+            </div>
+            <div class="truncate">
+                <h1 class="text-[10px] sm:text-xs font-semibold uppercase tracking-wider text-slate-500 truncate">UTN FRC · Programación IV · Back End</h1>
+                <p class="text-xs sm:text-sm font-bold text-white flex items-center gap-1.5 truncate">
+                    <span>Propuesta de Integración IA</span>
+                    <span class="hidden sm:inline-block px-2 py-0.5 text-[10px] bg-blue-500/10 text-blue-300 border border-blue-500/30 rounded-full">v1.0</span>
+                </p>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-2 shrink-0">
+            <span id="current-slide-num" class="text-xs sm:text-sm font-mono font-bold text-blue-400">01</span>
+            <div class="w-20 sm:w-40 bg-slate-800 h-1.5 rounded-full overflow-hidden border border-slate-700">
+                <div id="progress-bar" class="bg-gradient-to-r from-blue-500 to-cyan-400 h-full transition-all duration-400" style="width: 7.14%;"></div>
+            </div>
+            <span id="total-slides-num" class="text-xs sm:text-sm font-mono text-slate-500">14</span>
+        </div>
+
+        <div class="flex items-center space-x-1.5 sm:space-x-2 shrink-0">
+            <button onclick="prevSlide()" title="Anterior" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition border border-slate-700">
+                <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            </button>
+            <button onclick="nextSlide()" title="Siguiente" class="p-1.5 sm:p-2 rounded-lg bg-slate-800/80 hover:bg-slate-700 text-slate-300 transition border border-slate-700">
+                <i data-lucide="chevron-right" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- SLIDES CONTAINER -->
+    <main id="slides-container">
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 1: PORTADA -->
+        <!-- ========================================================================= -->
+        <section class="slide active flex-col items-center justify-center text-center max-w-5xl h-full w-full mx-auto my-auto py-4" data-slide="1">
+            <div class="inline-flex items-center gap-2 px-3 sm:px-4 py-1 rounded-full bg-blue-500/10 border border-blue-500/30 text-blue-400 text-[10px] sm:text-xs font-semibold mb-3 sm:mb-5 uppercase tracking-wider">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> UTN FRC · Programación IV · Back End
+            </div>
+
+            <h1 class="text-2xl sm:text-4xl md:text-5xl lg:text-6xl font-extrabold tracking-tight text-white mb-3 sm:mb-4 leading-tight">
+                Propuesta de Integración IA<br/><span class="gradient-text">Microservicio LLM y SonarQube</span>
+            </h1>
+
+            <p class="text-xs sm:text-sm md:text-base text-slate-300 max-w-3xl mb-4 sm:mb-6 leading-relaxed font-light px-2">
+                Arquitectura Híbrida Spring AI + FastAPI, Investigación de Capacidades, Matriz de Responsabilidad y Gobernanza de Calidad con SonarQube para la Plataforma Gamificada UTN.
+            </p>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 w-full max-w-4xl text-left mb-4 sm:mb-6">
+                <div class="glass-card p-3 sm:p-4 rounded-xl border border-slate-800">
+                    <div class="text-blue-400 text-[10px] font-mono mb-0.5 font-semibold">ARQUITECTURA</div>
+                    <div class="text-xs sm:text-sm font-bold text-white">Híbrida Spring + FastAPI</div>
+                    <div class="text-[10px] text-slate-400">Eureka + Uvicorn uvloop</div>
+                </div>
+                <div class="glass-card p-3 sm:p-4 rounded-xl border border-slate-800">
+                    <div class="text-cyan-400 text-[10px] font-mono mb-0.5 font-semibold">SEGURIDAD</div>
+                    <div class="text-xs sm:text-sm font-bold text-white">5 Capas + Buffer AST</div>
+                    <div class="text-[10px] text-slate-400">Umbral 70% PAR-11 en RAM</div>
+                </div>
+                <div class="glass-card p-3 sm:p-4 rounded-xl border border-slate-800">
+                    <div class="text-emerald-400 text-[10px] font-mono mb-0.5 font-semibold">CALIDAD</div>
+                    <div class="text-xs sm:text-sm font-bold text-white">SonarQube + JaCoCo</div>
+                    <div class="text-[10px] text-slate-400">Quality Gates + CI/CD</div>
+                </div>
+                <div class="glass-card p-3 sm:p-4 rounded-xl border border-slate-800">
+                    <div class="text-amber-400 text-[10px] font-mono mb-0.5 font-semibold">GOBERNANZA</div>
+                    <div class="text-xs sm:text-sm font-bold text-white">PRD + ADR + GRC</div>
+                    <div class="text-[10px] text-slate-400">RF-IA · Las 4 T's · FinOps</div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 text-[11px] text-slate-400 font-mono">
+                <span class="hidden sm:inline">Navegá con teclas <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-200">&larr;</kbd> <kbd class="px-1.5 py-0.5 bg-slate-800 border border-slate-700 rounded text-slate-200">&rarr;</kbd> o desliz&aacute; en pantalla t&aacute;ctil</span>
+                <span class="sm:hidden">&larr; Desliz&aacute; para cambiar diapositiva &rarr;</span>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 2: RESUMEN EJECUTIVO -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="2">
+            <div class="slide-tag">Visi&oacute;n General</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-3">
+                Resumen Ejecutivo
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-4 leading-relaxed">
+                Esta propuesta presenta la arquitectura t&eacute;cnica y la estrategia de integraci&oacute;n de Inteligencia Artificial para la Plataforma Gamificada de la UTN FRC. El m&oacute;dulo de IA se despliega como un microservicio aut&oacute;nomo que expone REST/SSE, separando completamente la responsabilidad de inferencia de las decisiones de negocio del core acad&eacute;mico. La plataforma atiende a los requerimientos RF-IA-01 a trav&eacute;s RF-IA-36 del PRD, cubriendo asistencia socr&aacute;tica, evaluaci&oacute;n con r&uacute;brica fija, filtros anti-fuga, calibraci&oacute;n con golden set y gobernanza multi-modelo.
+            </p>
+            <p class="text-xs sm:text-sm text-slate-300 mb-4 leading-relaxed">
+                La regla de oro que atraviesa toda la arquitectura es clara: <strong>el microservicio de IA ejecuta inferencia y expone datos; el core toma decisiones de negocio.</strong> Esta separaci&oacute;n de responsabilidades mantiene los l&iacute;mites de servicio limpios, permite reemplazar piezas sin romper el sistema y garantiza que la IA sea un amplificador pedag&oacute;gico y no un motor de decisi&oacute;n. El microservicio no lee la base de datos del core; recibe todo el contexto por request o consulta endpoints del core, respetando los contratos estrictos definidos en el PRD.
+            </p>
+
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 w-full max-w-4xl text-left mb-4">
+                <div class="stat-box">
+                    <div class="stat-value">5</div>
+                    <div class="stat-label">Roles IA (RF-IA-23)</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">3</div>
+                    <div class="stat-label">Capas Tecnol&oacute;gicas</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">4</div>
+                    <div class="stat-label">Semanas de Plan</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-value">36</div>
+                    <div class="stat-label">Requerimientos RF-IA</div>
+                </div>
+            </div>
+
+            <div class="callout">
+                <div class="text-[10px] font-mono text-cyan-400 font-bold mb-1 uppercase">Regla de Oro</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">El microservicio de IA no calcula valores de XP, no decide transiciones de estado de cursos, no modifica notas y no accede a la base de datos del core. Expone datos e inferencia; el core consume esos datos y decide. Si ma&ntilde;ana cambia la econom&iacute;a del juego (PAR-05) o la l&oacute;gica de activaci&oacute;n (RF-IA-36), el microservicio no se entera ni le importa.</p>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 3: PRIMITIVAS CLAVE DE SPRING AI -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="3">
+            <div class="slide-tag">Investigaci&oacute;n &bull; Spring AI</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Primitivas Clave de Spring AI
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3 font-light">
+                Spring AI 1.0.0 (GA, mayo 2025) es la capa de abstracci&oacute;n que permite al microservicio comunicarse con modelos LLM de m&uacute;ltiples proveedores sin acoplarse a ning&uacute;n SDK propietario. Requiere Spring Boot 3.4.x como versi&oacute;n m&iacute;nima compatible. Spring AI <strong>no es una capa de l&oacute;gica de negocio</strong>: no decide qu&eacute; score asignar, qu&eacute; curso activar ni qu&eacute; modelo calibra. Proporciona el <em>c&oacute;mo llamar al modelo</em>, no el <em>&oacute;qu&eacute; hacer con la respuesta</em>.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-2 sm:gap-3">
+                <div class="glass-card p-3 rounded-xl border-l-2 border-blue-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <i data-lucide="message-circle" class="w-4 h-4 text-blue-400"></i>
+                            <h4 class="text-xs font-bold text-white">ChatClient</h4>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">Interfaz unificada para hablar con cualquier LLM compatible con API OpenAI. Abstrae la llamada con configuraci&oacute;n por YAML: base-url, api-key, modelo. Cambiar de proveedor implica cambiar configuraci&oacute;n, no c&oacute;digo Java. Habilita el agnosticismo de proveedor (RF-IA-11).</p>
+                    </div>
+                    <span class="pill pill-info mt-2">RF-IA-11</span>
+                </div>
+
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <i data-lucide="list-checks" class="w-4 h-4 text-cyan-400"></i>
+                            <h4 class="text-xs font-bold text-white">BeanOutputConverter</h4>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">Fuerza al modelo a devolver JSON con esquema exacto y lo convierte autom&aacute;ticamente a un record de Java validado con Spring Validation (@Min, @Max, @NotNull). Utilizado por el EvaluadorService para parsear el score 5D y el desglose por dimensi&oacute;n sin parsing manual.</p>
+                    </div>
+                    <span class="pill pill-info mt-2">RF-IA-13/15</span>
+                </div>
+
+                <div class="glass-card p-3 rounded-xl border-l-2 border-emerald-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+                            <h4 class="text-xs font-bold text-white">Advisors API</h4>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">Hook de interceptaci&oacute;n que se registra en el pipeline del tutor. El AntiFugaAdvisor envuelve la llamada al LLM: verifica similitud de c&oacute;digo contra la soluci&oacute;n esperada y regenera si supera el 70% (PAR-11). Es la red de seguridad determinin&aacute;stica que no depende del comportamiento del modelo.</p>
+                    </div>
+                    <span class="pill pill-info mt-2">RF-IA-20</span>
+                </div>
+
+                <div class="glass-card p-3 rounded-xl border-l-2 border-amber-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <i data-lucide="clock" class="w-4 h-4 text-amber-400"></i>
+                            <h4 class="text-xs font-bold text-white">ChatMemory</h4>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">Gestiona el historial conversacional con chronolog&iacute;a estricta de mensajes y timestamps de milisegundos. Alimenta al Evaluador y a la auditor&iacute;a. Cada interacci&oacute;n alumno-IA se registra con snapshot del c&oacute;digo, cumpliendo RF-IA-02 de registro absoluto.</p>
+                    </div>
+                    <span class="pill pill-info mt-2">RF-IA-02</span>
+                </div>
+
+                <div class="glass-card p-3 rounded-xl border-l-2 border-purple-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <i data-lucide="database" class="w-4 h-4 text-purple-400"></i>
+                            <h4 class="text-xs font-bold text-white">Embeddings + VectorStore</h4>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">Pipeline RAG: chunking de PDFs del profesor, generaci&oacute;n de embeddings y almacenamiento vectorial en pgvector. En consulta: b&uacute;squeda sem&aacute;ntica de fragmentos relevantes inyectados en el prompt. Se implementa en Fase 3, dejando la puerta abierta desde el dise&ntilde;o actual.</p>
+                    </div>
+                    <span class="pill pill-warning mt-2">Fase 3</span>
+                </div>
+
+                <div class="glass-card p-3 rounded-xl border-l-2 border-rose-500 flex flex-col justify-between">
+                    <div>
+                        <div class="flex items-center gap-1.5 mb-1">
+                            <i data-lucide="settings-2" class="w-4 h-4 text-rose-400"></i>
+                            <h4 class="text-xs font-bold text-white">Function Calling</h4>
+                        </div>
+                        <p class="text-[11px] text-slate-300 leading-relaxed">Permite al modelo invocar herramientas determin&iacute;sticas como el PorteroService (clasificaci&oacute;n de intenci&oacute;n off-topic) y el filtro de categor&iacute;as del Moderador. En Fase 2 habilita el agente moderador de chat con clasificaci&oacute;n multi-etiqueta.</p>
+                    </div>
+                    <span class="pill pill-warning mt-2">RF-IA-05/F2</span>
+                </div>
+            </div>
+
+            <div class="callout callout-warning mt-3">
+                <div class="text-[10px] font-mono text-amber-400 font-bold mb-1 uppercase">Nota de Versiones</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">Spring AI 1.0.0 GA (mayo 2025) requiere Spring Boot 3.4.x o superior. Si el proyecto est&aacute; fijado en Spring Boot 3.3.x, debe usarse Spring AI 1.0.0-M6 o actualizar Spring Boot. El stack declarado es: Java 21 &middot; Spring Boot 3.4.x &middot; Maven &middot; PostgreSQL 16+ &middot; Spring AI 1.0.0.</p>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 4: TABLA DE RESPONSABILIDADES -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="4">
+            <div class="slide-tag">Trazabilidad</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Matriz de Responsabilidad
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3 font-light">
+                Esta tabla es el coraz&oacute;n del contrato t&eacute;cnico entre el equipo de IA y el equipo de negocio. Cada capacidad de Spring AI se traza a un requerimiento RF-IA espec&iacute;fico, definiendo qu&eacute; funci&oacute;n habilita, qu&eacute; rol dentro del flujo cumple y —crucialmente— donde vive la decisi&oacute;n de negocio final. La separaci&oacute;n entre "habilitar" y "decidir" es lo que mantiene la arquitectura de microservicios limpia y verificable.
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Capacidad Spring AI</th>
+                            <th>RF-IA habilitado</th>
+                            <th>Rol dentro del flujo</th>
+                            <th>Donde vive la decisi&oacute;n de negocio</th>
+                            <th>Madurez</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>ChatClient</strong> — interfaz unificada multi-proveedor</td>
+                            <td>RF-IA-11 (Agnosticismo)</td>
+                            <td>Capa de abstracci&oacute;n entre el microservicio y los proveedores LLM (Groq, Upstage, Cerebras, Gemini, OpenRouter)</td>
+                            <td>Configuraci&oacute;n YAML + ADMIN (RF-IA-24/35). El c&oacute;digo Java no sabe si habla con Groq o Cerebras.</td>
+                            <td><span ><span>Diseñado</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>BeanOutputConverter</strong> — parseo estructurado JSON</td>
+                            <td>RF-IA-13, RF-IA-15</td>
+                            <td>Convierte la respuesta del LLM en un record ScoreIA validado con Spring Validation</td>
+                            <td>Microservicio LLM: valida y persiste el score; el core lo consume para modificar XP</td>
+                            <td><span ><span>Diseñado</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Advisors API</strong> — interceptor de pipeline</td>
+                            <td>RF-IA-20</td>
+                            <td>AntiFugaAdvisor intercepta la respuesta, verifica similitud y regenera si supera 70%</td>
+                            <td>Microservicio LLM: decide si regenerar o emitir el mensaje de contingencia</td>
+                            <td><span ><span>Diseñado</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>ChatMemory</strong> — historial conversacional</td>
+                            <td>RF-IA-02</td>
+                            <td>Gestiona cronolog&iacute;a estricta de mensajes con snapshots de c&oacute;digo y timestamps</td>
+                            <td>Microservicio LLM: persiste en JSONB; alimenta al Evaluador y auditor&iacute;a</td>
+                            <td><span ><span>Diseñado</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Embeddings + VectorStore</strong> — RAG con pgvector</td>
+                            <td>RF-IA-08</td>
+                            <td>B&uacute;squeda sem&aacute;ntica de fragmentos de apuntes del profesor para inyecci&oacute;n en prompt</td>
+                            <td>Fase 3: microservicio LLM lee de su propia BD vectorial; el core gestiona la subida de PDFs</td>
+                            <td><span ><span>Esbozo</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Function Calling</strong> — invocaci&oacute;n de herramientas</td>
+                            <td>RF-IA-05</td>
+                            <td>Habilita al PorteroService para clasificar intenci&oacute;n off-topic y al Moderador para categorizar</td>
+                            <td>Microservicio LLM: el Portero bloquea antes de gastar tokens; el Moderador clasifica y el core decide la acci&oacute;n</td>
+                            <td><span ><span>Esbozo</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Auto-config multi-proveedor</strong> — YAML-driven</td>
+                            <td>RF-IA-23, RF-IA-24, RF-IA-25, RF-IA-26, RF-IA-28</td>
+                            <td>Cascada de proveedores con fallback autom&aacute;tico; configuraci&oacute;n recargable por ADMIN</td>
+                            <td>ADMIN configura v&iacute;a UI del core (con permisos). El microservicio solo lee configuraci&oacute;n</td>
+                            <td><span ><span>Diseñado</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Structured Output</strong> — salida tipada</td>
+                            <td>RF-IA-14</td>
+                            <td>Respuesta del evaluador envuelta en XML con data-id randomizado; el modelo no interpreta la transcripci&oacute;n como instrucci&oacute;n</td>
+                            <td>Microservicio LLM: construye el prompt; el core gestiona la apelaci&oacute;n (RF-IA-18)</td>
+                            <td><span ><span>Diseñado</span></td>
+                        </tr>
+                        <tr>
+                            <td><strong>Model Context Protocol</strong> — interoperabilidad</td>
+                            <td>RF-IA-29</td>
+                            <td>Portabilidad de r&uacute;brica: el contenido es JSON versionado; solo var&iacute;a el formato de invocaci&oacute;n entre modelos</td>
+                            <td>Microservicio LLM: RubricaService lee el JSON; el formato se adapta por modelo sin cambiar el criterio</td>
+                            <td><span ><span>Esbozo</span></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout callout-danger mt-3">
+                <div class="text-[10px] font-mono text-red-400 font-bold mb-1 uppercase">Regla de Separaci&oacute;n de Responsabilidades</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">La columna "Donde vive la decisi&oacute;n de negocio" nunca puede ser el microservicio de IA. La l&oacute;gica de negocio — transiciones de estado, bloqueos sin override, economia de XP, calculo de ponderaciones — vive en el core o en FastAPI (anti-fuga determin&iacute;stico, scoring 5D, cuotas). Spring AI apenas habilita la comunicaci&oacute;n con el modelo; nunca reemplaza la toma de decisiones.</p>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 5: ARQUITECTURA HÍBRIDA TOPOLOGÍA -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="5">
+            <div class="slide-tag">Arquitectura</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Topolog&iacute;a H&iacute;brida: Java + FastAPI
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                La arquitectura es h&iacute;brida por necesidad t&eacute;cnica: Spring Boot ejecuta como sidecar orquestador en la punta de inetrconexi&oacute;n con el ecosistema Spring Cloud (Eureka, Gateway, AMQP), mientras que FastAPI en Python ejecuta el motor de IA propiamente dicho donde se requiere determinismo puro: buffer AST en streaming, sandboxing de c&oacute;digo, sanitizaci&oacute;n PII y scoring h&iacute;brido 5D. Ning&uacute;n servicio llama directamente a un proveedor LLM; todo pasa por Gateway o RabbitMQ.
+            </p>
+
+            <div class="glass-card p-3 sm:p-4 rounded-xl border border-slate-800 bg-slate-950/60 overflow-x-auto mb-3">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2 sm:gap-3 items-center min-w-[500px] sm:min-w-0">
+                    <div class="space-y-1.5">
+                        <div class="p-2 bg-slate-900 rounded border border-slate-800 text-center">
+                            <div class="text-[9px] font-mono text-cyan-400 font-bold">FRONTEND</div>
+                            <div class="text-[11px] text-slate-300">Angular/React · Editor Monaco</div>
+                        </div>
+                        <div class="text-center text-slate-500 text-[10px]">HTTPS / WSS</div>
+                        <div class="p-2 bg-blue-950/50 rounded border border-blue-500/40 text-center">
+                            <div class="text-[9px] font-mono text-blue-400 font-bold">SPRING CLOUD GATEWAY</div>
+                            <div class="text-[11px] text-white font-bold">:8080</div>
+                        </div>
+                    </div>
+                    <div class="space-y-2">
+                        <div class="p-2 bg-amber-950/40 rounded border border-amber-500/40 text-center">
+                            <div class="text-[9px] font-mono text-amber-400 font-bold">NETFLIX EUREKA</div>
+                            <div class="text-[11px] text-white font-bold">:8761 · Discovery</div>
+                        </div>
+                        <div class="p-2 bg-purple-950/40 rounded border border-purple-500/40 text-center">
+                            <div class="text-[9px] font-mono text-purple-400 font-bold">RABBITMQ BUS</div>
+                            <div class="text-[11px] text-white font-bold">:5672 · Tema 11</div>
+                        </div>
+                    </div>
+                    <div class="p-2.5 bg-indigo-950/40 rounded-xl border-2 border-indigo-500/60 space-y-1.5 shadow-lg shadow-indigo-950/50">
+                        <div class="text-[9px] font-mono text-indigo-300 font-bold text-center">POD: ms-evaluacion-llm</div>
+                        <div class="p-1.5 bg-slate-900 rounded border border-blue-500/40 text-[10px] text-blue-300">
+                            <strong>1. Spring Boot Bridge (:8081)</strong> · Spring AI 1.0.0 · Eureka Client
+                        </div>
+                        <div class="text-center text-indigo-400 text-[9px] font-mono">HTTP/2 Localhost / UDS</div>
+                        <div class="p-1.5 bg-slate-900 rounded border border-emerald-500/40 text-[10px] text-emerald-300">
+                            <strong>2. FastAPI Engine (:8082)</strong> · Python 3.12 · uvloop
+                        </div>
+                    </div>
+                    <div class="space-y-1.5">
+                        <div class="p-1.5 bg-slate-900 rounded border border-slate-700 text-[10px]">
+                            <span class="font-mono text-emerald-400 font-bold">PostgreSQL 16 + pgvector</span>
+                        </div>
+                        <div class="p-1.5 bg-slate-900 rounded border border-slate-700 text-[10px]">
+                            <span class="font-mono text-red-400 font-bold">Redis 7.2 Cluster</span>
+                        </div>
+                        <div class="p-1.5 bg-slate-900 rounded border border-indigo-500/40 text-[10px]">
+                            <span class="font-mono text-indigo-400 font-bold">LLMs Cloud (TLS 1.3)</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                <div class="glass-card p-2.5 rounded-xl border border-slate-800">
+                    <div class="text-[10px] font-mono text-blue-400 font-bold mb-1">G-1: Sin llamadas directas</div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">Todo pasa por Gateway o Bus (R-3). El microservicio nunca expone un endpoint directo al exterior.</p>
+                </div>
+                <div class="glass-card p-2.5 rounded-xl border border-slate-800">
+                    <div class="text-[10px] font-mono text-blue-400 font-bold mb-1">G-2: Base exclusiva</div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">pgvector vive en nuestra BD propia (R-4). Ning&uacute;n proveedor cloud accede a embeddings institucionales.</p>
+                </div>
+                <div class="glass-card p-2.5 rounded-xl border border-slate-800">
+                    <div class="text-[10px] font-mono text-blue-400 font-bold mb-1">G-3: Alta dinámica</div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">Eureka Client nativo (R-2). El sistema se adapta din&aacute;micamente a ca&iacute;das de nodos y cambios de escala.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 6: DIVISIÓN DE RESPONSABILIDADES -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="6">
+            <div class="slide-tag">Responsabilidades</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Divisi&oacute;n de Responsabilidades: Java vs FastAPI
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                La separaci&oacute;n entre Java y Python no es arbitraria: cada lenguaje ejecuta las tareas para las que su runtime es m&aacute;s eficiente. Java con Spring Boot gestiona la orquestaci&oacute;n de servicios, el descubrimiento, el proxying SSE y la comunicaci&oacute;n con el ecosistema Spring Cloud. Python con FastAPI ejecuta el trabajo determin&iacute;stico que requiere control fino de memoria y ejecuci&oacute;n de c&oacute;digo: parseo AST, sanitizaci&oacute;n PII, comparaci&oacute;n de similitud y scoring h&iacute;brido.
+            </p>
+
+            <div class="overflow-x-auto">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Capa</th>
+                            <th>Tecnología</th>
+                            <th>Responsabilidad</th>
+                            <th>Justificación</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>Capa Externa Sidecar</strong></td>
+                            <td><span class="pill pill-info">Java 21</span> Spring Boot 3.4 · Spring Cloud</td>
+                            <td>Eureka Client, Actuator, Proxy SSE WebFlux, Listener AMQP, configuraci&oacute;n de ChatClient por rol/proveedor, circuit breakers, rate limiting</td>
+                            <td>Spring Boot integra nativamente con Eureka, Gateway y AMQP. Spring AI 1.0.0 solo est&aacute; disponible para Java 21+. El sidecar protege al motor de IA de la exposici&oacute;n directa</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Motor de IA &amp; AST</strong></td>
+                            <td><span class="pill pill-info">Python 3.12</span> FastAPI · Uvicorn (uvloop)</td>
+                            <td>Buffer AST (<code>ast.parse</code>), Factory LLM, Scoring 5D, Streaming SSE interceptor, PII Scrubber, Anti-Crescendo Redis, rate limiting por alumno</td>
+                            <td>Python ofrece <code>ast.parse</code> nativo que Java no tiene. El buffer AST debe congelar y destruir c&oacute;digo en RAM sin fugas. uvloop provee la latencia &lt;800ms requerida para SSE en vivo</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Persistencia Forense</strong></td>
+                            <td><span class="pill pill-info">SQL / PLpgSQL</span> PostgreSQL 16 + pgvector</td>
+                            <td>Triggers de inmutabilidad sobre <code>scores_ia</code>, embeddings HNSW, tabla <code>incidentes_jailbreak</code>, golden set, calibraciones</td>
+                            <td>PostgreSQL 16 soporta JSONB, pgvector y triggers PL/pgSQL nativos. La inmutabilidad de scores se garantiza a nivel de BD, no a nivel de aplicaci&oacute;n</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Cache &amp; Concurrencia</strong></td>
+                            <td><span class="pill pill-info">Redis Commands</span> Redis 7.2 Cluster</td>
+                            <td>FinOps (cuotas 50k tokens), memoria anti-puzzle, sem&aacute;foros 25 slots, ventana deslizante 5 turnos anti-Crescendo, circuit breaker flag</td>
+                            <td>Redis maneja contadores at&oacute;micos y TTLs con rendimiento sub-milisegundo. Es el &uacute;nico componente que soporta la sem&aacute;ntica de "decidir en caliente" si un alumno excede la cuota</td>
+                        </tr>
+                        <tr>
+                            <td><strong>Sandbox Alumno</strong></td>
+                            <td><span class="pill pill-info">C / Linux Kernel</span> Docker + gVisor / nsjail</td>
+                            <td>Compilaci&oacute;n segura del c&oacute;digo del alumno; la IA solo recibe <code>stderr</code> inerte, nunca stdout ejecutable</td>
+                            <td>El sandbox a&uacute;reo aisla la compilaci&oacute;n del host. gVisor proporciona syscalls filtrados. La interfaz con Spring Boot es HTTP/2 localhost</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="callout mt-3">
+                <div class="text-[10px] font-mono text-cyan-400 font-bold mb-1 uppercase">Justificación de la separación</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">Java no ejecuta el AST porque no tiene <code>ast.parse</code> nativo y su GC no garantiza la destrucci&oacute;n inmediata de buffers de c&oacute;digo en memoria. Python no orquesta el ecosistema Spring porque no tiene clientes nativos de Eureka, RabbitMQ ni Spring AI. Cada capa corre en el lenguaje donde es natural, y se comunican por contratos HTTP/2 bien definidos.</p>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 7: FLUJOS DE COMUNICACIÓN -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="7">
+            <div class="slide-tag">Flujos</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Flujos de Comunicaci&oacute;n: SSE vs AMQP
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                Existen dos flujos de comunicaci&oacute;n inter-servicios que reflejan dos naturalezas distintas de operaci&oacute;n: el tutor socr&aacute;tico operado en streaming s&iacute;ncrono sobre SSE para latencia interactiva (&lt;800ms), y el evaluador anal&iacute;tico operado as&iacute;ncronamente sobre AMQP para procesamiento batch de alta integridad. La elecci&oacute;n de protocolo no es decorativa: determina las garant&iacute;as de entrega, la tolerancia a fallos y el modelo de responsabilidad entre microservicio y motor de desaf&iacute;os.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="glass-card p-3 sm:p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-mono text-blue-400 font-bold">1. Tutor Socrático en Streaming (SSE)</span>
+                        <span class="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono">Síncrono</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300 mb-2 leading-relaxed">El alumno escribe en el IDE Monaco y espera una respuesta en tiempo real. La respuesta debe fluir letra por letra para mantener la ilusi&oacute;n de un tutor presente.</p>
+                    <ol class="text-[11px] text-slate-300 space-y-1 font-light">
+                        <li><strong>1.</strong> Frontend llama a Gateway (:8080) <code class="text-slate-200">POST /api/v1/tutor/stream</code></li>
+                        <li><strong>2.</strong> Gateway resuelve en Eureka y rutea al Spring Sidecar (:8081)</li>
+                        <li><strong>3.</strong> Spring WebClient hace proxy a FastAPI (:8082)</li>
+                        <li><strong>4.</strong> FastAPI verifica cuota en Redis, llama al modelo (Gemini) y pasa por Buffer AST</li>
+                        <li><strong>5.</strong> Stream SSE fluye hacia Monaco Editor en vivo (&lt;800ms TTFT)</li>
+                    </ol>
+                </div>
+
+                <div class="glass-card p-3 sm:p-4 rounded-xl border border-purple-500/30 bg-purple-950/10">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-mono text-purple-400 font-bold">2. Evaluación Analítica Forense (5D)</span>
+                        <span class="text-[9px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-mono">Asíncrono</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300 mb-2 leading-relaxed">El alumno entrega el desafío y la evaluación ocurre en background. No hay interacci&oacute;n humana esperada; la integridad del score es prioritaria sobre la latencia.</p>
+                    <ol class="text-[11px] text-slate-300 space-y-1 font-light">
+                        <li><strong>1.</strong> Alumno entrega ejercicio en Motor de Desafíos</li>
+                        <li><strong>2.</strong> Motor publica en RabbitMQ: <code class="text-slate-200">student.challenge.submitted</code></li>
+                        <li><strong>3.</strong> Spring RabbitListener consume y encola en Celery Worker</li>
+                        <li><strong>4.</strong> Worker ejecuta Scoring Híbrido (código + Claude Haiku T=0)</li>
+                        <li><strong>5.</strong> Persiste en <code class="text-slate-200">scores_ia</code> y publica <code class="text-purple-300">ai.evaluation.completed</code></li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="callout callout-warning mt-3">
+                <div class="text-[10px] font-mono text-amber-400 font-bold mb-1 uppercase">Atomicidad de la Econom&iacute;a</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">Dos escritores sobre la econom&iacute;a (IA y Motor de Desaf&iacute;os) generar&iacute;an condiciones de carrera. La IA solo emite m&eacute;tricas pedag&oacute;gicas. El evento AMQP <code>ai.evaluation.completed</code> es el puente entre el mundo de la evaluaci&oacute;n y la modificaci&oacute;n de XP que realiza el Motor de Desaf&iacute;os con el factor PAR-05 (&plusmn;20%).</p>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 8: SONARQUBE RATIONALES -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="8">
+            <div class="slide-tag">Gobernanza de Código</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                SonarQube: Rationale e Integraci&oacute;n
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                SonarQube se integra como capa de gobernanza de calidad de c&oacute;digo tanto para el sidecar Java como para el motor Python. Su elecci&oacute;n obedece a tres razones: (1) es el &uacute;nico servidor de an&aacute;lisis est&aacute;tico que cubre bugs, vulnerabilidades de seguridad y code smells en un solo tool, (2) se integra nativamente con el ecosistema Maven/Java del lado Spring Boot a trav&eacute;s del <code>sonar-maven-plugin</code>, y (3) su modelo de Quality Gates permite parametrizar el pase o rechazo del pipeline seg&uacute;n umbrales de cobertura, complejidad c&iacute;clom&aacute;tica y deuda t&eacute;cnica, lo cual se alinea con la filosof&iacute;a de "contratos estrictos" del PRD.
+            </p>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                El c&oacute;digo del AntiFuga y del Buffer AST —que implementa la seguridad del sistema— debe alcanzar cobertura de tests y cero vulnerabilidades de seguridad antes de su despliegue. SonarQube convierte la pol&iacute;tica de calidad en algo medible, verificable y no negociable.
+            </p>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
+                <div class="glass-card p-3 rounded-xl border-l-2 border-blue-500">
+                    <div class="text-[10px] font-mono text-blue-400 font-bold mb-1">An&aacute;lisis Est&aacute;tico</div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">Detecci&oacute;n de bugs, security hotspots y code smells en el c&oacute;digo Java del sidecar y en el Python del motor. Identifica patrones problem&aacute;ticos antes del despliegue.</p>
+                    <span class="pill pill-info mt-1">RF-NFR</span>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="text-[10px] font-mono text-cyan-400 font-bold mb-1">Cobertura con JaCoCo</div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">Integraci&oacute;n de JaCoCo para medir cobertura de c&oacute;digo. El AntiFuga y el Buffer AST requieren cobertura m&iacute;nima para aprobar el Quality Gate.</p>
+                    <span class="pill pill-success mt-1">CI/CD</span>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-emerald-500">
+                    <div class="text-[10px] font-mono text-emerald-400 font-bold mb-1">Quality Gates</div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">Par&aacute;metros configurables: cobertura m&iacute;nima, cero vulnerabilidades cr&iacute;ticas, l&iacute;mite de deuda t&eacute;cnica. Webhook de retroalimentaci&oacute;n al pipeline.</p>
+                    <span class="pill pill-success mt-1">GRC</span>
+                </div>
+            </div>
+
+            <div class="callout callout-danger mt-3">
+                <div class="text-[10px] font-mono text-red-400 font-bold mb-1 uppercase">Alineaci&oacute;n con el PRD</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">La calidad del c&oacute;digo anti-fuga es una decisi&oacute;n de seguridad, no un adorno de ingenier&iacute;a. Si el Buffer AST tiene un bug que permite pasar c&oacute;digo con similitud &ge;70%, el sistema incumple PAR-11 y exponde a la plataforma a fuga de soluciones. SonarQube convierte esta polit&iacute;ca de seguridad en un m&iacute;nimo t&eacute;cnico verificable en cada pipeline de integraci&oacute;n continua.</p>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 9: SONARQUBE + CI/CD -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="9">
+            <div class="slide-tag">CI/CD</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Integraci&oacute;n CI/CD y Quality Gates
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                La integraci&oacute;n de SonarQube en el pipeline de CI/CD sigue un modelo de dos etapas: an&aacute;lisis est&aacute;tico con el plugin Maven y evaluaci&oacute;n de calidad con Quality Gates. El comando que ejecuta el pipeline completo incluye tanto la validaci&oacute;n de c&oacute;digo como el an&aacute;lisis de seguridad, asegurando que ninguna builds pase a entorno de staging sin haber superado los umbrales de calidad definidos por el equipo de ADMIN.
+            </p>
+
+            <pre class="text-[10px] sm:text-[11px] p-3 rounded mb-3"><code>mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
+  -Dsonar.projectKey=llm-service \
+  -Dsonar.host.url=https://sonarqube.utn.edu.ar \
+  -Dsonar.login=${SONAR_TOKEN} \
+  -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
+  -Dsonar.qualitygate.wait=true</code></pre>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
+                <div class="glass-card p-3 rounded-xl border border-slate-800">
+                    <div class="text-[10px] font-mono text-blue-400 font-bold mb-2">Pipeline: Java Sidecar (Spring Boot)</div>
+                    <ol class="text-[11px] text-slate-300 space-y-1.5 font-light">
+                        <li><strong>1. Compile</strong> — Java 21 + Maven verifica que el c&oacute;digo compila sin warnings.</li>
+                        <li><strong>2. Test + JaCoCo</strong> — Ejecuta tests de unidad; genera reporte de cobertura.</li>
+                        <li><strong>3. SonarQube Scan</strong> — Analiza bugs, security hotspots y code smells.</li>
+                        <li><strong>4. Quality Gate</strong> — Verifica cobertura m&iacute;nima y cero vulnerabilidades cr&iacute;ticas.</li>
+                        <li><strong>5. Publish</strong> — Publica el artifact y el dashboard de calidad.</li>
+                    </ol>
+                </div>
+                <div class="glass-card p-3 rounded-xl border border-slate-800">
+                    <div class="text-[10px] font-mono text-emerald-400 font-bold mb-2">Pipeline: Python FastAPI</div>
+                    <ol class="text-[11px] text-slate-300 space-y-1.5 font-light">
+                        <li><strong>1. Lint</strong> — Ruff verifica estilo y reglas de formato; black formatea.</li>
+                        <li><strong>2. pytest</strong> — Ejecuta tests unitarios y de integraci&oacute;n con cobertura.</li>
+                        <li><strong>3. SonarQube Scan</strong> — Analiza complejidad c&iacute;clom&aacute;tica y duplicaci&oacute;n.</li>
+                        <li><strong>4. Quality Gate</strong> — Verifica cobertura m&iacute;nima y cero issues cr&iacute;ticos.</li>
+                        <li><strong>5. Publish</strong> — Publica el artifact Docker y el dashboard de calidad.</li>
+                    </ol>
+                </div>
+            </div>
+
+            <div class="callout mt-3">
+                <div class="text-[10px] font-mono text-cyan-400 font-bold mb-1 uppercase">Nota de Calidad</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">El par&aacute;metro <code>-Dsonar.qualitygate.wait=true</code> hace que el pipeline se bloquee si el Quality Gate no se cumple, sin necesidad de intervención manual. Cualquier PR que no pase el Quality Gate se marca como fallida y el equipo de ADMIN recibe notificaci&oacute;n con el detalle de las l&iacute;neas que incumplen los umbrales definidos. El anti-fuga y el buffer AST son c&oacute;digo cr&iacute;tico: su coverage m&iacute;nimo es del 90% y su nivel de severidad de seguridad es "Blocker".</p>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 10: ALINEACIÓN CON PRD / ADR -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="10">
+            <div class="slide-tag">Trazabilidad</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Alineaci&oacute;n con PRD y Decisiones de Arquitectura
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                Esta matriz consolida el trazado completo de cada requerimiento RF-IA-01 a RF-IA-36 contra el componente responsable dentro de la arquitectura h&iacute;brida. Cada fila identifica qu&eacute; parte del sistema ejecuta la l&oacute;gica, qu&eacute; tan validado est&aacute; el dise&ntilde;o y qu&eacute; fase del proyecto corresponde. La matriz sirve como contrato entre el equipo de IA y el equipo de negocio: si un requerimiento no tiene componente asignado o est&aacute; en "Esbozo", significa que falta dise&ntilde;o de detalle correspondiente a Fase 2 o Fase 3.
+            </p>
+
+            <div class="overflow-x-auto mb-3">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>RF-IA</th>
+                            <th>Descripción</th>
+                            <th>Componente responsable</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>RF-IA-01</td><td>Asistencia en desaf&iacute;os pr&aacute;cticos</td><td>Java: TutorController + TutorService</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-02</td><td>Registro absoluto de interacciones</td><td>Java: <code>InteraccionPayload</code> record + JSONB</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-03</td><td>Integración con evaluación académica</td><td>Java: ScoreIA → core modifica XP (PAR-05)</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-04</td><td>Prohibición de entregar soluciones</td><td>Java: System prompt condicionado por riesgo</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-05</td><td>Filtro de intención y off-topic</td><td>Python: PorteroService + Gemini Flash</td><td><span ><span>Esbozo</span></td></tr>
+                        <tr><td>RF-IA-06</td><td>Contexto pedagógico restringido</td><td>Java: Metadatos inyectados en system prompt</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-08</td><td>RAG para inyección de conocimiento</td><td>Python: pgvector + VectorStore (Fase 3)</td><td><span ><span>Esbozo</span></td></tr>
+                        <tr><td>RF-IA-10</td><td>Bloqueo silencioso y registro auditor</td><td>Java: PorteroService + <code>incidentes_ia</code></td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-12</td><td>Separación absoluta Tutor/Evaluador</td><td>Java: Dos servicios invocaciones separadas</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-13</td><td>Rúbrica fija con anclas Few-Shot</td><td>Java: JSON en BD + <code>BeanOutputConverter</code></td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-14</td><td>Anti-manipulación (prompt injection)</td><td>Java: XML delimitación + data-id randomizado</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-15</td><td>Pesos fijos y no configurables</td><td>Java: 30/25/20/15/10 — <code>BeanOutputConverter</code></td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-16</td><td>Transparencia hacia el alumno</td><td>Java: DTO <code>DesgloseScore</code></td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-17</td><td>Auditoría y supervisión humana</td><td>Java: <code>nivelConfianza</code> + muestreo PAR-10</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-19</td><td>Clasificación por riesgo de fuga</td><td>Java: Enum <code>NivelRiesgo</code> + system prompt</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-20</td><td>Salvaguarda técnica anti-fuga</td><td>Java: <code>AntiFugaService</code> + <code>AntiFugaAdvisor</code></td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-22</td><td>Límites de uso por usuario</td><td>Java: Bucket4j por <code>alumnoId:desafioId</code></td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-23</td><td>Mapeo estricto 1-to-1 rol-modelo</td><td>Java: YAML por rol + <code>LlmProperties</code></td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-24</td><td>Configuración solo ADMIN</td><td>Java: UI del core con permisos ADMIN</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-25</td><td>Exclusividad unitaria del Evaluador</td><td>Java: <code>EvaluadorUnicoValidator</code> fail-fast</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-27</td><td>Tolerancia absoluta a fallos</td><td>Java: <code>EvaluacionDiferidaService</code> + cola</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-29</td><td>Portabilidad de la rúbrica</td><td>Java: JSON en BD + <code>RubricaService</code></td><td><span ><span>Esbozo</span></td></tr>
+                        <tr><td>RF-IA-30</td><td>Golden set en dos niveles</td><td>Java: Tabla <code>golden_set_items</code></td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-31</td><td>Habilitación por calibración</td><td>Java: <code>CalibracionService</code> PAR-14</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-32</td><td>Detección de deriva (drift)</td><td>Java: <code>DriftJob</code> mensual con CRON</td><td><span ><span>Esbozo</span></td></tr>
+                        <tr><td>RF-IA-36</td><td>Calibración bloqueante sin override</td><td>Core: consulta estado + bloquea transición</td><td><span ><span>Diseñado</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3">
+                <div class="glass-card p-2.5 rounded-xl border border-slate-800">
+                    <div class="text-[10px] font-mono text-blue-400 font-bold mb-1">ADR-008: Mínima Exposición</div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">La solución oficial nunca entra al prompt del tutor. Ningún exploit dentro de un PDF puede exfiltrar lo que no existe en la memoria de contexto.</p>
+                </div>
+                <div class="glass-card p-2.5 rounded-xl border border-slate-800">
+                    <div class="text-[10px] font-mono text-emerald-400 font-bold mb-1">ADR-016: Mínimo Privilegio</div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">Los agentes de IA no ejecutan shell ni tienen acceso a BD de usuarios. Aunque un atacante logre jailbreak, el blast radius está contenido.</p>
+                </div>
+            </div>
+
+            <div class="callout callout-danger mt-2">
+                <div class="text-[10px] font-mono text-red-400 font-bold mb-1 uppercase">Regla Fundamental de Responsabilidad</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">El microservicio de IA <strong>informa</strong> y <strong>ejecuta inferencia</strong>. El core <strong>consume datos</strong> y <strong>toma decisiones de negocio</strong>. La calibraci&oacute;n de RF-IA-36 es bloqueante sin override: el core consulta el estado del microservicio y bloquea la transición draft→activo si no está aprobada. Ni el ADMIN puede autorizar el arranque con el set base como reemplazo.</p>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 11: RIESGOS Y MITIGACIONES -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="11">
+            <div class="slide-tag">Riesgos</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Riesgos y Mitigaciones
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                Todo sistema que depende de modelos fundacionales y proveedores cloud externos introduce riesgos operativos, de calidad y de seguridad que deben gestionarse proactivamente. A continuaci&oacute;n se detallan los cuatro riesgos principales del proyecto, su probabilidad de ocurrencia, su impacto potencial sobre la plataforma y la mitigaci&oacute;n correspondiente basada en los mecanismos de resiliencia y gobernanza ya definidos en la arquitectura.
+            </p>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
+                <div class="glass-card p-3 rounded-xl border-l-2 border-rose-500">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[11px] font-mono text-rose-400 font-bold">Riesgo: Falla de proveedor LLM</span>
+                        <span class="pill pill-danger">Alto</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300 mb-1 leading-relaxed">Uno o m&aacute;s proveedores cloud (Groq, Cerebras, Gemini) quedan indisponibles durante un horario de alta demanda.</p>
+                    <p class="text-[10px] text-slate-400 mb-1"><strong>Probabilidad:</strong> Media · <strong>Impacto:</strong> Alto</p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed"><strong>Mitigación:</strong> Cascada de proveedores con fallback autom&aacute;tico (RF-IA-27). Si el proveedor primario falla, se intenta el siguiente. Si todos fallan: el tutor responde sin asistencia (factor IA = 1.0 neutro) y la evaluaci&oacute;n queda en cola diferida.</p>
+                </div>
+
+                <div class="glass-card p-3 rounded-xl border-l-2 border-amber-500">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[11px] font-mono text-amber-400 font-bold">Riesgo: Drift del evaluador</span>
+                        <span class="pill pill-warning">Medio</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300 mb-1 leading-relaxed">El proveedor cloud actualiza silenciosamente los pesos de su modelo. Un LLM que hoy califica con 80 podr&iacute;a ma&ntilde;ana calificar con 65 la misma entrega.</p>
+                    <p class="text-[10px] text-slate-400 mb-1"><strong>Probabilidad:</strong> Media · <strong>Impacto:</strong> Alto</p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed"><strong>Mitigación:</strong> <code>DriftJob</code> mensual (Celery Beat) que re-eval&iacute;a el golden set y calcula el MAE. Si MAE > 5.0 (PAR-14), activa bandera de emergencia en Redis y bloquea evaluaciones con HTTP 503.</p>
+                </div>
+
+                <div class="glass-card p-3 rounded-xl border-l-2 border-rose-500">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[11px] font-mono text-rose-400 font-bold">Riesgo: Fuga de código</span>
+                        <span class="pill pill-danger">Alto</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300 mb-1 leading-relaxed">El tutor genera c&oacute;digo con similitud &ge;70% contra la soluci&oacute;n esperada, violando PAR-11 y entregando la soluci&oacute;n al alumno.</p>
+                    <p class="text-[10px] text-slate-400 mb-1"><strong>Probabilidad:</strong> Baja · <strong>Impacto:</strong> Crítico</p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed"><strong>Mitigación:</strong> Triple defensa: (1) System prompt condicionado por riesgo, (2) <code>AntiFugaService</code> con Levenshtein + comparación AST, (3) <code>AntiFugaAdvisor</code> que intercepta y regenera hasta 2 reintentos. Es red de seguridad determinística.</p>
+                </div>
+
+                <div class="glass-card p-3 rounded-xl border-l-2 border-amber-500">
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-[11px] font-mono text-amber-400 font-bold">Riesgo: Calibración no aprobada</span>
+                        <span class="pill pill-warning">Medio</span>
+                    </div>
+                    <p class="text-[11px] text-slate-300 mb-1 leading-relaxed">El docente no produce el golden set de su curso o la calibración no pasa PAR-14 antes de la fecha de inicio.</p>
+                    <p class="text-[10px] text-slate-400 mb-1"><strong>Probabilidad:</strong> Media · <strong>Impacto:</strong> Alto</p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed"><strong>Mitigación:</strong> CRON del core que revisa cursos en draft pr&oacute;ximos a iniciar sin calibraci&oacute;n y dispara notificaciones (RF-NOT-02) con una semana de margen. Sin override: el curso no se activa sin calibraci&oacute;n aprobada (RF-IA-36).</p>
+                </div>
+            </div>
+
+            <div class="callout callout-danger mt-3">
+                <div class="text-[10px] font-mono text-red-400 font-bold mb-1 uppercase">Plan de Contingencia</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">Si el evaluador est&aacute; ca&iacute;do: se acepta la entrega, se otorga XP base y el ID de sesi&oacute;n entra en <code>evaluaciones_pendientes</code>. El job procesa la cola cada 60 segundos con backoff impl&iacute;cito. Si despu&eacute;s de 5 intentos sigue fallando, se marca como error. El score diferido se aplica antes del cierre del curso; si el cierre ya ocurri&oacute;, el sistema responde 409 Conflict. La IA es un amplificador, no el motor core: el motor core es la evaluaci&oacute;n t&eacute;cnica del c&oacute;digo.</p>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 12: MATRIZ DE REQUERIMIENTOS PRD -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="12">
+            <div class="slide-tag">PRD</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Matriz de Requerimientos: RF-IA-01 a RF-IA-36
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                El requerimiento funcional de IA del PRD (RF-IA-01 a RF-IA-36) constituye el ancla del presente documento t&eacute;cnico. Cada requerimiento se traza a su soluci&oacute;n propuesta dentro de la arquitectura h&iacute;brida, indicando qu&eacute; componente lo ejecuta, qu&eacute; tan validado est&aacute; el dise&ntilde;o y qu&eacute; fase del proyecto corresponde. Los estados <span ><span>Diseñado</span>, <span ><span>Esbozo</span> y <span ><span>Fase 3</span> permiten al equipo de negocio identificar inmediatamente qu&eacute; requerimientos requieren dise&ntilde;o de detalle adicional antes de la implementaci&oacute;n.
+            </p>
+
+            <div class="overflow-x-auto" style="max-height: 520px; overflow-y: auto;">
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>RF-IA</th>
+                            <th>Requerimiento</th>
+                            <th>Solución propuesta</th>
+                            <th>Componente</th>
+                            <th>Estado</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>RF-IA-01</td><td>Asistencia en desafíos prácticos</td><td>Endpoint <code>POST /api/v1/tutor/consultar</code> con contexto por request</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-02</td><td>Registro absoluto de interacciones</td><td>Tabla <code>interacciones_ia</code> JSONB + record inmutable</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-03</td><td>Integración con evaluación académica</td><td>ScoreIA → core aplica factor PAR-05 (±20% XP)</td><td>Java + Core</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-04</td><td>Prohibición de entregar soluciones</td><td>System prompt condicionado por nivel de riesgo</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-05</td><td>Filtro de intención y off-topic</td><td>PorteroService con modelo barato (Gemini Flash)</td><td>Python</td><td><span ><span>Esbozo</span></td></tr>
+                        <tr><td>RF-IA-06</td><td>Contexto pedagógico restringido</td><td>Metadatos inyectados en system prompt</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-07</td><td>Medidas anti-jailbreak</td><td>Instrucciones de máxima prioridad al final del prompt</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-08</td><td>RAG para inyección de conocimiento</td><td>pgvector + VectorStore; chunking, embeddings, búsqueda semántica</td><td>Python</td><td><span ><span>Fase 3</span></td></tr>
+                        <tr><td>RF-IA-09</td><td>Score de IA como modificador de XP</td><td>Factor IA = 1 + ((score-50)/50) × 0.20</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-10</td><td>Bloqueo silencioso y registro auditor</td><td>Mensaje genérico + tabla <code>incidentes_ia</code></td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-11</td><td>Agnosticismo de proveedor</td><td>ChatClient con configuración YAML multi-proveedor</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-12</td><td>Separación absoluta Tutor/Evaluador</td><td>Dos servicios independientes; Evaluador offline</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-13</td><td>Rúbrica fija con anclas Few-Shot</td><td>JSON en BD + <code>BeanOutputConverter</code></td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-14</td><td>Anti-manipulación (evaluación)</td><td>XML delimitación + data-id randomizado por invocación</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-15</td><td>Pesos fijos y no configurables</td><td>30/25/20/15/10 — nueva versión = nueva rúbrica</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-16</td><td>Transparencia hacia el alumno</td><td>DTO <code>DesgloseScore</code> sin prompt interno</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-17</td><td>Auditoría y supervisión humana</td><td><code>nivelConfianza</code> + muestreo PAR-10 + P90</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-18</td><td>Apelación guiada por alumno</td><td>Override auditado en <code>override_log</code> (sin UPDATE)</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-19</td><td>Clasificación por riesgo de fuga</td><td>Enum <code>NivelRiesgo</code> + system prompt diferenciado</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-20</td><td>Salvaguarda técnica anti-fuga</td><td><code>AntiFugaService</code>: Levenshtein + AST + 2 reintentos</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-21</td><td>Configuración global del riesgo</td><td>Tabla <code>tipos_desafio</code> con <code>nivel_riesgo_ia</code> ADMIN only</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-22</td><td>Límites de uso por usuario</td><td>Bucket4j por <code>alumnoId:desafioId</code></td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-23</td><td>Mapeo estricto 1-to-1 rol-modelo</td><td>YAML por rol + <code>LlmProperties</code></td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-24</td><td>Configuración solo ADMIN</td><td>UI del core con permisos ADMIN; microservicio solo lee</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-25</td><td>Exclusividad unitaria del Evaluador</td><td><code>EvaluadorUnicoValidator</code> fail-fast</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-26</td><td>Multimodelo para roles operativos</td><td>Cascada con pool de modelos para Tutor/Portero/Mod/Gen</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-27</td><td>Tolerancia absoluta a fallos</td><td>Cascada + factor neutro + <code>EvaluacionDiferidaService</code></td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-28</td><td>Cambio en caliente de proveedores</td><td>Configuración externa recargable + calibración previa</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-29</td><td>Portabilidad de la rúbrica</td><td>JSON versiónado; solo varía formato de invocación</td><td>Java</td><td><span ><span>Esbozo</span></td></tr>
+                        <tr><td>RF-IA-30</td><td>Golden set en dos niveles</td><td>Tabla <code>golden_set_items</code> (plataforma + curso)</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-31</td><td>Habilitación por calibración</td><td><code>CalibracionService</code> con PAR-14 (±5, ±10)</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-32</td><td>Detección de deriva (drift)</td><td><code>DriftJob</code> mensual + alerta ADMIN</td><td>Java</td><td><span ><span>Esbozo</span></td></tr>
+                        <tr><td>RF-IA-33</td><td>Señalización de cohortes mixtas</td><td><code>model_id</code>, <code>model_version</code>, <code>rubric_version</code> en ScoreIA</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-34</td><td>Bloqueo de cierre por pendientes</td><td><code>GET /api/v1/evaluaciones-pendientes?cursoId=X</code> → 409 si n>0</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-35</td><td>Soberanía del ADMIN sobre proveedores</td><td>Tabla <code>auditoria_proveedores</code> con trazabilidad completa</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-36</td><td>Calibración bloqueante sin override</td><td>Core consulta estado y bloquea draft→activo (RF-CUR-08b)</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+
+
+    
+        <!-- ========================================================================= -->
+        <!-- SLIDE 13: RESPONSABILIDADES DE PYTHON / FASTAPI -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="13">
+            <div class="slide-tag">Motor de IA</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Responsabilidades de Python / FastAPI
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                El motor de IA en Python ejecuta el trabajo determin&iacute;stico que requiere control fino de memoria y ejecuci&oacute;n de c&oacute;digo. Cada responsabilidad est&aacute; aislada en un m&oacute;dulo independiente con contratos HTTP/2 claros. FastAPI con uvloop provee la latencia &lt;800ms requerida para SSE en vivo mientras gestiona el parseo AST, la sanitizaci&oacute;n PII, el anti-fuga y el scoring h&iacute;brido.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="zap" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">1. FastAPI + uvloop</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Runtime as&iacute;ncrono de alto rendimiento. FastAPI con uvloop provee latencia &lt;800ms para SSE en vivo, manejando miles de conexiones concurrentes sin bloqueo.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="code-2" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">2. Buffer AST (ast.parse)</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Parseo seguro del c&oacute;digo del alumno. <code>ast.parse</code> congela el AST en memoria, lo analiza sin ejecutarlo, y lo destruye inmediatamente tras el scoring. Java no tiene equivalente nativo.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="shield-check" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">3. Harmlessness Screen (Pydantic v2)</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Filtro de seguridad con validaci&oacute;n de esquemas. Pydantic v2 valida cada payload contra esquemas restrictivos, bloqueando inyecci&oacute;n de prompt y payloads malformados antes de llegar al modelo.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="eye-off" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">4. PII Scrubber</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Sanitizaci&oacute;n de datos personales. Elimina nombres, DNI, emails y ubicaciones del contenido del alumno antes de enviarlo al LLM usando regex y NLUs ligeros.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="xml" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">5. XML Delimitaci&oacute;n</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Escape y delimitaci&oacute;n de contenido. Envuelve el c&oacute;digo del alumno entre delimitadores XML <code>&lt;code&gt;</code> para que el LLM lo trate como datos, no como instrucci&oacute;n.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="lock" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">6. Redis Anti-Crescendo</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Control de momentum anti-puzzle. Ventana deslizante de 5 turnos con sem&aacute;foro de 25 slots en Redis. Bloquea intentos de consulta r&aacute;pida consecutivos que superen el umbral.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="scale" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">7. Scoring 5D H&iacute;brido</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Combinaci&oacute;n regla + modelo. Scoring con reglas deterministas (completitud XML, longitud) y modelo LLM (coherencia, profundidad). Pesos calibrados con Golden Set.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="workers" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">8. Celery Workers</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Procesamiento as&iacute;ncrono de evaluaciones. Workers Celery con broker Redis para batch processing y retry autom&aacute;tico sin bloquear el endpoint principal.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="gauge" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">9. Rate Limiting + FinOps</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Control de costos por cuota. Bucket4j por alumno:desafioId con l&iacute;mite de 50k tokens. Redis maneja contadores at&oacute;micos y TTLs. FinOps monitorea gasto por proveedor LLM.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
+                    <div class="flex items-center gap-2 mb-1">
+                        <i data-lucide="factory" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">10. Factory LLM</span>
+                    </div>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Abstracci&oacute;n de proveedor. Factor&iacute;a que encapsula ChatClient de Spring AI. Permite cambiar entre Gemini Flash, GPT-4o, Claude sin modificar l&oacute;gica de negocio. Fallback autom&aacute;tico.</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ========================================================================= -->
+        <!-- SLIDE 14: DIAGRAMAS DE FLUJO DE INTEGRACI&Oacute;N -->
+        <!-- ========================================================================= -->
+        <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="14">
+            <div class="slide-tag">Arquitectura</div>
+            <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
+                Diagramas de Flujo de Integraci&oacute;n
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-300 mb-3">
+                Cuatro flujos principales que ilustran la arquitectura h&iacute;brida Java + FastAPI. Cada diagrama muestra el recorrido completo de los datos desde el origen hasta el destino, pasando por las responsabilidades de cada servicio. Los ejemplos concretos ayudan a visualizar el comportamiento real del sistema.
+            </p>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                <div class="glass-card p-3 sm:p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-mono text-blue-400 font-bold">1. Tutor Socr&aacute;tico (SSE)</span>
+                        <span class="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono">S&iacute;ncrono &lt;800ms</span>
+                    </div>
+                    <ol class="text-[10px] text-slate-300 space-y-1 font-light leading-relaxed">
+                        <li><strong class="text-white">Alumno</strong> escribe pregunta en IDE Monaco</li>
+                        <li><strong class="text-white">Spring Boot</strong> valida sesi&oacute;n y publica a RabbitMQ</li>
+                        <li><strong class="text-white">FastAPI</strong> consume &rarr; Buffer AST parsea &rarr; PII Scrubber sanitiza</li>
+                        <li><strong class="text-white">LLM</strong> genera respuesta token por token</li>
+                        <li><strong class="text-white">SSE stream</strong> devuelve respuesta al IDE en vivo</li>
+                    </ol>
+                    <div class="callout mt-2">
+                        <p class="text-[10px] text-slate-300"><strong class="text-cyan-400">Ejemplo:</strong> "C&oacute;mo funciona PAR-10?" &rarr; flujo SSE de 3 tokens a &lt;100ms con streaming letra por letra.</p>
+                    </div>
+                </div>
+                <div class="glass-card p-3 sm:p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-mono text-amber-400 font-bold">2. Evaluaci&oacute;n 5D (AMQP)</span>
+                        <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono">As&iacute;ncrono Batch</span>
+                    </div>
+                    <ol class="text-[10px] text-slate-300 space-y-1 font-light leading-relaxed">
+                        <li><strong class="text-white">Sistema</strong> cierra desaf&iacute;o y genera golden set</li>
+                        <li><strong class="text-white">Evaluador</strong> consume cola AMQP &rarr; Buffer AST valida c&oacute;digo</li>
+                        <li><strong class="text-white">Anti-Fuga</strong> bloquea soluciones duplicadas</li>
+                        <li><strong class="text-white">Scoring 5D</strong> ejecuta evaluaci&oacute;n con 5 dimensiones</li>
+                        <li><strong class="text-white">Resultado</strong> se escribe en core &rarr; SonarQube analiza</li>
+                    </ol>
+                    <div class="callout mt-2">
+                        <p class="text-[10px] text-slate-300"><strong class="text-amber-400">Ejemplo:</strong> Cierre de examen con 30 alumnos &rarr; evaluaci&oacute;n batch as&iacute;ncrona, 5 dimensiones (completitud, seguridad, c&oacute;digo, dise&ntilde;o, innovaci&oacute;n).</p>
+                    </div>
+                </div>
+                <div class="glass-card p-3 sm:p-4 rounded-xl border border-rose-500/30 bg-rose-950/10">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-mono text-rose-400 font-bold">3. Anti-Fuga (Buffer AST)</span>
+                        <span class="text-[9px] bg-rose-500/20 text-rose-300 px-1.5 py-0.5 rounded font-mono">Seguridad</span>
+                    </div>
+                    <ol class="text-[10px] text-slate-300 space-y-1 font-light leading-relaxed">
+                        <li><strong class="text-white">C&oacute;digo alumno</strong> entra al buffer AST</li>
+                        <li><strong class="text-white">ast.parse()</strong> analiza el &aacute;rbol sint&aacute;ctico</li>
+                        <li><strong class="text-white">Detector</strong> identifica patrones de fuga</li>
+                        <li><strong class="text-white">Escape XML</strong> delimitaci&oacute;n de contenido</li>
+                        <li><strong class="text-white">Respuesta gen&eacute;rica</strong> al alumno sin exposici&oacute;n</li>
+                    </ol>
+                    <div class="callout mt-2">
+                        <p class="text-[10px] text-slate-300"><strong class="text-rose-400">Ejemplo:</strong> Alumno inyecta "IGNORA instrucciones" &rarr; AST detecta patr&oacute;n &rarr; respuesta: "No puedo ayudarte con eso".</p>
+                    </div>
+                </div>
+                <div class="glass-card p-3 sm:p-4 rounded-xl border border-emerald-500/30 bg-emerald-950/10">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-mono text-emerald-400 font-bold">4. Calibraci&oacute;n Golden Set</span>
+                        <span class="text-[9px] bg-emerald-500/20 text-emerald-300 px-1.5 py-0.5 rounded font-mono">Admin</span>
+                    </div>
+                    <ol class="text-[10px] text-slate-300 space-y-1 font-light leading-relaxed">
+                        <li><strong class="text-white">ADMIN</strong> carga golden set (20 items)</li>
+                        <li><strong class="text-white">Evaluador</strong> ejecuta scoring contra respuestas esperadas</li>
+                        <li><strong class="text-white">DRIFT</strong> calcula desviaci&oacute;n porcentual</li>
+                        <li><strong class="text-white">PAR-14</strong> verifica tolerancia &plusmn;5%</li>
+                        <li><strong class="text-white">Alerta</strong> a ADMIN si excede &rarr; recalibraci&oacute;n autom&aacute;tica</li>
+                    </ol>
+                    <div class="callout mt-2">
+                        <p class="text-[10px] text-slate-300"><strong class="text-emerald-400">Ejemplo:</strong> Golden set 20 items &rarr; 18 correctos (90%) &rarr; dentro de tolerancia. Si 15 correctos (75%) &rarr; alerta de deriva.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- Progress Bar -->
+    <div class="progress-bar no-print">
+        <div class="progress-fill" id="progressFill"></div>
+    </div>
+
+    <!-- Presentation Navigation Script -->
+    <script>
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const totalSlides = slides.length;
+        const slideCounter = document.getElementById('current-slide-num');
+        const progressFill = document.getElementById('progressFill');
+        const progressBar = document.getElementById('progress-bar');
+
+        function showSlide(index) {
+            slides.forEach((s, i) => {
+                s.classList.remove('active');
+                if (i === index) {
+                    s.classList.add('active');
+                }
+            });
+            currentSlide = index;
+            slideCounter.textContent = String(index + 1).padStart(2, '0');
+            progressFill.style.width = `${((index + 1) / totalSlides) * 100}%`;
+            progressBar.style.width = `${((index + 1) / totalSlides) * 100}%`;
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides - 1) {
+                showSlide(currentSlide + 1);
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 0) {
+                showSlide(currentSlide - 1);
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'Enter') {
+                nextSlide();
+            } else if (e.key === 'ArrowLeft') {
+                prevSlide();
+            }
+        });
+
+        // Touch/swipe support
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        document.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        });
+
+        document.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        });
+
+        function handleSwipe() {
+            const threshold = 50;
+            if (touchEndX < touchStartX - threshold) {
+                nextSlide();
+            } else if (touchEndX > touchStartX + threshold) {
+                prevSlide();
+            }
+        }
+
+        // Initialize
+        showSlide(0);
+        lucide.createIcons();
+    </script>
+</body>
+</html>
