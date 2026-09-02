@@ -58,16 +58,16 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 
 ## Lo demás que hay en el repositorio
 
-| Carpeta | Qué hay adentro |
-|---|---|
-| **[`docs-extendidos/`](docs-extendidos/)** | 25 documentos que llegaron de la rama `doc-tpi-unificada`: especificación técnica, nueve planes de ejecución e investigación sobre jailbreak. Material de profundización, no de trabajo diario |
-| **[`codigo-ejemplo/`](codigo-ejemplo/)** | Los dos proyectos Java: [`ms-evaluacion-llm/`](codigo-ejemplo/ms-evaluacion-llm/), el esqueleto del servicio real, y [`demo-llm-spring-ai/`](codigo-ejemplo/demo-llm-spring-ai/), una demo funcional de tutor socrático con Spring AI |
-| **[`presentaciones/`](presentaciones/)** | La presentación de defensa (43 slides) y el PRD como wiki navegable |
-| **[`tools/`](tools/)** | El gate de calidad (`qa/`) y el panel que muestra sus corridas en vivo (`ci-front/`). Documentados en [16](docs/16-pipeline-y-verificaciones.md) |
+| Carpeta | Quién lo hizo | Qué hay adentro |
+|---|---|---|
+| **[`docs-extendidos/`](docs-extendidos/)** | `Brf93` (`421562`) | 25 documentos: especificación técnica, nueve planes de ejecución e investigación sobre jailbreak. Material de profundización, no de trabajo diario |
+| **[`codigo-ejemplo/`](codigo-ejemplo/)** | una carpeta por autor | [`ms-evaluacion-llm/`](codigo-ejemplo/ms-evaluacion-llm/), el esqueleto del servicio real, del equipo · [`lara-heredia-demo-llm-spring-ai/`](codigo-ejemplo/lara-heredia-demo-llm-spring-ai/), la demo de tutor con Spring AI, de Lara Heredia |
+| **[`presentaciones/`](presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` | La presentación de defensa (43 slides) y el PRD como wiki navegable |
+| **[`tools/`](tools/)** | `facundosoria` | El gate de calidad (`qa/`) y el panel que muestra sus corridas en vivo (`ci-front/`). Documentados en [16](docs/16-pipeline-y-verificaciones.md) |
 
 > ### Sobre el material que vino de otras ramas
 >
-> `docs-extendidos/` y `codigo-ejemplo/demo-llm-spring-ai/` se importaron **sin tocar
+> `docs-extendidos/` y `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` se importaron **sin tocar
 > una sola línea**: cada archivo es byte a byte idéntico a su rama de origen. Lo que
 > había que corregir está anotado, no aplicado, en el `CORRECCIONES-SUGERIDAS.md` de
 > cada carpeta. **Hay una API key de Groq versionada en la demo que necesita rotarse**
@@ -169,12 +169,19 @@ Detalle y recomendación de cada uno en [08 · Decisiones y pendientes](docs/08-
 
 Cuatro ramas consolidadas en una sola estructura:
 
-| Rama | Qué aportó |
-|---|---|
-| `main` | La base de los quince documentos originales |
-| `feat/qa-gate` | Los documentos evolucionados (01 a 16), el gate de calidad, el front del CI y el esqueleto del microservicio |
-| `lara` | La demo funcional de Spring AI, y dos de las presentaciones |
-| `doc-tpi-unificada` | Los 25 documentos de `docs-extendidos/` y la presentación que quedó como base del deck |
+| Rama | Autor | Qué aportó |
+|---|---|---|
+| `main` | — | La base de los quince documentos originales |
+| `feat/qa-gate` | `facundosoria` | Los documentos evolucionados (01 a 16), el gate de calidad, el front del CI y el esqueleto del microservicio |
+| `lara` | `412181-HerediaLara` | La demo funcional de Spring AI, y dos de las presentaciones |
+| `doc-tpi-unificada` | `Brf93` (`421562`) | Los 25 documentos de `docs-extendidos/` y la presentación que quedó como base del deck |
+
+La autoría de cualquier archivo sale del historial, que es la fuente que no se
+desactualiza:
+
+```bash
+git log --format='%an  %ad  %s' --date=short -- <ruta>
+```
 
 Donde el mismo documento existía dos veces, **quedó la versión más nueva**. Quince
 archivos de `doc-tpi-unificada` eran copias byte a byte de versiones anteriores de

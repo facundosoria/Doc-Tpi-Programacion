@@ -1,4 +1,4 @@
-# Correcciones sugeridas — `demo-llm-spring-ai`
+# Correcciones sugeridas — `lara-heredia-demo-llm-spring-ai`
 
 El código de esta demo llegó desde la rama `lara` y **se importó sin tocar una sola
 línea**: cada archivo es byte a byte idéntico al original. Lo que sigue son
@@ -9,7 +9,7 @@ haga quien es dueño del código.
 
 ## 🔴 1. Hay una API key de Groq hardcodeada en el repositorio
 
-**Archivo:** `demo-llm-spring-ai/BE/src/main/resources/application.properties`, línea 9.
+**Archivo:** `lara-heredia-demo-llm-spring-ai/BE/src/main/resources/application.properties`, línea 9.
 
 ```properties
 spring.ai.openai.api-key=gsk_ffHA4AZs...   # key real, completa, en texto plano
@@ -33,7 +33,7 @@ obligatorio, no opcional** — es el único paso que la invalida de verdad.
 
    ```bash
    export GROQ_API_KEY="la-nueva-key"
-   cd codigo-ejemplo/demo-llm-spring-ai/BE && ./mvnw spring-boot:run
+   cd codigo-ejemplo/lara-heredia-demo-llm-spring-ai/BE && ./mvnw spring-boot:run
    ```
 
    El comentario que ya está arriba de esa línea explica justamente esto, así que el

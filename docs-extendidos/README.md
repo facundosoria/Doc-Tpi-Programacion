@@ -4,6 +4,13 @@ Material que llegó desde la rama `doc-tpi-unificada` y que **no está cubierto*
 los documentos de [`docs/`](../docs/). Se conserva tal como fue escrito, con su
 estilo y su numeración propia.
 
+**Autor:** `Brf93` (`421562@tecnicatura.frc.utn.edu.ar`). Los 25 documentos son suyos
+y entraron sin modificar. La autoría de cualquiera de ellos sale del historial:
+
+```bash
+git log --format='%an  %ad  %s' --date=short -- docs-extendidos/
+```
+
 > **Qué NO está acá:** los quince documentos de esa rama que eran copias exactas de
 > las versiones viejas de `docs/01` a `docs/15`. Los de [`docs/`](../docs/) son
 > posteriores y los reemplazan. Descartarlos fue la única forma de que no existan

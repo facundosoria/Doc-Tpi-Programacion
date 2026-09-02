@@ -3,10 +3,21 @@
 Dos proyectos Java distintos, con propósitos distintos. Van separados a propósito:
 no comparten `pom.xml`, ni paquete, ni ciclo de vida.
 
-| Carpeta | Qué es | Estado |
-|---|---|---|
-| [`ms-evaluacion-llm/`](ms-evaluacion-llm/) | El **esqueleto del microservicio real** del Tema 07 | Compila, testea y lo verifica el gate de calidad |
-| [`demo-llm-spring-ai/`](demo-llm-spring-ai/) | Una **demo funcional** de tutor socrático con Spring AI + Groq | Anda de punta a punta, pero es material de exploración |
+| Carpeta | Quién lo hizo | Qué es | Estado |
+|---|---|---|---|
+| [`ms-evaluacion-llm/`](ms-evaluacion-llm/) | **El equipo** · `facundosoria`, en `feat/qa-gate` | El **esqueleto del microservicio real** del Tema 07 | Compila, testea y lo verifica el gate de calidad |
+| [`lara-heredia-demo-llm-spring-ai/`](lara-heredia-demo-llm-spring-ai/) | **Lara Heredia** · `412181-HerediaLara`, en la rama `lara` | Una **demo funcional** de tutor socrático con Spring AI + Groq | Anda de punta a punta, pero es material de exploración |
+
+**La carpeta lleva el nombre de quien la escribió** cuando el proyecto es de una
+persona. `ms-evaluacion-llm/` no: es el entregable del equipo de seis y su nombre es
+el del servicio, el mismo que usan los documentos y el `docker` tag. Ponerle el
+nombre de una persona diría algo que no es cierto.
+
+La autoría sale del historial, no de la memoria de nadie:
+
+```bash
+git log --format='%an  %ad  %s' --date=short -- codigo-ejemplo/lara-heredia-demo-llm-spring-ai
+```
 
 ## `ms-evaluacion-llm/`
 
@@ -20,7 +31,7 @@ gate de calidad tenga sobre qué correr desde el día uno.
 
 Contexto de diseño: [`docs/02 · Arquitectura y stack`](../docs/02-arquitectura-y-stack.md).
 
-## `demo-llm-spring-ai/`
+## `lara-heredia-demo-llm-spring-ai/`
 
 Prueba de concepto del tutor socrático: Spring Boot con Spring AI apuntando a Groq
 por su API compatible con OpenAI, H2 en memoria para las conversaciones, y Swagger
@@ -40,7 +51,7 @@ proyecto grande encima.
 Para correrla:
 
 ```bash
-cd codigo-ejemplo/demo-llm-spring-ai/BE && ./mvnw spring-boot:run
+cd codigo-ejemplo/lara-heredia-demo-llm-spring-ai/BE && ./mvnw spring-boot:run
 ```
 
 Documentación propia de la demo, dentro de `BE/`:

@@ -192,3 +192,7 @@ readiness
 liveness
 TLS
 SHA
+
+# Apellidos del equipo. Las carpetas de codigo-ejemplo/ llevan el nombre de quien
+# las escribio, asi que los apellidos aparecen en rutas y en el README.
+Heredia
