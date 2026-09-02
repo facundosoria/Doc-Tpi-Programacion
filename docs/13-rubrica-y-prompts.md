@@ -337,7 +337,7 @@ Lo que eso elimina:
 
 **Lo que sí sigue existiendo es el contrato de salida:** `categorias[]`, `severidad`
 (baja/media/alta), `confianza` y `origen` — formalizado en
-[`contracts/moderacion-v1.yaml`](../ms-evaluacion-llm/src/main/resources/contracts/moderacion-v1.yaml)
+[`contracts/moderacion-v1.yaml`](../codigo-ejemplo/ms-evaluacion-llm/src/main/resources/contracts/moderacion-v1.yaml)
 y con su schema en `schemas/moderacion.json` (E-06). El diseño completo está en
 [04](04-funciones-de-ia.md) §2.
 

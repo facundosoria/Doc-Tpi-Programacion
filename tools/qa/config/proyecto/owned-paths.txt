@@ -6,7 +6,7 @@
 
 docs/**
 *.md
-ms-evaluacion-llm/**
+codigo-ejemplo/ms-evaluacion-llm/**
 tools/qa/**
 tools/ci-front/**
 

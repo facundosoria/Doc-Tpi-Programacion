@@ -44,7 +44,7 @@ ORDEN = [
     "cobertura",
 ]
 
-PROYECTO_JAVA = "ms-evaluacion-llm"
+PROYECTO_JAVA = "codigo-ejemplo/ms-evaluacion-llm"
 
 
 def emitir(evento):

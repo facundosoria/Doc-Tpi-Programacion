@@ -147,7 +147,7 @@ tests/             fixtures y afirmaciones
 ```
 
 Está escrito **autocontenido**: sin rutas absolutas, y sin que el código sepa que
-existen `docs/` o `ms-evaluacion-llm/` (eso vive en la config). Si algún día otro
+existen `docs/` o `codigo-ejemplo/ms-evaluacion-llm/` (eso vive en la config). Si algún día otro
 equipo lo necesita, extraerlo es mover la carpeta.
 
 ## Alcance: solo lo que tu cambio rompe

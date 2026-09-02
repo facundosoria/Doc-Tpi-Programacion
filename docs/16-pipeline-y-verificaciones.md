@@ -1130,7 +1130,7 @@ exactamente la razón por la que existe `--remoto`.
 ## Los archivos que hay que editar
 
 **1. `owned-paths.txt`, prefijando cada ruta con la carpeta del equipo.** Hoy dice
-`docs/**`, `ms-evaluacion-llm/**`, `tools/qa/**` y `tools/ci-front/**`, que son rutas
+`docs/**`, `codigo-ejemplo/ms-evaluacion-llm/**`, `tools/qa/**` y `tools/ci-front/**`, que son rutas
 de raíz. Todo lo que no matchee ahí se cae del alcance, así que los archivos de los
 otros equipos se ignoran solos: **el mecanismo ya está, solo hay que apuntarlo.**
 
