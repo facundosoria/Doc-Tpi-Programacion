@@ -12,10 +12,9 @@
 Los seis son un archivo HTML solo: no necesitan servidor ni compilación, se abren con
 doble clic.
 
-**Tres de los seis abren sin internet**: el mapa, la guía y el informe cargan sus
-librerías desde [`vendor/`](vendor/), que está versionado acá al lado. Los otros tres
-—las dos presentaciones y el PRD-wiki— todavía bajan Tailwind, lucide y Mermaid de un
-CDN: **sin red pierden estilo e íconos**, aunque el texto se lee.
+**Las seis abren sin internet.** Cargan sus librerías desde [`vendor/`](vendor/), que
+está versionado acá al lado, y usan tipografías del sistema. Si movés esa carpeta, las
+seis pierden el estilo: las rutas son relativas a `presentaciones/`.
 
 ## Las tres nuevas venían de otra rama, y ya están alineadas
 

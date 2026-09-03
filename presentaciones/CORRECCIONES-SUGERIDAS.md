@@ -127,22 +127,27 @@ el botón *«Ver en GitHub»* apuntaba a `doc-tpi-unificada`.
 **Aplicado:** los 93 `repoPath` apuntan a rutas que existen en `main`, y el botón
 también. Se verificó archivo por archivo que los 25 destinos distintos existen.
 
-## 8 · Los tres abren sin internet
+## 8 · Abren sin internet — y ya no sólo estas tres
 
 Los tres bajaban Tailwind y tipografías de un CDN; el informe además bajaba `marked`
 —sin el cual quedaba **la página en blanco**, porque todo su texto vive en una variable
 de JavaScript—, el mapa `lucide` y la guía Font Awesome.
 
-**Aplicado:** las librerías viven en [`vendor/`](vendor/) y los tres las cargan por ruta
-relativa. Las tipografías pasaron a un stack del sistema en vez de bajarse de Google
-Fonts. **Los tres abren con doble clic, sin red.**
+**Aplicado:** las librerías viven en [`vendor/`](vendor/) y se cargan por ruta relativa.
+Las tipografías pasaron a un stack del sistema en vez de bajarse de Google Fonts.
+**Se extendió a las seis presentaciones**, no sólo a estas tres: el deck de defensa, la
+presentación de integración y el PRD-wiki tenían el mismo problema.
 
-| Archivo | Qué se guardó |
+| Archivo | Quién lo usa |
 |---|---|
-| `vendor/tailwind-play-3.4.16.js` | Tailwind, versión fijada |
-| `vendor/marked.min.js` | marked 12.0.2 — sólo lo usa el informe |
-| `vendor/lucide.min.js` | lucide 0.469.0 — sólo lo usa el mapa |
-| `vendor/font-awesome/` | Font Awesome 6.5.1, CSS y woff2 — sólo lo usa la guía |
+| `vendor/tailwind-play-3.4.16.js` | las seis |
+| `vendor/lucide.min.js` (0.469.0) | las cinco que tienen íconos |
+| `vendor/marked.min.js` (12.0.2) | el informe |
+| `vendor/font-awesome/` (6.5.1, CSS y woff2) | la guía |
+
+> **Mermaid se sacó del todo.** Tres archivos lo cargaban —3,3 MB— y **ninguno de los
+> seis dibuja un solo diagrama**: sólo llamaban a `mermaid.initialize()` sobre una
+> página sin diagramas. Se fue la librería y se fueron las llamadas.
 
 ---
 
