@@ -4,12 +4,12 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>PRD · Sección IA — Referencia Wiki</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <!-- Servidos desde el repo: el documento abre sin internet -->
+  <script src="vendor/tailwind-play-3.4.16.js"></script>
   <style>
     :root { --sidebar-w: 300px; }
     html { scroll-behavior: smooth; }
-    body { background: #0f1117; color: #e2e8f0; font-family: 'Inter', system-ui, sans-serif; }
+    body { background: #0f1117; color: #e2e8f0; font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; }
     #sidebar {
       position: fixed; top: 0; left: 0; height: 100vh;
       width: var(--sidebar-w); background: #161b27; border-right: 1px solid #1e2740;
@@ -793,21 +793,6 @@
 </main>
 
 <script>
-  mermaid.initialize({
-    startOnLoad: true,
-    theme: 'dark',
-    themeVariables: {
-      primaryColor: '#1e3a5f', primaryTextColor: '#e2e8f0',
-      primaryBorderColor: '#3b82f6', lineColor: '#475569',
-      secondaryColor: '#0f172a', tertiaryColor: '#161b27',
-      background: '#0f1117', mainBkg: '#0f1117',
-      nodeBorder: '#3b82f6', clusterBkg: '#0f172a',
-      titleColor: '#e2e8f0', edgeLabelBackground: '#1e2740',
-    },
-    flowchart: { curve: 'basis', useMaxWidth: true },
-    pie: { useMaxWidth: true }
-  });
-
   function saveNote(id, value) {
     localStorage.setItem('wiki_note_' + id, value);
   }

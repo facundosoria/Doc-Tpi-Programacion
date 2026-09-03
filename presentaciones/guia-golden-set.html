@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Guía Integral: El Golden Set en el TPI — Programación IV</title>
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="vendor/tailwind-play-3.4.16.js"></script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -32,18 +32,15 @@
       }
     }
   </script>
-  <!-- Google Fonts & FontAwesome -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Tipografias del sistema; Font Awesome servido desde el repo -->
+  <link rel="stylesheet" href="vendor/font-awesome/css/all.min.css">
 
   <style>
     body {
-      font-family: 'Plus Jakarta Sans', sans-serif;
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
     }
     code, pre, .font-mono {
-      font-family: 'JetBrains Mono', monospace;
+      font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas, 'Liberation Mono', monospace;
     }
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
@@ -557,7 +554,7 @@ Unidad 2 (Acumulativa): Base de Datos con PostgreSQL y ORM. Se exige aplicar mod
                     <span class="text-[10px] font-mono text-emerald-400">Unidad 1</span>
                   </div>
                   <div class="p-2 rounded bg-slate-950 text-[11px] text-slate-300 font-mono h-16 overflow-y-auto">
-                    Alumno: "Probé el endpoint con Swagger y da 422. Revisé el schema Pydantic y falta el campo 'email'..."
+                    Alumno: "Probé el endpoint con Swagger y da 400. Revisé el DTO y le falta el @NotBlank en el campo 'email'..."
                   </div>
                   <div class="text-[11px] text-slate-400 space-y-0.5">
                     <div class="flex justify-between"><span>Autonomía: <strong class="text-emerald-400">85</strong></span> <span>Claridad: <strong class="text-emerald-400">90</strong></span></div>
@@ -906,8 +903,8 @@ Unidad 2 (Acumulativa): Base de Datos con PostgreSQL y ORM. Se exige aplicar mod
               </tr>
               <tr class="hover:bg-slate-900/40 transition-colors">
                 <td class="py-3 px-4 font-semibold text-white flex items-center gap-2">
-                  <i class="fa-solid fa-moon text-amber-400"></i>
-                  Monitoreo de Deriva (Drift Nocturno)
+                  <i class="fa-solid fa-calendar-check text-amber-400"></i>
+                  Monitoreo de Deriva (mensual, PAR-15)
                 </td>
                 <td class="py-3 px-4 text-center">
                   <span class="px-2 py-0.5 rounded bg-emerald-950 border border-emerald-500/30 text-emerald-400 font-bold">SÍ</span>
@@ -916,7 +913,7 @@ Unidad 2 (Acumulativa): Base de Datos con PostgreSQL y ORM. Se exige aplicar mod
                   <span class="px-2 py-0.5 rounded bg-amber-950/80 border border-amber-500/30 text-amber-300 font-mono text-[10px] font-bold">VITAL LLMOps</span>
                 </td>
                 <td class="py-3 px-4 text-slate-300">
-                  <strong class="text-indigo-300">RF-IA-32:</strong> Tarea con <code>@Scheduled</code> de Spring Boot a las 03:00 AM re-evalúa el Golden Set. Si el proveedor cambió pesos y el MAE supera ±5.0 pts, acciona el Circuit Breaker (HTTP 503).
+                  <strong class="text-indigo-300">RF-IA-32:</strong> Tarea con <code>@Scheduled</code> de Spring Boot que re-evalúa el Golden Set <strong>una vez por mes (PAR-15)</strong>, y además ante cualquier cambio de versión del proveedor. Si el MAE supera ±5.0 pts, acciona el Circuit Breaker (HTTP 503).
                 </td>
               </tr>
               <tr class="hover:bg-slate-900/40 transition-colors">
@@ -998,7 +995,7 @@ Unidad 2 (Acumulativa): Base de Datos con PostgreSQL y ORM. Se exige aplicar mod
           <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
             <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
               <div class="font-bold text-indigo-400">1. Inferencia Determinística</div>
-              <p class="text-slate-400">Invocación del LLM a ciegas con Temperatura = 0.0, Top-P = 0.0 y Seed = 42. Validación Pydantic v2.</p>
+              <p class="text-slate-400">Invocación del LLM a ciegas con Temperatura = 0.0, Top-P = 0.0 y Seed = 42. Validación con Bean Validation (jakarta.validation).</p>
             </div>
             <div class="p-3.5 rounded-xl bg-slate-900 border border-slate-800 space-y-1">
               <div class="font-bold text-cyan-400">2. Fórmulas Matemáticas</div>
@@ -1061,11 +1058,11 @@ Unidad 2 (Acumulativa): Base de Datos con PostgreSQL y ORM. Se exige aplicar mod
             </div>
             <div class="p-4 rounded-xl bg-slate-900 border border-amber-500/30 space-y-3">
               <div class="flex items-center justify-between">
-                <span class="text-xs font-bold text-amber-300">5. Cron Nocturno (03:00 AM)</span>
+                <span class="text-xs font-bold text-amber-300">5. Corrida mensual (PAR-15)</span>
                 <span class="font-mono text-[10px] text-slate-400">Spring @Scheduled</span>
               </div>
               <p class="text-xs text-slate-300 leading-relaxed">
-                Todas las noches a las 03:00 AM se evalúa automáticamente el Golden Set activo con el job <code>DriftJob</code>.
+                Una vez por mes se evalúa automáticamente el Golden Set activo con el job <code>DriftJob</code>, y también cada vez que el proveedor cambia la versión del modelo.
               </p>
               <div class="p-3 rounded-lg bg-amber-950/40 border border-amber-500/20 text-[11px] text-amber-200">
                 <strong>Detección de Deriva (Drift):</strong> Si el proveedor actualizó los pesos y el MAE supera ±5.0 pts, acciona el Circuit Breaker (HTTP 503) para proteger a los alumnos.
@@ -1126,7 +1123,7 @@ Unidad 2 (Acumulativa): Base de Datos con PostgreSQL y ORM. Se exige aplicar mod
                 <strong>Se REUTILIZA exactamente el set congelado.</strong>
               </p>
               <p class="text-slate-400 text-[11px] leading-relaxed">
-                Tanto para activar el curso como en el cron de las 03:00 AM, la prueba debe ser constante para poder comparar con rigor.
+                Tanto para activar el curso como en la corrida mensual, la prueba debe ser constante para poder comparar con rigor.
               </p>
             </div>
 
@@ -1247,7 +1244,7 @@ Unidad 2 (Acumulativa): Base de Datos con PostgreSQL y ORM. Se exige aplicar mod
             </p>
             <ul class="text-xs text-slate-400 space-y-1.5 list-disc list-inside">
               <li>Vive en la tabla <code>parametros_sistema</code> de la base de datos.</li>
-              <li>Se modifica mediante <code>PUT /api/v1/admin/parametros/PAR-14</code>.</li>
+              <li>Se modifica mediante <code>PUT /ai/admin/parametros/PAR-14</code>.</li>
               <li>Registra log inmutable en <code>auditoria_parametros_log</code> (quién, cuándo y motivo).</li>
             </ul>
           </div>
@@ -1349,7 +1346,7 @@ CREATE TABLE auditoria_parametros_log (
           <div class="glass-panel p-6 rounded-2xl border-slate-800 space-y-3">
             <div class="flex items-center gap-3">
               <span class="w-7 h-7 rounded-full bg-indigo-500/20 text-indigo-400 font-mono font-bold flex items-center justify-center text-xs">P1</span>
-              <h4 class="text-base font-bold text-white">Fase 1: Modelo de Datos en PostgreSQL (DDL & SQLAlchemy)</h4>
+              <h4 class="text-base font-bold text-white">Fase 1: Modelo de Datos en PostgreSQL (DDL & JPA/Hibernate)</h4>
             </div>
             <p class="text-xs text-slate-300 leading-relaxed">
               Creamos la tabla <code>golden_set_items</code> con soporte JSONB para guardar la transcripción completa (mensajes, código y telemetría de IDE) y el desglose de notas humanas esperadas.
@@ -1557,7 +1554,7 @@ public class CursoController {
               ¿Qué pasa si Anthropic o Google actualizan el modelo a mitad de cursada?
             </h4>
             <p class="text-xs text-slate-300 leading-relaxed">
-              <strong>Respuesta:</strong> El cron nocturno de las 03:00 AM (RF-IA-32) detecta la deriva (<em>Model Drift</em>). Si el MAE supera los 5 puntos de PAR-14, activa un flag en Redis y el servicio responde HTTP 503 impidiendo que se emitan notas alteradas hasta que la cátedra revise el prompt o actualice los pesos.
+              <strong>Respuesta:</strong> La corrida mensual del Golden Set (RF-IA-32, PAR-15) detecta la deriva (<em>Model Drift</em>). Si el MAE supera los 5 puntos de PAR-14, activa un flag en Redis y el servicio responde HTTP 503 impidiendo que se emitan notas alteradas hasta que la cátedra revise el prompt o actualice los pesos.
             </p>
           </div>
 
@@ -1702,7 +1699,7 @@ public class CursoController {
             <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-1.5">
               <div class="font-bold text-rose-300">Circuit Breaker (Cortacircuito)</div>
               <p class="text-slate-400 leading-relaxed">
-                Mecanismo de seguridad que bloquea la emisión de notas con HTTP 503 si el cron nocturno detecta que el desvío MAE superó la tolerancia.
+                Mecanismo de seguridad que bloquea la emisión de notas con HTTP 503 si la corrida de deriva detecta que el desvío MAE superó la tolerancia.
               </p>
             </div>
 

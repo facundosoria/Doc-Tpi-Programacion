@@ -4,12 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
     <title>Arquitectura de Integración, Roles y Contratos Inter-Servicios — TPI UTN FRC</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Lucide Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-    <!-- Mermaid.js -->
-    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+    <!-- Servidos desde el repo: la presentacion abre sin internet -->
+    <script src="vendor/tailwind-play-3.4.16.js"></script>
+    <script src="vendor/lucide.min.js"></script>
 
     <script>
         tailwind.config = {
@@ -50,7 +47,6 @@
         }
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
 
         * { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -59,7 +55,7 @@
             height: 100dvh;
             background-color: #080c16;
             color: #f1f5f9;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             overflow: hidden;
         }
 
@@ -118,7 +114,7 @@
         }
 
         pre code {
-            font-family: 'JetBrains Mono', monospace;
+            font-family: 'JetBrains Mono', ui-monospace, 'Cascadia Mono', 'Segoe UI Mono', Consolas, 'Liberation Mono', monospace;
             font-size: 0.82rem;
         }
 
@@ -1238,13 +1234,10 @@
             }
         });
 
-        // Initialize Lucide icons and Mermaid
+        // Initialize Lucide icons
         document.addEventListener('DOMContentLoaded', () => {
             if (window.lucide) {
                 lucide.createIcons();
-            }
-            if (window.mermaid) {
-                mermaid.initialize({ startOnLoad: true, theme: 'dark' });
             }
             updateSlideUI();
         });
