@@ -5,34 +5,38 @@
 | [`defensa-43-slides.html`](defensa-43-slides.html) | **La presentación de defensa.** 43 slides | Se abre en el navegador. `←` `→` para navegar, `O` para el índice, `F` para pantalla completa | ✅ Sí |
 | [`presentacion-integracion-servicios.html`](presentacion-integracion-servicios.html) | **Integración y contratos inter-servicios.** 17 slides | Se abre en el navegador. Teclado (`←`/`→`/`Espacio`), touch, selector directo de slide | ✅ Sí |
 | [`prd-wiki-consulta.html`](prd-wiki-consulta.html) | El PRD, sección IA, como wiki navegable | Documento de consulta con barra lateral. **No es una presentación** | ✅ Sí |
-| [`mapa-conceptual-interactivo.html`](mapa-conceptual-interactivo.html) | Los 36 requerimientos de IA como mapa navegable, con matriz de trazabilidad, ADR, defensa oral, planes y seguridad | Seis solapas arriba. Cada requerimiento se abre y muestra rol, componente, regla y mapeo externo | ⚠️ **Parcial** |
-| [`guia-golden-set.html`](guia-golden-set.html) | El golden set explicado entero: qué es, cómo se opera, DDL, runner y Q&A de cátedra | Documento largo con índice lateral. **No es una presentación** | ⚠️ **Parcial** |
-| [`informe-gestion-modelos.html`](informe-gestion-modelos.html) | Proveedores, costos, seguridad y local contra cloud, con calculadora de 5 intensidades | Documento con índice y botón de imprimir a PDF | ⚠️ **Parcial** |
+| [`mapa-conceptual-interactivo.html`](mapa-conceptual-interactivo.html) | Los 36 requerimientos de IA como mapa navegable, con matriz de trazabilidad, ADR, defensa oral, planes y seguridad | Seis solapas arriba. Cada requerimiento se abre y muestra rol, componente, regla y mapeo externo | ✅ Sí |
+| [`guia-golden-set.html`](guia-golden-set.html) | El golden set explicado entero: qué es, cómo se opera, DDL, runner y Q&A de cátedra | Documento largo con índice lateral. **No es una presentación** | ✅ Sí |
+| [`informe-gestion-modelos.html`](informe-gestion-modelos.html) | Proveedores, costos, seguridad y local contra cloud, con calculadora de 5 intensidades | Documento con índice y botón de imprimir a PDF | ✅ Sí |
 
 Los seis son un archivo HTML solo: no necesitan servidor ni compilación, se abren con
-doble clic. Lo que sí necesitan es **internet**: cinco de los seis bajan Tailwind y
-las tipografías de un CDN, y `informe-gestion-modelos.html` baja además la librería que
-renderiza todo su texto — **sin red no muestra nada**. El detalle, y qué hacer si el
-aula no tiene wifi, está en [`CORRECCIONES-SUGERIDAS.md`](CORRECCIONES-SUGERIDAS.md) §8.
+doble clic.
 
-## Las tres nuevas están construidas sobre otra rama
+**Tres de los seis abren sin internet**: el mapa, la guía y el informe cargan sus
+librerías desde [`vendor/`](vendor/), que está versionado acá al lado. Los otros tres
+—las dos presentaciones y el PRD-wiki— todavía bajan Tailwind, lucide y Mermaid de un
+CDN: **sin red pierden estilo e íconos**, aunque el texto se lee.
+
+## Las tres nuevas venían de otra rama, y ya están alineadas
 
 `mapa-conceptual-interactivo.html`, `guia-golden-set.html` e
 `informe-gestion-modelos.html` se armaron contra `doc-tpi-unificada` —la rama que se
-importó en [`docs/importado/`](../docs/importado/)—, no contra `docs/`. Entraron **sin
-tocar una sola línea**, igual que ese material.
+importó en [`docs/importado/`](../docs/importado/)—, no contra `docs/`. Eso las dejaba
+desalineadas en ocho puntos: el registro de ADR, el ADR-005 viejo con FastAPI, los
+endpoints, la frecuencia de la detección de deriva, el costo total, el catálogo de
+modelos, los enlaces al repositorio y la dependencia del CDN.
 
-**El núcleo normativo coincide:** los 36 RF-IA, los pesos 30/25/20/15/10, PAR-14 con
-±5 y ±10, el muestreo del 10 %, el golden set en dos niveles y los cinco costos
-unitarios por función están todos iguales que en `docs/`.
+**Los ocho están corregidos**, y con ellos apareció un noveno que no estaba en la lista:
+el mapa no funcionaba —un error de sintaxis en JavaScript lo dejaba en blanco—.
 
-**Lo que se corrió es la capa de ingeniería:** el registro de ADR, la arquitectura
-(traen el ADR-005 viejo, con FastAPI), los endpoints, la frecuencia de la detección de
-deriva y el costo total del cuatrimestre.
+**El núcleo normativo ya coincidía y no se tocó:** los 36 RF-IA, los pesos
+30/25/20/15/10, PAR-14 con ±5 y ±10, el muestreo del 10 %, el golden set en dos niveles
+y los cinco costos unitarios por función.
 
-👉 **Las ocho diferencias, con qué manda en cada una, están en
-[`CORRECCIONES-SUGERIDAS.md`](CORRECCIONES-SUGERIDAS.md).** Leelo antes de proyectar
-cualquiera de las tres.
+👉 **El registro de qué se cambió en cada una está en
+[`CORRECCIONES-SUGERIDAS.md`](CORRECCIONES-SUGERIDAS.md).** A diferencia del resto del
+material importado, estas tres **ya no son byte a byte idénticas a su rama de origen**:
+se privilegió que digan lo mismo que `docs/`.
 
 ## Qué se unificó
 

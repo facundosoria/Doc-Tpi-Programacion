@@ -32,6 +32,34 @@ de modelo y varias además mejoran la calidad.**
 | **Generador** | Gemini 3.5 Flash-Lite + Batch | USD 0,00083 | Hay revisión humana obligatoria |
 | **Corrector** | Claude Haiku 4.5 + Batch | USD 0,002 | Es una nota, sin gate de calibración |
 
+### El supuesto que más mueve este número: cuántos tokens pesa un prompt
+
+Todo el rango de arriba sale de contar el texto del alumno. **Pero el prompt del alumno nunca se
+envía solo.** El informe de gestión de modelos —[`presentaciones/informe-gestion-modelos.html`](../presentaciones/informe-gestion-modelos.html)—
+desarma el payload real de una consulta al tutor y le encuentra cuatro capas:
+
+| Capa | Tokens |
+|---|---|
+| Consulta cruda del alumno + su código | ~350 |
+| System prompt pedagógico y directivas anti-fuga (RF-IA-04) | +450 |
+| Delimitadores XML y guardarraíles anti-jailbreak (`<untrusted_student_input>`) | +150 |
+| Contexto del desafío, rúbrica 5D y RAG | +600 |
+| **Total de entrada por llamada** | **~1.550** |
+
+Son **4,4 veces** el texto crudo. Con esa hipótesis y el mismo volumen —5 consultas de tutor por
+alumno por semana, 120 alumnos—, el informe ubica el escenario realista en **USD 62 a 118 al año**,
+contra los **USD 5 a 22 por cuatrimestre** de acá arriba.
+
+**Las dos cuentas no se contradicen: parten de payloads distintos.** Y el informe agrega el dato que
+salva la diferencia: el sobrecosto neto de la seguridad no es del 400 % sino del **20 al 25 %**,
+porque el 80 % de ese payload es idéntico entre alumnos de la misma cohorte y entra por **prompt
+caching** con 75-90 % de descuento, y porque el filtro local de la capa 1 descarta los ataques
+burdos sin llamar a la API.
+
+> **Qué falta para cerrarlo:** medir el payload real cuando el servicio corra. Si son 1.550 tokens y
+> no 350, el rango de esta sección queda corto y hay que rehacer el ADR-010 con el número medido en
+> vez del estimado. Está anotado en [08](08-decisiones-y-pendientes.md), en el propio ADR-010.
+
 ## 2. Catálogo de modelos
 
 ### Precios (USD por millón de tokens)
@@ -39,7 +67,7 @@ de modelo y varias además mejoran la calidad.**
 | Modelo | Input | Output | Contexto | Nota |
 |---|---|---|---|---|
 | **GPT-5 nano** | 0,05 | 0,40 | — | El más barato del mercado |
-| **Gemini 3.5 Flash-Lite** | 0,15 | 1,25 | 1M | El caballo de batalla |
+| **Gemini 3.5 Flash-Lite** | 0,15 | 1,25 | 1M | El caballo de batalla. ⚠️ Dos fuentes externas discrepan: `0,15 / 1,25` contra `0,30 / 2,50`. Confirmar en la consola de Google antes de fijarlo |
 | **DeepSeek V4-Flash** | 0,22 | 0,66 | — | Off-peak. Cache hit: 0,007 |
 | **Gemini 3.1 Flash-Lite** | 0,25 | 1,50 | 1M | |
 | **DeepSeek V4-Pro** | 0,66 | 1,98 | — | Off-peak |

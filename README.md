@@ -72,10 +72,14 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 
 > ### Sobre el material que vino de otras ramas
 >
-> `docs/importado/`, `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` y los tres HTML nuevos de
-> `presentaciones/` se importaron **sin tocar una sola línea**: cada archivo es byte a byte
-> idéntico a su rama de origen. Lo que había que corregir está anotado, no aplicado, en el
-> `CORRECCIONES-SUGERIDAS.md` de cada carpeta. **Hay una API key de Groq versionada en la demo que
+> `docs/importado/` y `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` se importaron **sin tocar
+> una sola línea**: cada archivo es byte a byte idéntico a su rama de origen, y lo que había que
+> corregir está anotado, no aplicado, en el `CORRECCIONES-SUGERIDAS.md` de cada carpeta.
+>
+> **Los tres HTML nuevos de `presentaciones/` son la excepción:** venían desalineados con `docs/` en
+> ocho puntos —ADR, ADR-005 con FastAPI, endpoints, deriva, costos, catálogo de modelos, enlaces y
+> dependencia del CDN— y se corrigieron. El detalle está en
+> [`presentaciones/CORRECCIONES-SUGERIDAS.md`](presentaciones/CORRECCIONES-SUGERIDAS.md). **Hay una API key de Groq versionada en la demo que
 > necesita rotarse** — el detalle está en
 > [`codigo-ejemplo/CORRECCIONES-SUGERIDAS.md`](codigo-ejemplo/CORRECCIONES-SUGERIDAS.md).
 >

@@ -1494,7 +1494,7 @@
                         Payload: Inyección que intenta forzar ejecución de código en la máquina anfitriona.
                     </div>
                     <div class="text-[10px] text-emerald-400">
-                        🛡️ <strong>Defensa:</strong> ADR-016 (Mínimo Privilegio: la IA no ejecuta) + Sandbox Docker aislado con gVisor.
+                        🛡️ <strong>Defensa:</strong> mínimo privilegio —la IA no ejecuta— + Sandbox Docker aislado con gVisor.
                     </div>
                 </div>
             </div>
@@ -2524,7 +2524,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                     <p class="text-[11px] text-slate-300 leading-relaxed">La solución oficial nunca entra al prompt del tutor. Ningún exploit dentro de un PDF puede exfiltrar lo que no existe en la memoria de contexto.</p>
                 </div>
                 <div class="glass-card p-2.5 rounded-xl border border-slate-800">
-                    <div class="text-[10px] font-mono text-emerald-400 font-bold mb-1">ADR-016: Mínimo Privilegio</div>
+                    <div class="text-[10px] font-mono text-emerald-400 font-bold mb-1">Principio: mínimo privilegio</div>
                     <p class="text-[11px] text-slate-300 leading-relaxed">Los agentes de IA no ejecutan shell ni tienen acceso a BD de usuarios. Aunque un atacante logre jailbreak, el blast radius está contenido.</p>
                 </div>
             </div>

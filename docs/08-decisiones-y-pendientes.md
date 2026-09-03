@@ -171,7 +171,9 @@ barata compran la única cosa que el PRD marca como bloqueante del arranque del 
 
 **Se revisa si:** (a) un modelo se retira — hay dos con fecha anunciada; (b) la calibración de PAR-14
 falla con Haiku 4.5 → subir a Sonnet 5; (c) GPT-5 nano supera las pruebas de jailbreak → bajar el
-tutor y ahorrar USD 7.
+tutor y ahorrar USD 7; (d) **el payload real medido se acerca a los 1.550 tokens** en vez de los ~350
+del texto crudo — la hipótesis está desarrollada en [03](03-modelos-costos-y-contexto.md) §1, y de
+confirmarse este escenario hay que rehacerlo con el número medido.
 
 📄 [03](03-modelos-costos-y-contexto.md)
 
