@@ -113,8 +113,12 @@ flowchart TB
 
 | Camino | Optimiza | Sacrifica | Modelos | Timeout |
 |---|---|---|---|---|
-| Sincrónico | Latencia percibida | Costo por token, calidad | Haiku 4.5, nano, Flash-Lite | 10-20 s |
-| Asincrónico | Costo (-50%) y calidad | Latencia (minutos) | Sonnet 5 con Batch | Minutos, con reintentos |
+| Sincrónico | Latencia percibida | Costo por token, calidad | Flash-Lite en el tutor; el moderador no usa LLM (ADR-012) | 10-20 s |
+| Asincrónico | Costo (-50%) y calidad | Latencia (minutos) | Haiku 4.5 en evaluador y corrector, Flash-Lite en generador — los tres con Batch | Minutos, con reintentos |
+
+> **Sonnet 5 no es el modelo del camino asincrónico, es la escalada.** Solo se sube ahí si la
+> calibración contra PAR-14 falla con Haiku 4.5 — es la cláusula (b) de ADR-010. La asignación
+> vigente por función está en [03](03-modelos-costos-y-contexto.md) §1.
 
 ### Los tres beneficios que salen del mismo corte
 
@@ -373,10 +377,15 @@ arrancó a las 10:00 hace esperar a 30 correcciones de alumnos que están mirand
 | Prioridad | Trabajo | Por qué |
 |---|---|---|
 | **1 — Alta** | Corrección de una entrega recién hecha | **El alumno está esperando su nota.** Es la única cola con alguien mirando |
-| **2 — Media** | Evaluación de uso de IA | RF-IA-27 permite explícitamente diferirla. Nadie espera en pantalla |
-| **3 — Media-alta** | Evaluación de un curso próximo a cerrar | RF-IA-34 bloquea el cierre con pendientes. Se prioriza por **fecha de cierre**, no por antigüedad |
-| **4 — Baja** | Generación de parciales | El profesor sabe que tarda y no está mirando |
+| **2 — Media-alta** | Evaluación de un curso próximo a cerrar | RF-IA-34 bloquea el cierre con pendientes. Se prioriza por **fecha de cierre**, no por antigüedad |
+| **3 — Media** | Evaluación de uso de IA | RF-IA-27 permite explícitamente diferirla. Nadie espera en pantalla |
+| **4 — Baja** | Generación de parciales · ingesta de material de un curso | El profesor sabe que tarda y no está mirando |
 | **5 — Fondo** | Recalibración y detección de deriva | Programarla **fuera de horario pico**. No compite con nadie |
+
+> **El número es la prioridad efectiva.** Antes esta tabla listaba «3 — Media-alta» por debajo de
+> «2 — Media», con lo cual el nombre y el orden decían cosas distintas. La **ingesta** también entra
+> acá: es un trabajo encolado más (`POST /ai/ingesta` devuelve 202) y hasta ahora no figuraba en
+> ninguna banda. Si al equipo le cierra mejor en 5, se mueve — lo que no puede es faltar.
 
 ### Y necesita reserva de capacidad, no solo prioridad
 
@@ -385,8 +394,8 @@ horas. La solución es **reservar workers**:
 
 | Workers | Dedicados a |
 |---|---|
-| 3 | Prioridad 1 y 2 (correcciones y evaluaciones) |
-| 1 | Prioridad 3 y 4 (generaciones y cierres) — **siempre hay uno disponible** |
+| 3 | Prioridad 1, 2 y 3 (correcciones, cursos por cerrar y evaluaciones) |
+| 1 | Prioridad 4 y 5 (generaciones, ingesta y recalibración) — **siempre hay uno disponible** |
 
 Así una tormenta de correcciones no deja a un profesor esperando un parcial durante dos horas.
 

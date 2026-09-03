@@ -31,6 +31,8 @@ gate de calidad tenga sobre qué correr desde el día uno.
 
 Contexto de diseño: [`docs/02 · Arquitectura y stack`](../docs/02-arquitectura-y-stack.md).
 
+Política de tests (cómo mockear el LLM y cuándo no gastar tokens): [`TESTING.md`](ms-evaluacion-llm/TESTING.md).
+
 ## `lara-heredia-demo-llm-spring-ai/`
 
 Prueba de concepto del tutor socrático: Spring Boot con Spring AI apuntando a Groq

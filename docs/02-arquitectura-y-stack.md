@@ -688,11 +688,16 @@ Request
 Response 200 (sync)   → { resultado, trace_id, metadata: { model_id, model_version, tokens } }
 Response 202 (async)  → { job_id, estado: "pendiente" }
 Response 429          → { error: "cuota_agotada", limite, reinicia_en }
-Response 503          → { error: "proveedor_no_disponible", degradacion: "score_neutro" | "diferido" }
+Response 503          → { error: "proveedor_no_disponible", degradacion: "score_neutro" | "prefiltro_solamente" | "diferido" }
 ```
 
 > **`idempotency_key` no es opcional.** Si el llamador reintenta por timeout, no queremos dos
 > parciales generados ni dos evaluaciones del mismo intento.
+
+> **Cada valor de `degradacion` es de una función distinta.** `score_neutro` es del evaluador
+> (RF-IA-27: el score se computa neutro y la entrega se acepta igual); `prefiltro_solamente` es del
+> moderador —la capa clásica sigue decidiendo sola, ADR-012—; `diferido` sirve a las dos. **El sobre
+> los enumera a todos; el recorte de cada función se queda con los suyos.**
 
 ### 2 · Estado de un trabajo
 

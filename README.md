@@ -30,7 +30,7 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 
 1. **[01 · Problema, alcance y equipo](docs/01-problema-y-alcance.md)** — qué construimos y qué no.
 2. **[10 · Qué entregamos y cómo](docs/10-entregables-y-plan.md), Parte 2** — el plan de trabajo: los
-   módulos, el reparto entre seis, las cuatro semanas de demo y **los 13 pasos concretos** de §8.
+   módulos, el reparto entre seis, las cuatro semanas de demo y **los 14 pasos concretos** de §8.
    Con qué modelo free probar cada paso está en [03](docs/03-modelos-costos-y-contexto.md) §8.
 3. **[08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md)** — qué está decidido, qué
    bloquea, y las decisiones que ya se revisaron una vez — conviene mirarlas antes de reabrir una discusión.
@@ -48,13 +48,15 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 | 07 | [Datos y T&C](docs/07-datos-y-terminos.md) | Qué se guarda, quién lo ve, cuánto dura, y el borrador de Términos y Condiciones |
 | 08 | [Decisiones y pendientes](docs/08-decisiones-y-pendientes.md) | Registro de decisiones (ADR), las que ya se revisaron, y **lo que falta definir** |
 | 09 | [Preguntas y respuestas](docs/09-preguntas-y-respuestas.md) | El porqué de cada decisión, **con el caso a favor y el caso en contra** |
-| 10 | [Qué entregamos y cómo](docs/10-entregables-y-plan.md) | El inventario del aporte del equipo y el plan de 13 pasos para 6 personas |
+| 10 | [Qué entregamos y cómo](docs/10-entregables-y-plan.md) | El inventario del aporte del equipo y el plan de 14 pasos para 6 personas |
 | 11 | [Glosario y metadata](docs/11-glosario-y-metadata.md) | El vocabulario para la integración y las tres tablas que hay que crear ya |
 | 12 | [Almacenamiento e ingesta](docs/12-almacenamiento-e-ingesta.md) | Qué base de datos y cuántas, MinIO, y cómo se baja a texto un PDF con imágenes |
 | 13 | [La rúbrica y los prompts](docs/13-rubrica-y-prompts.md) | 📝 El artefacto central del equipo: las 5 dimensiones con sus anclas y los prompts de cada función |
 | 14 | [Sincronización con la guía didáctica](docs/14-sincronizacion-guia-didactica.md) | 🔄 **Comparación con el otro set de documentación**: los 6 conflictos, lo que hay que adoptar y lo que aportamos |
 | 15 | [Sincronización con la U1 de Front End](docs/15-sincronizacion-arquitectura-y-despliegue.md) | 🔄 **Infraestructura y despliegue**: los tres «gateway», qué adoptamos de las seis estrategias de release y qué descartamos con fundamento |
 | 16 | [El pipeline de calidad](docs/16-pipeline-y-verificaciones.md) | ⚙️ **Todo el gate en un solo lugar**: que problema resuelve, con que esta hecho, que hace cada comando, que comprueba cada etapa, donde corre cada cosa —tu maquina, GitHub y el server— y que verificaciones conviene sumar |
+| 17 | [El mapa de integración](docs/17-mapa-de-integracion.md) | 🔌 **Cómo se comunica el servicio, en una sola vista**: quién nos habla y por dónde, el verbo de cada endpoint, cuánto tarda cada camino, qué modelo resuelve cada función y con qué costo, y qué le debemos a cada equipo |
+| 18 | [Contratos inter-equipos](docs/18-contratos-inter-equipos.md) | 🤝 **El punto de entrada para la sesión de integración**: los 6 endpoints con schemas, los 4 eventos que publicamos, los 3 que consumimos, lo que necesitamos de cada equipo, el mapa de dependencias y la agenda de 8 ítems para acordar antes de codear |
 
 ## Lo demás que hay en el repositorio
 
@@ -62,19 +64,19 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 |---|---|---|
 | **[`docs/importado/`](docs/importado/)** | `Brf93` (`421562`) | Anidado adentro de `docs/`, para que la raíz tenga una sola carpeta de documentación. 25 documentos: especificación técnica, nueve planes de ejecución e investigación sobre jailbreak. Material de profundización, no de trabajo diario |
 | **[`codigo-ejemplo/`](codigo-ejemplo/)** | una carpeta por autor | [`ms-evaluacion-llm/`](codigo-ejemplo/ms-evaluacion-llm/), el esqueleto del servicio real, del equipo · [`lara-heredia-demo-llm-spring-ai/`](codigo-ejemplo/lara-heredia-demo-llm-spring-ai/), la demo de tutor con Spring AI, de Lara Heredia |
-| **[`presentaciones/`](presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` | [`defensa-43-slides.html`](presentaciones/defensa-43-slides.html), el deck de defensa · [`prd-wiki-consulta.html`](presentaciones/prd-wiki-consulta.html), el PRD como wiki de consulta — **no es una presentación** |
+| **[`presentaciones/`](presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` | [`defensa-43-slides.html`](presentaciones/defensa-43-slides.html), el deck de defensa · [`prd-wiki-consulta.html`](presentaciones/prd-wiki-consulta.html), el PRD como wiki de consulta. Más tres documentos HTML armados sobre `doc-tpi-unificada` —mapa de requerimientos, guía del golden set e informe de gestión de modelos—: su núcleo normativo coincide con `docs/`, pero **ADR, endpoints y costo total no**. Las ocho diferencias están en [`CORRECCIONES-SUGERIDAS.md`](presentaciones/CORRECCIONES-SUGERIDAS.md) |
 | **[`tools/`](tools/)** | `facundosoria` | El gate de calidad (`qa/`) y el panel que muestra sus corridas en vivo (`ci-front/`). Documentados en [16](docs/16-pipeline-y-verificaciones.md) |
 
 > ### Sobre el material que vino de otras ramas
 >
-> `docs/importado/` y `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` se importaron **sin tocar
-> una sola línea**: cada archivo es byte a byte idéntico a su rama de origen. Lo que
-> había que corregir está anotado, no aplicado, en el `CORRECCIONES-SUGERIDAS.md` de
-> cada carpeta. **Hay una API key de Groq versionada en la demo que necesita rotarse**
-> — el detalle está en
+> `docs/importado/`, `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` y los tres HTML nuevos de
+> `presentaciones/` se importaron **sin tocar una sola línea**: cada archivo es byte a byte
+> idéntico a su rama de origen. Lo que había que corregir está anotado, no aplicado, en el
+> `CORRECCIONES-SUGERIDAS.md` de cada carpeta. **Hay una API key de Groq versionada en la demo que
+> necesita rotarse** — el detalle está en
 > [`codigo-ejemplo/CORRECCIONES-SUGERIDAS.md`](codigo-ejemplo/CORRECCIONES-SUGERIDAS.md).
 >
-> Las dos carpetas quedan fuera de `owned-paths.txt`, así que el gate las reporta como
+> Las tres rutas quedan fuera de `owned-paths.txt`, así que el gate las reporta como
 > informativas y nunca bloquea por ellas.
 
 > ### 📝 Sobre el contenido de ejemplo
@@ -125,13 +127,16 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 - [Arquitectura interna](https://claude.ai/code/artifact/3289c8d8-1ecb-45b6-8ec8-f064b70089c5) —
   los 8 módulos, cómo se conectan los modelos, el reparto entre 6
 - [Construcción del Tema 07](https://claude.ai/code/artifact/ddc1b820-b1aa-4dc2-ad20-aad24af54ca9) —
-  los 12 pasos en 4 semanas, con dependencias
+  los pasos en 4 semanas, con dependencias
 - [Java o Python](https://claude.ai/code/artifact/6bda78ed-698b-48dd-aa10-3268c107be13) —
   comparación capa por capa de los dos stacks
 - [Pantalla del golden set](https://claude.ai/code/artifact/0854689d-1746-486e-b30f-a9cdced0a2d2) —
   mockup con las 7 decisiones a debatir
 
-Los documentos incluyen además diagramas Mermaid, que GitHub renderiza directamente.
+Los documentos incluyen además diagramas Mermaid, que GitHub renderiza directamente. **Los nueve
+que cruzan endpoints, latencias, modelos y dependencias están juntos en
+[17 · El mapa de integración](docs/17-mapa-de-integracion.md)** — es el documento para llevar a la
+sesión de integración.
 
 ## Lo que bloquea hoy
 

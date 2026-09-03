@@ -22,7 +22,7 @@
 | [Q-05](#q-05) | ¿Se puede gastar USD 15-20 en vez de 125? | **Sí. La palanca son los tokens, no el modelo** |
 | [Q-06](#q-06) | ¿Se puede gastar muchísimo menos todavía? | **Sí, ~USD 3, con tres condiciones** |
 | [Q-07](#q-07) | ¿Free tier primero y desborde a pago? | **Sí, salvo en el evaluador** |
-| [Q-08](#q-08) | ¿Java Spring Boot o Python para el back? | ⚠️ **Desactualizada — ADR-005 la revirtió a Java** |
+| [Q-08](#q-08) | ¿Java Spring Boot o Python para el back? | **Java Spring Boot — decisión cerrada (ADR-005)** |
 | [Q-09](#q-09) | ¿Modelo local? ¿Cuánto hardware? | **Solo el moderador. Nunca el evaluador** |
 | [Q-10](#q-10) | ¿Cómo crecer en horarios pico? | **Con una cola. Casi no hace falta escalar** |
 | [Q-11](#q-11) | ¿Cómo resolver prompt injection y fuga? | **Defensa en capas; la clave es no darle la solución al modelo** |
@@ -328,50 +328,50 @@ Y dos advertencias más:
 <a name="q-08"></a>
 ## Q-08 — ¿Java Spring Boot o Python para el backend?
 
-**Respuesta:** Para el backend de negocio, **no es decisión del equipo de IA**. Para el
-`ai-service`, **Python**.
+**Respuesta:** **Java Spring Boot** — tanto para el backend de negocio como para el `ms-evaluacion-llm`.
+Decisión cerrada por **ADR-005**. El `pom.xml` existe y el esqueleto compila.
 
-> ⚠️ **Esta respuesta quedó desactualizada y se conserva para que se vea el cambio.** **ADR-005 la
-> revirtió: el `ms-evaluacion-llm` va en Java Spring Boot** —figura entre las siete decisiones
-> revisadas de [08](08-decisiones-y-pendientes.md), fila 3—, el `pom.xml` existe y el esqueleto
-> compila. El argumento de `tree-sitter` de acá abajo perdió peso cuando se asumió que los desafíos
-> son en Java, donde JavaParser es mejor.
->
-> Lo que ADR-005 **sí** deja abierto es que un **componente interno** pueda ser Python cuando haga
-> falta —embeddings locales, o el modelo local de moderación de ADR-012—. Componente interno, **no
-> microservicio**. La misma desactualización aparece en C-1 de
-> [14](14-sincronizacion-guia-didactica.md).
+### Por qué Java Spring Boot para el `ms-evaluacion-llm`
 
-### Por qué el `ai-service` en Python
+- **Programación IV es una materia de Java.** El equipo lo conoce y los otros once equipos también.
+- **La cátedra impuso exactamente las capas donde Java gana:** Service Discovery, API Gateway y bus de
+  eventos — las tres donde un servicio Python pagaría fricción todas las semanas.
+- **El argumento de `tree-sitter` perdió peso:** si los desafíos son en Java, `JavaParser` es mejor.
+- **Los embeddings tienen camino en Java** con DJL o directamente por API mientras el corpus sea chico.
 
-El argumento decisivo no es "Python tiene más librerías". Es concreto:
+Lo que ADR-005 **sí** deja abierto: si hace falta un componente auxiliar (embeddings locales, modelo
+local de moderación de ADR-012), puede agregarse como **componente interno — no microservicio**. Las
+interfaces ya están preparadas desde el diseño.
 
-> **RF-IA-20 exige comparar ASTs entre el código de la IA y la solución esperada. Y los desafíos no
-> van a ser todos en Java.** `tree-sitter` tiene bindings de Python maduros y cubre decenas de
-> lenguajes; JavaParser solo entiende Java.
-
-Más: ingesta de PDF/OCR/PPT, embeddings locales en tres líneas, e iteración rápida sobre prompts —
-que vas a hacer cincuenta veces.
-
-### Por qué el núcleo en Java (si te preguntan)
+### Por qué el núcleo del backend de negocio en Java (si te preguntan)
 
 - La economía de gamificación necesita ACID: XP, monedas, vidas, compras.
 - RF-NFR-02 pide 2FA obligatorio para los tres roles: Spring Security lo tiene resuelto.
 - Percentiles P90, cascada de desempate, curva de niveles: muchas reglas entrelazadas donde el
   tipado fuerte paga.
 
-### El caso en contra del híbrido
+---
 
-Es real: dos lenguajes, dos builds, un contrato que mantener, debugging distribuido. **Y requiere al
-menos una persona cómoda en Python.**
+### Contexto histórico — por qué se consideró Python (valor educativo)
 
-Contrapeso: si el equipo de IA es el que hace el `ai-service`, **el híbrido no le agrega complejidad
-a nadie más** — para el otro equipo es una caja negra con 6 endpoints.
+> ℹ️ **La respuesta original proponía Python para el `ai-service`.** Se conserva para que se entienda
+> el razonamiento que ADR-005 revisó.
 
-### Qué cambiaría la respuesta
+El argumento inicial no era "Python tiene más librerías". Era concreto:
 
-Que nadie en el equipo de IA esté cómodo en Python. Ahí: todo Java, con la IA como módulo de
-frontera dura.
+> **RF-IA-20 exige comparar ASTs entre el código de la IA y la solución esperada. Y los desafíos no
+> iban a ser todos en Java.** `tree-sitter` tiene bindings de Python maduros y cubre decenas de
+> lenguajes; JavaParser solo entiende Java.
+
+Más: ingesta de PDF/OCR/PPT, embeddings locales en tres líneas, e iteración rápida sobre prompts.
+
+**El caso en contra del híbrido** es real: dos lenguajes, dos builds, un contrato que mantener,
+debugging distribuido. Requiere al menos una persona cómoda en Python. Lo que lo hacía aceptable era
+que, para los otros equipos, el `ai-service` era una caja negra con 6 endpoints — no les agregaba
+complejidad.
+
+**Qué cambió:** al asumir que los desafíos son en Java, `JavaParser` supera a `tree-sitter` para el
+caso concreto, y la ventaja principal de Python desapareció.
 
 📄 [02](02-arquitectura-y-stack.md), [01](01-problema-y-alcance.md) §2
 

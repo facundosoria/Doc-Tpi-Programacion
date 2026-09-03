@@ -136,6 +136,13 @@ tiene. Ningún jailbreak extrae algo que el modelo nunca vio.
 
 ### ADR-009 — Sin streaming token a token en desafíos prácticos (MVP)
 
+> ⚠️ **Revisada.** La tabla «Decisiones que se revisaron durante el diseño», más abajo en este mismo
+> documento, la reemplaza por el **Buffer Interceptor** de la guía didáctica
+> ([14](14-sincronizacion-guia-didactica.md) C-2): se transmite, pero la entrega al alumno se retiene
+> hasta que el guardarraíl valida. El texto original se conserva porque un ADR se anota, no se
+> reescribe. **La propagación al resto de los documentos está pendiente** — hoy 05, 03, 06, 09, 10 y
+> el README siguen diciendo «sin streaming».
+
 **Decisión:** en prácticos, la respuesta del tutor se muestra completa después de pasar el
 guardarraíl anti-fuga. Streaming pleno solo en desafíos de riesgo bajo.
 
@@ -586,6 +593,14 @@ No urgentes, pero anotadas para no redescubrirlas:
 
 > Estado al **2026-08-30**. Consolidado de todo lo que está abierto, ordenado por qué bloquea.
 > Cada punto trae **mi recomendación**, así en la mayoría solo hace falta confirmar, no deliberar.
+>
+> ⚠️ **Esa fecha quedó atrás y esta parte no se volvió a consolidar.** Después del 30 de agosto entraron
+> ADR-012 a ADR-015, el documento [15](15-sincronizacion-arquitectura-y-despliegue.md) completo y el
+> contrato del moderador. Hay puntos de acá que otro documento ya movió: ADR-012 cierra E-05 y le
+> pone una red al fail-open que C-5 sigue preguntando —la capa clásica sigue corriendo—, aunque
+> **la decisión entre fail-open y fail-closed sigue siendo del PO**; y ADR-005 ya fijó Java Spring
+> Boot, que [10](10-entregables-y-plan.md) §7 todavía lista como pregunta abierta de la semana.
+> **Antes de reabrir una discusión de esta parte, chequeá la lista de ADR de la Parte A.**
 
 ## Resuelto desde la primera versión
 
@@ -981,7 +996,7 @@ dónde está, quién lo define y cuándo.
 
 ## Lo que hay que definir esta semana
 
-De los 31 ítems, **cinco no pueden esperar**:
+De los 31 ítems uno ya está cerrado —E-05, por ADR-012—, así que quedan **30 abiertos**. De esos treinta, **cinco no pueden esperar**:
 
 | # | Qué | Por qué ahora |
 |---|---|---|
@@ -991,4 +1006,4 @@ De los 31 ítems, **cinco no pueden esperar**:
 | **E-09** | Tamaño del golden set y responsable | Es el plazo más largo del proyecto |
 | **E-16** | Qué cuenta como mensaje trivial | Bloquea el cálculo de features |
 
-**Los otros 24 se resuelven a medida que se construye cada pieza.**
+**Los otros 25 se resuelven a medida que se construye cada pieza.**

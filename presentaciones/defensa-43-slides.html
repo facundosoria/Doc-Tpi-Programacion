@@ -336,14 +336,14 @@
             </h1>
 
             <p class="text-xs sm:text-sm text-slate-300 max-w-3xl mb-4 leading-relaxed font-light px-2">
-                Arquitectura Híbrida Spring Cloud (Spring AI 1.0.0) + FastAPI uvloop, Pipeline de 5 Capas Locales, Buffer AST en Streaming SSE, Scoring Híbrido 5D Determinístico, Gobernanza de Calidad con SonarQube y Marco GRC / IBM Security para la Plataforma Gamificada UTN.
+                Arquitectura Integral Java 21 + Spring Boot 3 (Spring AI 1.0.0), Pipeline de 5 Capas Determinísticas, Buffer AST con JavaParser, Scoring Híbrido 5D, Gobernanza de Calidad con SonarQube y Marco GRC / IBM Security para la Plataforma Gamificada UTN.
             </p>
 
             <div class="grid grid-cols-2 md:grid-cols-4 gap-2 sm:gap-3 w-full max-w-4xl text-left mb-4">
                 <div class="glass-card p-3 rounded-xl border border-blue-500/30 bg-blue-950/20">
                     <div class="text-blue-400 text-[10px] font-mono mb-0.5 font-bold uppercase">Arquitectura</div>
-                    <div class="text-xs sm:text-sm font-bold text-white">Híbrida Spring + FastAPI</div>
-                    <div class="text-[10px] text-slate-300">Sidecar Eureka + uvloop</div>
+                    <div class="text-xs sm:text-sm font-bold text-white">Java 21 + Spring Boot 3</div>
+                    <div class="text-[10px] text-slate-300">Spring AI + Eureka Client</div>
                 </div>
                 <div class="glass-card p-3 rounded-xl border border-purple-500/30 bg-purple-950/20">
                     <div class="text-purple-400 text-[10px] font-mono mb-0.5 font-bold uppercase">Ciberseguridad</div>
@@ -685,14 +685,14 @@
 
                     <div class="p-2.5 bg-indigo-950/40 rounded-xl border-2 border-indigo-500/60 space-y-1.5 shadow-lg shadow-indigo-950/50">
                         <div class="text-[9px] font-mono text-indigo-300 font-bold text-center uppercase">
-                            📦 Pod: ms-evaluacion-llm
+                            📦 Pod: ms-evaluacion-llm (:8081)
                         </div>
                         <div class="p-1.5 bg-slate-900 rounded border border-blue-500/40 text-[10px] text-blue-300">
-                            <strong>1. Spring Boot Bridge (:8081)</strong>
+                            <strong>Java 21 · Spring Boot 3.4 · Spring AI</strong>
                         </div>
-                        <div class="text-center text-indigo-400 text-[9px] font-mono">↓ HTTP/2 Localhost / UDS</div>
+                        <div class="text-center text-indigo-400 text-[9px] font-mono">Módulos M1-M8 Integrados</div>
                         <div class="p-1.5 bg-slate-900 rounded border border-emerald-500/40 text-[10px] text-emerald-300">
-                            <strong>2. FastAPI Core Engine (:8082)</strong>
+                            <strong>JavaParser AST + Resilience4j + WebClient</strong>
                         </div>
                     </div>
 
@@ -713,7 +713,7 @@
 
             <div class="mt-2 grid grid-cols-1 sm:grid-cols-3 gap-2 text-[10px] text-slate-300">
                 <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">✅ <strong>Sin llamadas directas:</strong> Todo pasa por Gateway o Bus (R-3).</div>
-                <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">✅ <strong>Base Exclusiva:</strong> pgvector vive en nuestra BD propia (R-4).</div>
+                <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">✅ <strong>Base Relacional & Vectorial:</strong> pgvector integrado en Postgres (R-4).</div>
                 <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">✅ <strong>Alta Dinámica:</strong> Eureka Client nativo (R-2).</div>
             </div>
         
@@ -721,10 +721,10 @@
 <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="8">
             <div class="slide-tag">Arquitectura</div>
             <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
-                Topolog&iacute;a H&iacute;brida: Java + FastAPI
+                Arquitectura de Servicio: Java 21 + Spring Boot 3
             </h2>
             <p class="text-xs sm:text-sm text-slate-300 mb-3">
-                La arquitectura es h&iacute;brida por necesidad t&eacute;cnica: Spring Boot ejecuta como sidecar orquestador en la punta de inetrconexi&oacute;n con el ecosistema Spring Cloud (Eureka, Gateway, AMQP), mientras que FastAPI en Python ejecuta el motor de IA propiamente dicho donde se requiere determinismo puro: buffer AST en streaming, sandboxing de c&oacute;digo, sanitizaci&oacute;n PII y scoring h&iacute;brido 5D. Ning&uacute;n servicio llama directamente a un proveedor LLM; todo pasa por Gateway o RabbitMQ.
+                El servicio de IA se implementa de forma integral y autónoma en Java 21 con Spring Boot 3 y Spring AI 1.0.0, integrándose con el ecosistema Spring Cloud (Eureka, Gateway, AMQP) y ejecutando localmente el trabajo determinístico (buffer AST con JavaParser, moderación clásica en memoria con Aho-Corasick y scoring híbrido 5D). Ningún servicio llama directamente a un proveedor LLM; todo pasa por Gateway o RabbitMQ.
             </p>
 
             <div class="glass-card p-3 sm:p-4 rounded-xl border border-slate-800 bg-slate-950/60 overflow-x-auto mb-3">
@@ -753,11 +753,11 @@
                     <div class="p-2.5 bg-indigo-950/40 rounded-xl border-2 border-indigo-500/60 space-y-1.5 shadow-lg shadow-indigo-950/50">
                         <div class="text-[9px] font-mono text-indigo-300 font-bold text-center">POD: ms-evaluacion-llm</div>
                         <div class="p-1.5 bg-slate-900 rounded border border-blue-500/40 text-[10px] text-blue-300">
-                            <strong>1. Spring Boot Bridge (:8081)</strong> · Spring AI 1.0.0 · Eureka Client
+                            <strong>1. Spring Boot Core (:8081)</strong> · Spring AI 1.0.0 · Eureka Client
                         </div>
-                        <div class="text-center text-indigo-400 text-[9px] font-mono">HTTP/2 Localhost / UDS</div>
+                        <div class="text-center text-indigo-400 text-[9px] font-mono">Módulos Internos M1 - M8</div>
                         <div class="p-1.5 bg-slate-900 rounded border border-emerald-500/40 text-[10px] text-emerald-300">
-                            <strong>2. FastAPI Engine (:8082)</strong> · Python 3.12 · uvloop
+                            <strong>2. Motor Determinístico</strong> · JavaParser · Aho-Corasick
                         </div>
                     </div>
                     <div class="space-y-1.5">
@@ -1015,8 +1015,8 @@
             </div>
 
             <div class="callout callout-danger mt-3">
-                <div class="text-[10px] font-mono text-red-400 font-bold mb-1 uppercase">Regla de Separaci&oacute;n de Responsabilidades</div>
-                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">La columna "Donde vive la decisi&oacute;n de negocio" nunca puede ser el microservicio de IA. La l&oacute;gica de negocio — transiciones de estado, bloqueos sin override, economia de XP, calculo de ponderaciones — vive en el core o en FastAPI (anti-fuga determin&iacute;stico, scoring 5D, cuotas). Spring AI apenas habilita la comunicaci&oacute;n con el modelo; nunca reemplaza la toma de decisiones.</p>
+                <div class="text-[10px] font-mono text-red-400 font-bold mb-1 uppercase">Regla de Separación de Responsabilidades</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">La columna "Donde vive la decisión de negocio" nunca puede ser el modelo de IA. La lógica de negocio — transiciones de estado, bloqueos sin override, economía de XP, cálculo de ponderaciones — vive en el core o en los módulos Java de nuestro microservicio (anti-fuga determinístico con JavaParser, scoring 5D, cuotas con Redis). Spring AI apenas habilita la comunicación con el modelo; nunca reemplaza la toma de decisiones.</p>
             </div>
         
         </section>
@@ -1024,10 +1024,10 @@
 
             <div class="slide-tag">Responsabilidades</div>
             <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
-                Divisi&oacute;n de Responsabilidades: Java vs FastAPI
+                Estructura Tecnológica: Microservicio Java 21 + Spring Boot 3
             </h2>
             <p class="text-xs sm:text-sm text-slate-300 mb-3">
-                La separaci&oacute;n entre Java y Python no es arbitraria: cada lenguaje ejecuta las tareas para las que su runtime es m&aacute;s eficiente. Java con Spring Boot gestiona la orquestaci&oacute;n de servicios, el descubrimiento, el proxying SSE y la comunicaci&oacute;n con el ecosistema Spring Cloud. Python con FastAPI ejecuta el trabajo determin&iacute;stico que requiere control fino de memoria y ejecuci&oacute;n de c&oacute;digo: parseo AST, sanitizaci&oacute;n PII, comparaci&oacute;n de similitud y scoring h&iacute;brido.
+                El microservicio de IA se implementa de forma integral y autónoma en Java 21 con Spring Boot 3.4 y Spring AI 1.0.0. Gestiona la orquestación con Spring Cloud (Eureka, Gateway, AMQP), la comunicación con proveedores LLM y la ejecución de la lógica determinística local en memoria (parseo AST con <code>JavaParser</code>, sanitización PII, filtros Aho-Corasick y scoring híbrido 5D).
             </p>
 
             <div class="overflow-x-auto">
@@ -1042,42 +1042,42 @@
                     </thead>
                     <tbody>
                         <tr>
-                            <td><strong>Capa Externa Sidecar</strong></td>
+                            <td><strong>Capa de Servicio &amp; Gateway</strong></td>
                             <td><span class="pill pill-info">Java 21</span> Spring Boot 3.4 · Spring Cloud</td>
-                            <td>Eureka Client, Actuator, Proxy SSE WebFlux, Listener AMQP, configuraci&oacute;n de ChatClient por rol/proveedor, circuit breakers, rate limiting</td>
-                            <td>Spring Boot integra nativamente con Eureka, Gateway y AMQP. Spring AI 1.0.0 solo est&aacute; disponible para Java 21+. El sidecar protege al motor de IA de la exposici&oacute;n directa</td>
+                            <td>Eureka Client, Actuator, Controladores REST/SSE, Listener AMQP, configuración de ChatClient por rol/proveedor, circuit breakers, rate limiting Resilience4j</td>
+                            <td>Spring Boot integra nativamente con Eureka, Gateway y AMQP. Spring AI 1.0.0 estandariza la conexión con proveedores LLM y advisors de seguridad</td>
                         </tr>
                         <tr>
-                            <td><strong>Motor de IA &amp; AST</strong></td>
-                            <td><span class="pill pill-info">Python 3.12</span> FastAPI · Uvicorn (uvloop)</td>
-                            <td>Buffer AST (<code>ast.parse</code>), Factory LLM, Scoring 5D, Streaming SSE interceptor, PII Scrubber, Anti-Crescendo Redis, rate limiting por alumno</td>
-                            <td>Python ofrece <code>ast.parse</code> nativo que Java no tiene. El buffer AST debe congelar y destruir c&oacute;digo en RAM sin fugas. uvloop provee la latencia &lt;800ms requerida para SSE en vivo</td>
+                            <td><strong>Motor Determinístico &amp; AST</strong></td>
+                            <td><span class="pill pill-info">Java 21</span> JavaParser · Aho-Corasick · Commons Text</td>
+                            <td>Buffer AST (<code>JavaParser</code>), Moderación clásica en memoria (Aho-Corasick + profanity-filter), Normalización Unicode NFKD, Scoring 5D determinístico</td>
+                            <td>JavaParser analiza el AST de código Java/Python sin ejecutarlo. Aho-Corasick busca miles de palabras prohibidas en &lt;1ms sin latencia ni costo de red</td>
                         </tr>
                         <tr>
                             <td><strong>Persistencia Forense</strong></td>
                             <td><span class="pill pill-info">SQL / PLpgSQL</span> PostgreSQL 16 + pgvector</td>
-                            <td>Triggers de inmutabilidad sobre <code>scores_ia</code>, embeddings HNSW, tabla <code>incidentes_jailbreak</code>, golden set, calibraciones</td>
-                            <td>PostgreSQL 16 soporta JSONB, pgvector y triggers PL/pgSQL nativos. La inmutabilidad de scores se garantiza a nivel de BD, no a nivel de aplicaci&oacute;n</td>
+                            <td>Triggers de inmutabilidad sobre <code>scores_ia</code>, embeddings HNSW vectoriales por <code>curso_id</code>, tabla <code>incidentes_ia</code>, golden set, calibraciones</td>
+                            <td>PostgreSQL 16 soporta JSONB, pgvector y triggers PL/pgSQL nativos. La inmutabilidad de scores se garantiza a nivel de BD, no a nivel de aplicación</td>
                         </tr>
                         <tr>
                             <td><strong>Cache &amp; Concurrencia</strong></td>
                             <td><span class="pill pill-info">Redis Commands</span> Redis 7.2 Cluster</td>
-                            <td>FinOps (cuotas 50k tokens), memoria anti-puzzle, sem&aacute;foros 25 slots, ventana deslizante 5 turnos anti-Crescendo, circuit breaker flag</td>
-                            <td>Redis maneja contadores at&oacute;micos y TTLs con rendimiento sub-milisegundo. Es el &uacute;nico componente que soporta la sem&aacute;ntica de "decidir en caliente" si un alumno excede la cuota</td>
+                            <td>FinOps (cuotas 50k tokens), memoria anti-puzzle, semáforos 25 slots, ventana deslizante 5 turnos anti-Crescendo, circuit breaker flag</td>
+                            <td>Redis maneja contadores atómicos y TTLs con rendimiento sub-milisegundo. Es el único componente que soporta la semántica de "decidir en caliente" si un alumno excede la cuota</td>
                         </tr>
                         <tr>
                             <td><strong>Sandbox Alumno</strong></td>
                             <td><span class="pill pill-info">C / Linux Kernel</span> Docker + gVisor / nsjail</td>
-                            <td>Compilaci&oacute;n segura del c&oacute;digo del alumno; la IA solo recibe <code>stderr</code> inerte, nunca stdout ejecutable</td>
-                            <td>El sandbox a&uacute;reo aisla la compilaci&oacute;n del host. gVisor proporciona syscalls filtrados. La interfaz con Spring Boot es HTTP/2 localhost</td>
+                            <td>Compilación segura del código del alumno; la IA solo recibe <code>stderr</code> inerte, nunca stdout ejecutable</td>
+                            <td>El sandbox aéreo aisla la compilación del host. gVisor proporciona syscalls filtrados. La interfaz con Spring Boot es HTTP/2 localhost</td>
                         </tr>
                     </tbody>
                 </table>
             </div>
 
             <div class="callout mt-3">
-                <div class="text-[10px] font-mono text-cyan-400 font-bold mb-1 uppercase">Justificación de la separación</div>
-                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">Java no ejecuta el AST porque no tiene <code>ast.parse</code> nativo y su GC no garantiza la destrucci&oacute;n inmediata de buffers de c&oacute;digo en memoria. Python no orquesta el ecosistema Spring porque no tiene clientes nativos de Eureka, RabbitMQ ni Spring AI. Cada capa corre en el lenguaje donde es natural, y se comunican por contratos HTTP/2 bien definidos.</p>
+                <div class="text-[10px] font-mono text-cyan-400 font-bold mb-1 uppercase">Ventaja de la Unificación en Java</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">Al implementar todo el microservicio en Java 21 con Spring Boot y <code>JavaParser</code>, se elimina la complejidad de mantener dos runtimes comunicados por red local (Sidecar + FastAPI), logrando integración nativa con Eureka, RabbitMQ, Spring AI y métricas unificadas en Micrometer.</p>
             </div>
         
         </section>
@@ -1085,10 +1085,10 @@
 
             <div class="slide-tag">Flujos</div>
             <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
-                Flujos de Comunicaci&oacute;n: SSE vs AMQP
+                Flujos de Comunicación: REST/SSE vs AMQP
             </h2>
             <p class="text-xs sm:text-sm text-slate-300 mb-3">
-                Existen dos flujos de comunicaci&oacute;n inter-servicios que reflejan dos naturalezas distintas de operaci&oacute;n: el tutor socr&aacute;tico operado en streaming s&iacute;ncrono sobre SSE para latencia interactiva (&lt;800ms), y el evaluador anal&iacute;tico operado as&iacute;ncronamente sobre AMQP para procesamiento batch de alta integridad. La elecci&oacute;n de protocolo no es decorativa: determina las garant&iacute;as de entrega, la tolerancia a fallos y el modelo de responsabilidad entre microservicio y motor de desaf&iacute;os.
+                Existen dos flujos de comunicación inter-servicios que reflejan dos naturalezas distintas de operación: el tutor socrático operado en streaming síncrono sobre SSE para latencia interactiva (&lt;800ms), y el evaluador analítico operado asíncronamente sobre AMQP para procesamiento batch de alta integridad. La elección de protocolo no es decorativa: determina las garantías de entrega, la tolerancia a fallos y el modelo de responsabilidad entre microservicio y motor de desafíos.
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -1097,12 +1097,12 @@
                         <span class="text-xs font-mono text-blue-400 font-bold">1. Tutor Socrático en Streaming (SSE)</span>
                         <span class="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono">Síncrono</span>
                     </div>
-                    <p class="text-[11px] text-slate-300 mb-2 leading-relaxed">El alumno escribe en el IDE Monaco y espera una respuesta en tiempo real. La respuesta debe fluir letra por letra para mantener la ilusi&oacute;n de un tutor presente.</p>
+                    <p class="text-[11px] text-slate-300 mb-2 leading-relaxed">El alumno escribe en el IDE Monaco y espera una respuesta en tiempo real. La respuesta debe fluir letra por letra para mantener la ilusión de un tutor presente.</p>
                     <ol class="text-[11px] text-slate-300 space-y-1 font-light">
-                        <li><strong>1.</strong> Frontend llama a Gateway (:8080) <code class="text-slate-200">POST /api/v1/tutor/stream</code></li>
-                        <li><strong>2.</strong> Gateway resuelve en Eureka y rutea al Spring Sidecar (:8081)</li>
-                        <li><strong>3.</strong> Spring WebClient hace proxy a FastAPI (:8082)</li>
-                        <li><strong>4.</strong> FastAPI verifica cuota en Redis, llama al modelo (Gemini) y pasa por Buffer AST</li>
+                        <li><strong>1.</strong> Frontend llama a Gateway (:8080) <code class="text-slate-200">POST /ai/tutor</code></li>
+                        <li><strong>2.</strong> Gateway resuelve en Eureka y rutea al Microservicio ms-evaluacion-llm (:8081)</li>
+                        <li><strong>3.</strong> Spring Boot valida cuota en Redis y ejecuta filtros determinísticos (&lt;1ms)</li>
+                        <li><strong>4.</strong> Spring AI llama al modelo (Gemini Flash) y pasa por Buffer AST JavaParser</li>
                         <li><strong>5.</strong> Stream SSE fluye hacia Monaco Editor en vivo (&lt;800ms TTFT)</li>
                     </ol>
                 </div>
@@ -1112,20 +1112,20 @@
                         <span class="text-xs font-mono text-purple-400 font-bold">2. Evaluación Analítica Forense (5D)</span>
                         <span class="text-[9px] bg-purple-500/20 text-purple-300 px-1.5 py-0.5 rounded font-mono">Asíncrono</span>
                     </div>
-                    <p class="text-[11px] text-slate-300 mb-2 leading-relaxed">El alumno entrega el desafío y la evaluación ocurre en background. No hay interacci&oacute;n humana esperada; la integridad del score es prioritaria sobre la latencia.</p>
+                    <p class="text-[11px] text-slate-300 mb-2 leading-relaxed">El alumno entrega el desafío y la evaluación ocurre en background. No hay interacción humana esperada; la integridad del score es prioritaria sobre la latencia.</p>
                     <ol class="text-[11px] text-slate-300 space-y-1 font-light">
                         <li><strong>1.</strong> Alumno entrega ejercicio en Motor de Desafíos</li>
                         <li><strong>2.</strong> Motor publica en RabbitMQ: <code class="text-slate-200">student.challenge.submitted</code></li>
-                        <li><strong>3.</strong> Spring RabbitListener consume y encola en Celery Worker</li>
-                        <li><strong>4.</strong> Worker ejecuta Scoring Híbrido (código + Claude Haiku T=0)</li>
+                        <li><strong>3.</strong> Spring RabbitListener consume la cola de evaluaciones asíncronas</li>
+                        <li><strong>4.</strong> Service ejecuta Scoring Híbrido (código determinístico + Claude Haiku T=0)</li>
                         <li><strong>5.</strong> Persiste en <code class="text-slate-200">scores_ia</code> y publica <code class="text-purple-300">ai.evaluation.completed</code></li>
                     </ol>
                 </div>
             </div>
 
             <div class="callout callout-warning mt-3">
-                <div class="text-[10px] font-mono text-amber-400 font-bold mb-1 uppercase">Atomicidad de la Econom&iacute;a</div>
-                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">Dos escritores sobre la econom&iacute;a (IA y Motor de Desaf&iacute;os) generar&iacute;an condiciones de carrera. La IA solo emite m&eacute;tricas pedag&oacute;gicas. El evento AMQP <code>ai.evaluation.completed</code> es el puente entre el mundo de la evaluaci&oacute;n y la modificaci&oacute;n de XP que realiza el Motor de Desaf&iacute;os con el factor PAR-05 (&plusmn;20%).</p>
+                <div class="text-[10px] font-mono text-amber-400 font-bold mb-1 uppercase">Atomicidad de la Economía</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">Dos escritores sobre la economía (IA y Motor de Desafíos) generarían condiciones de carrera. La IA solo emite métricas pedagógicas. El evento AMQP <code>ai.evaluation.completed</code> es el puente entre el mundo de la evaluación y la modificación de XP que realiza el Motor de Desafíos con el factor PAR-05 (&plusmn;20%).</p>
             </div>
         
         </section>
@@ -1133,42 +1133,42 @@
 
             <div class="slide-tag">Arquitectura</div>
             <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
-                Diagramas de Flujo de Integraci&oacute;n
+                Diagramas de Flujo de Integración
             </h2>
             <p class="text-xs sm:text-sm text-slate-300 mb-3">
-                Cuatro flujos principales que ilustran la arquitectura h&iacute;brida Java + FastAPI. Cada diagrama muestra el recorrido completo de los datos desde el origen hasta el destino, pasando por las responsabilidades de cada servicio. Los ejemplos concretos ayudan a visualizar el comportamiento real del sistema.
+                Cuatro flujos principales que ilustran la arquitectura de <code>ms-evaluacion-llm</code> en Java Spring Boot. Cada diagrama muestra el recorrido completo de los datos desde el origen hasta el destino, pasando por las responsabilidades de cada servicio. Los ejemplos concretos ayudan a visualizar el comportamiento real del sistema.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
                 <div class="glass-card p-3 sm:p-4 rounded-xl border border-blue-500/30 bg-blue-950/10">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-mono text-blue-400 font-bold">1. Tutor Socr&aacute;tico (SSE)</span>
-                        <span class="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono">S&iacute;ncrono &lt;800ms</span>
+                        <span class="text-xs font-mono text-blue-400 font-bold">1. Tutor Socrático (SSE)</span>
+                        <span class="text-[9px] bg-blue-500/20 text-blue-300 px-1.5 py-0.5 rounded font-mono">Síncrono &lt;800ms</span>
                     </div>
                     <ol class="text-[10px] text-slate-300 space-y-1 font-light leading-relaxed">
                         <li><strong class="text-white">Alumno</strong> escribe pregunta en IDE Monaco</li>
-                        <li><strong class="text-white">Spring Boot</strong> valida sesi&oacute;n y publica a RabbitMQ</li>
-                        <li><strong class="text-white">FastAPI</strong> consume &rarr; Buffer AST parsea &rarr; PII Scrubber sanitiza</li>
-                        <li><strong class="text-white">LLM</strong> genera respuesta token por token</li>
-                        <li><strong class="text-white">SSE stream</strong> devuelve respuesta al IDE en vivo</li>
+                        <li><strong class="text-white">Spring Cloud Gateway</strong> valida JWT y rutea al microservicio</li>
+                        <li><strong class="text-white">Spring Boot</strong> valida cuota Redis &rarr; Buffer AST parsea &rarr; PII Scrubber sanitiza</li>
+                        <li><strong class="text-white">Spring AI</strong> invoca al LLM (Gemini Flash-Lite)</li>
+                        <li><strong class="text-white">SSE stream</strong> devuelve respuesta segura al IDE en vivo</li>
                     </ol>
                     <div class="callout mt-2">
-                        <p class="text-[10px] text-slate-300"><strong class="text-cyan-400">Ejemplo:</strong> "C&oacute;mo funciona PAR-10?" &rarr; flujo SSE de 3 tokens a &lt;100ms con streaming letra por letra.</p>
+                        <p class="text-[10px] text-slate-300"><strong class="text-cyan-400">Ejemplo:</strong> "Cómo funciona PAR-10?" &rarr; flujo SSE de 3 tokens a &lt;100ms con streaming letra por letra.</p>
                     </div>
                 </div>
                 <div class="glass-card p-3 sm:p-4 rounded-xl border border-amber-500/30 bg-amber-950/10">
                     <div class="flex items-center justify-between mb-2">
-                        <span class="text-xs font-mono text-amber-400 font-bold">2. Evaluaci&oacute;n 5D (AMQP)</span>
-                        <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono">As&iacute;ncrono Batch</span>
+                        <span class="text-xs font-mono text-amber-400 font-bold">2. Evaluación 5D (AMQP)</span>
+                        <span class="text-[9px] bg-amber-500/20 text-amber-300 px-1.5 py-0.5 rounded font-mono">Asíncrono Batch</span>
                     </div>
                     <ol class="text-[10px] text-slate-300 space-y-1 font-light leading-relaxed">
-                        <li><strong class="text-white">Sistema</strong> cierra desaf&iacute;o y genera golden set</li>
-                        <li><strong class="text-white">Evaluador</strong> consume cola AMQP &rarr; Buffer AST valida c&oacute;digo</li>
+                        <li><strong class="text-white">Sistema</strong> cierra desafío y envía evento de entrega</li>
+                        <li><strong class="text-white">Evaluador</strong> consume cola AMQP &rarr; Buffer JavaParser valida código</li>
                         <li><strong class="text-white">Anti-Fuga</strong> bloquea soluciones duplicadas</li>
-                        <li><strong class="text-white">Scoring 5D</strong> ejecuta evaluaci&oacute;n con 5 dimensiones</li>
-                        <li><strong class="text-white">Resultado</strong> se escribe en core &rarr; SonarQube analiza</li>
+                        <li><strong class="text-white">Scoring 5D</strong> ejecuta evaluación con 5 dimensiones (45-60% código)</li>
+                        <li><strong class="text-white">Resultado</strong> se escribe en base &rarr; SonarQube audita</li>
                     </ol>
                     <div class="callout mt-2">
-                        <p class="text-[10px] text-slate-300"><strong class="text-amber-400">Ejemplo:</strong> Cierre de examen con 30 alumnos &rarr; evaluaci&oacute;n batch as&iacute;ncrona, 5 dimensiones (completitud, seguridad, c&oacute;digo, dise&ntilde;o, innovaci&oacute;n).</p>
+                        <p class="text-[10px] text-slate-300"><strong class="text-amber-400">Ejemplo:</strong> Cierre de examen con 30 alumnos &rarr; evaluación batch asíncrona, 5 dimensiones con pesos fijos 30/25/20/15/10.</p>
                     </div>
                 </div>
                 <div class="glass-card p-3 sm:p-4 rounded-xl border border-rose-500/30 bg-rose-950/10">
@@ -1517,7 +1517,7 @@
                     <div>
                         <div class="text-[9px] font-mono text-red-400 font-bold mb-0.5">CAPA 1</div>
                         <h4 class="text-xs font-bold text-white mb-1">Harmlessness Screen</h4>
-                        <p class="text-[10px] text-slate-300 leading-relaxed">Filtro perimetral regex compilado + Pydantic v2. Intercepta inyecciones directas, fugas de prompt y Many-Shot en &lt;1ms sin costo.</p>
+                        <p class="text-[10px] text-slate-300 leading-relaxed">Filtro perimetral regex compilado con <code>Pattern</code> + Jakarta DTOs. Intercepta inyecciones directas en &lt;1ms sin costo.</p>
                     </div>
                     <div class="text-[9px] font-mono bg-slate-950 p-1 rounded mt-2 text-red-400 font-bold">HTTP 400 Bad Request</div>
                 </div>
@@ -1526,7 +1526,7 @@
                     <div>
                         <div class="text-[9px] font-mono text-amber-400 font-bold mb-0.5">CAPA 2</div>
                         <h4 class="text-xs font-bold text-white mb-1">Sanitizador PII</h4>
-                        <p class="text-[10px] text-slate-300 leading-relaxed">Scrubber de privacidad que anonimiza DNIs, correos y nombres antes de enviar los tokens al proveedor cloud externo.</p>
+                        <p class="text-[10px] text-slate-300 leading-relaxed">Scrubber de privacidad en Java que anonimiza DNIs, correos y nombres antes de enviar los tokens al proveedor cloud externo.</p>
                     </div>
                     <div class="text-[9px] font-mono bg-slate-950 p-1 rounded mt-2 text-slate-400">Privacidad por Diseño</div>
                 </div>
@@ -1544,7 +1544,7 @@
                     <div>
                         <div class="text-[9px] font-mono text-purple-400 font-bold mb-0.5">CAPA 4</div>
                         <h4 class="text-xs font-bold text-white mb-1">Memoria Redis</h4>
-                        <p class="text-[10px] text-slate-300 leading-relaxed">Ventana deslizante de 5 turnos que rastrea pistas acumuladas y bloquea ataques de rompecabezas (*Puzzle Attacks*).</p>
+                        <p class="text-[10px] text-slate-300 leading-relaxed">Ventana deslizante de 5 turnos con Spring Data Redis que rastrea pistas acumuladas y bloquea ataques de rompecabezas (*Puzzle Attacks*).</p>
                     </div>
                     <div class="text-[9px] font-mono bg-slate-950 p-1 rounded mt-2 text-slate-400">Anti-Crescendo State</div>
                 </div>
@@ -1553,9 +1553,9 @@
                     <div>
                         <div class="text-[9px] font-mono text-emerald-400 font-bold mb-0.5">CAPA 5</div>
                         <h4 class="text-xs font-bold text-white mb-1">Buffer AST Egress</h4>
-                        <p class="text-[10px] text-slate-200 leading-relaxed">Máquina de estados en RAM: congela código en streaming, parsea AST y bloquea similitud &ge;70% contra la solución.</p>
+                        <p class="text-[10px] text-slate-200 leading-relaxed">Buffer en RAM con JavaParser: analiza la estructura de nodos y bloquea respuestas con similitud &ge;70% contra la solución.</p>
                     </div>
-                    <div class="text-[9px] font-mono bg-slate-950 p-1 rounded mt-2 text-emerald-400 font-bold">ast.parse en RAM</div>
+                    <div class="text-[9px] font-mono bg-slate-950 p-1 rounded mt-2 text-emerald-400 font-bold">JavaParser en RAM</div>
                 </div>
             </div>
         
@@ -1572,9 +1572,9 @@
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
                 <!-- Capa 1 -->
                 <div class="glass-card p-3.5 rounded-xl border border-slate-800 space-y-2">
-                    <div class="text-xs font-mono text-red-400 font-bold uppercase">Capa 1: Harmlessness Screen (Pre-Inferencia)</div>
+                    <div class="text-xs font-mono text-red-400 font-bold uppercase">Capa 1: Harmlessness Screen (Pre-Inferencia en Java)</div>
                     <p class="text-xs text-slate-300 leading-relaxed">
-                        Es la primera línea de defensa perimetral. Se ejecuta en FastAPI antes de invocar cualquier modelo fundacional, logrando <strong>latencias &lt; 1 ms y costo $0</strong>.
+                        Es la primera línea de defensa perimetral. Se ejecuta en Spring Boot antes de invocar cualquier modelo fundacional, logrando <strong>latencias &lt; 1 ms y costo $0</strong>.
                     </p>
                     <ul class="text-[10px] text-slate-300 space-y-1 bg-slate-950 p-2 rounded border border-slate-800">
                         <li>• <strong>Prompt Leaks:</strong> <code class="text-amber-400">(repeat|print|reveal)\s+.*(system\s+prompt|rules)</code></li>
@@ -1639,7 +1639,7 @@ NUNCA entregues soluciones resueltas ni código completo.
                     </p>
                     <div class="p-2 bg-slate-950 rounded border border-slate-800 text-[10px] text-slate-300 space-y-1">
                         <div>• <strong>Ventana Deslizante de 5 Turnos:</strong> Redis almacena `session:revealed:{id}` con expiración TTL.</div>
-                        <div>• <strong>Control Acumulativo:</strong> Si la suma de las pistas previas roza el ejercicio completo, FastAPI bloquea nuevas pistas de código.</div>
+                        <div>• <strong>Control Acumulativo:</strong> Si la suma de las pistas previas roza el ejercicio completo, Spring Boot bloquea nuevas pistas de código.</div>
                     </div>
                 </div>
             </div>
@@ -1651,7 +1651,7 @@ NUNCA entregues soluciones resueltas ni código completo.
                 <i data-lucide="terminal" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Capa 5 en Detalle
             </div>
             <h2 class="text-xl sm:text-2xl md:text-3xl font-extrabold text-white mb-2">
-                Capa 5: Buffer Interceptor AST en Streaming SSE
+                Capa 5: Buffer Interceptor AST con JavaParser
             </h2>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4 items-center">
@@ -1661,35 +1661,38 @@ NUNCA entregues soluciones resueltas ni código completo.
                         Un filtro tradicional por cadenas falla si el LLM renombra variables (`x` por `contador`), altera la indentación o introduce comentarios.
                     </p>
                     <p class="text-xs text-slate-300 leading-relaxed">
-                        El módulo <code class="text-amber-300">ast.parse</code> de Python extrae el <strong>esqueleto estructural de nodos del compilador</strong>, abstrayendo el código a su forma pura:
+                        La librería <code class="text-amber-300">JavaParser</code> extrae el <strong>esqueleto estructural de nodos del compilador</strong>, abstrayendo el código a su forma pura:
                     </p>
                     <div class="p-1.5 bg-slate-950 rounded border border-slate-800 text-[10px] font-mono text-emerald-300">
-                        Module &rarr; FunctionDef &rarr; For &rarr; If &rarr; Return
+                        CompilationUnit &rarr; MethodDeclaration &rarr; ForStmt &rarr; IfStmt &rarr; ReturnStmt
                     </div>
                     <p class="text-[10px] text-slate-400">
-                        Se calcula la similitud con <code class="text-slate-200">SequenceMatcher</code>. Si es <strong>&ge; 70% (PAR-11)</strong>, se descarta el buffer en RAM y se emite un desvío pedagógico.
+                        Se calcula la similitud con <code class="text-slate-200">LevenshteinDistance</code> sobre la secuencia normalizada de nodos AST. Si es <strong>&ge; 70% (PAR-11)</strong>, se neutraliza la respuesta y se emite un desvío pedagógico.
                     </p>
                 </div>
 
                 <div class="glass-card p-2.5 rounded-xl border border-slate-800">
                     <div class="text-[10px] font-mono text-slate-400 mb-1 flex justify-between">
-                        <span>tutor_stream_interceptor.py</span>
-                        <span class="text-emerald-400">Python 3.12 (AsyncGenerator)</span>
+                        <span>AntiFugaAdvisor.java</span>
+                        <span class="text-emerald-400">Java 21 (Spring AI Advisor)</span>
                     </div>
-                    <pre class="text-[9px] p-2 rounded text-slate-300 overflow-x-auto"><code>async def tutor_stream_interceptor(raw_stream, solution_code):
-    state = "OUTSIDE_CODE"; code_buf = []
-    async for token in raw_stream:
-        if state == "OUTSIDE_CODE":
-            if "```" in token:
-                state = "INSIDE_CODE"; code_buf.append(token)
-            else: yield token
-        elif state == "INSIDE_CODE":
-            code_buf.append(token)
-            if "".join(code_buf).count("```") >= 2:
-                sim = ASTSimilarity.calculate(extract(code_buf), solution_code)
-                if sim < 0.70: yield "".join(code_buf) # PAR-11 Seguro
-                else: yield "\n> 💡 [Pista reservada: intenta plantear el algoritmo]\n"
-                code_buf, state = [], "OUTSIDE_CODE"</code></pre>
+                    <pre class="text-[9px] p-2 rounded text-slate-300 overflow-x-auto"><code>@Component
+public class AntiFugaAdvisor implements CallAroundAdvisor {
+    @Autowired private JavaParserAstMatcher astMatcher;
+
+    @Override
+    public AdvisedResponse aroundCall(AdvisedRequest req, Chain chain) {
+        AdvisedResponse resp = chain.nextAroundCall(req);
+        String tutorOutput = resp.response().getResult().getOutput().getContent();
+        double sim = astMatcher.calcularSimilitud(tutorOutput, req.getSolutionCode());
+        if (sim >= 0.70) { // PAR-11 Bloqueo Anti-Fuga
+            return AdvisedResponse.from(resp)
+                .withOutput("&gt; 💡 [Pista reservada: intenta plantear el algoritmo]")
+                .build();
+        }
+        return resp;
+    }
+}</code></pre>
                 </div>
             </div>
         
@@ -1727,81 +1730,81 @@ NUNCA entregues soluciones resueltas ni código completo.
 
             <div class="slide-tag">Motor de IA</div>
             <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
-                Responsabilidades de Python / FastAPI
+                Responsabilidades y Módulos en Java Spring Boot
             </h2>
             <p class="text-xs sm:text-sm text-slate-300 mb-3">
-                El motor de IA en Python ejecuta el trabajo determin&iacute;stico que requiere control fino de memoria y ejecuci&oacute;n de c&oacute;digo. Cada responsabilidad est&aacute; aislada en un m&oacute;dulo independiente con contratos HTTP/2 claros. FastAPI con uvloop provee la latencia &lt;800ms requerida para SSE en vivo mientras gestiona el parseo AST, la sanitizaci&oacute;n PII, el anti-fuga y el scoring h&iacute;brido.
+                El microservicio en Java 21 ejecuta tanto la orquestación como el trabajo determinístico y de inferencia. Cada responsabilidad está aislada en un módulo interno con contratos estrictos. Spring AI 1.0.0 provee la abstracción de modelos mientras que <code>JavaParser</code>, Aho-Corasick y Spring Data Redis gestionan la seguridad perimetral y el scoring híbrido.
             </p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2 sm:gap-3">
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="zap" class="w-3.5 h-3.5 text-cyan-400"></i>
-                        <span class="text-[11px] font-mono text-cyan-400 font-bold">1. FastAPI + uvloop</span>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">1. Spring Boot + WebClient</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Runtime as&iacute;ncrono de alto rendimiento. FastAPI con uvloop provee latencia &lt;800ms para SSE en vivo, manejando miles de conexiones concurrentes sin bloqueo.</p>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Runtime de alto rendimiento en Java 21. Soporta streaming SSE y endpoints REST con latencias en memoria &lt;1ms para filtros locales y &lt;800ms para TTFT de streaming.</p>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="code-2" class="w-3.5 h-3.5 text-cyan-400"></i>
-                        <span class="text-[11px] font-mono text-cyan-400 font-bold">2. Buffer AST (ast.parse)</span>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">2. Buffer AST (JavaParser)</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Parseo seguro del c&oacute;digo del alumno. <code>ast.parse</code> congela el AST en memoria, lo analiza sin ejecutarlo, y lo destruye inmediatamente tras el scoring. Java no tiene equivalente nativo.</p>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Parseo seguro del código del alumno. <code>JavaParser</code> construye el AST en memoria, lo compara estructuralmente contra la solución sin ejecutarlo, y destruye el buffer inmediatamente.</p>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="shield-check" class="w-3.5 h-3.5 text-cyan-400"></i>
-                        <span class="text-[11px] font-mono text-cyan-400 font-bold">3. Harmlessness Screen (Pydantic v2)</span>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">3. Harmlessness Screen (Jakarta + Pattern)</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Filtro de seguridad con validaci&oacute;n de esquemas. Pydantic v2 valida cada payload contra esquemas restrictivos, bloqueando inyecci&oacute;n de prompt y payloads malformados antes de llegar al modelo.</p>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Filtro perimetral con validación de esquemas Jakarta y expresiones regulares pre-compiladas. Bloquea prompt injections y delimitadores falsos antes del LLM.</p>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="eye-off" class="w-3.5 h-3.5 text-cyan-400"></i>
-                        <span class="text-[11px] font-mono text-cyan-400 font-bold">4. PII Scrubber</span>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">4. PII Scrubber &amp; Normalizer</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Sanitizaci&oacute;n de datos personales. Elimina nombres, DNI, emails y ubicaciones del contenido del alumno antes de enviarlo al LLM usando regex y NLUs ligeros.</p>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Sanitización de datos personales y normalización Unicode NFKD (JDK estándar). Anonimiza DNIs y correos institucionales antes de llamar a la API externa.</p>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="xml" class="w-3.5 h-3.5 text-cyan-400"></i>
-                        <span class="text-[11px] font-mono text-cyan-400 font-bold">5. XML Delimitaci&oacute;n</span>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">5. Delimitación XML Estricta</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Escape y delimitaci&oacute;n de contenido. Envuelve el c&oacute;digo del alumno entre delimitadores XML <code>&lt;code&gt;</code> para que el LLM lo trate como datos, no como instrucci&oacute;n.</p>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Separación estructural entre directivas del sistema y datos no confiables. Encapsula el código del alumno en <code>&lt;untrusted_student_input&gt;</code> para prevenir evasiones.</p>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="lock" class="w-3.5 h-3.5 text-cyan-400"></i>
                         <span class="text-[11px] font-mono text-cyan-400 font-bold">6. Redis Anti-Crescendo</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Control de momentum anti-puzzle. Ventana deslizante de 5 turnos con sem&aacute;foro de 25 slots en Redis. Bloquea intentos de consulta r&aacute;pida consecutivos que superen el umbral.</p>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Control de momentum anti-puzzle mediante Spring Data Redis. Ventana deslizante de 5 turnos que bloquea intentos de recomposición por partes del ejercicio.</p>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="scale" class="w-3.5 h-3.5 text-cyan-400"></i>
-                        <span class="text-[11px] font-mono text-cyan-400 font-bold">7. Scoring 5D H&iacute;brido</span>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">7. Scoring 5D Híbrido</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Combinaci&oacute;n regla + modelo. Scoring con reglas deterministas (completitud XML, longitud) y modelo LLM (coherencia, profundidad). Pesos calibrados con Golden Set.</p>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">45% a 60% calculado con algoritmos matemáticos en código (eficiencia, conteo, diffs) y el remanente con LLM juez (Claude Haiku / DeepSeek a T=0, Seed=42).</p>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="workers" class="w-3.5 h-3.5 text-cyan-400"></i>
-                        <span class="text-[11px] font-mono text-cyan-400 font-bold">8. Celery Workers</span>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">8. Spring AMQP / RabbitMQ</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Procesamiento as&iacute;ncrono de evaluaciones. Workers Celery con broker Redis para batch processing y retry autom&aacute;tico sin bloquear el endpoint principal.</p>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Encolado asíncrono con RabbitMQ. Procesa evaluaciones batch al 50% de costo de API sin bloquear el hilo de ejecución principal ni degradar el servicio.</p>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="gauge" class="w-3.5 h-3.5 text-cyan-400"></i>
                         <span class="text-[11px] font-mono text-cyan-400 font-bold">9. Rate Limiting + FinOps</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Control de costos por cuota. Bucket4j por alumno:desafioId con l&iacute;mite de 50k tokens. Redis maneja contadores at&oacute;micos y TTLs. FinOps monitorea gasto por proveedor LLM.</p>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Control de costos con cuotas de 50.000 tokens/día por alumno (Bucket4j / Redis). Corta en caliente con HTTP 402 si se supera el presupuesto.</p>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="flex items-center gap-2 mb-1">
                         <i data-lucide="factory" class="w-3.5 h-3.5 text-cyan-400"></i>
-                        <span class="text-[11px] font-mono text-cyan-400 font-bold">10. Factory LLM</span>
+                        <span class="text-[11px] font-mono text-cyan-400 font-bold">10. Spring AI ChatClient Factory</span>
                     </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed">Abstracci&oacute;n de proveedor. Factor&iacute;a que encapsula ChatClient de Spring AI. Permite cambiar entre Gemini Flash, GPT-4o, Claude sin modificar l&oacute;gica de negocio. Fallback autom&aacute;tico.</p>
+                    <p class="text-[10px] text-slate-400 leading-relaxed">Abstracción unificada multi-proveedor (Gemini, Claude, OpenAI). Advisors interceptores para seguridad y fallback automático configurable en tabla ADMIN.</p>
                 </div>
             </div>
         
@@ -1813,33 +1816,33 @@ NUNCA entregues soluciones resueltas ni código completo.
                 SonarQube: Rationale e Integraci&oacute;n
             </h2>
             <p class="text-xs sm:text-sm text-slate-300 mb-3">
-                SonarQube se integra como capa de gobernanza de calidad de c&oacute;digo tanto para el sidecar Java como para el motor Python. Su elecci&oacute;n obedece a tres razones: (1) es el &uacute;nico servidor de an&aacute;lisis est&aacute;tico que cubre bugs, vulnerabilidades de seguridad y code smells en un solo tool, (2) se integra nativamente con el ecosistema Maven/Java del lado Spring Boot a trav&eacute;s del <code>sonar-maven-plugin</code>, y (3) su modelo de Quality Gates permite parametrizar el pase o rechazo del pipeline seg&uacute;n umbrales de cobertura, complejidad c&iacute;clom&aacute;tica y deuda t&eacute;cnica, lo cual se alinea con la filosof&iacute;a de "contratos estrictos" del PRD.
+                SonarQube se integra como capa de gobernanza de calidad de código para el microservicio Java Spring Boot. Su elección obedece a tres razones: (1) es el único servidor de análisis estático que cubre bugs, vulnerabilidades de seguridad y code smells en un solo tool, (2) se integra nativamente con el ecosistema Maven/Java a través del <code>sonar-maven-plugin</code>, y (3) su modelo de Quality Gates permite parametrizar el pase o rechazo del pipeline según umbrales de cobertura JaCoCo, complejidad ciclomática y deuda técnica.
             </p>
             <p class="text-xs sm:text-sm text-slate-300 mb-3">
-                El c&oacute;digo del AntiFuga y del Buffer AST —que implementa la seguridad del sistema— debe alcanzar cobertura de tests y cero vulnerabilidades de seguridad antes de su despliegue. SonarQube convierte la pol&iacute;tica de calidad en algo medible, verificable y no negociable.
+                El código del AntiFuga y del Buffer AST —que implementa la seguridad del sistema— debe alcanzar cobertura de tests y cero vulnerabilidades de seguridad antes de su despliegue. SonarQube convierte la política de calidad en algo medible, verificable y no negociable.
             </p>
 
             <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 sm:gap-3">
                 <div class="glass-card p-3 rounded-xl border-l-2 border-blue-500">
-                    <div class="text-[10px] font-mono text-blue-400 font-bold mb-1">An&aacute;lisis Est&aacute;tico</div>
-                    <p class="text-[11px] text-slate-300 leading-relaxed">Detecci&oacute;n de bugs, security hotspots y code smells en el c&oacute;digo Java del sidecar y en el Python del motor. Identifica patrones problem&aacute;ticos antes del despliegue.</p>
+                    <div class="text-[10px] font-mono text-blue-400 font-bold mb-1">Análisis Estático</div>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">Detección de bugs, security hotspots y code smells en el código Java. Identifica patrones problemáticos y malas prácticas antes del despliegue.</p>
                     <span class="pill pill-info mt-1">RF-NFR</span>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-cyan-500">
                     <div class="text-[10px] font-mono text-cyan-400 font-bold mb-1">Cobertura con JaCoCo</div>
-                    <p class="text-[11px] text-slate-300 leading-relaxed">Integraci&oacute;n de JaCoCo para medir cobertura de c&oacute;digo. El AntiFuga y el Buffer AST requieren cobertura m&iacute;nima para aprobar el Quality Gate.</p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">Integración de JaCoCo para medir cobertura de tests unitarios e integración. Los módulos críticos exigen cobertura mínima para aprobar el Quality Gate.</p>
                     <span class="pill pill-success mt-1">CI/CD</span>
                 </div>
                 <div class="glass-card p-3 rounded-xl border-l-2 border-emerald-500">
                     <div class="text-[10px] font-mono text-emerald-400 font-bold mb-1">Quality Gates</div>
-                    <p class="text-[11px] text-slate-300 leading-relaxed">Par&aacute;metros configurables: cobertura m&iacute;nima, cero vulnerabilidades cr&iacute;ticas, l&iacute;mite de deuda t&eacute;cnica. Webhook de retroalimentaci&oacute;n al pipeline.</p>
+                    <p class="text-[11px] text-slate-300 leading-relaxed">Parámetros configurables: cobertura mínima ≥80%, cero vulnerabilidades críticas, límite de deuda técnica. Webhook de retroalimentación al pipeline.</p>
                     <span class="pill pill-success mt-1">GRC</span>
                 </div>
             </div>
 
             <div class="callout callout-danger mt-3">
-                <div class="text-[10px] font-mono text-red-400 font-bold mb-1 uppercase">Alineaci&oacute;n con el PRD</div>
-                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">La calidad del c&oacute;digo anti-fuga es una decisi&oacute;n de seguridad, no un adorno de ingenier&iacute;a. Si el Buffer AST tiene un bug que permite pasar c&oacute;digo con similitud &ge;70%, el sistema incumple PAR-11 y exponde a la plataforma a fuga de soluciones. SonarQube convierte esta polit&iacute;ca de seguridad en un m&iacute;nimo t&eacute;cnico verificable en cada pipeline de integraci&oacute;n continua.</p>
+                <div class="text-[10px] font-mono text-red-400 font-bold mb-1 uppercase">Alineación con el PRD</div>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">La calidad del código anti-fuga es una decisión de seguridad, no un adorno de ingeniería. Si el Buffer AST tiene un bug que permite pasar código con similitud &ge;70%, el sistema incumple PAR-11 y expone a la plataforma a fuga de soluciones. SonarQube convierte esta política de seguridad en un mínimo técnico verificable en cada pipeline de integración continua.</p>
             </div>
         
         </section>
@@ -1850,11 +1853,11 @@ NUNCA entregues soluciones resueltas ni código completo.
                 Integraci&oacute;n CI/CD y Quality Gates
             </h2>
             <p class="text-xs sm:text-sm text-slate-300 mb-3">
-                La integraci&oacute;n de SonarQube en el pipeline de CI/CD sigue un modelo de dos etapas: an&aacute;lisis est&aacute;tico con el plugin Maven y evaluaci&oacute;n de calidad con Quality Gates. El comando que ejecuta el pipeline completo incluye tanto la validaci&oacute;n de c&oacute;digo como el an&aacute;lisis de seguridad, asegurando que ninguna builds pase a entorno de staging sin haber superado los umbrales de calidad definidos por el equipo de ADMIN.
+                La integración de SonarQube en el pipeline de CI/CD sigue un modelo integral con Maven y JaCoCo. El comando que ejecuta el pipeline completo incluye la compilación con Java 21, ejecución de tests automatizados, análisis estático de seguridad y verificación bloqueante de Quality Gates antes del empaquetado Docker.
             </p>
 
             <pre class="text-[10px] sm:text-[11px] p-3 rounded mb-3"><code>mvn clean verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar \
-  -Dsonar.projectKey=llm-service \
+  -Dsonar.projectKey=ms-evaluacion-llm \
   -Dsonar.host.url=https://sonarqube.utn.edu.ar \
   -Dsonar.login=${SONAR_TOKEN} \
   -Dsonar.coverage.jacoco.xmlReportPaths=target/site/jacoco/jacoco.xml \
@@ -1862,30 +1865,30 @@ NUNCA entregues soluciones resueltas ni código completo.
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-3">
                 <div class="glass-card p-3 rounded-xl border border-slate-800">
-                    <div class="text-[10px] font-mono text-blue-400 font-bold mb-2">Pipeline: Java Sidecar (Spring Boot)</div>
+                    <div class="text-[10px] font-mono text-blue-400 font-bold mb-2">Pipeline de Calidad: Java 21 (Maven)</div>
                     <ol class="text-[11px] text-slate-300 space-y-1.5 font-light">
-                        <li><strong>1. Compile</strong> — Java 21 + Maven verifica que el c&oacute;digo compila sin warnings.</li>
-                        <li><strong>2. Test + JaCoCo</strong> — Ejecuta tests de unidad; genera reporte de cobertura.</li>
-                        <li><strong>3. SonarQube Scan</strong> — Analiza bugs, security hotspots y code smells.</li>
-                        <li><strong>4. Quality Gate</strong> — Verifica cobertura m&iacute;nima y cero vulnerabilidades cr&iacute;ticas.</li>
-                        <li><strong>5. Publish</strong> — Publica el artifact y el dashboard de calidad.</li>
+                        <li><strong>1. Compile</strong> — Java 21 + Maven verifica que el código compila sin warnings.</li>
+                        <li><strong>2. Test + JaCoCo</strong> — Ejecuta tests de unidad e integración; genera reporte XML.</li>
+                        <li><strong>3. SonarQube Scan</strong> — Analiza bugs, security hotspots, duplicación y code smells.</li>
+                        <li><strong>4. Quality Gate</strong> — Verifica cobertura mínima y cero vulnerabilidades críticas.</li>
+                        <li><strong>5. Docker Build</strong> — Genera la imagen inmutable para el despliegue en Kubernetes.</li>
                     </ol>
                 </div>
                 <div class="glass-card p-3 rounded-xl border border-slate-800">
-                    <div class="text-[10px] font-mono text-emerald-400 font-bold mb-2">Pipeline: Python FastAPI</div>
+                    <div class="text-[10px] font-mono text-emerald-400 font-bold mb-2">Verificaciones de Seguridad Automáticas</div>
                     <ol class="text-[11px] text-slate-300 space-y-1.5 font-light">
-                        <li><strong>1. Lint</strong> — Ruff verifica estilo y reglas de formato; black formatea.</li>
-                        <li><strong>2. pytest</strong> — Ejecuta tests unitarios y de integraci&oacute;n con cobertura.</li>
-                        <li><strong>3. SonarQube Scan</strong> — Analiza complejidad c&iacute;clom&aacute;tica y duplicaci&oacute;n.</li>
-                        <li><strong>4. Quality Gate</strong> — Verifica cobertura m&iacute;nima y cero issues cr&iacute;ticos.</li>
-                        <li><strong>5. Publish</strong> — Publica el artifact Docker y el dashboard de calidad.</li>
+                        <li><strong>1. AST Test Suite</strong> — Pruebas de regresión con JavaParser sobre casos de fuga.</li>
+                        <li><strong>2. Dependency Check</strong> — Escaneo OWASP sobre dependencias Maven en el pom.xml.</li>
+                        <li><strong>3. Golden Set Test</strong> — Validación offline de consistencia y tolerancia PAR-14.</li>
+                        <li><strong>4. Contract Testing</strong> — Verificación de esquemas JSON con Spring Cloud Contract.</li>
+                        <li><strong>5. Quality Gate Pass</strong> — Notificación automática a ADMIN y pase a staging.</li>
                     </ol>
                 </div>
             </div>
 
             <div class="callout mt-3">
                 <div class="text-[10px] font-mono text-cyan-400 font-bold mb-1 uppercase">Nota de Calidad</div>
-                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">El par&aacute;metro <code>-Dsonar.qualitygate.wait=true</code> hace que el pipeline se bloquee si el Quality Gate no se cumple, sin necesidad de intervención manual. Cualquier PR que no pase el Quality Gate se marca como fallida y el equipo de ADMIN recibe notificaci&oacute;n con el detalle de las l&iacute;neas que incumplen los umbrales definidos. El anti-fuga y el buffer AST son c&oacute;digo cr&iacute;tico: su coverage m&iacute;nimo es del 90% y su nivel de severidad de seguridad es "Blocker".</p>
+                <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">El parámetro <code>-Dsonar.qualitygate.wait=true</code> hace que el pipeline se bloquee si el Quality Gate no se cumple, sin necesidad de intervención manual. Cualquier PR que no pase el Quality Gate se marca como fallida y el equipo de ADMIN recibe notificación con el detalle de las líneas que incumplen los umbrales definidos. El anti-fuga y el buffer AST son código crítico: su coverage mínimo es del 90% y su nivel de severidad de seguridad es "Blocker".</p>
             </div>
         
         </section>
@@ -2552,14 +2555,14 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                         </tr>
                     </thead>
                     <tbody>
-                        <tr><td>RF-IA-01</td><td>Asistencia en desafíos prácticos</td><td>Endpoint <code>POST /api/v1/tutor/consultar</code> con contexto por request</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-01</td><td>Asistencia en desafíos prácticos</td><td>Endpoint <code>POST /ai/tutor</code> con contexto por request</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-02</td><td>Registro absoluto de interacciones</td><td>Tabla <code>interacciones_ia</code> JSONB + record inmutable</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-03</td><td>Integración con evaluación académica</td><td>ScoreIA → core aplica factor PAR-05 (±20% XP)</td><td>Java + Core</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-04</td><td>Prohibición de entregar soluciones</td><td>System prompt condicionado por nivel de riesgo</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
-                        <tr><td>RF-IA-05</td><td>Filtro de intención y off-topic</td><td>PorteroService con modelo barato (Gemini Flash)</td><td>Python</td><td><span ><span>Esbozo</span></td></tr>
+                        <tr><td>RF-IA-05</td><td>Filtro de intención y off-topic</td><td>PorteroService (Aho-Corasick + Omni-Moderation)</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-06</td><td>Contexto pedagógico restringido</td><td>Metadatos inyectados en system prompt</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-07</td><td>Medidas anti-jailbreak</td><td>Instrucciones de máxima prioridad al final del prompt</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
-                        <tr><td>RF-IA-08</td><td>RAG para inyección de conocimiento</td><td>pgvector + VectorStore; chunking, embeddings, búsqueda semántica</td><td>Python</td><td><span ><span>Fase 3</span></td></tr>
+                        <tr><td>RF-IA-08</td><td>RAG para inyección de conocimiento</td><td>pgvector + VectorStore; chunking, embeddings, búsqueda semántica</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-09</td><td>Score de IA como modificador de XP</td><td>Factor IA = 1 + ((score-50)/50) × 0.20</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-10</td><td>Bloqueo silencioso y registro auditor</td><td>Mensaje genérico + tabla <code>incidentes_ia</code></td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-11</td><td>Agnosticismo de proveedor</td><td>ChatClient con configuración YAML multi-proveedor</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
@@ -2571,7 +2574,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                         <tr><td>RF-IA-17</td><td>Auditoría y supervisión humana</td><td><code>nivelConfianza</code> + muestreo PAR-10 + P90</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-18</td><td>Apelación guiada por alumno</td><td>Override auditado en <code>override_log</code> (sin UPDATE)</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-19</td><td>Clasificación por riesgo de fuga</td><td>Enum <code>NivelRiesgo</code> + system prompt diferenciado</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
-                        <tr><td>RF-IA-20</td><td>Salvaguarda técnica anti-fuga</td><td><code>AntiFugaService</code>: Levenshtein + AST + 2 reintentos</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-20</td><td>Salvaguarda técnica anti-fuga</td><td><code>AntiFugaService</code>: Levenshtein + JavaParser AST</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-21</td><td>Configuración global del riesgo</td><td>Tabla <code>tipos_desafio</code> con <code>nivel_riesgo_ia</code> ADMIN only</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-22</td><td>Límites de uso por usuario</td><td>Bucket4j por <code>alumnoId:desafioId</code></td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-23</td><td>Mapeo estricto 1-to-1 rol-modelo</td><td>YAML por rol + <code>LlmProperties</code></td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
@@ -2585,7 +2588,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                         <tr><td>RF-IA-31</td><td>Habilitación por calibración</td><td><code>CalibracionService</code> con PAR-14 (±5, ±10)</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-32</td><td>Detección de deriva (drift)</td><td><code>DriftJob</code> mensual + alerta ADMIN</td><td>Java</td><td><span ><span>Esbozo</span></td></tr>
                         <tr><td>RF-IA-33</td><td>Señalización de cohortes mixtas</td><td><code>model_id</code>, <code>model_version</code>, <code>rubric_version</code> en ScoreIA</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
-                        <tr><td>RF-IA-34</td><td>Bloqueo de cierre por pendientes</td><td><code>GET /api/v1/evaluaciones-pendientes?cursoId=X</code> → 409 si n>0</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-34</td><td>Bloqueo de cierre por pendientes</td><td><code>GET /ai/pendientes/{cursoId}</code> → 409 si n>0</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-35</td><td>Soberanía del ADMIN sobre proveedores</td><td>Tabla <code>auditoria_proveedores</code> con trazabilidad completa</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-36</td><td>Calibración bloqueante sin override</td><td>Core consulta estado y bloquea draft→activo (RF-CUR-08b)</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
                     </tbody>

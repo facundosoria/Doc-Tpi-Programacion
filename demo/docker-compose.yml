@@ -1,0 +1,48 @@
+# ==============================================================================
+# Docker Compose: Demo Integral Tema 07 - Evaluación LLM & Tutor Socrático
+# UTN FRC - Tecnicatura Universitaria en Programación - Programación IV
+# ==============================================================================
+#
+# Para levantar la demo completa:
+#   docker compose -f demo/docker-compose.yml up --build
+#
+# Frontend disponible en: http://localhost:3000
+# Backend disponible en:  http://localhost:8087
+# ==============================================================================
+
+services:
+  # 1. Microservicio Backend de Evaluación LLM y Tutor Socrático
+  backend:
+    build:
+      context: ../codigo-ejemplo/ms-evaluacion-llm
+      dockerfile: Dockerfile
+    container_name: tpi-demo-backend
+    restart: unless-stopped
+    ports:
+      - "8087:8087"
+    environment:
+      # Si se pasa una GROQ_API_KEY se usa el modelo real Llama 3.3 70B.
+      # Si se deja vacía o 'mock-key', responde en modo simulación sin costo de tokens.
+      - GROQ_API_KEY=${GROQ_API_KEY:-mock-key}
+      - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
+      - SPRING_PROFILES_ACTIVE=default
+    networks:
+      - tpi-demo-net
+
+  # 2. Frontend de Demostración y Pruebas en Vivo (Nginx)
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tpi-demo-frontend
+    restart: unless-stopped
+    ports:
+      - "${DEMO_PORT:-3000}:80"
+    depends_on:
+      - backend
+    networks:
+      - tpi-demo-net
+
+networks:
+  tpi-demo-net:
+    driver: bridge

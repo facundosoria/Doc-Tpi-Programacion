@@ -1,0 +1,1253 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Arquitectura de Integración, Roles y Contratos Inter-Servicios — TPI UTN FRC</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <!-- Mermaid.js -->
+    <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#080c16',
+                            card: '#0f172a',
+                            cardLight: '#1e293b',
+                            border: '#1e293b',
+                            accent: '#6366f1',
+                            glow: '#3b82f6',
+                            emerald: '#10b981',
+                            rose: '#f43f5e',
+                            amber: '#f59e0b',
+                            cyan: '#06b6d4',
+                            purple: '#8b5cf6'
+                        },
+                        navy: {
+                            900: '#0a1628',
+                            800: '#0f2035',
+                            700: '#152940',
+                        },
+                        brand: {
+                            400: '#60a5fa',
+                            500: '#3b82f6',
+                            600: '#2563eb',
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'monospace'],
+                        sans: ['Inter', 'system-ui', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            background-color: #080c16;
+            color: #f1f5f9;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .slide {
+            display: none;
+            opacity: 0;
+            transform: scale(0.98);
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+            width: 100%;
+            max-height: 100%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            padding: 1.5rem 2rem;
+        }
+
+        .slide.active {
+            display: flex;
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .glass-card {
+            background: rgba(15, 23, 42, 0.85);
+            backdrop-filter: blur(14px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.45);
+        }
+
+        .glass-card-hover:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 10px 40px -10px rgba(99, 102, 241, 0.3);
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa 0%, #a855f7 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-cyan {
+            background: linear-gradient(135deg, #06b6d4 0%, #3b82f6 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-emerald {
+            background: linear-gradient(135deg, #10b981 0%, #06b6d4 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .gradient-amber {
+            background: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        pre code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.6);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(99, 102, 241, 0.4);
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(99, 102, 241, 0.7);
+        }
+    </style>
+</head>
+<body class="flex flex-col select-none antialiased">
+
+    <!-- Top Navigation Bar -->
+    <header class="h-14 border-b border-cyber-border bg-cyber-dark/95 backdrop-blur px-6 flex items-center justify-between shrink-0 z-50">
+        <div class="flex items-center space-x-3">
+            <span class="inline-flex p-1.5 rounded-lg bg-cyber-accent/20 border border-cyber-accent/40 text-cyber-accent">
+                <i data-lucide="network" class="w-5 h-5"></i>
+            </span>
+            <div>
+                <h1 class="font-bold text-sm text-slate-100 flex items-center gap-2">
+                    Arquitectura de Integración &amp; Roles Inter-Servicios
+                    <span class="text-xs px-2 py-0.5 rounded bg-brand-500/20 text-brand-400 font-mono border border-brand-500/30">UTN FRC · TPI</span>
+                </h1>
+            </div>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <span id="slide-counter" class="text-xs font-mono font-medium text-slate-400 bg-cyber-card px-3 py-1 rounded border border-cyber-border">
+                Slide <span id="current-slide-num" class="text-cyber-glow font-bold">1</span> / <span id="total-slides-num">17</span>
+            </span>
+
+            <div class="flex items-center space-x-1 bg-cyber-card border border-cyber-border rounded-lg p-1">
+                <button id="prev-btn" onclick="prevSlide()" class="p-1.5 rounded hover:bg-cyber-cardLight text-slate-300 hover:text-white transition disabled:opacity-30 disabled:cursor-not-allowed" title="Diapositiva Anterior (Flecha Izquierda / Barra)">
+                    <i data-lucide="chevron-left" class="w-4 h-4"></i>
+                </button>
+                <button id="next-btn" onclick="nextSlide()" class="p-1.5 rounded hover:bg-cyber-cardLight text-slate-300 hover:text-white transition disabled:opacity-30 disabled:cursor-not-allowed" title="Diapositiva Siguiente (Flecha Derecha / Espacio)">
+                    <i data-lucide="chevron-right" class="w-4 h-4"></i>
+                </button>
+            </div>
+
+            <button onclick="toggleFullScreen()" class="p-2 rounded-lg bg-cyber-card border border-cyber-border text-slate-300 hover:text-white hover:border-cyber-accent/50 transition" title="Pantalla Completa (F)">
+                <i data-lucide="maximize" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- Presentation Viewport -->
+    <main id="slides-container" class="flex-1 relative overflow-hidden bg-gradient-to-br from-cyber-dark via-navy-900 to-cyber-dark flex items-center justify-center">
+
+        <!-- ==================== SLIDE 1: PORTADA ==================== -->
+        <section class="slide active flex-col justify-center items-center text-center max-w-5xl mx-auto h-full" data-slide="1">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-brand-500/10 border border-brand-500/30 text-brand-400 text-xs font-mono mb-6 uppercase tracking-wider">
+                <i data-lucide="layers" class="w-3.5 h-3.5"></i> Componente de Borde · M2M Security · Matriz de Roles
+            </div>
+            
+            <h1 class="text-4xl md:text-5xl lg:text-6xl font-black text-slate-100 tracking-tight leading-tight mb-6">
+                API Gateway, Service Discovery &amp; <br/>
+                <span class="gradient-text">Contratos de Integración Inter-Servicios</span>
+            </h1>
+
+            <p class="text-lg md:text-xl text-slate-300 max-w-3xl font-light mb-8 leading-relaxed">
+                Cómo se conecta <strong class="text-cyber-glow">cada rol y grupo</strong> a todos los servicios de la plataforma: protocolos, tokens técnicos, headers de confianza, resiliencia y cómo implementarlo paso a paso.
+            </p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 w-full max-w-4xl text-left font-mono text-xs">
+                <div class="glass-card p-3 rounded-lg border-l-2 border-l-cyber-accent">
+                    <span class="text-slate-500 block mb-1">Puerta Única</span>
+                    <strong class="text-slate-200">Spring Cloud Gateway</strong>
+                </div>
+                <div class="glass-card p-3 rounded-lg border-l-2 border-l-cyber-emerald">
+                    <span class="text-slate-500 block mb-1">Service Registry</span>
+                    <strong class="text-slate-200">Netflix Eureka (lb://)</strong>
+                </div>
+                <div class="glass-card p-3 rounded-lg border-l-2 border-l-cyber-amber">
+                    <span class="text-slate-500 block mb-1">Seguridad M2M</span>
+                    <strong class="text-slate-200">JWT RS256 + JWKS</strong>
+                </div>
+                <div class="glass-card p-3 rounded-lg border-l-2 border-l-cyber-rose">
+                    <span class="text-slate-500 block mb-1">Resiliencia</span>
+                    <strong class="text-slate-200">Resilience4j + RFC 7807</strong>
+                </div>
+            </div>
+
+            <div class="mt-8 text-xs text-slate-500 flex items-center gap-4">
+                <span>Presiona <kbd class="px-2 py-0.5 rounded bg-cyber-card border border-cyber-border text-slate-400 font-mono">Espacio</kbd> o <kbd class="px-2 py-0.5 rounded bg-cyber-card border border-cyber-border text-slate-400 font-mono">→</kbd> para avanzar</span>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 2: DOS CONCEPTOS PREVIOS ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="2">
+            <div class="mb-4">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">01 · Fundamentos de Arquitectura</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Dos Conceptos Previos: Gateway y Service Discovery</h2>
+                <p class="text-sm text-slate-400">Qué problema resuelve cada pieza de infraestructura antes de entrar en los contratos</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 my-auto">
+                <div class="glass-card p-6 rounded-xl border border-cyber-border relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-brand-500/10 rounded-full blur-xl pointer-events-none"></div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2.5 rounded-lg bg-brand-500/20 text-brand-400 border border-brand-500/30">
+                            <i data-lucide="shield-check" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">API GATEWAY</h3>
+                            <span class="text-xs font-mono text-brand-400">Spring Cloud Gateway WebFlux</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                        Intermediario obligatorio entre clientes externos y microservicios internos. Centraliza la <strong>autenticación criptográfica, ruteo dinámico, rate limiting, trazabilidad distribuida y resiliencia</strong>.
+                    </p>
+                    <div class="p-3 bg-cyber-dark/80 rounded-lg border border-cyber-border text-xs text-slate-300">
+                        <strong class="text-brand-400">Problema que resuelve:</strong> Evita que los clientes conozcan direcciones privadas y evita que cada microservicio repita tareas transversales de seguridad y red.
+                    </div>
+                </div>
+
+                <div class="glass-card p-6 rounded-xl border border-cyber-border relative overflow-hidden">
+                    <div class="absolute top-0 right-0 w-24 h-24 bg-cyber-emerald/10 rounded-full blur-xl pointer-events-none"></div>
+                    <div class="flex items-center gap-3 mb-4">
+                        <div class="p-2.5 rounded-lg bg-cyber-emerald/20 text-cyber-emerald border border-cyber-emerald/30">
+                            <i data-lucide="compass" class="w-6 h-6"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-bold text-white">SERVICE DISCOVERY</h3>
+                            <span class="text-xs font-mono text-cyber-emerald">Netflix Eureka Server</span>
+                        </div>
+                    </div>
+                    <p class="text-sm text-slate-300 leading-relaxed mb-4">
+                        Directorio dinámico en tiempo real donde cada microservicio registra su <strong>nombre lógico</strong>, IP privada, puerto efímero y estado de salud (Heartbeat cada 30s).
+                    </p>
+                    <div class="p-3 bg-cyber-dark/80 rounded-lg border border-cyber-border text-xs text-slate-300">
+                        <strong class="text-cyber-emerald">Problema que resuelve:</strong> Permite que los contenedores se reescalen o cambien de IP/host en Docker o Kubernetes sin modificar rutas ni configuraciones fijas.
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-4 p-4 rounded-xl bg-navy-800/80 border border-cyber-border flex items-center gap-4">
+                <i data-lucide="lightbulb" class="w-8 h-8 text-cyber-amber shrink-0"></i>
+                <div class="text-xs text-slate-300">
+                    <strong class="text-white text-sm block mb-0.5">La Analogía del Edificio Corporativo:</strong>
+                    El <strong>API Gateway</strong> es la recepción central en la puerta: controla credenciales, revisa identificación y acompaña al visitante. <strong>Eureka</strong> es el directorio interno que indica en qué piso u oficina temporal se encuentra cada departamento. Eureka nunca recibe visitas.
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 3: REGLAS ESTRICTAS DE RED ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="3">
+            <div class="mb-4">
+                <span class="text-xs font-mono text-cyber-rose font-semibold uppercase tracking-wider">02 · Aislamiento y Red Privada</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">La Puerta Única se Impone en la Red</h2>
+                <p class="text-sm text-slate-400">Reglas estrictas de tráfico físico y lógico: cero llamadas directas entre microservicios</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 my-auto">
+                <div class="glass-card p-5 rounded-xl border border-cyber-border col-span-1 lg:col-span-2">
+                    <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i data-lucide="git-commit" class="w-4 h-4 text-brand-400"></i>
+                        Topología de Flujo Obligatoria
+                    </h3>
+
+                    <div class="space-y-3 font-mono text-xs">
+                        <div class="p-3 rounded-lg bg-cyber-emerald/10 border border-cyber-emerald/30 text-slate-200 flex items-center justify-between">
+                            <span>Internet / Clientes</span>
+                            <span class="text-cyber-emerald font-bold">──────►  API Gateway  ──────►</span>
+                            <span>Microservicio</span>
+                        </div>
+                        <div class="p-3 rounded-lg bg-brand-500/10 border border-brand-500/30 text-slate-200 flex items-center justify-between">
+                            <span>Microservicio A</span>
+                            <span class="text-brand-400 font-bold">──────►  API Gateway  ──────►</span>
+                            <span>Microservicio B</span>
+                        </div>
+                        <div class="p-3 rounded-lg bg-cyber-rose/10 border border-cyber-rose/30 text-cyber-rose flex items-center justify-between line-through font-bold">
+                            <span>Internet</span>
+                            <span>────── ❌ BLOQUEADO ──────►</span>
+                            <span>Microservicio (Directo)</span>
+                        </div>
+                        <div class="p-3 rounded-lg bg-cyber-rose/10 border border-cyber-rose/30 text-cyber-rose flex items-center justify-between line-through font-bold">
+                            <span>Microservicio A</span>
+                            <span>────── ❌ BLOQUEADO ──────►</span>
+                            <span>Microservicio B (Directo)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-5 rounded-xl border border-cyber-border flex flex-col justify-between">
+                    <div>
+                        <h3 class="text-sm font-bold text-slate-200 uppercase tracking-wider mb-4 flex items-center gap-2">
+                            <i data-lucide="lock" class="w-4 h-4 text-cyber-amber"></i>
+                            Reglas por Entorno
+                        </h3>
+                        <div class="space-y-4 text-xs text-slate-300">
+                            <div class="p-3 bg-cyber-dark/80 rounded-lg border border-cyber-border">
+                                <strong class="text-white block mb-1">🐳 Docker / Compose:</strong>
+                                Red privada tipo `bridge`. Los microservicios <span class="text-cyber-rose font-bold">NUNCA publican puertos</span> (`ports: - "8080:8080"` prohibido). Solo usan `expose`. Único puerto público: Gateway.
+                            </div>
+                            <div class="p-3 bg-cyber-dark/80 rounded-lg border border-cyber-border">
+                                <strong class="text-white block mb-1">☸️ Kubernetes:</strong>
+                                Microservicios usan Services tipo `ClusterIP`. Políticas `NetworkPolicy` rechazan todo tráfico entrante que no provenga del pod del `api-gateway`.
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-[11px] text-slate-400 mt-2 font-mono">
+                        💡 Razón: El microservicio de destino solo confía en la red privada del Gateway.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 4: RESPONSABILIDADES GATEWAY VS MICRO ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="4">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">03 · Frontera de Autoridad</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">¿Qué hace realmente el Gateway vs. el Microservicio?</h2>
+                <p class="text-sm text-slate-400">Infraestructura y seguridad técnica en el borde vs. reglas y decisiones de dominio de negocio</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-auto text-xs">
+                <div class="glass-card p-4 rounded-xl border-l-4 border-l-cyber-emerald">
+                    <h3 class="text-sm font-bold text-cyber-emerald uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i data-lucide="check-circle" class="w-4 h-4"></i>
+                        SÍ Pertenece al Gateway (Borde Técnico)
+                    </h3>
+                    <ul class="space-y-2 text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-emerald font-bold">•</span>
+                            <span><strong>Puerta Única:</strong> Único componente con puerto expuesto; la red bloquea accesos directos.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-emerald font-bold">•</span>
+                            <span><strong>Autenticar Criptográficamente:</strong> Valida firma RS256, issuer, audience, algoritmo y vigencia del JWT vía JWKS.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-emerald font-bold">•</span>
+                            <span><strong>Rutear Dinámicamente:</strong> Resuelve nombres lógicos (`lb://SERVICE-ID`) mediante catálogo Eureka.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-emerald font-bold">•</span>
+                            <span><strong>Propagar Identidad Limpia:</strong> Elimina headers externos manipulados e inyecta `X-Principal-Type`, `X-User-Id`, etc.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-emerald font-bold">•</span>
+                            <span><strong>Proteger Rutas Internas:</strong> Exige token técnico con `type=service`, audience y scope válidos.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-emerald font-bold">•</span>
+                            <span><strong>Resiliencia de Borde:</strong> Aplica timeouts, rate limits compartidos en Redis y Circuit Breakers.</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border-l-4 border-l-cyber-rose">
+                    <h3 class="text-sm font-bold text-cyber-rose uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i data-lucide="x-circle" class="w-4 h-4"></i>
+                        NO Pertenece al Gateway (Pertenece al Micro)
+                    </h3>
+                    <ul class="space-y-2 text-slate-300">
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-rose font-bold">•</span>
+                            <span><strong>Autorizar Negocio:</strong> Qué puede hacer cada rol funcional (`@PreAuthorize`, `@RolesAllowed`) lo decide el micro.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-rose font-bold">•</span>
+                            <span><strong>Resolver Ownership / ABAC:</strong> ¿Es su desafío, su curso o su entrega? Lo decide el dueño del dominio.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-rose font-bold">•</span>
+                            <span><strong>Conocer Dominios:</strong> El Gateway desconoce qué es un curso, un legajo, un parcial o una rúbrica.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-rose font-bold">•</span>
+                            <span><strong>Emitir Tokens:</strong> Eso pertenece exclusivamente a `users-service` (Auth Server); el Gateway solo valida.</span>
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <span class="text-cyber-rose font-bold">•</span>
+                            <span><strong>Guardar Sesión:</strong> La arquitectura es 100% stateless: se verifica el token JWT en cada request, no hay sesiones en memoria.</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="p-3 bg-cyber-card rounded-lg border border-cyber-border text-center text-xs font-mono text-slate-400">
+                ⭐ <strong class="text-slate-200">Regla Mnemotécnica:</strong> Si una decisión necesita datos del dominio, pertenece al microservicio; si protege la frontera técnica, pertenece al Gateway.
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 5: LOS 4 ESCENARIOS DE TRÁFICO ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="5">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">04 · Escenarios de Operación</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Los Cuatro Escenarios que Soporta el Borde</h2>
+                <p class="text-sm text-slate-400">Cada caso de uso atraviesa la misma infraestructura pero aplica diferentes políticas</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-auto text-xs">
+                <!-- Escenario 1 -->
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-0.5 rounded bg-cyber-emerald/20 text-cyber-emerald font-mono font-bold">1 · Login Público</span>
+                        <span class="text-slate-500 font-mono">permitAll()</span>
+                    </div>
+                    <div class="font-mono text-brand-400 mb-2">POST /api/users/public/auth/login</div>
+                    <p class="text-slate-300 leading-relaxed">
+                        Endpoint abierto documentado en el Gateway. `users-service` recibe credenciales (legajo + clave), las valida contra su base y emite un JWT firmado (RS256) con claims `sub`, `roles`, `type=user`.
+                    </p>
+                </div>
+
+                <!-- Escenario 2 -->
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-0.5 rounded bg-brand-500/20 text-brand-400 font-mono font-bold">2 · Request de Usuario</span>
+                        <span class="text-slate-500 font-mono">Bearer &lt;user-jwt&gt;</span>
+                    </div>
+                    <div class="font-mono text-brand-400 mb-2">GET /api/users/me · GET /api/challenges/active</div>
+                    <p class="text-slate-300 leading-relaxed">
+                        Gateway valida el JWT contra JWKS, sanitiza headers del cliente, inyecta `X-Principal-Type: user` y `X-User-Id`. El microservicio destino valida ownership y autoriza el caso de uso.
+                    </p>
+                </div>
+
+                <!-- Escenario 3 -->
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-0.5 rounded bg-cyber-purple/20 text-cyber-purple font-mono font-bold">3 · Request Micro a Micro (M2M)</span>
+                        <span class="text-slate-500 font-mono">Bearer &lt;service-jwt&gt;</span>
+                    </div>
+                    <div class="font-mono text-brand-400 mb-2">GET /api/users/profile/{id} · POST /api/evaluations/ingesta</div>
+                    <p class="text-slate-300 leading-relaxed">
+                        El Micro A obtiene un token técnico de corta duración (60s, `type=service`) vía Client Credentials y llama al Gateway. Gateway valida `scope` y `aud`, inyectando `X-Service-Id`.
+                    </p>
+                </div>
+
+                <!-- Escenario 4 -->
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="px-2 py-0.5 rounded bg-cyber-rose/20 text-cyber-rose font-mono font-bold">4 · Destino con Falla</span>
+                        <span class="text-slate-500 font-mono">503 / 504 Problem Details</span>
+                    </div>
+                    <div class="font-mono text-brand-400 mb-2">forward:/fallback/**</div>
+                    <p class="text-slate-300 leading-relaxed">
+                        Si un microservicio supera el timeout (504) o su Circuit Breaker se abre (503), el Gateway intercepta la falla y devuelve JSON estándar RFC 7807 con `traceId` sin colapsar el sistema.
+                    </p>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 6: PIPELINE DE SEGURIDAD Y HEADERS ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="6">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-cyber-emerald font-semibold uppercase tracking-wider">05 · Filtros &amp; Anti-Spoofing</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Pipeline de Seguridad y Sanitización de Headers</h2>
+                <p class="text-sm text-slate-400">Cómo se transforma la petición externa en una llamada interna confiable y trazable</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 my-auto">
+                <div class="space-y-2 text-xs font-mono">
+                    <div class="p-2.5 rounded-lg bg-cyber-card border-l-4 border-l-brand-400 border border-cyber-border flex items-center justify-between">
+                        <div>
+                            <strong class="text-white">0. Spring Security (WebFilterChain)</strong>
+                            <div class="text-[11px] text-slate-400">Valida firma RS256, iss, aud, exp vía JWKS. 401 si falla.</div>
+                        </div>
+                        <span class="text-brand-400 text-[10px]">Auth</span>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-cyber-card border-l-4 border-l-cyber-cyan border border-cyber-border flex items-center justify-between">
+                        <div>
+                            <strong class="text-white">1. Tracing &amp; Correlation (GlobalFilter @Order(1))</strong>
+                            <div class="text-[11px] text-slate-400">Genera/propaga X-Request-Id y W3C traceparent.</div>
+                        </div>
+                        <span class="text-cyber-cyan text-[10px]">Trace</span>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-cyber-card border-l-4 border-l-slate-400 border border-cyber-border flex items-center justify-between">
+                        <div>
+                            <strong class="text-white">2. LoggingFilter (GlobalFilter @Order(2))</strong>
+                            <div class="text-[11px] text-slate-400">Registra método, ruta, status y latencia (sin tokens ni bodies).</div>
+                        </div>
+                        <span class="text-slate-400 text-[10px]">Logs</span>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-cyber-card border-l-4 border-l-cyber-purple border border-cyber-border flex items-center justify-between">
+                        <div>
+                            <strong class="text-white">3. RouteGuard (GlobalFilter @Order(3))</strong>
+                            <div class="text-[11px] text-slate-400">Exige serviceId, audience y scope en rutas técnicas (403 si falta).</div>
+                        </div>
+                        <span class="text-cyber-purple text-[10px]">RBAC/Scope</span>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-cyber-card border-l-4 border-l-cyber-emerald border border-cyber-border flex items-center justify-between">
+                        <div>
+                            <strong class="text-white">4. IdentityPropagationFilter (GlobalFilter @Order(4))</strong>
+                            <div class="text-[11px] text-slate-400">Elimina headers sensibles externos e inyecta X-Principal-Type, etc.</div>
+                        </div>
+                        <span class="text-cyber-emerald text-[10px]">Anti-Spoofing</span>
+                    </div>
+                    <div class="p-2.5 rounded-lg bg-cyber-card border-l-4 border-l-cyber-amber border border-cyber-border flex items-center justify-between">
+                        <div>
+                            <strong class="text-white">5. RateLimitFilter (GlobalFilter @Order(5))</strong>
+                            <div class="text-[11px] text-slate-400">Control de cuota por IP/Usuario en Redis (429 + Retry-After).</div>
+                        </div>
+                        <span class="text-cyber-amber text-[10px]">Cuota</span>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border border-cyber-border flex flex-col justify-between text-xs">
+                    <div>
+                        <h4 class="font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i data-lucide="shield-alert" class="w-4 h-4 text-cyber-rose"></i>
+                            Contrato de Headers de Confianza
+                        </h4>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left font-mono text-[11px]">
+                                <thead class="border-b border-cyber-border text-slate-400">
+                                    <tr>
+                                        <th class="py-1">Header Inyectado</th>
+                                        <th class="py-1">Valores</th>
+                                        <th class="py-1">Uso en Controller</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-cyber-border/50 text-slate-300">
+                                    <tr>
+                                        <td class="py-1 text-cyber-emerald font-bold">X-Principal-Type</td>
+                                        <td>`user` | `service`</td>
+                                        <td>Distinguir persona vs proceso</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1 text-brand-400 font-bold">X-User-Id</td>
+                                        <td>UUID / Legajo</td>
+                                        <td>Id de usuario autenticado</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1 text-brand-400 font-bold">X-User-Roles</td>
+                                        <td>`ROLE_STUDENT`...</td>
+                                        <td>Roles del usuario</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1 text-cyber-purple font-bold">X-Service-Id</td>
+                                        <td>`challenges-service`</td>
+                                        <td>Micro llamador (M2M)</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1 text-cyber-purple font-bold">X-Delegated-User</td>
+                                        <td>UUID (opcional)</td>
+                                        <td>Usuario en cuyo nombre opera</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-1 text-cyber-cyan font-bold">X-Request-Id</td>
+                                        <td>UUID</td>
+                                        <td>Correlación de logs y APM</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="mt-3 p-2 bg-cyber-rose/10 border border-cyber-rose/30 rounded text-[11px] text-cyber-rose">
+                        ⚠️ <strong>Anti-Spoofing:</strong> Si el cliente envía `X-User-Id: 1` en el HTTP original, el Gateway lo destruye y lo reemplaza con el ID extraído de la firma del JWT.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 7: CONVENCIÓN DE NOMBRES Y RUTEO ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="7">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">06 · Estándar de Contratos</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Convención de Nombres en Tres Niveles y `lb://`</h2>
+                <p class="text-sm text-slate-400">Ruteo dinámico gobernado sin catálogo manual ni autorutas accidentales</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 my-auto text-xs">
+                <!-- Nivel 1 -->
+                <div class="glass-card p-4 rounded-xl border-t-4 border-t-slate-400">
+                    <span class="text-[10px] font-mono text-slate-400 uppercase">Nivel 1 · Repositorio Git</span>
+                    <h3 class="text-base font-bold text-white mt-1 mb-2 font-mono">tpi-{nombre}</h3>
+                    <p class="text-slate-300 text-xs mb-3">Organización y trazabilidad del código fuente entre equipos de trabajo.</p>
+                    <div class="bg-cyber-dark p-2 rounded font-mono text-[11px] text-slate-400">
+                        • tpi-users<br/>
+                        • tpi-challenges<br/>
+                        • tpi-evaluations
+                    </div>
+                </div>
+
+                <!-- Nivel 2 -->
+                <div class="glass-card p-4 rounded-xl border-t-4 border-t-cyber-emerald">
+                    <span class="text-[10px] font-mono text-cyber-emerald uppercase">Nivel 2 · Eureka Service ID</span>
+                    <h3 class="text-base font-bold text-white mt-1 mb-2 font-mono">{nombre}-service</h3>
+                    <p class="text-slate-300 text-xs mb-3">Identidad lógica canónica (`spring.application.name`) registrada en Eureka.</p>
+                    <div class="bg-cyber-dark p-2 rounded font-mono text-[11px] text-cyber-emerald">
+                        • users-service<br/>
+                        • challenges-service<br/>
+                        • evaluations-service
+                    </div>
+                </div>
+
+                <!-- Nivel 3 -->
+                <div class="glass-card p-4 rounded-xl border-t-4 border-t-brand-400">
+                    <span class="text-[10px] font-mono text-brand-400 uppercase">Nivel 3 · Prefijo en Gateway</span>
+                    <h3 class="text-base font-bold text-white mt-1 mb-2 font-mono">/api/{nombre}/**</h3>
+                    <p class="text-slate-300 text-xs mb-3">Prefijo externo derivado automáticamente por `DiscoveryLocatorConfig`.</p>
+                    <div class="bg-cyber-dark p-2 rounded font-mono text-[11px] text-brand-400">
+                        • /api/users/**<br/>
+                        • /api/challenges/**<br/>
+                        • /api/evaluations/**
+                    </div>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 rounded-xl border border-cyber-border text-xs font-mono">
+                <div class="text-slate-400 mb-2">Flujo exacto de resolución de ruta:</div>
+                <div class="flex flex-wrap items-center justify-between gap-2 text-slate-200 bg-cyber-dark/90 p-3 rounded-lg border border-cyber-border">
+                    <span>1. Petición: <strong class="text-brand-400">GET /api/users/me</strong></span>
+                    <span>──►</span>
+                    <span>2. Predicate: <strong class="text-cyber-cyan">Path=/api/users/**</strong></span>
+                    <span>──►</span>
+                    <span>3. LoadBalancer: <strong class="text-cyber-emerald">lb://USERS-SERVICE</strong></span>
+                    <span>──►</span>
+                    <span>4. Path al backend: <strong class="text-brand-400">/api/users/me</strong></span>
+                </div>
+                <div class="mt-2 text-[11px] text-slate-400">
+                    ✔️ El backend mapea en su controlador `@RequestMapping("${app.api.private-path}")` donde `app.api.private-path=/api/users`. No hay reescrituras mágicas destructivas.
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 8: COMUNICACIÓN MICRO A MICRO (M2M) ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="8">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-cyber-purple font-semibold uppercase tracking-wider">07 · Comunicación Backend-to-Backend</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Micro a Micro: Servicio y Usuario no son lo Mismo</h2>
+                <p class="text-sm text-slate-400">Cómo se autentica una llamada entre servicios y el ciclo de vida del Token Técnico</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 my-auto text-xs">
+                <div class="glass-card p-4 rounded-xl border border-cyber-border flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i data-lucide="key" class="w-4 h-4 text-cyber-amber"></i>
+                            Contrato Mínimo del Token Técnico (JWT M2M)
+                        </h4>
+                        <pre class="bg-cyber-dark p-3 rounded-lg border border-cyber-border text-cyber-cyan text-[11px] overflow-x-auto"><code>{
+  "sub": "challenges-service",
+  "type": "service",
+  "aud": "users-service",
+  "scope": "users.profile.read",
+  "on_behalf_of": "user-456",
+  "iat": 1716290000,
+  "exp": 1716290060,
+  "iss": "https://auth.tpi.frc.utn.edu.ar"
+}</code></pre>
+                    </div>
+                    <div class="space-y-1 text-[11px] text-slate-300 mt-2">
+                        <div>• <strong class="text-white">type = service:</strong> Permite al Gateway diferenciarlo de un alumno/docente.</div>
+                        <div>• <strong class="text-white">exp = 60s:</strong> Muy corta duración para minimizar impacto de fuga de credenciales.</div>
+                        <div>• <strong class="text-white">aud + scope:</strong> Acotado al microservicio y capacidad técnica exacta.</div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border border-cyber-border flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i data-lucide="arrow-right-left" class="w-4 h-4 text-brand-400"></i>
+                            Secuencia de Invocación M2M
+                        </h4>
+                        <div class="space-y-2 font-mono text-[11px]">
+                            <div class="p-2 rounded bg-cyber-dark border border-cyber-border">
+                                <span class="text-brand-400 font-bold">1. Micro A pide credencial:</span><br/>
+                                POST /api/users/auth/token (Client Credentials)
+                            </div>
+                            <div class="p-2 rounded bg-cyber-dark border border-cyber-border">
+                                <span class="text-brand-400 font-bold">2. Micro A llama al Gateway:</span><br/>
+                                GET http://api-gateway:8080/api/users/profile/456<br/>
+                                Header: `Authorization: Bearer &lt;service-jwt&gt;`
+                            </div>
+                            <div class="p-2 rounded bg-cyber-dark border border-cyber-border">
+                                <span class="text-cyber-emerald font-bold">3. Gateway valida y reenvía al Micro B:</span><br/>
+                                Inyecta `X-Principal-Type: service`, `X-Service-Id: challenges-service`
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-2 rounded bg-cyber-rose/10 border border-cyber-rose/30 text-[11px] text-cyber-rose mt-2">
+                        ❌ <strong>Prohibición Absoluta:</strong> NUNCA propagar el token del usuario final para autenticar llamadas de servicio a servicio.
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 9: NUESTRO ROL - TEMA 07 Y MAPA INTEGRACION ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="9">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">08 · Nuestro Microservicio</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Nuestro Rol: ms-evaluacion-llm (Tema 07)</h2>
+                <p class="text-sm text-slate-400">Quién nos habla, por dónde y cómo nos articulamos con los demás grupos</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 my-auto text-xs">
+                <!-- Entradas Sincrónicas -->
+                <div class="glass-card p-4 rounded-xl border-l-4 border-l-brand-400">
+                    <span class="text-[10px] font-mono text-brand-400 uppercase">Vía API Gateway (Sincrónico)</span>
+                    <h3 class="text-sm font-bold text-white mt-1 mb-2">Peticiones de Trabajo y Estado</h3>
+                    <ul class="space-y-2 text-slate-300">
+                        <li>• <strong class="text-white">POST /ai/tutor:</strong> Tutor asistencial en tiempo real (<2s).</li>
+                        <li>• <strong class="text-white">POST /ai/moderador:</strong> Moderación inline de chat (<300ms).</li>
+                        <li>• <strong class="text-white">POST /ai/ingesta:</strong> Ingesta de material de cursos (202).</li>
+                        <li>• <strong class="text-white">GET /ai/calibracion/{id}:</strong> Estado calibración (Bloquea T02).</li>
+                        <li>• <strong class="text-white">GET /ai/pendientes/{id}:</strong> Evaluaciones pendientes (Bloquea fin).</li>
+                    </ul>
+                </div>
+
+                <!-- Entradas Asincrónicas -->
+                <div class="glass-card p-4 rounded-xl border-l-4 border-l-cyber-emerald">
+                    <span class="text-[10px] font-mono text-cyber-emerald uppercase">Vía Bus de Eventos (Asincrónico)</span>
+                    <h3 class="text-sm font-bold text-white mt-1 mb-2">Eventos y Procesamiento en Batch</h3>
+                    <ul class="space-y-2 text-slate-300">
+                        <li>• <strong class="text-white">Evento intento_cerrado:</strong> Dispara la evaluación de código por worker.</li>
+                        <li>• <strong class="text-white">Evento curso_archivado:</strong> Limpieza de embeddings temporales.</li>
+                        <li>• <strong class="text-white">Emite score_de_ia_calculado:</strong> Notifica resultado al motor de desafíos.</li>
+                        <li>• <strong class="text-white">Emite incidente_reportado:</strong> Alertas de guardarraíles.</li>
+                    </ul>
+                </div>
+
+                <!-- Arquitectura Interna -->
+                <div class="glass-card p-4 rounded-xl border-l-4 border-l-cyber-purple">
+                    <span class="text-[10px] font-mono text-cyber-purple uppercase">Estructura Interna</span>
+                    <h3 class="text-sm font-bold text-white mt-1 mb-2">Componentes Exclusivos</h3>
+                    <ul class="space-y-2 text-slate-300">
+                        <li>• <strong class="text-white">M8 API:</strong> Expone los endpoints protegidos.</li>
+                        <li>• <strong class="text-white">M1 AI Gateway:</strong> Envuelve llamadas a LLMs (NO rutea HTTP).</li>
+                        <li>• <strong class="text-white">Workers (2 a 6 réplicas):</strong> Procesan colas Batch.</li>
+                        <li>• <strong class="text-white">Postgres + pgvector:</strong> Base propia exclusiva (embeddings).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="p-3 rounded-lg bg-navy-800 border border-cyber-border flex items-center justify-between text-xs font-mono">
+                <span class="text-slate-300">Distinción clave: <strong class="text-brand-400">API Gateway</strong> (puerta de la plataforma) ≠ <strong class="text-cyber-purple">AI Gateway M1</strong> (módulo interno que envuelve LLMs).</span>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 10: INTEGRACIÓN CON GRUPO USUARIOS & AUTH ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="10">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">09 · Matriz por Grupo</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Integración con Grupo USUARIOS &amp; AUTH (users-service)</h2>
+                <p class="text-sm text-slate-400">Emisión de credenciales, validación asimétrica por JWKS y roles de plataforma</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 my-auto text-xs">
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4 text-cyber-emerald"></i>
+                        Qué Necesitamos de users-service
+                    </h4>
+                    <ul class="space-y-2 text-slate-300">
+                        <li>• <strong>Endpoint JWKS Público:</strong> `GET /.well-known/jwks.json` para que el Gateway verifique las firmas RS256 sin compartir secretos simétricos.</li>
+                        <li>• <strong>Endpoint Token M2M:</strong> `POST /api/users/auth/token` mediante *Client Credentials* para que los microservicios obtengan tokens técnicos con `scope` y `aud`.</li>
+                        <li>• <strong>Endpoint Perfil / Metadata:</strong> `GET /api/users/profile/{id}` para obtener datos de usuario delegado en caso de auditorías.</li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="upload" class="w-4 h-4 text-brand-400"></i>
+                        Qué le Proveemos / Cómo nos Conectamos
+                    </h4>
+                    <ul class="space-y-2 text-slate-300">
+                        <li>• <strong>Canal de Conexión:</strong> Todas las llamadas pasan por el API Gateway (`http://api-gateway:8080/api/users/...`).</li>
+                        <li>• <strong>Tipo de Petición:</strong> Machine-to-Machine (M2M) con token técnico `type=service`, `aud=users-service`, `scope=users.profile.read`.</li>
+                        <li>• <strong>Respuesta Esperada:</strong> Perfil de usuario o credenciales válidas en < 50ms.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card p-3 rounded-lg border border-cyber-border font-mono text-[11px] text-slate-300">
+                <strong class="text-white block mb-1">Snippet de Petición M2M de Token:</strong>
+                <code>POST /api/users/auth/token<br/>
+                Authorization: Basic base64(client_id:client_secret)<br/>
+                grant_type=client_credentials&amp;scope=users.profile.read&amp;audience=users-service</code>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 11: INTEGRACIÓN CON GRUPO CURSOS ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="11">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">10 · Matriz por Grupo</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Integración con Grupo CURSOS (Tema 02 · courses-service)</h2>
+                <p class="text-sm text-slate-400">Ingesta RAG, bloqueo estricto de activación de cursos y control de pendientes</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 my-auto text-xs">
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="download" class="w-4 h-4 text-cyber-emerald"></i>
+                        Qué Necesitamos de Cursos (Tema 02)
+                    </h4>
+                    <ul class="space-y-2 text-slate-300">
+                        <li>• <strong>Documentos y Apuntes:</strong> Envío de PDF / PPT / DOCX estructurados para ingesta RAG al crear o editar el curso.</li>
+                        <li>• <strong>Contexto de Cohorte:</strong> Claves compuestas `curso_id`, `curso_cohorte_id` para aislar los chunks de pgvector (RF-IA-06).</li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border-l-4 border-l-cyber-rose">
+                    <h4 class="font-bold text-cyber-rose uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="alert-octagon" class="w-4 h-4"></i>
+                        Puntos de Bloqueo Críticos que les Proveemos
+                    </h4>
+                    <ul class="space-y-2 text-slate-300">
+                        <li>
+                            <strong class="text-white">1. GET /ai/calibracion/{curso_cohorte_id}:</strong><br/>
+                            🔴 <strong>BLOQUEA ACTIVACIÓN (RF-IA-36):</strong> Ningún curso pasa de estado `borrador` a `activo` si la calibración no está aprobada contra el Golden Set.
+                        </li>
+                        <li>
+                            <strong class="text-white">2. GET /ai/pendientes/{curso_cohorte_id}:</strong><br/>
+                            🔴 <strong>BLOQUEA CIERRE (RF-IA-34):</strong> Impide archivar o cerrar un curso si quedan evaluaciones de IA encoladas.
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card p-3 rounded-lg border border-cyber-border text-xs font-mono text-slate-300">
+                <strong class="text-white">Contrato de Ingesta:</strong> `POST /api/evaluations/ingesta` (multipart/form-data + metadata) ──► Retorna `202 Accepted` + `job_id`. El worker chunkeará a 500-800 tokens y calculará embeddings locales BGE-m3.
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 12: INTEGRACIÓN CON MOTOR DE DESAFÍOS ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="12">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">11 · Matriz por Grupo</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Integración con DESAFÍOS &amp; GAMIFICACIÓN (Tema 03 &amp; 10)</h2>
+                <p class="text-sm text-slate-400">Disparo de evaluación asincrónica por evento, cálculo de rúbrica y modificador de XP</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 my-auto text-xs">
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="play" class="w-4 h-4 text-brand-400"></i>
+                        Flujo Asincrónico de Evaluación
+                    </h4>
+                    <ol class="space-y-2 text-slate-300 list-decimal list-inside font-mono text-[11px]">
+                        <li>Alumno entrega desafío ──► Tema 03 emite evento <strong class="text-white">intento_cerrado</strong>.</li>
+                        <li>Tema 03 otorga inmediatamente XP base (RF-IA-27: la entrega nunca se bloquea).</li>
+                        <li>ms-evaluacion-llm recibe el evento y encola en cola interna con prioridad 3.</li>
+                        <li>Worker calcula métricas determinísticas + Claude Haiku 4.5 Batch al 50% de costo.</li>
+                        <li>Worker emite evento <strong class="text-cyber-emerald">score_de_ia_calculado</strong>.</li>
+                    </ol>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="award" class="w-4 h-4 text-cyber-amber"></i>
+                        Rúbrica y Desacople de XP
+                    </h4>
+                    <p class="text-slate-300 mb-2">
+                        <strong>Nunca devolvemos XP:</strong> Devolvemos un `score_agregado` 0-100 con desglose de dimensiones y justificaciones textuales.
+                    </p>
+                    <div class="p-2.5 bg-cyber-dark rounded border border-cyber-border font-mono text-[11px] text-slate-300">
+                        • <strong>Autonomía (30%):</strong> Telemetría IDE + Semántica.<br/>
+                        • <strong>Claridad (25%):</strong> Semántica de preguntas al tutor.<br/>
+                        • <strong>Progresión (20%):</strong> Evolución iterativa del código.<br/>
+                        • <strong>Cumplimiento (15%):</strong> Respeto a consignas.<br/>
+                        • <strong>Eficiencia (10%):</strong> Cantidad y concisión de consultas.
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-cyber-card rounded-lg border border-cyber-border text-xs text-slate-300 flex items-center justify-between font-mono">
+                <span>Modificador de Gamificación: <strong class="text-cyber-amber">Tema 10 aplica ±20% sobre XP base</strong> en función del score de IA.</span>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 13: INTEGRACIÓN CON ENTORNO IDE ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="13">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">12 · Matriz por Grupo</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Integración con DESAFÍOS PRÁCTICOS &amp; IDE (Tema 05 &amp; 06)</h2>
+                <p class="text-sm text-slate-400">Tutor socrático sincrónico, guardarraíl anti-fuga por AST y telemetría de desarrollo</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 my-auto text-xs">
+                <div class="glass-card p-4 rounded-xl border-l-4 border-l-cyber-rose">
+                    <h4 class="font-bold text-cyber-rose uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="shield-alert" class="w-4 h-4"></i>
+                        Lo que Necesitamos Obligatoriamente de Tema 05/06
+                    </h4>
+                    <ul class="space-y-2 text-slate-300">
+                        <li>
+                            • 🔴 <strong class="text-white">Solución Esperada del Desafío:</strong> Sin la solución esperada, es imposible ejecutar el guardarraíl anti-fuga por AST (RF-IA-20). El tutor no podría operar sin riesgo de filtrar código.
+                        </li>
+                        <li>
+                            • 🔴 <strong class="text-white">Telemetría de Ediciones y Tests:</strong> Eventos de pulsaciones, tiempo entre ediciones y ejecuciones de tests. Es la señal limpia que alimenta la dimensión <em>Autonomía</em> (30% del score).
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="bot" class="w-4 h-4 text-brand-400"></i>
+                        El Tutor Socrático (POST /ai/tutor)
+                    </h4>
+                    <ul class="space-y-2 text-slate-300">
+                        <li>• <strong>SLA de Latencia:</strong> < 2.0 segundos de respuesta completa.</li>
+                        <li>• <strong>Modelo:</strong> Gemini 3.5 Flash-Lite (~280ms primer token).</li>
+                        <li>• <strong>Contexto:</strong> 3.000 tokens (System prompt 500, RAG 900 tok, Código 800 tok, Historial 500 tok).</li>
+                        <li>• <strong>Guardarraíl de Salida:</strong> Comparación por AST contra solución. Si similitud > 70%, regenera en silencio.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="glass-card p-3 rounded-lg border border-cyber-border font-mono text-[11px] text-slate-300">
+                <strong class="text-brand-400">Invocación desde IDE:</strong> `POST /api/evaluations/tutor` con `Authorization: Bearer &lt;user-jwt&gt;` y payload `{ challenge_id, student_code, student_message }`.
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 14: INTEGRACIÓN CON CHAT & EVENT BUS ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="14">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">13 · Matriz por Grupo</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Integración con CHAT &amp; BUS DE EVENTOS (Tema 11)</h2>
+                <p class="text-sm text-slate-400">Moderación en menos de 300 ms y contratos del Bus de Eventos de la plataforma</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 my-auto text-xs">
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="shield" class="w-4 h-4 text-cyber-emerald"></i>
+                        Moderador Sincrónico: POST /ai/moderador
+                    </h4>
+                    <div class="space-y-2 text-slate-300">
+                        <p><strong>Objetivo Estricto:</strong> < 300 ms de latencia. Bloquea la entrega del mensaje en el chat hasta obtener veredicto.</p>
+                        <div class="p-2.5 bg-cyber-dark rounded border border-cyber-border font-mono text-[11px]">
+                            • <strong>Capa Clásica (< 1 ms, USD 0):</strong> Regex, heurística, spam, base64, código. Resuelve más del 70% de los casos en memoria.<br/>
+                            • <strong>Clasificador Externo (200-500 ms):</strong> OpenAI `omni-moderation-latest` con Circuit Breaker. Solo se invoca ante residuo contextual.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="radio" class="w-4 h-4 text-cyber-purple"></i>
+                        Contratos de Eventos (Bus del Tema 11)
+                    </h4>
+                    <div class="space-y-2 text-slate-300 font-mono text-[11px]">
+                        <div class="p-2 bg-cyber-dark rounded border border-cyber-border">
+                            <span class="text-brand-400 font-bold">Topico:</span> `tpi.challenges.events`<br/>
+                            <span class="text-slate-400">Evento:</span> `intento_cerrado` ──► Consumido por ms-evaluacion
+                        </div>
+                        <div class="p-2 bg-cyber-dark rounded border border-cyber-border">
+                            <span class="text-cyber-emerald font-bold">Topico:</span> `tpi.evaluations.events`<br/>
+                            <span class="text-slate-400">Evento:</span> `score_de_ia_calculado` ──► Publicado por ms-evaluacion
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="p-3 bg-cyber-card rounded-lg border border-cyber-border text-xs font-mono text-slate-300">
+                ✔️ <strong>Degradación de Moderación:</strong> Si el clasificador externo falla o supera el timeout de 1s, el Circuit Breaker degrada a `prefiltro_solamente`, permitiendo fluidez en el chat con la decisión de la capa clásica.
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 15: INTEGRACIÓN CON BACKOFFICE ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="15">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">14 · Matriz por Grupo</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Integración con BACKOFFICE &amp; ADMIN (Tema 12)</h2>
+                <p class="text-sm text-slate-400">Gestión dinámica de modelos, suite de calibración y observabilidad de costos</p>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 my-auto text-xs">
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="sliders" class="w-4 h-4 text-brand-400"></i>
+                        Tabla de Ruteo de Modelos (RF-IA-23/24)
+                    </h4>
+                    <p class="text-slate-300 mb-2">
+                        El código nunca nombra un modelo hardcodeado. Administradores pueden cambiar de modelo editando una fila en la base de datos sin nuevo deploy:
+                    </p>
+                    <div class="bg-cyber-dark p-2.5 rounded border border-cyber-border font-mono text-[11px] text-slate-300">
+                        • <strong>Tutor:</strong> Gemini 3.5 Flash-Lite (USD 0,00052 / req)<br/>
+                        • <strong>Moderador:</strong> Omni-moderation (USD 0)<br/>
+                        • <strong>Evaluador:</strong> Claude Haiku 4.5 Batch (USD 0,006 / eval)<br/>
+                        • <strong>Generador:</strong> Flash-Lite Batch (USD 0,00083 / preg)
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-2 flex items-center gap-2">
+                        <i data-lucide="bar-chart-3" class="w-4 h-4 text-cyber-emerald"></i>
+                        Telemetría y Golden Set
+                    </h4>
+                    <ul class="space-y-2 text-slate-300">
+                        <li>• <strong>POST /ai/calibracion:</strong> Ejecuta la suite de calibración contra el Golden Set de docentes.</li>
+                        <li>• <strong>Métricas de Costo y Drift:</strong> Exposición de tokens de entrada/salida, costo en USD por curso y drift de evaluaciones.</li>
+                        <li>• <strong>Auditoría de Guardarraíles:</strong> Registro de bloqueos anti-fuga e intentos de prompt injection.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <div class="p-3 bg-cyber-card rounded-lg border border-cyber-border text-xs font-mono text-slate-300">
+                🔒 <strong>Seguridad Admin:</strong> Todos los endpoints de administración exigen token con `ROLE_ADMIN` validado por Spring Security.
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 16: RESILIENCIA EN 6 CAPAS ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="16">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-cyber-rose font-semibold uppercase tracking-wider">15 · Resiliencia y Fallas</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Resiliencia en 6 Capas Defensivas y RFC 7807</h2>
+                <p class="text-sm text-slate-400">Por qué un Circuit Breaker solo no alcanza y cómo se aísla el sistema</p>
+            </div>
+
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 my-auto text-xs text-center font-mono">
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-brand-400 flex flex-col justify-between">
+                    <span class="text-brand-400 font-bold block mb-1">1. Rate Limit</span>
+                    <p class="text-[11px] text-slate-400">Cuota por IP / Usuario en Redis. 429 + Retry-After.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-cyber-cyan flex flex-col justify-between">
+                    <span class="text-cyber-cyan font-bold block mb-1">2. Bulkhead</span>
+                    <p class="text-[11px] text-slate-400">Tope de hilos por serviceId. Aísla fallas lentas.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-cyber-emerald flex flex-col justify-between">
+                    <span class="text-cyber-emerald font-bold block mb-1">3. Timeouts</span>
+                    <p class="text-[11px] text-slate-400">Connect 500ms, Response 3000ms. Corta en 504.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-cyber-amber flex flex-col justify-between">
+                    <span class="text-cyber-amber font-bold block mb-1">4. Retry Seguro</span>
+                    <p class="text-[11px] text-slate-400">Solo GET o Idempotent-Key con Backoff + Jitter.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-cyber-purple flex flex-col justify-between">
+                    <span class="text-cyber-purple font-bold block mb-1">5. Circuit Breaker</span>
+                    <p class="text-[11px] text-slate-400">Resilience4j por serviceId. Abre en >50% fallos.</p>
+                </div>
+                <div class="glass-card p-3 rounded-xl border-t-2 border-t-cyber-rose flex flex-col justify-between">
+                    <span class="text-cyber-rose font-bold block mb-1">6. Fallback</span>
+                    <p class="text-[11px] text-slate-400">RFC 7807 Problem Details con traceId.</p>
+                </div>
+            </div>
+
+            <div class="glass-card p-4 rounded-xl border border-cyber-border text-xs">
+                <div class="flex items-center justify-between mb-2">
+                    <strong class="text-white font-mono">Respuesta Estándar de Falla (RFC 7807):</strong>
+                    <span class="text-cyber-rose font-mono">Status 503 / 504</span>
+                </div>
+                <pre class="bg-cyber-dark p-3 rounded-lg border border-cyber-border text-cyber-rose font-mono text-[11px] overflow-x-auto"><code>{
+  "type": "https://api.tpi.frc.utn.edu.ar/errors/service-unavailable",
+  "title": "Service Unavailable",
+  "status": 503,
+  "detail": "El servicio de destino (challenges-service) no responde o se encuentra en mantenimiento.",
+  "instance": "/api/challenges/active",
+  "traceId": "550e8400-e29b-41d4-a716-446655440000",
+  "timestamp": "2026-09-03T10:15:30Z"
+}</code></pre>
+            </div>
+        </section>
+
+        <!-- ==================== SLIDE 17: RESUMEN Y DEFINITION OF DONE ==================== -->
+        <section class="slide flex-col justify-start max-w-6xl mx-auto h-full" data-slide="17">
+            <div class="mb-3">
+                <span class="text-xs font-mono text-brand-400 font-semibold uppercase tracking-wider">16 · Criterios de Aceptación</span>
+                <h2 class="text-2xl md:text-3xl font-bold text-slate-100">Resumen y Definition of Done (DoD)</h2>
+                <p class="text-sm text-slate-400">Las 4 familias de pruebas obligatorias y la lista de control para homologar la entrega</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 my-auto text-xs">
+                <div class="glass-card p-4 rounded-xl border border-cyber-border">
+                    <h4 class="font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                        <i data-lucide="check-square" class="w-4 h-4 text-cyber-emerald"></i>
+                        Las 4 Familias de Pruebas Obligatorias
+                    </h4>
+                    <div class="space-y-2 font-mono text-[11px] text-slate-300">
+                        <div class="p-2 bg-cyber-dark rounded border border-cyber-border">
+                            <strong class="text-white">1. Ruteo:</strong> Derivación dinámica con 2 servicios reales, path final conservado y 404 en desconocidos.
+                        </div>
+                        <div class="p-2 bg-cyber-dark rounded border border-cyber-border">
+                            <strong class="text-brand-400">2. Seguridad:</strong> 401 en token vencido, 403 en falta de scopes M2M y headers falsificados eliminados.
+                        </div>
+                        <div class="p-2 bg-cyber-dark rounded border border-cyber-border">
+                            <strong class="text-cyber-emerald">3. Discovery:</strong> Balanceo round-robin en 2 instancias, baja eventual y caché ante caída de Eureka.
+                        </div>
+                        <div class="p-2 bg-cyber-dark rounded border border-cyber-border">
+                            <strong class="text-cyber-rose">4. Resiliencia:</strong> Timeout 504, Circuit Breaker aislado, no reintento de POST y 429 con Retry-After.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card p-4 rounded-xl border border-cyber-border flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-white uppercase tracking-wider mb-3 flex items-center gap-2">
+                            <i data-lucide="list-checks" class="w-4 h-4 text-cyber-amber"></i>
+                            Lista de Control de Homologación (DoD)
+                        </h4>
+                        <ul class="space-y-2 text-slate-300">
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-cyber-emerald"></i>
+                                <span>Docker Compose levanta todos los servicios sin intervención manual.</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-cyber-emerald"></i>
+                                <span>Cero puertos expuestos al host excepto el Gateway (8080/443).</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-cyber-emerald"></i>
+                                <span>Contratos OpenAPI / Swagger accesibles y versionados.</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-cyber-emerald"></i>
+                                <span>Tokens técnicos M2M con Client Credentials y TTL de 60s.</span>
+                            </li>
+                            <li class="flex items-center gap-2">
+                                <i data-lucide="check" class="w-4 h-4 text-cyber-emerald"></i>
+                                <span>Trazabilidad distribuida W3C `traceparent` de punta a punta.</span>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="mt-4 p-3 bg-cyber-accent/10 border border-cyber-accent/30 rounded-lg text-center font-mono text-cyber-accent font-bold">
+                        ¡Arquitectura Homologada para Integración de Cátedra!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Bottom Navigation Bar & Keyboard Shortcuts -->
+    <footer class="h-12 border-t border-cyber-border bg-cyber-dark/95 backdrop-blur px-6 flex items-center justify-between shrink-0 z-50 text-xs font-mono text-slate-400">
+        <div class="flex items-center space-x-4">
+            <span class="flex items-center gap-1.5">
+                <i data-lucide="keyboard" class="w-4 h-4 text-slate-500"></i>
+                Atajos: <kbd class="px-1.5 py-0.5 rounded bg-cyber-card border border-cyber-border text-slate-300">←</kbd> <kbd class="px-1.5 py-0.5 rounded bg-cyber-card border border-cyber-border text-slate-300">→</kbd> / <kbd class="px-1.5 py-0.5 rounded bg-cyber-card border border-cyber-border text-slate-300">Espacio</kbd>
+            </span>
+            <span class="hidden md:inline">|</span>
+            <span class="hidden md:inline text-slate-500">UTN FRC · Programación IV / TPI</span>
+        </div>
+
+        <div class="flex items-center space-x-2">
+            <div id="progress-bar-bg" class="w-32 md:w-48 h-1.5 bg-cyber-card rounded-full overflow-hidden border border-cyber-border">
+                <div id="progress-bar-fill" class="h-full bg-gradient-to-r from-brand-500 to-cyber-accent transition-all duration-300" style="width: 5.88%;"></div>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // State Management
+        let currentSlide = 1;
+        const totalSlides = document.querySelectorAll('.slide').length;
+        document.getElementById('total-slides-num').innerText = totalSlides;
+
+        function updateSlideUI() {
+            // Update slides visibility
+            document.querySelectorAll('.slide').forEach((slide, idx) => {
+                if (idx + 1 === currentSlide) {
+                    slide.classList.add('active');
+                    slide.scrollTop = 0;
+                } else {
+                    slide.classList.remove('active');
+                }
+            });
+
+            // Update counter
+            document.getElementById('current-slide-num').innerText = currentSlide;
+
+            // Update buttons
+            document.getElementById('prev-btn').disabled = (currentSlide === 1);
+            document.getElementById('next-btn').disabled = (currentSlide === totalSlides);
+
+            // Update progress bar
+            const percent = (currentSlide / totalSlides) * 100;
+            document.getElementById('progress-bar-fill').style.width = percent + '%';
+        }
+
+        function nextSlide() {
+            if (currentSlide < totalSlides) {
+                currentSlide++;
+                updateSlideUI();
+            }
+        }
+
+        function prevSlide() {
+            if (currentSlide > 1) {
+                currentSlide--;
+                updateSlideUI();
+            }
+        }
+
+        function toggleFullScreen() {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen().catch(err => {
+                    console.log("Error al entrar a pantalla completa:", err);
+                });
+            } else {
+                if (document.exitFullscreen) {
+                    document.exitFullscreen();
+                }
+            }
+        }
+
+        // Keyboard listener
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                nextSlide();
+            } else if (e.key === 'ArrowLeft' || e.key === 'PageUp' || (e.shiftKey && e.key === ' ')) {
+                e.preventDefault();
+                prevSlide();
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                currentSlide = 1;
+                updateSlideUI();
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                currentSlide = totalSlides;
+                updateSlideUI();
+            } else if (e.key === 'f' || e.key === 'F') {
+                e.preventDefault();
+                toggleFullScreen();
+            }
+        });
+
+        // Initialize Lucide icons and Mermaid
+        document.addEventListener('DOMContentLoaded', () => {
+            if (window.lucide) {
+                lucide.createIcons();
+            }
+            if (window.mermaid) {
+                mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+            }
+            updateSlideUI();
+        });
+    </script>
+</body>
+</html>

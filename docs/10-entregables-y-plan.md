@@ -1,6 +1,6 @@
 # 10 — Qué entregamos y cómo lo construimos
 
-> El inventario completo del aporte del equipo, y el plan de 12 pasos para seis personas.
+> El inventario completo del aporte del equipo, y el plan de 14 pasos para seis personas.
 
 ---
 
@@ -10,7 +10,8 @@
 > El inventario completo de lo que el equipo produce. Todo lo demás de esta carpeta explica **cómo**;
 > este documento dice **qué**.
 >
-> Estado al **2026-08-30**.
+> Estado al **2026-08-30**, con correcciones puntuales posteriores. **Lo que está decidido lo dice
+> la lista de ADR** de [08](08-decisiones-y-pendientes.md), Parte A — no este documento.
 
 ## 1. En una frase
 
@@ -166,7 +167,7 @@ Y **ninguno lo podemos completar solos.**
 |---|---|
 | Personas | **6** |
 | Módulos | **8** |
-| Pasos hasta el núcleo funcionando | **12** |
+| Pasos hasta el núcleo funcionando | **14** (Paso 0 a Paso 13) |
 | Semanas de la demo local | **4** |
 | Costo de la demo | **USD 0** — free tier con datos sintéticos |
 | Costo de un cuatrimestre real | **USD 5 a 22** |
@@ -182,9 +183,10 @@ Y **ninguno lo podemos completar solos.**
 | 3 | **Pedir al PO responsable y fecha para el golden set** | Es el plazo más largo del proyecto y no depende de ningún equipo técnico |
 | 4 | **Escalar la consulta legal del free tier** | Las consultas legales tardan, y define el modelo de costos y los T&C |
 | 5 | **Pedirle al Tema 11 nuestros campos en el contrato de eventos** | Después es renegociar con cinco equipos |
-| 6 | **Preguntar si la cátedra permite Python**, o si el servicio va en Spring Boot | Decide el stack antes de escribir la primera línea |
+| 6 | ~~**Preguntar si la cátedra permite Python**~~ — **cerrado por ADR-005: el servicio va en Java Spring Boot** | Queda el caso del borde: si hacen falta embeddings locales, ADR-005 admite un **componente interno** Python que no es un microservicio |
 
-**Los seis son de esta semana. Cinco son conversaciones, no código.**
+**Cinco siguen abiertos y son de esta semana; el sexto ya está cerrado. Los cinco que quedan son
+conversaciones, no código.**
 
 ## 8. La frase para la defensa
 
@@ -361,8 +363,8 @@ Tres reglas que lo evitan:
 
 ## 8. El paso a paso concreto
 
-Trece pasos, en orden. Los primeros cuatro no requieren que nadie externo defina nada, y el último
-no entra en la demo — está para que la frontera exista.
+Catorce pasos, del 0 al 13, en orden. Los primeros cuatro no requieren que nadie externo defina
+nada, y el último no entra en la demo — está para que la frontera exista.
 
 > 💰 **Con qué modelo probar cada uno de estos pasos sin pagar nada** está en
 > [03](03-modelos-costos-y-contexto.md) §8. Resumen: solo los pasos 1, 5, 10 y 12 llaman a un modelo,
@@ -447,7 +449,16 @@ y te dice cuál es el más barato que pasa.
 
 ### Paso 8 — El endpoint de estado *(P6)*
 
-`GET /calibracion/{curso_cohorte_id}` → `{aprobada: bool, desviacion, modelo, fecha}`.
+`GET /ai/calibracion/{curso_cohorte_id}`
+
+```
+{ aprobada: bool, desviacion_promedio, desviacion_maxima_dimension,
+  model_id, model_version, rubric_version, golden_set_version, fecha }
+```
+
+**Son los ocho campos del contrato, no cuatro.** La forma exacta la fija
+[02](02-arquitectura-y-stack.md), Parte 3, endpoint 5: implementarla distinta acá es publicar dos
+contratos para el mismo endpoint.
 
 **Entregalo temprano aunque devuelva un mock:** el Tema 02 no puede activar cursos sin esto y es la
 dependencia más visible que otros tienen sobre ustedes.
@@ -541,7 +552,7 @@ aplicado la ceremonia completa.
 
 ## 10. Lo que hay que definir antes de empezar
 
-De los doce pasos, **solo tres dependen de definiciones externas:**
+De los catorce pasos, **solo tres dependen de definiciones externas:**
 
 | Paso | Depende de | Estado |
 |---|---|---|

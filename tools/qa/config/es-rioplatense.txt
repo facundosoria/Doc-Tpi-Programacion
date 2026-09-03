@@ -43,6 +43,7 @@ ahorrás
 ahorrate
 alertá
 almacenás
+Andá
 anonimización
 Anonimización
 anonimizar
@@ -87,6 +88,7 @@ Centralizarlas
 centralizarlo
 Centralizarlos
 chabón
+chequeá
 chequeos
 commiteada
 Compará
@@ -306,6 +308,7 @@ renderiza
 renderizar
 Renderizar
 renegocia
+renegocian
 renegociar
 renombrás
 reputacional
@@ -341,6 +344,7 @@ subila
 subilo
 Sumale
 sumás
+telemetría
 tenés
 Tenés
 terminás

@@ -154,18 +154,16 @@ Es lo que el usuario intuyó como *"algo a definir"*. Estos cuatro puntos:
 
 ### Lo que ya NO es tu decisión
 
-**Java Spring Boot vs Python para el backend de negocio no es tu llamada.** El análisis de
-[02](02-arquitectura-y-stack.md) sigue sirviendo — pero como **argumento para llevar a la
-discusión**, no como decisión propia.
+**Java Spring Boot vs Python para el backend de negocio no es tu llamada.** Y tampoco lo es para el
+`ms-evaluacion-llm`: **ADR-005 cerró esa decisión — el servicio va en Java Spring Boot**, igual que el
+resto de la plataforma.
 
-Lo que sí es tuyo: **el `ai-service` es tu servicio, y su lenguaje lo elegís vos.** Ese es el
-argumento a defender, y es fácil de defender: si el resto del backend va en Java, el `ai-service` en
-Python **no le agrega complejidad a nadie más** — es un contenedor con un endpoint. Y a vos te da
-`tree-sitter` para RF-IA-20, ingesta de PDF, embeddings locales y ciclos de iteración rápidos.
+El fundamento completo —ventajas y desventajas de cada uno, herramientas por capa, y por qué Java gana
+en este contexto— está en [02 · Arquitectura y stack](02-arquitectura-y-stack.md), Parte 2.
 
-> **Cómo plantearlo:** "el `ai-service` es un contenedor detrás de una API REST; para ustedes es una
-> caja negra con 6 endpoints. Nosotros lo hacemos en Python porque ahí están las librerías de AST y
-> de documentos que los requerimientos nos exigen."
+Lo que ADR-005 **sí** deja abierto: si hace falta un componente auxiliar para embeddings locales o AST
+multilingüe, puede agregarse como **componente interno — no microservicio**. Las interfaces ya están
+preparadas desde el diseño inicial.
 
 ## 3. Lo que necesitás pedirle a los otros equipos
 

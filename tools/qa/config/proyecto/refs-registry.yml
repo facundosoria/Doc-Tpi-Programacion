@@ -78,3 +78,29 @@ rf_cht:
   - RF-CHT-12
   - RF-CHT-13
   - RF-CHT-14
+
+# No funcionales. Vienen de la seccion de requisitos no funcionales del PRD.
+# RF-NFR-09 (proteccion de datos y T&C) y RF-NFR-10 (retencion) son los dos mas
+# citados de todo el corpus despues de la familia RF-IA.
+rf_nfr:
+  - RF-NFR-01
+  - RF-NFR-02
+  - RF-NFR-03
+  - RF-NFR-07
+  - RF-NFR-08
+  - RF-NFR-09
+  - RF-NFR-10
+
+# Desafios. RF-DES-05 es el que respalda al generador.
+rf_des:
+  - RF-DES-01
+  - RF-DES-04
+  - RF-DES-05
+
+# Notificaciones. Una sola, la del incidente de severidad alta del moderador.
+rf_not:
+  - RF-NOT-05
+
+# Examenes.
+rf_exa:
+  - RF-EXA-01

@@ -281,7 +281,7 @@ para que sirva en una máquina que no puede correr el contenedor.
 | `--all` | **El alcance** | Mira todo el repo, no solo tu diff | tu Docker |
 | `--perfil completo` | **La severidad y el presupuesto** | Sube el presupuesto de 120 s a 600 s y endurece tres chequeos | tu Docker |
 | `--only <etapa>` | Corre una sola etapa | Útil para iterar: `--only tests` | tu Docker |
-| `--self-test` | Verifica **el gate, no el repo** | Quince fixtures, uno por chequeo | tu Docker |
+| `--self-test` | Verifica **el gate, no el repo** | Dieciséis fixtures, cada uno con su hallazgo esperado | tu Docker |
 | `--json` | Vuelca los eventos crudos | El contrato para construir encima | tu Docker |
 | `--remoto` | **Dónde se ejecuta** | Manda el working tree al server por SSH | **el Docker del server** |
 
@@ -709,8 +709,8 @@ propósito.
 
 ## El gate se verifica a sí mismo
 
-`./qa.sh --self-test` corre quince fixtures, uno por chequeo. Cada uno dispara su
-regla **y ninguna otra**.
+`./qa.sh --self-test` corre dieciséis fixtures. Cada uno dispara su regla **y ninguna otra**. No hay
+uno por chequeo: algunos chequeos tienen varios fixtures y otros ninguno.
 
 Existe porque son once herramientas de terceros que se actualizan solas y cambian el
 formato de su salida. El día que una lo haga, su adaptador deja de leerla y ese
@@ -1389,7 +1389,7 @@ En orden, y cada paso se verifica antes de pasar al siguiente:
 | 3 | Poner `workflows: off` en `checks.yml` | El bloque comentado dice exactamente qué descomentar |
 | 4 | Enganchar el gate al pipeline de la cátedra | Una línea: `./qa.sh --all --perfil completo` |
 | 5 | Correr el gate entero una vez | `./qa.sh --all --perfil completo`, y comparar el resumen con el de acá |
-| 6 | Correr el self-test | `./qa.sh --self-test` — quince fixtures, todos correctos |
+| 6 | Correr el self-test | `./qa.sh --self-test` — dieciséis fixtures, todos correctos |
 
 **El paso 2 es el que no se puede saltear.** Es el único que distingue «el gate corrió
 y está todo bien» de «el gate no miró nada». Un `wc -l` de esa salida contra el número
@@ -1434,11 +1434,10 @@ arregla acotando el `tar` a la carpeta del equipo más `tools/`, pero hay que ha
   procedimiento está en [`tools/qa/README.md`](../tools/qa/README.md).
 - ~~**El token del front.**~~ Cargado el 1 de septiembre de 2026: el front lee la
   API real y ya no muestra datos de prueba.
-- **El fixture de cobertura del self-test falla.** Espera un hallazgo y no obtiene
-  ninguno. Se verificó a mano que la cadena real funciona —JaCoCo produce el
-  reporte, diff-cover imprime el porcentaje y el adaptador lo parsea—, así que lo
-  roto es el arnés del fixture, no el chequeo. Igual hay que arreglarlo: un
-  self-test roto es exactamente lo que después esconde una regresión de verdad.
+- ~~**El fixture de cobertura del self-test falla.**~~ Ya no: `./qa.sh --self-test` reporta
+  **16 fixtures, todos correctos**, y `SinCobertura.java.txt` produce su `cobertura-insuficiente`.
+  Se deja anotado porque el arnés estuvo roto un tiempo, y un self-test roto es exactamente lo que
+  después esconde una regresión de verdad.
 - **ArchUnit**, cuando existan los ocho módulos.
 
 ---

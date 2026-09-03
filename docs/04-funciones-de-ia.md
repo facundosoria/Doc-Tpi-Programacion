@@ -1135,7 +1135,7 @@ malicioso podría usar la conversación para condicionar su propia clasificació
 | Cuándo corre | **Antes** de entregar el mensaje | Después de entregarlo |
 | Sincronía | 🔴 Sincrónico, en el camino crítico | 🔴 Sincrónico |
 | Quién ve la salida | Nadie, o el profesor si hay incidente | **Todo el canal** |
-| Costo por llamada | ~USD 0,000027, ver [03](03-modelos-costos-y-contexto.md) | Del orden del tutor |
+| Costo por llamada | **USD 0** — no hay tokens que facturar (ADR-012), ver [03](03-modelos-costos-y-contexto.md) | Del orden del tutor |
 | Retención | Solo el incidente (RF-CHT-14) | **Se conserva** como interacción de IA (RF-CHT-08) |
 
 ```mermaid

@@ -1,0 +1,587 @@
+<!DOCTYPE html>
+<html lang="es" class="dark scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Gestión de Modelos de IA — Proveedor, Uso, Seguridad y Costos (FinOps 2026)</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              200: '#bae6fd',
+              300: '#7dd3fc',
+              400: '#38bdf8',
+              500: '#0ea5e9',
+              600: '#0284c7',
+              700: '#0369a1',
+              800: '#075985',
+              900: '#0c4a6e',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
+    code, pre, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.6);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(51, 65, 85, 0.8);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(100, 116, 139, 1);
+    }
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+    .glass-card {
+      background: rgba(30, 41, 59, 0.75);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(71, 85, 105, 0.4);
+    }
+    #content-area h1 {
+      font-size: 2rem;
+      font-weight: 900;
+      color: #ffffff;
+      margin-top: 2rem;
+      margin-bottom: 1rem;
+      line-height: 1.25;
+      letter-spacing: -0.025em;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.8);
+      padding-bottom: 0.75rem;
+    }
+    #content-area h2 {
+      font-size: 1.45rem;
+      font-weight: 800;
+      color: #38bdf8;
+      margin-top: 2.5rem;
+      margin-bottom: 1rem;
+      letter-spacing: -0.02em;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      padding-bottom: 0.5rem;
+    }
+    #content-area h3 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-top: 1.75rem;
+      margin-bottom: 0.75rem;
+    }
+    #content-area h4 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-top: 1.25rem;
+      margin-bottom: 0.5rem;
+    }
+    #content-area p {
+      margin-bottom: 1rem;
+      line-height: 1.75;
+      color: #cbd5e1;
+      font-size: 0.925rem;
+    }
+    #content-area strong {
+      color: #ffffff;
+      font-weight: 700;
+    }
+    #content-area em {
+      color: #93c5fd;
+    }
+    #content-area ul {
+      list-style-type: disc;
+      list-style-position: outside;
+      margin-left: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    #content-area ol {
+      list-style-type: decimal;
+      list-style-position: outside;
+      margin-left: 1.5rem;
+      margin-bottom: 1.25rem;
+    }
+    #content-area li {
+      margin-bottom: 0.5rem;
+      color: #cbd5e1;
+      line-height: 1.7;
+      font-size: 0.925rem;
+    }
+    #content-area blockquote {
+      border-left: 4px solid #0ea5e9;
+      background: rgba(14, 165, 233, 0.08);
+      padding: 1rem 1.25rem;
+      border-radius: 0.5rem;
+      margin-top: 1.25rem;
+      margin-bottom: 1.25rem;
+      color: #e2e8f0;
+      font-size: 0.9rem;
+    }
+    #content-area blockquote p {
+      margin-bottom: 0.5rem;
+    }
+    #content-area blockquote p:last-child {
+      margin-bottom: 0;
+    }
+    #content-area hr {
+      border-color: rgba(51, 65, 85, 0.7);
+      margin-top: 2.5rem;
+      margin-bottom: 2.5rem;
+    }
+    #content-area table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 0.75rem;
+      overflow: hidden;
+      border: 1px solid rgba(51, 65, 85, 0.8);
+    }
+    #content-area th {
+      background: rgba(30, 41, 59, 0.9);
+      color: #38bdf8;
+      font-weight: 700;
+      text-align: left;
+      padding: 0.75rem 1rem;
+      border-bottom: 2px solid rgba(51, 65, 85, 1);
+      text-transform: uppercase;
+      font-size: 0.75rem;
+      letter-spacing: 0.05em;
+    }
+    #content-area td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid rgba(51, 65, 85, 0.5);
+      color: #cbd5e1;
+      vertical-align: top;
+      line-height: 1.5;
+    }
+    #content-area tr:hover td {
+      background: rgba(56, 189, 248, 0.05);
+    }
+    #content-area code {
+      background: rgba(15, 23, 42, 0.9);
+      color: #38bdf8;
+      padding: 0.2rem 0.4rem;
+      border-radius: 0.375rem;
+      font-size: 0.85em;
+      border: 1px solid rgba(51, 65, 85, 0.6);
+    }
+    #content-area pre {
+      background: #090d16;
+      border: 1px solid rgba(51, 65, 85, 0.8);
+      border-radius: 0.75rem;
+      padding: 1.25rem;
+      margin-top: 1.25rem;
+      margin-bottom: 1.5rem;
+      overflow-x: auto;
+    }
+    #content-area pre code {
+      background: transparent;
+      padding: 0;
+      border: none;
+      color: #e2e8f0;
+      font-size: 0.85rem;
+      line-height: 1.6;
+    }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen antialiased selection:bg-sky-500 selection:text-white flex flex-col">
+
+  <!-- TOP APP BAR -->
+  <header class="sticky top-0 z-50 bg-slate-900/90 backdrop-blur-md border-b border-slate-800 px-4 sm:px-8 py-3.5 flex flex-wrap items-center justify-between gap-4 shadow-xl">
+    <div class="flex items-center space-x-3.5">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 via-indigo-600 to-purple-600 flex items-center justify-center shadow-lg shadow-sky-500/20 text-white font-black text-lg">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+      </div>
+      <div>
+        <div class="flex items-center space-x-2">
+          <span class="px-2 py-0.5 text-[10px] font-extrabold uppercase bg-sky-950 text-sky-400 border border-sky-800 rounded-md">Tema 07 • FinOps & Seguridad</span>
+          <span class="text-xs text-slate-400 font-mono hidden sm:inline">UTN FRC • Programación IV</span>
+        </div>
+        <h1 class="text-base sm:text-lg font-black text-white leading-tight">Gestión de Modelos de IA — Proveedor, Uso, Seguridad y Costos</h1>
+      </div>
+    </div>
+
+    <!-- Quick Utilities -->
+    <div class="flex items-center space-x-2">
+      <div class="relative hidden md:block">
+        <input type="text" id="doc-search" oninput="searchInDocument(this.value)" placeholder="Buscar en el informe..." class="bg-slate-950 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-sky-500 w-48 transition">
+      </div>
+      <button onclick="window.print()" class="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-semibold border border-slate-700 flex items-center space-x-1.5 transition">
+        <svg class="w-4 h-4 text-sky-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
+        <span>Imprimir / PDF</span>
+      </button>
+      <button onclick="toggleSidebar()" class="lg:hidden p-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-slate-300 border border-slate-700">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/></svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- READING PROGRESS BAR -->
+  <div id="progress-bar" class="h-1 bg-gradient-to-r from-sky-500 via-indigo-500 to-emerald-500 w-0 fixed top-0 left-0 z-50 transition-all duration-75"></div>
+
+  <!-- MAIN LAYOUT WRAPPER -->
+  <div class="flex-1 flex max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-8 gap-8 relative">
+
+    <!-- STICKY TABLE OF CONTENTS SIDEBAR -->
+    <aside id="sidebar-toc" class="w-72 shrink-0 hidden lg:block sticky top-20 h-[calc(100vh-6rem)] overflow-y-auto pr-2 space-y-4 text-xs">
+      <div class="glass-panel p-4 rounded-2xl border-slate-800 shadow-xl space-y-3">
+        <div class="flex items-center space-x-2 text-sky-400 font-bold uppercase tracking-wider text-[11px] pb-2 border-b border-slate-800">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h8m-8 6h16"/></svg>
+          <span>Índice del Informe</span>
+        </div>
+        <nav id="toc-nav" class="space-y-1 text-slate-400">
+          <!-- Dynamic TOC loaded by JS -->
+        </nav>
+      </div>
+
+      <!-- Quick Summary Card in Sidebar -->
+      <div class="glass-card p-4 rounded-2xl border-slate-800 text-[11px] space-y-2.5 shadow-lg">
+        <span class="font-bold text-slate-300 uppercase tracking-wider block text-[10px] pb-1.5 border-b border-slate-800/80">Cifras Clave del Estudio</span>
+        <div class="space-y-2 text-slate-400">
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-slate-400">Roles de IA:</span>
+            <strong class="text-sky-300 shrink-0 font-semibold">8 identificados</strong>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-slate-400">Costo Estándar:</span>
+            <strong class="text-emerald-400 font-mono shrink-0 font-bold">~$62 – $118 USD</strong>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-slate-400">5 Intensidades:</span>
+            <strong class="text-amber-400 font-mono shrink-0 font-bold">$3 – $990 USD</strong>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-slate-400">Extra Seguridad:</span>
+            <strong class="text-teal-400 font-mono shrink-0 font-bold">+20% a 25%</strong>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-slate-400">Evaluador de IA:</span>
+            <strong class="text-rose-400 shrink-0 font-semibold">100% Cloud</strong>
+          </div>
+          <div class="flex items-center justify-between gap-2">
+            <span class="text-slate-400">Marco Legal:</span>
+            <strong class="text-amber-300 shrink-0 font-semibold">Ley 25.326</strong>
+          </div>
+        </div>
+      </div>
+    </aside>
+
+    <!-- CONTENT MAIN COLUMN -->
+    <div class="flex-1 min-w-0 space-y-8">
+
+      <!-- INTERACTIVE FINOPS 5-TIER INTENSITY CALCULATOR CARD (WITH SECURITY COMPARISON) -->
+      <div class="glass-panel p-6 rounded-3xl border-sky-500/50 shadow-2xl space-y-5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div>
+            <div class="flex items-center space-x-2">
+              <span class="w-3 h-3 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span class="text-xs font-bold uppercase tracking-wider text-sky-400">FinOps & Seguridad Real</span>
+            </div>
+            <h2 class="text-xl font-black text-white mt-0.5">Calculadora de 5 Intensidades con Armadura de Seguridad (120 Alumnos)</h2>
+          </div>
+          <span class="text-[11px] font-mono text-slate-400 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">Corte: Septiembre 2026</span>
+        </div>
+
+        <!-- INTENSITY BUTTONS SELECTOR -->
+        <div class="grid grid-cols-2 sm:grid-cols-5 gap-2">
+          <button onclick="selectIntensity(1)" id="tier-btn-1" class="tier-btn p-3 rounded-2xl border border-slate-800 bg-slate-900/90 text-left transition hover:border-slate-700">
+            <span class="text-[9px] font-bold uppercase text-slate-400 block">Nivel 1</span>
+            <strong class="text-xs text-white block">Mínimo</strong>
+            <span class="text-[10px] font-mono text-emerald-400">$3 – $6 / año</span>
+          </button>
+
+          <button onclick="selectIntensity(2)" id="tier-btn-2" class="tier-btn p-3 rounded-2xl border border-slate-800 bg-slate-900/90 text-left transition hover:border-slate-700">
+            <span class="text-[9px] font-bold uppercase text-slate-400 block">Nivel 2</span>
+            <strong class="text-xs text-white block">Bajo</strong>
+            <span class="text-[10px] font-mono text-sky-400">$18 – $38 / año</span>
+          </button>
+
+          <button onclick="selectIntensity(3)" id="tier-btn-3" class="tier-btn p-3 rounded-2xl border-2 border-sky-500 bg-sky-950/40 text-left transition shadow-lg shadow-sky-500/20">
+            <span class="text-[9px] font-bold uppercase text-sky-400 block">Nivel 3 • Estándar</span>
+            <strong class="text-xs text-white block">Moderado</strong>
+            <span class="text-[10px] font-mono text-amber-300 font-bold">$62 – $118 / año</span>
+          </button>
+
+          <button onclick="selectIntensity(4)" id="tier-btn-4" class="tier-btn p-3 rounded-2xl border border-slate-800 bg-slate-900/90 text-left transition hover:border-slate-700">
+            <span class="text-[9px] font-bold uppercase text-slate-400 block">Nivel 4</span>
+            <strong class="text-xs text-white block">Alto</strong>
+            <span class="text-[10px] font-mono text-indigo-400">$185 – $340 / año</span>
+          </button>
+
+          <button onclick="selectIntensity(5)" id="tier-btn-5" class="tier-btn p-3 rounded-2xl border border-slate-800 bg-slate-900/90 text-left transition hover:border-slate-700">
+            <span class="text-[9px] font-bold uppercase text-rose-400 block">Nivel 5 • Stress</span>
+            <strong class="text-xs text-white block">Exagerado</strong>
+            <span class="text-[10px] font-mono text-rose-400">$540 – $990 / año</span>
+          </button>
+        </div>
+
+        <!-- DYNAMIC INTENSITY CARD DETAILS -->
+        <div id="tier-detail-card" class="bg-slate-900/90 p-5 rounded-2xl border border-slate-800 space-y-3">
+          <!-- Loaded by JS -->
+        </div>
+      </div>
+
+      <!-- MAIN RENDERED MARKDOWN CONTENT -->
+      <article id="content-area" class="glass-panel p-6 sm:p-10 rounded-3xl border-slate-800 shadow-2xl relative min-w-0">
+        <!-- Rendered by Marked.js from verbatim raw markdown -->
+      </article>
+
+    </div>
+  </div>
+
+  <!-- BACK TO TOP BUTTON -->
+  <button onclick="window.scrollTo({ top: 0, behavior: 'smooth' })" class="fixed bottom-6 right-6 z-40 p-3 bg-sky-600 hover:bg-sky-500 text-white rounded-2xl shadow-2xl transition-all duration-300">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/></svg>
+  </button>
+
+  <!-- FOOTER -->
+  <footer class="border-t border-slate-800 bg-slate-900/90 px-6 py-4 text-center text-xs text-slate-400 mt-12">
+    <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+      <span>Gestión de Modelos de IA — Informe Oficial y Plan Operativo · Programación IV · UTN FRC</span>
+      <span class="font-mono text-slate-500">Corte de Verificación: Septiembre 2026</span>
+    </div>
+  </footer>
+
+  <!-- EMBEDDED JAVASCRIPT LOGIC -->
+  <script>
+    const rawMarkdown = "# Gesti\u00f3n de Modelos de IA \u2014 Proveedor, Uso y Local vs. Cloud\n\n> **C\u00e1tedra:** Programaci\u00f3n IV \u2014 Back End \u00b7 Tecnicatura Universitaria en Programaci\u00f3n (2.\u00ba A\u00f1o, 4.\u00ba Cuatrimestre) \u00b7 UTN FRC\n> **Proyecto:** Plataforma de Aprendizaje Gamificado \u00b7 Tema 07 \u2014 Capa de Inteligencia Artificial y Evaluaci\u00f3n LLM\n> **Tipo de documento:** Informe y plan de gesti\u00f3n (no forma parte del repo original \u2014 se apoya en \u00e9l y lo extiende)\n> **Fecha:** 2026-09-02\n> **M\u00e9todo:** an\u00e1lisis exhaustivo de `Doc-TPI-Completa/` (fuente de verdad primaria) + verificaci\u00f3n cruzada con b\u00fasqueda web (precios, hardware, marco legal, literatura acad\u00e9mica). Cada afirmaci\u00f3n indica de d\u00f3nde sale: `(Doc-TPI: archivo, \u00a7secci\u00f3n)` para lo interno, `[N]` para lo externo \u2014 lista completa en la \u00a710.\n\n---\n\n## 0. Conclusi\u00f3n primero\n\n**La gesti\u00f3n ya est\u00e1 bien pensada en la documentaci\u00f3n existente \u2014 este informe la consolida en una sola matriz, la verifica contra datos de septiembre 2026, y responde la pregunta puntual sobre correcci\u00f3n local con m\u00e1s precisi\u00f3n de la que hay hoy en el repo.**\n\nRespuesta corta a \"\u00bfla correcci\u00f3n de un examen se puede hacer local?\":\n\n| Tipo de correcci\u00f3n | \u00bfNecesita LLM? | \u00bfSe puede local? |\n|---|---|---|\n| Opci\u00f3n m\u00faltiple, V/F, ordenar, emparejar, algoritmos con tests | \ud83d\udfe2 **No** | **Siempre \u2014 y sin LLM, ni local ni cloud. Es comparaci\u00f3n de datos.** |\n| Respuesta abierta / desarrollo (el \"Corrector\") | \ud83d\udd34 S\u00ed | \ud83d\udfe1 **Condicional** \u2014 t\u00e9cnicamente permitido (RF-IA-26), pero sin el mismo aparato de calibraci\u00f3n que protege al Evaluador todav\u00eda no hay evidencia de que un modelo local lo sostenga. Ver \u00a73. |\n| Evaluaci\u00f3n de **c\u00f3mo el alumno us\u00f3 al tutor** (el \"Evaluador\", RF-IA-25) | \ud83d\udd34 S\u00ed | \ud83d\udd34 **Nunca** \u2014 decisi\u00f3n ya firme en el repo (ADR-011), y la raz\u00f3n es medible, no de opini\u00f3n. |\n\nEl resto del documento fundamenta esto y arma el plan de gesti\u00f3n completo (moderador, tutor, generador, RAG incluidos).\n\n---\n\n## 1. M\u00e9todo y fuentes\n\n**Documentaci\u00f3n interna revisada (fuente de verdad, `Doc-TPI-Completa/`):**\n\n| Archivo | Qu\u00e9 aporta a este informe |\n|---|---|\n| `01_ESPECIFICACION_TECNICA/01_ALCANCE_Y_ROLES_DE_IA.md` | Los 5 roles oficiales, endpoints, timeouts |\n| `01_ESPECIFICACION_TECNICA/02_ARQUITECTURA_HIBRIDA_Y_PLATAFORMA.md` | Factory multi-proveedor, d\u00f3nde vive la decisi\u00f3n de modelo |\n| `01_ESPECIFICACION_TECNICA/05_CATALOGO_MODELOS_COSTOS_Y_FINOPS.md` | Cat\u00e1logo oficial de modelos y costos por rol |\n| `01_ESPECIFICACION_TECNICA/07_REGISTRO_DE_DECISIONES_ADR.md` | ADR-006, ADR-010, ADR-011 (embeddings locales, cat\u00e1logo, evaluador nunca local) |\n| `02_FUNDAMENTOS_Y_DEFENSA_ORAL/03_ANALISIS_ECONOMICO_Y_CONTEXTO_LLM.md` | La tabla de decisi\u00f3n m\u00e1s completa: funci\u00f3n \u00d7 modelo \u00d7 costo \u00d7 \"qu\u00e9 significa que funcione\", y la secci\u00f3n de modelos locales |\n| `02_FUNDAMENTOS_Y_DEFENSA_ORAL/04_OPERACION_INGENIERIA_Y_CARGA.md` | La escalera de degradaci\u00f3n (Nivel 1-4) donde lo local aparece como Nivel 3 |\n| `02_FUNDAMENTOS_Y_DEFENSA_ORAL/08_SEGURIDAD_FRONTERAS_Y_GUARDARRAILES.md` | Canal 3 de fuga (hacia el proveedor de LLM) y por qu\u00e9 \"modelo local\" es la \u00fanica mitigaci\u00f3n que elimina el canal en vez de acotarlo |\n| `03_RUBRICAS_PROMPTS_Y_CALIBRACION/02_ESPECIFICACION_FUNCIONES_Y_JUECES.md` | La distinci\u00f3n cr\u00edtica **Evaluador vs. Corrector** que el usuario probablemente tiene en mente al decir \"correcci\u00f3n de examen\" |\n| `04_GESTION_ROADMAP_Y_EQUIPO/02_DECISIONES_ABIERTAS_Y_PENDIENTES.md` | ADR-011 con su justificaci\u00f3n completa, y las preguntas abiertas P-01, P-06, P-07 \u2014 que son literalmente la pregunta que se me hizo |\n\n**Extensi\u00f3n con b\u00fasqueda web (todo verificado el 2026-09-02, salvo que se indique otra fecha):**\n- Precios oficiales vigentes de Anthropic, OpenAI, Google y DeepSeek, para confirmar o corregir la tabla de costos del repo.\n- Requisitos de hardware/VRAM reales para los modelos locales (familia Qwen3) que el repo recomienda.\n- Marco legal argentino (Ley 25.326) sobre transferencia internacional de datos \u2014 el repo deja esto como riesgo abierto (RSK-01) sin desarrollar el mecanismo legal concreto.\n- Literatura acad\u00e9mica 2025-2026 sobre correcci\u00f3n autom\u00e1tica con modelos locales/chicos, para no basar la recomendaci\u00f3n solo en la intuici\u00f3n de costo-beneficio del repo.\n\n---\n\n## 2. Separar la pregunta: qu\u00e9 es \"corregir un examen\" ac\u00e1\n\nAntes de hablar de proveedores, esto es lo que m\u00e1s cambia la respuesta. El repo (Doc-TPI: `03_RUBRICAS_PROMPTS_Y_CALIBRACION/02_ESPECIFICACION_FUNCIONES_Y_JUECES.md`, Parte 2 \u00a71) distingue dos cosas que suenan parecidas pero no lo son:\n\n| | **Evaluador de uso de IA** | **Corrector de respuestas** |\n|---|---|---|\n| Qu\u00e9 juzga | C\u00f3mo el alumno us\u00f3 al tutor (autonom\u00eda, claridad de prompts, si intent\u00f3 jailbreak) | Si la respuesta al examen/desaf\u00edo est\u00e1 bien |\n| Entrada | Transcripci\u00f3n completa de la conversaci\u00f3n con el tutor | La respuesta del alumno + la respuesta esperada |\n| \u00bfEst\u00e1 especificado en el PRD? | S\u00ed, con mucho detalle (RF-IA-12 a 18, 25, 28-36) | No expl\u00edcitamente \u2014 es una propuesta del propio equipo |\n| \u00bfPuede ir en modelo local? | **Nunca** (ADR-011) | **Depende del tipo de pregunta** (ver abajo) |\n\nSi la pregunta que se hizo era sobre el **Evaluador** (la nota de \"uso de IA\"), la respuesta es no, y est\u00e1 cerrada \u2014 ver \u00a73.3. Si era sobre el **Corrector** (poner nota a una respuesta de examen), la respuesta es \"depende del tipo de pregunta\", y ah\u00ed es donde vale la pena mirar con detalle porque **la mayor\u00eda de un examen no necesita IA en absoluto**:\n\n*(Doc-TPI: `03_RUBRICAS_PROMPTS_Y_CALIBRACION/02_ESPECIFICACION_FUNCIONES_Y_JUECES.md`, \u00a71c)*\n\n| Tipo de pregunta | \u00bfNecesita LLM? | C\u00f3mo se corrige en realidad |\n|---|---|---|\n| Opci\u00f3n m\u00faltiple | \u274c No | Comparar \u00edndices |\n| Verdadero / Falso | \u274c No | Comparar booleanos |\n| Ordenar secuencias | \u274c No | Comparar listas |\n| Emparejar conceptos | \u274c No | Comparar pares |\n| Algoritmos con tests unitarios | \u274c No | **Los tests deciden**, no un modelo |\n| Respuesta abierta / desarrollo | \u2705 S\u00ed | R\u00fabrica + respuesta esperada + juicio del LLM |\n| Conversaci\u00f3n sobre contenido | \u2705 S\u00ed | R\u00fabrica |\n\nEsto no es un matiz menor: en un examen t\u00edpico de programaci\u00f3n (m\u00faltiple choice + V/F + un par de ejercicios con tests unitarios + tal vez una pregunta de desarrollo), **la fracci\u00f3n que realmente necesita un modelo de lenguaje suele ser la minor\u00eda del examen**, y esa fracci\u00f3n se corrige con c\u00f3digo determin\u00edstico \u2014 cero costo, cero latencia, cero riesgo de fuga de datos, reproducible al 100%. El propio repo lo dice sin rodeos: *\"Usar un LLM para corregir un multiple choice no es caro: es un error\"* (mismo archivo, \u00a71c).\n\n**Esto ya responde una parte grande de la pregunta original: para la mayor\u00eda de los formatos de examen, \"\u00bfse puede hacer local?\" ni siquiera es la pregunta correcta \u2014 se puede hacer sin ning\u00fan modelo, local o no.**\n\n---\n\n## 3. La pregunta central, resuelta con matices\n\n### 3.1. Lo que se corrige sin LLM (la mayor\u00eda del examen)\nSiempre local, siempre gratis, siempre determin\u00edstico. No hay decisi\u00f3n de proveedor que tomar ac\u00e1 \u2014 es l\u00f3gica de negocio en el backend, no una llamada a IA. Prioridad de implementaci\u00f3n: **alta y ya** (no depende de decidir nada sobre modelos).\n\n### 3.2. El Corrector de respuestas abiertas \u2014 la parte que s\u00ed es una decisi\u00f3n real\n\nAc\u00e1 el repo deja una pregunta expl\u00edcitamente sin cerrar (Doc-TPI: `04_GESTION_ROADMAP_Y_EQUIPO/02_DECISIONES_ABIERTAS_Y_PENDIENTES.md`, P-01):\n\n> *\"\u00bfEl corrector de respuestas abiertas tiene golden set y calibraci\u00f3n como el evaluador?\"* \u2014 Recomendaci\u00f3n del propio repo: **s\u00ed, aplicarle el mismo aparato**, porque el argumento es id\u00e9ntico al del evaluador: es una IA poniendo una nota acad\u00e9mica.\n\nEsto importa directamente para la pregunta de \"local s\u00ed o no\", porque cambia la respuesta:\n\n- **Si el corrector NO tiene el aparato de calibraci\u00f3n del evaluador** (que es el estado *actual*, porque P-01 sigue abierta): cae bajo RF-IA-26, que permite pool de modelos y fallback multi-proveedor **incluyendo local** para todo lo que no sea el Evaluador propiamente dicho (Doc-TPI: mismo archivo \u00a75, y `02_ESPECIFICACION_FUNCIONES_Y_JUECES.md` \u00a75). Bajo esta lectura, un modelo local **s\u00ed es t\u00e9cnicamente viable** como plan B/C para el corrector, igual que para el tutor.\n- **Si se adopta la recomendaci\u00f3n de P-01** (aplicarle al corrector el mismo est\u00e1ndar que al evaluador \u2014 golden set, calibraci\u00f3n bloqueante, tolerancia PAR-14): entonces el mismo argumento que descarta lo local para el evaluador (ADR-011: *\"un modelo abierto de 30B no sostiene esa tolerancia de forma estable\"*) empieza a aplicar tambi\u00e9n al corrector, **hasta que se demuestre lo contrario con una calibraci\u00f3n real**.\n\n**Mi recomendaci\u00f3n, con esto en la mesa:** no es una contradicci\u00f3n, es una secuencia.\n\n1. **MVP:** corrector en API (Claude Haiku 4.5 + Batch, ~USD 0,002 por correcci\u00f3n \u2014 Doc-TPI: `02_FUNDAMENTOS_Y_DEFENSA_ORAL/03_ANALISIS_ECONOMICO_Y_CONTEXTO_LLM.md` \u00a71), como **sugerencia, no nota autom\u00e1tica**, hasta que el profesor confirme (esto ya est\u00e1 recomendado en el repo, P-03).\n2. **En paralelo**, cuando se construya el golden set del corrector (que de todos modos hay que construir si se adopta P-01), correr el mismo set contra un modelo local candidato y medir el MAE exactamente como se hace con el evaluador. Es el mismo trabajo, una vez.\n3. **Si pasa la tolerancia:** el corrector de respuestas abiertas puede correr en local de forma leg\u00edtima y medida, no por intuici\u00f3n \u2014 y ah\u00ed el argumento de soberan\u00eda de datos (\u00a77) se vuelve aplicable a una porci\u00f3n real y no trivial del sistema.\n4. **Si no pasa:** se documenta igual que ADR-011 lo hizo para el evaluador, con la misma honestidad: \"se midi\u00f3, no pas\u00f3, queda en API hasta que un modelo abierto lo sostenga\".\n\n**Esto no est\u00e1 en el repo tal cual \u2014 es la extensi\u00f3n que ped\u00edan**, pero se apoya enteramente en el patr\u00f3n de razonamiento que el propio equipo ya us\u00f3 para el evaluador (medir contra un golden set, no decidir por costo).\n\nHay adem\u00e1s evidencia acad\u00e9mica externa de que la idea no es descabellada: un estudio de 2026 en *Frontiers in Computer Science* prueba correcci\u00f3n autom\u00e1tica de respuestas cortas con modelos chicos (~1B par\u00e1metros) corriendo en CPU como alternativa preservadora de privacidad frente a APIs propietarias tipo GPT-4o[1]. Un cap\u00edtulo de Springer de 2025 sobre correcci\u00f3n de ensayos en educaci\u00f3n superior directamente dise\u00f1a el pipeline para correr en **servidores locales** con modelos ajustados (LoRA) sobre datos hist\u00f3ricos de correcci\u00f3n del propio curso, y reporta que replican las decisiones de correcci\u00f3n originales preservando la privacidad del alumno[2]. Un paper de 2025 (arXiv) sobre modelos chicos para contenido educativo y evaluaci\u00f3n con RAG/CAG muestra utilidad comparable a modelos grandes en tareas acotadas, con \"soberan\u00eda institucional\" como uno de los objetivos expl\u00edcitos[3]. **El patr\u00f3n com\u00fan en los tres: el modelo local que funciona para correcci\u00f3n es ajustado/calibrado contra datos reales del contexto, no un modelo abierto gen\u00e9rico usado tal cual.** Eso es exactamente lo que el paso 2 de arriba propone.\n\n### 3.3. El Evaluador de uso de IA \u2014 nunca local, y no es negociable por costo\n\nDistinto del corrector: ac\u00e1 el repo ya cerr\u00f3 la decisi\u00f3n (ADR-011, Doc-TPI: `04_GESTION_ROADMAP_Y_EQUIPO/02_DECISIONES_ABIERTAS_Y_PENDIENTES.md`):\n\n> *\"Local es aceptable para moderador y como plan B del tutor. Para el evaluador, no. [...] PAR-14 exige \u00b15 de desviaci\u00f3n promedio y \u00b110 por dimensi\u00f3n contra el golden set. Un modelo abierto de 30B no sostiene esa tolerancia de forma estable, y sin pasarla el curso no arranca (RF-IA-36, sin override).\"*\n\nLa condici\u00f3n de revisi\u00f3n que el propio repo fija es clara y correcta: *\"se revisa si un modelo abierto pasa la calibraci\u00f3n de forma reproducible \u2014 se mide, no se opina\"*. No hay nada que yo pueda agregar ac\u00e1 salvo confirmar que el razonamiento es s\u00f3lido: no es un veto ideol\u00f3gico a lo local, es un veto a lo *no probado* en la \u00fanica funci\u00f3n donde una desviaci\u00f3n te bloquea el cierre del curso.\n\n---\n\n## 4. Matriz maestra: rol \u00d7 proveedor \u00d7 \u00bflocal? \u00d7 costo\n\nConsolidando `01_ALCANCE_Y_ROLES_DE_IA.md`, `05_CATALOGO_MODELOS_COSTOS_Y_FINOPS.md`, `03_ANALISIS_ECONOMICO_Y_CONTEXTO_LLM.md` y `02_DECISIONES_ABIERTAS_Y_PENDIENTES.md` (P-07) en una sola tabla:\n\n| Rol | Modelo primario recomendado | Costo aprox. | \u00bfFallback multi-proveedor? | \u00bfLocal? | Condici\u00f3n |\n|---|---|---|---|---|---|\n| **Moderador de chat** | GPT-5 nano | USD 0,000027/mensaje | S\u00ed (RF-IA-26) | \ud83d\udfe2 **S\u00ed, viable de verdad** | Qwen3 4B / Phi-4-mini, 8 GB VRAM. Alto volumen, bajo riesgo por mensaje individual |\n| **Tutor socr\u00e1tico (IDE)** | Gemini 3.5 Flash-Lite | USD 0,00052/consulta | S\u00ed (RF-IA-26) | \ud83d\udfe1 **Como plan B/C**, documentado y probado, no primario | Qwen3 30B-A3B (MoE), ~24 GB VRAM. Nivel 3 de la escalera de degradaci\u00f3n |\n| **Evaluador (uso de IA)** | Claude Haiku 4.5 + Batch | USD 0,006/evaluaci\u00f3n | **No** (RF-IA-25: \u00fanico modelo activo) | \ud83d\udd34 **Nunca**, salvo calibraci\u00f3n que lo demuestre (ADR-011) | Su \u00fanico \"plan B\" es la cola diferida, no otro modelo |\n| **Generador de desaf\u00edos** | Gemini 3.5 Flash-Lite + Batch | USD 0,00083/pregunta | S\u00ed (RF-IA-26) | \ud83d\udfe2 Viable | Qwen3 32B Q4, lento pero hay revisi\u00f3n humana obligatoria (gate) |\n| **Corrector (respuesta abierta)** | Claude Haiku 4.5 + Batch | USD 0,002/correcci\u00f3n | S\u00ed (RF-IA-26), *si no se adopta P-01* | \ud83d\udfe1 **Condicional** \u2014 ver \u00a73.2 | Depende de si se calibra con el mismo rigor que el evaluador |\n| **Corrector (MC/VF/tests)** | \u2014 (c\u00f3digo, sin LLM) | USD 0 | \u2014 | \ud83d\udfe2 **Siempre, es lo \u00fanico obvio** | No es una decisi\u00f3n de modelo |\n| **Asistente RAG (dudas te\u00f3ricas)** | Gemini 3.5 Flash-Lite | USD 0,0001/consulta (con RAG de 3 chunks) | S\u00ed | \u2014 | El modelo de *embeddings* ya es local por dise\u00f1o (ADR-006, ver \u00a76) |\n\n---\n\n## 5. Cat\u00e1logo de modelos: verificaci\u00f3n cruzada de precios (corte 2026-09-02)\n\nEl repo dice expl\u00edcitamente que sus precios son *\"una foto, no una constante\"* y da fecha de corte 2026-08-30 (Doc-TPI: `03_ANALISIS_ECONOMICO_Y_CONTEXTO_LLM.md`). Verifiqu\u00e9 cada uno contra fuentes de precios independientes de esta semana:\n\n| Modelo | Precio en el repo (in/out por mill\u00f3n) | Precio verificado 2026-09-02 | Estado |\n|---|---|---|---|\n| **Claude Haiku 4.5** | USD 1,00 / 5,00 | USD 1,00 / 5,00[4][5][6] | \u2705 **Coincide exacto** |\n| **Claude Sonnet 5** | USD 2,00 / 10,00 | USD 2,00 / 10,00 (precio de introducci\u00f3n vigente hasta el 31-ago-2026 seg\u00fan una fuente, confirmado como est\u00e1ndar y sin el aumento de septiembre que se hab\u00eda anunciado, seg\u00fan otra)[7][8] | \u2705 Coincide, aunque **vale re-chequear a fin de mes** por si el \"precio de introducci\u00f3n\" cambia |\n| **GPT-5 nano** | USD 0,05 / 0,40 | USD 0,05 / 0,40[9][10] | \u2705 **Coincide exacto** |\n| **Gemini 3.5 Flash-Lite** | USD 0,15 / 1,25 | USD 0,15 / 1,25 seg\u00fan una fuente de agosto 2026[11]; **una segunda fuente de septiembre 2026 lo lista a USD 0,30 / 2,50**[12] | \u26a0\ufe0f **Hay discrepancia entre fuentes externas** \u2014 recomiendo confirmar contra la consola oficial de Google AI antes de fijar el n\u00famero en el c\u00f3digo (coherente con RF-IA-11: el modelo va en tabla ADMIN, no hardcodeado, justamente por esto) |\n| **DeepSeek V4-Flash** | USD 0,22 / 0,66 (con nota de volatilidad) | **Confirmado: el 16 de agosto de 2026 DeepSeek pas\u00f3 a precios peak/off-peak, con subas de hasta 355-1100% en algunas franjas horarias**[13][14][15] | \u2705 La advertencia del repo sobre DeepSeek era, si acaso, **optimista** \u2014 la evidencia de esta semana la refuerza. Mantenerlo como \"Plan C\" es la decisi\u00f3n correcta |\n\n**Conclusi\u00f3n de esta secci\u00f3n:** el cat\u00e1logo del repo est\u00e1 bien fundamentado y mayormente vigente. El \u00fanico punto que merece una verificaci\u00f3n manual antes de escribir el c\u00f3digo de producci\u00f3n es el precio de salida de Gemini 3.5 Flash-Lite (0,15 vs. potencialmente m\u00e1s alto seg\u00fan la fuente) \u2014 exactamente el tipo de cosa que **RF-IA-11 ya anticipa** al exigir que el modelo viva en una tabla editable por ADMIN y no en el c\u00f3digo: si el precio o el modelo cambian, no hace falta un deploy.\n\n---\n\n\n\n---\n\n## 5.1. Matriz de 5 Intensidades de Uso Real: Costo Anual para 120 Alumnos (Corte Septiembre 2026)\n\nPara subsanar el sesgo de estimar \u00fanicamente el costo del \"micro-benchmark de ex\u00e1menes\" (~$1,20 a $2,50 USD/a\u00f1o, que asume casi cero uso del tutor interactivo), se modela a continuaci\u00f3n el **espectro completo de consumo de un a\u00f1o lectivo real (32 semanas de clases, 120 alumnos matriculados)** a trav\u00e9s de **5 niveles de intensidad de uso**.\n\n### Definici\u00f3n de las 5 Intensidades de Uso\n\n| Nivel de Intensidad | Perfil de Uso de la C\u00e1tedra | Consultas Tutor / Alumno / Sem | Evaluaciones R\u00fabrica / Alumno | Consultas RAG / Sem | Mensajes Chat Moderados / Sem | Tokens Anuales Estimados (120 alumnos) | Costo Anual Estimado (120 alumnos) | Costo Anual por Alumno |\n|---|---|---|---|---|---|---|---|---|\n| **1. M\u00ednimo (Micro-Examen)** | Solo 10 parciales en lote, sin tutor en IDE | 0,05 (espor\u00e1dico) | 10 parciales | 0,2 | 1 | ~3,5 Millones | **USD 3,00 \u2013 6,00** | USD 0,025 \u2013 0,05 |\n| **2. Bajo (Controlado)** | TPs obligatorios con cuota estricta (1-2 dudas) | 2 consultas/sem | 20 entregas | 1 consulta/sem | 5 | ~15 Millones | **USD 18,00 \u2013 38,00** | USD 0,15 \u2013 0,32 |\n| **3. Moderado (Est\u00e1ndar C\u00e1tedra)** | **Escenario Realista:** TPs semanales, tutor socr\u00e1tico activo, RAG y r\u00fabrica | **5 consultas/sem** | **32 entregas semanales + 10 parciales** | **2 consultas/sem** | **10** | **~45 Millones** | **USD 62,00 \u2013 118,00** | **USD 0,52 \u2013 0,98** |\n| **4. Alto (Participaci\u00f3n Activa)** | M\u00faltiples reintentos de c\u00f3digo, desaf\u00edos autogenerados, asistencia continua | 15 consultas/sem | 60+ evaluaciones continuas | 5 consultas/sem | 25 | ~130 Millones | **USD 185,00 \u2013 340,00** | USD 1,54 \u2013 2,83 |\n| **5. Exagerado (Uso Masivo / Stress)** | Uso diario exhaustivo en IDE (depuraci\u00f3n profunda, ~50k tokens/d\u00eda near-cap) | 30+ consultas/sem | 120+ commits evaluados | 15 consultas/sem | 50 | ~350+ Millones | **USD 540,00 \u2013 990,00** | USD 4,50 \u2013 8,25 |\n\n---\n\n### 5.2. Impacto del \"Security Overhead\": An\u00e1lisis de Costo Con vs. Sin Medidas de Seguridad\n\nEn un entorno educativo seguro, **el prompt del alumno nunca se env\u00eda de forma aislada**. La arquitectura de seguridad del **Tema 07** inyecta capas de defensa en profundidad contra inyecciones de prompt (*Prompt Injection*), intentos de jailbreak (*DAN / Roleplay*), fuga de soluciones (`RF-IA-04`) y delimitaci\u00f3n estricta XML.\n\n#### Anatom\u00eda del Payload Inyectado (De 350 tokens crudos a 1.550 tokens seguros)\n* **Consulta Cruda del Alumno + C\u00f3digo:** ~350 tokens.\n* **+ System Prompt Pedag\u00f3gico y Directivas Anti-Fuga (`RF-IA-04`):** +450 tokens.\n* **+ Delimitadores XML y Guardrails Anti-Jailbreak (`<untrusted_student_input>`):** +150 tokens.\n* **+ Contexto del Desaf\u00edo y R\u00fabrica 5D / RAG:** +600 tokens.\n* **Total Prompt de Entrada:** **~1.550 tokens por llamada** ($4,4\\times$ m\u00e1s tokens de entrada que el texto crudo).\n\n#### Tabla Comparativa de Costos: Con vs. Sin Medidas de Seguridad (Anual para 120 Alumnos)\n\n| Nivel de Intensidad | Costo Base Te\u00f3rico (Sin Seguridad / Texto Crudo) | Costo Te\u00f3rico Sin Optimizaci\u00f3n (Con Seguridad pero Sin Cache) | Costo Real Final (Con Seguridad + Prompt Caching + Filtro Local) | Sobrecosto Neto de Seguridad |\n|---|---|---|---|---|\n| **Nivel 1: M\u00ednimo** | USD 2,50 \u2013 5,00 / a\u00f1o | USD 7,50 \u2013 14,00 / a\u00f1o | **USD 3,00 \u2013 6,00 / a\u00f1o** | **+ USD 0,50 \u2013 1,00 / a\u00f1o** |\n| **Nivel 2: Bajo** | USD 15,00 \u2013 30,00 / a\u00f1o | USD 45,00 \u2013 82,00 / a\u00f1o | **USD 18,00 \u2013 38,00 / a\u00f1o** | **+ USD 3,00 \u2013 8,00 / a\u00f1o** |\n| **Nivel 3: Moderado (Est\u00e1ndar)** | **USD 50,00 \u2013 95,00 / a\u00f1o** | **USD 150,00 \u2013 255,00 / a\u00f1o** | **USD 62,00 \u2013 118,00 / a\u00f1o** | **+ USD 12,00 \u2013 23,00 / a\u00f1o** |\n| **Nivel 4: Alto** | USD 150,00 \u2013 280,00 / a\u00f1o | USD 420,00 \u2013 740,00 / a\u00f1o | **USD 185,00 \u2013 340,00 / a\u00f1o** | **+ USD 35,00 \u2013 60,00 / a\u00f1o** |\n| **Nivel 5: Exagerado** | USD 450,00 \u2013 850,00 / a\u00f1o | USD 1.250,00 \u2013 2.200,00 / a\u00f1o | **USD 540,00 \u2013 990,00 / a\u00f1o** | **+ USD 90,00 \u2013 140,00 / a\u00f1o** |\n\n#### \u00bfPor qu\u00e9 el sobrecosto neto es de solo un 20-25% y no un 400%?\n1. **Prompt Caching:** El 80% del payload de seguridad es id\u00e9ntico entre alumnos de la cohorte. Los proveedores aplican entre un **75% y 90% de descuento** en tokens de cach\u00e9 (*Cache Hits* a USD 0,10/MTok en Anthropic y USD 0,0028/MTok en DeepSeek).\n2. **Filtro Local Capa 1 (Harmlessness Screen):** Ataques burdos de jailbreak se bloquean en el backend con Regex local a **costo USD 0**, sin invocar la API del LLM.\n\n---\n\n### Comparativa Oficial de Proveedores y Modelos (Corte Septiembre 2026)\n\n| Proveedor | Modelo | Rol Recomendado en la Plataforma | Precio Input (1M tok) | Precio Output (1M tok) | Descuento Batch | Descuento Cache Hit | Estado & Notas 2026 |\n|---|---|---|---|---|---|---|---|\n| **Google AI** | **Gemini 3.5 Flash-Lite** | Tutor Socr\u00e1tico & RAG | **USD 0,15** | **USD 1,25** | 50% | Hasta 75% | \u2705 Modelo m\u00e1s costo-eficiente para streaming y tutor\u00eda. Free Tier disponible. |\n| **Google AI** | **Gemini 3.8 Flash** | Tutor Avanzado / Alternativa | **USD 0,75** | **USD 3,75** | 50% | Hasta 75% | Sucesor de Gemini 2.0 Flash (retirado el 1-jun-2026). Precio introductorio 2026. |\n| **Anthropic** | **Claude Haiku 4.5** | Evaluador Anal\u00edtico (R\u00fabrica) | **USD 1,00** | **USD 5,00** | **50% (USD 0,50 / 2,50)** | Hasta 90% | \u2705 M\u00e1xima consistencia de criterio para evaluaci\u00f3n formal. |\n| **Anthropic** | **Claude 3.5 Haiku** | Evaluador (Fallback Bedrock/GCP) | **USD 0,80** | **USD 4,00** | 50% | Hasta 90% | Vigente en cloud providers. |\n| **Anthropic** | **Claude 3.7 Sonnet** | Generador de Ex\u00e1menes / Golden Set | **USD 3,00** | **USD 15,00** | 50% | Hasta 90% | Modelo insignia para dise\u00f1o pedag\u00f3gico docente de alta complejidad. |\n| **OpenAI** | **GPT-5 nano** | Moderador de Chat en Vivo | **USD 0,05** | **USD 0,40** | 50% | Hasta 50% | \u2705 Ideal para clasificaci\u00f3n ultrarr\u00e1pida y moderaci\u00f3n de lenguaje ofensivo. |\n| **OpenAI** | **GPT-4o mini** | Tutor Socr\u00e1tico (Fallback) | **USD 0,15** | **USD 0,60** | 50% | Hasta 50% | Modelo est\u00e1ndar de alta disponibilidad y bajo costo. |\n| **OpenAI** | **GPT-4o** | Auditor\u00eda y Red-Teaming | **USD 2,50** | **USD 10,00** | 50% | Hasta 50% | Solo para auditor\u00edas de segundo nivel y generaci\u00f3n asistida docente. |\n| **DeepSeek** | **DeepSeek-V4-Flash** | Tutor / Evaluador Econ\u00f3mico | **USD 0,14** | **USD 0,28** | No aplica | **USD 0,0028 (Cache Hit)** | Reemplaza a V3/R1 (retirados jul-2026). Tarificaci\u00f3n con franjas peak/off-peak. |\n| **DeepSeek** | **DeepSeek-V4-Pro** | Razonamiento Complejo | **USD 0,435** | **USD 0,87** | No aplica | **USD 0,0036 (Cache Hit)** | Inferencia con nivel de razonamiento configurable. |\n\n\n## 6. Modelos locales: hardware real y para qu\u00e9 rol tiene sentido\n\nEl repo (Doc-TPI: `03_ANALISIS_ECONOMICO_Y_CONTEXTO_LLM.md` \u00a72) recomienda:\n\n| Modelo | VRAM (repo) | Para qu\u00e9 |\n|---|---|---|\n| Qwen3 4B / Phi-4-mini | 8 GB | Moderador |\n| Qwen3 30B-A3B (MoE) | 24 GB | Tutor, plan B |\n| Qwen3 32B Q4 | 24 GB | Generador |\n\n**Verificaci\u00f3n:** los n\u00fameros son razonables pero con un matiz t\u00e9cnico importante que vale la pena que el equipo tenga claro para la defensa oral. Qwen3-30B-A3B es un modelo *Mixture-of-Experts*: activa solo ~3,3B par\u00e1metros por token (de ah\u00ed que sea r\u00e1pido), **pero eso no reduce la VRAM necesaria**, porque todos los expertos tienen que estar cargados en memoria \u2014 el router puede mandar cualquier token a cualquier experto[16]. Con cuantizaci\u00f3n a 4 bits (INT4/NVFP4), la huella real ronda los 18-21 GB de pesos seg\u00fan las cuantizaciones publicadas (por ejemplo, el checkpoint W4A16 de Red Hat AI reduce el modelo un ~75% respecto al original de 16 bits)[17][18], lo que hace que **una sola GPU de 24 GB (tipo RTX 4090) sea un punto justo, no sobrado** \u2014 coherente con lo que dice el repo, pero conviene presupuestar el KV-cache aparte si van a manejar contextos largos en el tutor.\n\n**D\u00f3nde tiene sentido correr algo local en este proyecto, en orden de qu\u00e9 tan defendible es:**\n\n1. **Embeddings del RAG (ya es la decisi\u00f3n tomada, ADR-006):** corren en un modelo de embeddings multiling\u00fce liviano, en CPU, offline. Es la aplicaci\u00f3n m\u00e1s obvia de \"local\" en todo el sistema y ya est\u00e1 resuelta \u2014 costo cero, sin exponer el material del profesor a un tercero.\n2. **Moderador de chat:** el propio repo lo llama *\"viable de verdad\"*. Volumen alto, texto corto, tarea de clasificaci\u00f3n \u2014 el tipo de problema donde un modelo de 4-8B cuantizado rinde bien y la ventaja de latencia de tenerlo en la misma red (sin salir a internet) es real.\n3. **Tutor, como Nivel 3 de la escalera de degradaci\u00f3n (RF-IA-27):** no reemplaza a la API, es la \u00faltima red antes de la degradaci\u00f3n funcional cuando caen *dos* proveedores. Documentarlo y probarlo cuesta relativamente poco porque de todos modos hay que construir la escalera completa por el requisito de resiliencia.\n4. **Corrector de respuesta abierta, condicionado a que pase una calibraci\u00f3n equivalente a PAR-14** (ver \u00a73.2) \u2014 es la pieza nueva que este informe agrega respecto al repo.\n5. **Evaluador de uso de IA: no, y la evidencia de la investigaci\u00f3n acad\u00e9mica de esta secci\u00f3n no cambia esa conclusi\u00f3n** \u2014 los papers citados en \u00a73.2 validan correcci\u00f3n de respuestas (Corrector), no evaluaci\u00f3n forense de un proceso de conversaci\u00f3n completo con exigencia de reproducibilidad exacta entre corridas, que es un problema distinto y m\u00e1s estricto.\n\n---\n\n## 7. El argumento legal: Ley 25.326 y por qu\u00e9 \"soberan\u00eda de datos\" es un argumento real, no ret\u00f3rico\n\nEl repo deja esto marcado como riesgo abierto sin desarrollar el mecanismo (RSK-01, mencionado en `08_SEGURIDAD_FRONTERAS_Y_GUARDARRAILES.md` y `02_DECISIONES_ABIERTAS_Y_PENDIENTES.md` P-06/P-07). Esto es lo que agrega este informe con investigaci\u00f3n legal puntual:\n\n**El mecanismo concreto de la Ley 25.326 (Argentina):**\n- El Art\u00edculo 12.1 establece como regla general que **est\u00e1 prohibido transferir datos personales a pa\u00edses que no ofrezcan un nivel de protecci\u00f3n adecuado**[19].\n- La Disposici\u00f3n 60-E/2016 (ex Direcci\u00f3n Nacional de Protecci\u00f3n de Datos Personales) y la Resoluci\u00f3n AAIP 34/2019 fijan **taxativamente qu\u00e9 pa\u00edses se consideran \"adecuados\"**. **Estados Unidos, donde est\u00e1n alojados OpenAI, Anthropic y (mayormente) Google, no est\u00e1 en esa lista**[20] \u2014 a diferencia de Argentina misma, que s\u00ed es reconocida como \"adecuada\" por la Uni\u00f3n Europea (esto es una relaci\u00f3n de reconocimiento distinta y no ayuda ac\u00e1).\n- Esto no significa que est\u00e9 prohibido usar esas APIs. El Art\u00edculo 12.2 prev\u00e9 excepciones, y las dos relevantes para este proyecto son: **(a) consentimiento expreso del titular de los datos**, y **(b) cl\u00e1usulas contractuales modelo** aprobadas por la AAIP para transferencias de datos hacia un encargado del tratamiento (que es exactamente la relaci\u00f3n instituci\u00f3n-proveedor de IA)[21][22].\n- Dato de contexto reciente y relevante para seguir de cerca: en noviembre de 2025 se anunci\u00f3 un acuerdo comercial entre Argentina y EE.UU. que incluir\u00eda el reconocimiento de EE.UU. como jurisdicci\u00f3n \"adecuada\" para transferencia de datos \u2014 pero **a la fecha de este informe (septiembre 2026) esa adecuaci\u00f3n todav\u00eda no est\u00e1 formalizada**, as\u00ed que el an\u00e1lisis de arriba sigue vigente[23]. Vale la pena que alguien del equipo lo chequee cerca de la fecha de entrega del TP, porque si se formaliza, cambia el peso del argumento legal (no el argumento de costo, que es independiente).\n\n**Qu\u00e9 significa esto en t\u00e9rminos pr\u00e1cticos para el proyecto (y confirma lo que el repo ya ven\u00eda haciendo bien):**\n\n| Mitigaci\u00f3n que el repo ya implementa | Por qu\u00e9 ahora tiene respaldo legal expl\u00edcito |\n|---|---|\n| \"Corregir a ciegas\" \u2014 el corrector no sabe de qui\u00e9n es la respuesta (Doc-TPI: `02_ESPECIFICACION_FUNCIONES_Y_JUECES.md` \u00a74) | Si los datos est\u00e1n efectivamente disociados/anonimizados, dejan de ser \"datos personales\" en el sentido de la ley \u2014 la Art. 12.2.e de la propia ley contempla la disociaci\u00f3n como v\u00eda de excepci\u00f3n |\n| Declarar proveedores en los T&C (RF-NFR-09) | Es exactamente el mecanismo de transparencia que la ley exige como base para el consentimiento expreso |\n| No usar free tier con datos de alumnos reales (recomendaci\u00f3n P-06) | Los free tiers suelen permitir al proveedor usar los datos para entrenar \u2014 eso excede lo que un consentimiento acotado a \"corregir tu examen\" cubrir\u00eda razonablemente |\n| **Modelo local** | Es la \u00fanica mitigaci\u00f3n que **elimina la pregunta legal en vez de responderla** \u2014 sin transferencia internacional, no hay art\u00edculo 12 que aplicar |\n\n**La recomendaci\u00f3n concreta que agrega este informe:** m\u00e1s all\u00e1 de correr algo en local, el \u00edtem **E-14 del repo (revisi\u00f3n jur\u00eddica de los T&C, marcado como pendiente)** deber\u00eda incluir expl\u00edcitamente la gesti\u00f3n de **cl\u00e1usulas contractuales modelo de la AAIP** con cada proveedor de IA que efectivamente vaya a producci\u00f3n con datos de alumnos reales \u2014 es una tarea legal concreta y acotada, no un \"an\u00e1lisis formal\" abierto, y el propio repo ya identific\u00f3 que har\u00eda falta (Doc-TPI: `01_ESPECIFICACION_TECNICA/02_ARQUITECTURA_HIBRIDA_Y_PLATAFORMA.md`, referencia a RF-IA-11 sobre T&C).\n\n---\n\n## 8. Gesti\u00f3n operativa: el plan concreto para administrar varios proveedores\n\nEsto es lo que el repo ya dise\u00f1\u00f3 bien y que conviene mantener como est\u00e1ndar de gesti\u00f3n (no hace falta reinventarlo, solo tenerlo todo junto):\n\n### 8.1. Un solo punto de entrada\nTodo acceso a cualquier LLM pasa por el `LLMFactory` del microservicio de IA (ADR-001). Ni el frontend ni otros microservicios llaman a un proveedor directo. Esto es lo que hace posible todo lo dem\u00e1s de esta secci\u00f3n \u2014 sin esto, \"gestionar los modelos\" significar\u00eda auditar c\u00f3digo disperso en vez de una tabla.\n\n### 8.2. El modelo vive en datos, no en c\u00f3digo (RF-IA-11)\nRegistro sugerido (extiende lo que el repo ya pide, en forma de esquema concreto para el equipo):\n\n```\ntabla: modelo_registry\n- rol (moderador | tutor | evaluador | generador | corrector | rag)\n- proveedor (openai | google | anthropic | local)\n- modelo_id\n- activo (bool)\n- es_fallback_de (rol, nivel)\n- fecha_habilitacion\n- ultima_calibracion (fecha, mae, aprobado bool)\n- costo_acumulado_periodo\n```\n\nCon esto, cambiar un modelo (por ejemplo cuando Gemini 2.5 Flash-Lite o GPT-5 mini se retiren, ya con fecha anunciada seg\u00fan el propio repo) es una fila nueva, no un deploy.\n\n### 8.3. La escalera de degradaci\u00f3n, con la excepci\u00f3n del evaluador bien marcada\n*(Doc-TPI: `02_FUNDAMENTOS_Y_DEFENSA_ORAL/04_OPERACION_INGENIERIA_Y_CARGA.md` \u00a75)*\n\n```\nTutor, Moderador, Generador, Corrector:\nNivel 1 (proveedor primario) \u2192 Nivel 2 (OTRO proveedor) \u2192 Nivel 3 (modelo local) \u2192 Nivel 4 (degradaci\u00f3n funcional)\n\nEvaluador (RF-IA-25, sin pool ni ruteo):\nNivel 1 (\u00fanico modelo activo) \u2192 Nivel 4 (cola diferida)\n```\n\nLa regla que no hay que romper por reflejo (el repo lo marca expl\u00edcitamente como el error m\u00e1s f\u00e1cil de cometer): el Nivel 2 tiene que cruzar la frontera de proveedor. Un fallback de Gemini Flash-Lite a Gemini Flash no es fallback, es el mismo punto \u00fanico de falla dos veces.\n\n### 8.4. Presupuesto y freno autom\u00e1tico (FinOps, RF-IA-22)\nCuota diaria de 50.000 tokens por alumno con corte autom\u00e1tico HTTP 402, contabilizada en Redis (Doc-TPI: `05_CATALOGO_MODELOS_COSTOS_Y_FINOPS.md` \u00a73). Esto ya est\u00e1 bien dise\u00f1ado y cubre el riesgo de \"denial of wallet\".\n\n### 8.5. Calibraci\u00f3n continua (LLMOps)\nGolden Set de 50 casos, corrida nocturna, MAE contra el circuit breaker de PAR-14 (Doc-TPI: `01_ESPECIFICACION_TECNICA/04_EVALUACION_ANALITICA_SCORING_HIBRIDO_Y_LLMOPS.md` \u00a74). **Recomendaci\u00f3n de este informe:** extender exactamente este mismo mecanismo al Corrector en cuanto exista su golden set (ver \u00a73.2) \u2014 es el mismo c\u00f3digo, otro rol.\n\n---\n\n## 9. Plan de acci\u00f3n priorizado\n\n| # | Acci\u00f3n | Por qu\u00e9 ahora | Depende de |\n|---|---|---|---|\n| 1 | Implementar la correcci\u00f3n determin\u00edstica (MC/VF/orden/emparejar/tests) | Es la mayor parte del valor de \"corregir un examen\", cuesta cero, no depende de decidir nada sobre modelos | Nada \u2014 se puede empezar hoy |\n| 2 | Cerrar P-01 (\u00bfel corrector tiene el mismo aparato que el evaluador?) con el Product Owner | Condiciona todo el dise\u00f1o del corrector, incluida la pregunta de si puede ir local | Nada \u2014 es una decisi\u00f3n, no una construcci\u00f3n |\n| 3 | Cerrar P-06 (free tier solo para demo/desarrollo, nunca con datos reales) | Barato de decidir, evita un problema legal despu\u00e9s | Nada |\n| 4 | Construir el golden set del corrector en paralelo al del evaluador | Es el mismo esfuerzo si se hace junto, y habilita medir local vs. API con datos reales en vez de intuici\u00f3n | P-01 resuelto |\n| 5 | Probar un modelo local (Qwen3 30B-A3B o similar) contra ese golden set, igual que se hace con el evaluador | Es la \u00fanica forma honesta de responder \"\u00bfpuede ir local?\" para el corrector \u2014 medir, no opinar (mismo criterio que ADR-011) | \u00cdtem 4 |\n| 6 | Registrar el modelo del moderador y el plan B del tutor como locales, documentados y probados | Ya es la recomendaci\u00f3n firme del repo (P-07); falta solo la ejecuci\u00f3n | Hardware disponible (8 GB para moderador, ~24 GB para tutor) |\n| 7 | Llevar el \u00edtem E-14 (revisi\u00f3n legal de T&C) al abogado con el detalle de este informe \u00a77: qu\u00e9 proveedores, qu\u00e9 cl\u00e1usulas contractuales modelo de la AAIP corresponden | Es una tarea legal acotada, no un an\u00e1lisis abierto \u2014 ya se sabe qu\u00e9 pedir | Ninguno |\n| 8 | Re-verificar el precio de Gemini 3.5 Flash-Lite contra la consola oficial antes de fijarlo en el registro de modelos | Encontr\u00e9 una discrepancia entre dos fuentes externas (\u00a75) | Ninguno |\n\n---\n\n## 10. Fuentes\n\n### Documentaci\u00f3n interna (`Doc-TPI-Completa/`, fuente de verdad primaria)\n- `01_ESPECIFICACION_TECNICA/01_ALCANCE_Y_ROLES_DE_IA.md`\n- `01_ESPECIFICACION_TECNICA/02_ARQUITECTURA_HIBRIDA_Y_PLATAFORMA.md`\n- `01_ESPECIFICACION_TECNICA/04_EVALUACION_ANALITICA_SCORING_HIBRIDO_Y_LLMOPS.md`\n- `01_ESPECIFICACION_TECNICA/05_CATALOGO_MODELOS_COSTOS_Y_FINOPS.md`\n- `01_ESPECIFICACION_TECNICA/07_REGISTRO_DE_DECISIONES_ADR.md`\n- `02_FUNDAMENTOS_Y_DEFENSA_ORAL/03_ANALISIS_ECONOMICO_Y_CONTEXTO_LLM.md`\n- `02_FUNDAMENTOS_Y_DEFENSA_ORAL/04_OPERACION_INGENIERIA_Y_CARGA.md`\n- `02_FUNDAMENTOS_Y_DEFENSA_ORAL/08_SEGURIDAD_FRONTERAS_Y_GUARDARRAILES.md`\n- `03_RUBRICAS_PROMPTS_Y_CALIBRACION/02_ESPECIFICACION_FUNCIONES_Y_JUECES.md`\n- `04_GESTION_ROADMAP_Y_EQUIPO/02_DECISIONES_ABIERTAS_Y_PENDIENTES.md`\n\n### Fuentes externas (verificadas 2026-09-02, salvo fecha indicada)\n\n**Correcci\u00f3n local / literatura acad\u00e9mica**\n1. [Frontiers in Computer Science (2026) \u2014 Grading at scale: privacy-preserving automated short answer grading with small language models on CPUs](https://www.frontiersin.org/journals/computer-science/articles/10.3389/fcomp.2026.1829089/full)\n2. [Springer (2025) \u2014 Enabling Responsible LLM-Based Grading in Higher Education](https://link.springer.com/chapter/10.1007/978-3-031-93979-2_1)\n3. [arXiv \u2014 Small Models, Big Support: A Local LLM Framework for Educator-Centric Content Creation and Assessment](https://arxiv.org/pdf/2506.05925)\n\n**Precios de modelos**\n4. [Anthropic \u2014 Claude Haiku 4.5 (oficial)](https://www.anthropic.com/claude/haiku)\n5. [BenchLM \u2014 Claude API Pricing, septiembre 2026](https://benchlm.ai/anthropic/api-pricing)\n6. [PricePerToken \u2014 Claude Haiku 4.5](https://pricepertoken.com/pricing-page/model/anthropic-claude-haiku-4.5)\n7. [AIPricing.guru \u2014 Anthropic Pricing](https://www.aipricing.guru/anthropic-pricing/)\n8. [EvoLink \u2014 Claude API Pricing Guide 2026](https://evolink.ai/blog/claude-api-pricing-guide-2026)\n9. [PricePerToken \u2014 GPT-5 Nano](https://pricepertoken.com/pricing-page/model/openai-gpt-5-nano)\n10. [BenchLM \u2014 OpenAI API Pricing, septiembre 2026](https://benchlm.ai/openai/api-pricing)\n11. [Puter \u2014 Gemini API Pricing, agosto 2026](https://developer.puter.com/tutorials/gemini-api-pricing/)\n12. [CostGoat \u2014 Gemini API Pricing Calculator, septiembre 2026](https://costgoat.com/pricing/gemini-api)\n13. [AIPricing.guru \u2014 DeepSeek Pricing](https://www.aipricing.guru/deepseek-pricing/)\n14. [TechTimes \u2014 DeepSeek V4 API Prices Quadruple at Peak](https://www.techtimes.com/articles/324764/20260817/deepseek-v4-api-prices-quadruple-peak-what-developers-pay-starting-now.htm)\n15. [TechJournal \u2014 DeepSeek API Prices Rise Up to 1,100%](https://techjournal.org/deepseek-api-price-hike)\n\n**Hardware local**\n16. [Spheron \u2014 Run Qwen3 Locally: GPU Requirements](https://www.spheron.network/blog/run-qwen3-locally-gpu-requirements-2026/)\n17. [Hugging Face \u2014 Qwen3-30B-A3B-quantized.w4a16 (Red Hat AI)](https://huggingface.co/RedHatAI/Qwen3-30B-A3B-quantized.w4a16)\n18. [apxml \u2014 Qwen3-30B-A3B Specifications and GPU VRAM](https://apxml.com/models/qwen3-30b-a3b)\n\n**Marco legal (Ley 25.326)**\n19. [OAS \u2014 Texto de la Ley 25.326, Art\u00edculo 12](https://www.oas.org/juridico/pdfs/arg_ley25326.pdf)\n20. [Estudio Lexar \u2014 Transferencia internacional de datos personales desde Argentina](https://estudiolexar.com/transferencia-internacional-de-datos-personales-desde-argentina/)\n21. [Argentina.gob.ar \u2014 Transferencias internacionales](https://www.argentina.gob.ar/transferencias-internacionales)\n22. [Proconsumer \u2014 Ley 25.326, Art\u00edculo 12](https://proconsumer.org.ar/ley-25-326-pdp/)\n23. [Radio Prolait \u2014 Qu\u00e9 implica la transferencia de datos personales a Estados Unidos (nov. 2025)](https://radioprolait.com.ar/articles/que-implica-la-transferencia-de-datos-personales-a-estados-unidos-y-como-puede-afectar-a-los-argentinos-1763371880609)\n";
+
+    const TIERS_DATA = {
+      1: {
+        title: "Nivel 1: Mínimo (Micro-benchmark de Exámenes)",
+        annualCost: "USD 3,00 a USD 6,00 / año",
+        perStudent: "USD 0,025 a USD 0,05 por alumno / año",
+        withoutSec: "USD 2,50 a USD 5,00 / año",
+        unoptimizedSec: "USD 7,50 a USD 14,00 / año",
+        tutorDesc: "0,05 consultas/sem (casi nulo, uso esporádico)",
+        evalDesc: "10 exámenes anuales en Batch nocturno",
+        ragDesc: "1 consulta mensual por alumno",
+        chatDesc: "1 mensaje semanal por alumno",
+        totalTokens: "~4,5 Millones de tokens al año (con guardrails)",
+        notes: "Evaluación en lote de exámenes con inyección de rúbrica y delimitadores XML."
+      },
+      2: {
+        title: "Nivel 2: Bajo (Uso Controlado con Cuota Estricta)",
+        annualCost: "USD 18,00 a USD 38,00 / año",
+        perStudent: "USD 0,15 a USD 0,32 por alumno / año",
+        withoutSec: "USD 15,00 a USD 30,00 / año",
+        unoptimizedSec: "USD 45,00 a USD 82,00 / año",
+        tutorDesc: "2 consultas semanales por alumno (1-2 dudas por TP)",
+        evalDesc: "10 parciales + 10 TPs obligatorios evaluados con rúbrica",
+        ragDesc: "1 consulta semanal por alumno",
+        chatDesc: "5 mensajes semanales moderados",
+        totalTokens: "~19 Millones de tokens al año (con guardrails)",
+        notes: "Apropiado para cátedras con uso guiado del tutor y estricto límite de preguntas por desafío."
+      },
+      3: {
+        title: "Nivel 3: Moderado (Escenario Realista Cátedra UTN - RECOMENDADO)",
+        annualCost: "USD 62,00 a USD 118,00 / año",
+        perStudent: "USD 0,52 a USD 0,98 por alumno / año",
+        withoutSec: "USD 50,00 a USD 95,00 / año",
+        unoptimizedSec: "USD 150,00 a USD 255,00 / año",
+        tutorDesc: "5 consultas semanales por alumno (tutor socrático en cada TP)",
+        evalDesc: "1 entrega semanal evaluada + 10 parciales (5.040 evaluaciones/año)",
+        ragDesc: "2 consultas teóricas semanales al apunte vectorizado",
+        chatDesc: "10 mensajes semanales moderados con GPT-5 nano",
+        totalTokens: "~58 Millones de tokens al año (con guardrails)",
+        notes: "El escenario estándar más fiel para un cuatrimestre universitario con 120 alumnos usando Gemini Flash-Lite y Claude Haiku en Batch con Prompt Caching activo."
+      },
+      4: {
+        title: "Nivel 4: Alto (Participación Activa y Reintentos Continuos)",
+        annualCost: "USD 185,00 a USD 340,00 / año",
+        perStudent: "USD 1,54 a USD 2,83 por alumno / año",
+        withoutSec: "USD 150,00 a USD 280,00 / año",
+        unoptimizedSec: "USD 420,00 a USD 740,00 / año",
+        tutorDesc: "15 consultas semanales por alumno (asistencia constante en laboratorio)",
+        evalDesc: "Múltiples reintentos de código con feedback continuo de rúbrica (60+ eval/alumno)",
+        ragDesc: "5 consultas teóricas semanales",
+        chatDesc: "25 mensajes semanales moderados + 1.000 desafíos autogenerados",
+        totalTokens: "~165 Millones de tokens al año (con guardrails)",
+        notes: "Contempla alumnos altamente activos reintentando ejercicios y generando desafíos personalizados con IA."
+      },
+      5: {
+        title: "Nivel 5: Exagerado (Uso Masivo / Stress Test Near-Cap FinOps)",
+        annualCost: "USD 540,00 a USD 990,00 / año",
+        perStudent: "USD 4,50 a USD 8,25 por alumno / año",
+        withoutSec: "USD 450,00 a USD 850,00 / año",
+        unoptimizedSec: "USD 1.250,00 a USD 2.200,00 / año",
+        tutorDesc: "30+ consultas semanales con depuración profunda y trazas de código",
+        evalDesc: "Evaluación en tiempo real de cada commit y reintento (120+ eval/alumno)",
+        ragDesc: "15 consultas semanales por alumno",
+        chatDesc: "50 mensajes semanales + 3.000 desafíos autogenerados",
+        totalTokens: "~440+ Millones de tokens al año (con guardrails)",
+        notes: "Escenario de uso intensivo al límite de la cuota de 50.000 tokens/día (RF-IA-22). Incluso en este extremo, el costo se mantiene por debajo de USD 990 al año gracias a Prompt Caching y desacople de modelos."
+      }
+    };
+
+    function selectIntensity(tier) {
+      document.querySelectorAll('.tier-btn').forEach((btn, idx) => {
+        if (idx + 1 === tier) {
+          btn.className = "tier-btn p-3 rounded-2xl border-2 border-sky-500 bg-sky-950/50 text-left transition shadow-lg shadow-sky-500/20";
+        } else {
+          btn.className = "tier-btn p-3 rounded-2xl border border-slate-800 bg-slate-900/90 text-left transition hover:border-slate-700";
+        }
+      });
+
+      const data = TIERS_DATA[tier];
+      document.getElementById('tier-detail-card').innerHTML = `
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-2 border-b border-slate-800">
+          <div>
+            <span class="text-[10px] font-extrabold uppercase tracking-wider text-sky-400">Escenario Seleccionado:</span>
+            <h3 class="text-sm font-black text-white">${data.title}</h3>
+          </div>
+          <div class="text-right">
+            <span class="text-sm font-mono font-black text-emerald-400">${data.annualCost}</span>
+            <span class="text-[10px] text-slate-400 block">${data.perStudent}</span>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs pt-1">
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-medium">Costo Base (Sin Seguridad):</span>
+            <strong class="text-slate-300 text-[11px] font-mono">${data.withoutSec}</strong>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-medium">Con Seguridad (Sin Cache):</span>
+            <strong class="text-rose-400 text-[11px] font-mono">${data.unoptimizedSec}</strong>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-emerald-900/60 bg-emerald-950/20">
+            <span class="text-[10px] text-emerald-400 block font-bold">Con Seguridad + Caching:</span>
+            <strong class="text-emerald-300 text-[11px] font-mono">${data.annualCost}</strong>
+          </div>
+          <div class="bg-slate-950 p-2.5 rounded-xl border border-slate-800">
+            <span class="text-[10px] text-slate-400 block font-medium">Volumen Total Tokens:</span>
+            <strong class="text-amber-300 font-mono text-[11px]">${data.totalTokens}</strong>
+          </div>
+        </div>
+
+        <p class="text-[11px] text-slate-400 italic pt-1 border-t border-slate-800/60">${data.notes}</p>
+      `;
+    }
+
+    function renderDocument() {
+      const contentEl = document.getElementById('content-area');
+      
+      marked.setOptions({
+        gfm: true,
+        breaks: true,
+        headerIds: true,
+        mangle: false
+      });
+
+      contentEl.innerHTML = marked.parse(rawMarkdown);
+
+      buildTOC();
+      enhanceTables();
+      selectIntensity(3); // Default to Tier 3
+    }
+
+    function buildTOC() {
+      const tocNav = document.getElementById('toc-nav');
+      const headers = document.querySelectorAll('#content-area h2, #content-area h3');
+      let tocHtml = '';
+
+      headers.forEach((h, index) => {
+        const id = 'section-' + index;
+        h.id = id;
+        const text = h.innerText.trim();
+        const isH2 = h.tagName.toLowerCase() === 'h2';
+
+        if (isH2) {
+          tocHtml += `
+            <a href="#${id}" class="block py-1 px-2 rounded-lg font-semibold text-slate-300 hover:text-sky-400 hover:bg-slate-800/80 transition truncate">
+              ${text}
+            </a>
+          `;
+        } else {
+          tocHtml += `
+            <a href="#${id}" class="block py-0.5 pl-5 pr-2 rounded-lg text-slate-400 hover:text-sky-300 hover:bg-slate-800/50 transition truncate text-[10px]">
+              ${text}
+            </a>
+          `;
+        }
+      });
+
+      tocNav.innerHTML = tocHtml;
+    }
+
+    function enhanceTables() {
+      const tables = document.querySelectorAll('#content-area table');
+      tables.forEach(table => {
+        const wrapper = document.createElement('div');
+        wrapper.className = 'overflow-x-auto my-6 rounded-2xl border border-slate-800 shadow-xl';
+        table.parentNode.insertBefore(wrapper, table);
+        wrapper.appendChild(table);
+      });
+    }
+
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById('progress-bar').style.width = scrolled + '%';
+    });
+
+    function searchInDocument(query) {
+      const q = query.toLowerCase().trim();
+      const content = document.getElementById('content-area');
+      const paragraphs = content.querySelectorAll('p, li, tr, h2, h3, h4');
+
+      if (!q) {
+        paragraphs.forEach(p => p.style.opacity = '1');
+        return;
+      }
+
+      paragraphs.forEach(p => {
+        if (p.innerText.toLowerCase().includes(q)) {
+          p.style.opacity = '1';
+        } else {
+          p.style.opacity = '0.3';
+        }
+      });
+    }
+
+    function toggleSidebar() {
+      const sb = document.getElementById('sidebar-toc');
+      sb.classList.toggle('hidden');
+      sb.classList.toggle('fixed');
+      sb.classList.toggle('inset-0');
+      sb.classList.toggle('z-50');
+      sb.classList.toggle('bg-slate-950/95');
+      sb.classList.toggle('p-6');
+    }
+
+    window.addEventListener('DOMContentLoaded', renderDocument);
+  </script>
+</body>
+</html>

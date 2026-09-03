@@ -33,7 +33,18 @@ RUTA_CONFIG = os.path.join(os.path.dirname(RUTA_LIB), "config")
 
 ETAPA = "referencias"
 
-RE_ID = re.compile(r"\b(RF-IA-\d+|RF-CHT-\d+|PAR-\d+|ADR-\d+)\b")
+# Los prefijos que el registro valida. RF-NFR, RF-DES, RF-NOT y RF-EXA faltaban:
+# 73 referencias del corpus pasaban sin que nadie las mirara, asi que un
+# numero inexistente mal tipeado entraba en silencio.
+#
+# Las variantes con sufijo de letra --RF-IA-36b, RF-NFR-07b-- NO matchean, por el
+# \b final. Es el comportamiento que ya habia y se conserva a proposito: sumarlas
+# obliga a registrarlas una por una, y todavia no hay acuerdo sobre si son IDs
+# propios o incisos del requisito padre.
+RE_ID = re.compile(
+    r"\b(RF-IA-\d+|RF-CHT-\d+|RF-NFR-\d+|RF-DES-\d+"
+    r"|RF-NOT-\d+|RF-EXA-\d+|PAR-\d+|ADR-\d+)\b"
+)
 RE_LINK = re.compile(r"\[[^\]]*\]\(([^)\s]+)(?:\s+\"[^\"]*\")?\)")
 RE_HEADING = re.compile(r"^(#{1,6})\s+(.*?)\s*#*$", re.MULTILINE)
 RE_FENCE = re.compile(r"^```.*?^```", re.MULTILINE | re.DOTALL)
