@@ -1,8 +1,0 @@
-package ar.edu.utn.frc.tup.piv.evaluacionllm;
-
-/** Fixture: no compila. El metodo devuelve int pero retorna un String. */
-public class NoCompila {
-    public int roto() {
-        return "esto no es un int";
-    }
-}

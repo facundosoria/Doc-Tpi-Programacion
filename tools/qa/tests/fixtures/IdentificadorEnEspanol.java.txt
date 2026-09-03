@@ -1,8 +1,0 @@
-package ar.edu.utn.frc.tup.piv.evaluacionllm;
-
-/** Fixture: identificadores en castellano. El codigo va en ingles. */
-public class IdentificadorEnEspanol {
-    public int calcularCalificacion(int puntaje) {
-        return puntaje;
-    }
-}

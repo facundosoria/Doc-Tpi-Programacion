@@ -213,7 +213,7 @@ Fonts. Además:
 | `mapa-conceptual-interactivo.html` | `lucide` desde unpkg | 🔴 **Sin estilo y sin íconos.** Los datos son inline, así que el contenido está, pero la página queda ilegible |
 | `guia-golden-set.html` | Font Awesome desde cdnjs | 🟡 Sin estilo y sin íconos, pero el texto es HTML estático y se lee |
 
-`defensa-43-slides.html` tiene el mismo problema con Tailwind, lucide y Mermaid, así que
+`defensa-39-slides.html` tiene el mismo problema con Tailwind, lucide y Mermaid, así que
 no es nuevo. Pero acá se agrava: **el informe no muestra absolutamente nada.**
 
 **Qué hacer:** si alguno se va a proyectar, abrirlo antes en la máquina y la red del

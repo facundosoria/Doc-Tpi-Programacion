@@ -303,7 +303,7 @@
             <div class="w-16 sm:w-36 md:w-52 bg-slate-800 h-1.5 rounded-full overflow-hidden border border-slate-700">
                 <div id="progress-bar" class="bg-gradient-to-r from-indigo-500 via-cyan-400 to-emerald-400 h-full transition-all duration-300" style="width: 2.33%;"></div>
             </div>
-            <span id="total-slides-num" class="text-xs sm:text-sm font-mono text-slate-500">43</span>
+            <span id="total-slides-num" class="text-xs sm:text-sm font-mono text-slate-500">39</span>
         </div>
 
         <!-- Right: Action Buttons -->
@@ -1895,304 +1895,6 @@ public class AntiFugaAdvisor implements CallAroundAdvisor {
 <section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="28">
 
             <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
-                <i data-lucide="shield-check" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Pipeline de Calidad
-            </div>
-            <h2 class="text-xl sm:text-3xl font-extrabold text-white mb-2">
-                El gate de calidad: qué problema resuelve, y cuál no
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-300 mb-3 leading-relaxed">No es una herramienta, es un orden: una cadena de verificaciones donde la primera que falla corta el resto.</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                <div class="glass-card p-3 rounded-xl border border-emerald-500/30 bg-emerald-950/10">
-                    <h4 class="font-mono text-emerald-400 font-bold uppercase text-[11px] mb-2">Los cuatro problemas que resuelve</h4>
-                    <div class="space-y-1.5 text-[11px] text-slate-300">
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">
-                            <strong class="text-slate-100">Alguien rompe <span class="font-mono">dev</span>.</strong> Somos seis sobre el mismo servicio. El caso típico no es el error de tipeo: es que cambiaste una firma y rompiste una clase que no abriste.
-                        </div>
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">
-                            <strong class="text-slate-100">Cada IDE está configurado distinto.</strong> No hay forma de verificar el IntelliJ de otro. El contenedor sí es verificable, porque es del repo.
-                        </div>
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">
-                            <strong class="text-slate-100">La documentación se desincroniza sola.</strong> 15 documentos con 173 links internos. Ya encontró <strong class="text-emerald-300">22 anclas rotas</strong> que nadie había notado.
-                        </div>
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">
-                            <strong class="text-slate-100">El error llega sin la solución.</strong> Un log de Maven corrido no dice qué hacer. Cada hallazgo trae dónde, por qué y cómo se arregla.
-                        </div>
-                    </div>
-                </div>
-
-                <div class="flex flex-col gap-2.5">
-                    <div class="callout callout-warning p-3 rounded-xl">
-                        <h4 class="font-mono text-amber-400 font-bold uppercase text-[11px] mb-1.5">Lo que NO resuelve</h4>
-                        <ul class="text-[11px] text-slate-300 space-y-1 leading-relaxed">
-                            <li>• <strong class="text-slate-100">No valida que lo que escribiste tenga sentido.</strong> Si calculás mal el score de la rúbrica, todo pasa en verde. Un gate verifica <em>forma</em>, no <em>verdad</em>.</li>
-                            <li>• <strong class="text-slate-100">No reemplaza el code review.</strong> Es un piso, no un techo.</li>
-                            <li>• <strong class="text-slate-100">Un gate mal calibrado es peor que ninguno</strong>, porque genera confianza que no corresponde.</li>
-                        </ul>
-                    </div>
-                    <div class="glass-card p-3 rounded-xl border border-indigo-500/30 bg-indigo-950/20">
-                        <h4 class="font-mono text-indigo-400 font-bold uppercase text-[11px] mb-1.5">La regla de operación</h4>
-                        <p class="text-[11px] text-slate-300 leading-relaxed"><strong class="text-white">Ninguna regla nace en <span class="font-mono">bloquea</span>: nace en <span class="font-mono">avisa</span>.</strong> Se la deja avisando una o dos semanas, se mira qué encuentra sobre trabajo real, y se la sube recién cuando demuestre que los hallazgos son ciertos.</p>
-                        <p class="text-[10px] text-slate-400 leading-relaxed mt-1.5">El riesgo real no es que se filtre un error de tipeo. Es que a la tercera semana todos pusheen con el gate desactivado.</p>
-                    </div>
-                </div>
-            </div>
-
-        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="29">
-
-            <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
-                <i data-lucide="list-checks" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Pipeline de Calidad
-            </div>
-            <h2 class="text-xl sm:text-3xl font-extrabold text-white mb-2">
-                Las trece etapas, y sobre qué corre cada una
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-300 mb-3 leading-relaxed">Los niveles y los tiempos son los reales de este repositorio, en una corrida <span class="font-mono">completo</span> con la imagen construida.</p>
-
-            <div class="glass-card p-3 rounded-xl border border-slate-800 mb-2.5 overflow-x-auto">
-                <table class="data-table w-full text-[11px] min-w-[640px]">
-                    <thead>
-                        <tr class="text-left">
-                            <th class="pb-1.5 font-mono text-[10px] uppercase text-indigo-400">#</th>
-                            <th class="pb-1.5 font-mono text-[10px] uppercase text-indigo-400">Etapa</th>
-                            <th class="pb-1.5 font-mono text-[10px] uppercase text-indigo-400">Qué comprueba</th>
-                            <th class="pb-1.5 font-mono text-[10px] uppercase text-indigo-400">Alcance</th>
-                            <th class="pb-1.5 font-mono text-[10px] uppercase text-indigo-400">Medido</th>
-                            <th class="pb-1.5 font-mono text-[10px] uppercase text-indigo-400">Nivel</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">1</td>
-                            <td class="py-1 font-bold text-slate-100">workflows</td>
-                            <td class="py-1 text-slate-400">Que ningún workflow pida una máquina de GitHub y gaste minutos</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">repo</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">&lt;1 s</td>
-                            <td class="py-1"><span class="pill pill-danger text-[9px]">bloquea</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">2</td>
-                            <td class="py-1 font-bold text-slate-100">secretos</td>
-                            <td class="py-1 text-slate-400">Credenciales con formato conocido</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">repo</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">1 s</td>
-                            <td class="py-1"><span class="pill pill-danger text-[9px]">bloquea</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">3</td>
-                            <td class="py-1 font-bold text-slate-100">ortografía</td>
-                            <td class="py-1 text-slate-400">Palabras fuera del diccionario, en español y en inglés</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">tus .md</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">3 s</td>
-                            <td class="py-1"><span class="pill pill-danger text-[9px]">bloquea</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">4</td>
-                            <td class="py-1 font-bold text-slate-100">markdownlint</td>
-                            <td class="py-1 text-slate-400">Formato del Markdown</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">tus .md</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">1 s</td>
-                            <td class="py-1"><span class="pill pill-warning text-[9px]">avisa</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">5</td>
-                            <td class="py-1 font-bold text-slate-100">referencias</td>
-                            <td class="py-1 text-slate-400">RF-IA-* inexistentes, anclas rotas, documentos huérfanos</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">repo · regresiones</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">&lt;1 s</td>
-                            <td class="py-1"><span class="pill pill-danger text-[9px]">bloquea</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">6</td>
-                            <td class="py-1 font-bold text-slate-100">links</td>
-                            <td class="py-1 text-slate-400">Archivos destino que no existen</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">repo · regresiones</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">2 s</td>
-                            <td class="py-1"><span class="pill pill-danger text-[9px]">bloquea</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">7</td>
-                            <td class="py-1 font-bold text-slate-100">formato</td>
-                            <td class="py-1 text-slate-400">Que el Java esté formateado igual para todos</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">módulo</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">10 s</td>
-                            <td class="py-1"><span class="pill pill-info text-[9px]">arregla</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">8</td>
-                            <td class="py-1 font-bold text-slate-100">compila</td>
-                            <td class="py-1 text-slate-400">Que el código compile, incluyendo los tests</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">módulo</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">—</td>
-                            <td class="py-1"><span class="pill pill-danger text-[9px]">bloquea</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">9</td>
-                            <td class="py-1 font-bold text-slate-100">análisis estático</td>
-                            <td class="py-1 text-slate-400">Código muerto, complejidad, catch vacíos, comparar objetos con ==</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">módulo</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">12 s</td>
-                            <td class="py-1"><span class="pill pill-warning text-[9px]">avisa</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">10</td>
-                            <td class="py-1 font-bold text-slate-100">duplicación</td>
-                            <td class="py-1 text-slate-400">Bloques repetidos entre clases</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">módulo</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">incl.</td>
-                            <td class="py-1"><span class="pill pill-warning text-[9px]">avisa</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">11</td>
-                            <td class="py-1 font-bold text-slate-100">idioma del código</td>
-                            <td class="py-1 text-slate-400">Que los identificadores estén en inglés</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">tus .java</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">2 s</td>
-                            <td class="py-1"><span class="pill pill-warning text-[9px]">avisa</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">12</td>
-                            <td class="py-1 font-bold text-slate-100">tests</td>
-                            <td class="py-1 text-slate-400">Que la suite pase, entera</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">módulo entero</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">7 s</td>
-                            <td class="py-1"><span class="pill pill-danger text-[9px]">bloquea</span></td>
-                        </tr>
-                        <tr>
-                            <td class="py-1 font-mono text-slate-500">13</td>
-                            <td class="py-1 font-bold text-slate-100">cobertura</td>
-                            <td class="py-1 text-slate-400">Que lo que agregaste tenga tests</td>
-                            <td class="py-1 font-mono text-[10px] text-cyan-300">solo tus líneas</td>
-                            <td class="py-1 font-mono text-[10px] text-slate-500">&lt;1 s</td>
-                            <td class="py-1"><span class="pill pill-warning text-[9px]">avisa</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                <div class="glass-card p-2.5 rounded-xl border border-slate-800 text-[11px] text-slate-300 leading-relaxed">
-                    <strong class="text-slate-100">Corren de lo barato a lo caro</strong>, para que los segundos se gasten al final. Dos dependencias de orden no son negociables: el análisis estático necesita que haya compilado, y la cobertura necesita que los tests hayan corrido.
-                </div>
-                <div class="callout p-2.5 rounded-xl text-[11px] text-slate-300 leading-relaxed">
-                    <strong class="text-indigo-300">Las etapas 12 y 13 parecen lo mismo y son opuestas.</strong> <span class="font-mono">tests</span> responde «¿rompí algo que andaba?» y corre <strong class="text-slate-100">todos</strong> los tests del módulo. <span class="font-mono">cobertura</span> responde «¿testeé lo que escribí?» y mira <strong class="text-slate-100">solo</strong> las líneas nuevas.
-                </div>
-            </div>
-
-        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="30">
-
-            <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
-                <i data-lucide="settings-2" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Pipeline de Calidad
-            </div>
-            <h2 class="text-xl sm:text-3xl font-extrabold text-white mb-2">
-                Dos perfiles, cuatro niveles y tres filtros de alcance
-            </h2>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5">
-                <div class="glass-card p-3 rounded-xl border border-slate-800">
-                    <h4 class="font-mono text-cyan-400 font-bold uppercase text-[11px] mb-2">Los dos perfiles</h4>
-                    <div class="space-y-1.5 text-[11px]">
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">
-                            <div class="flex justify-between"><strong class="text-white font-mono">rapido</strong><span class="font-mono text-cyan-300">120 s</span></div>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Antes de pushear, y en cada push a tu rama. Corre <strong class="text-slate-200">solo sobre lo que cambiaste</strong>.</p>
-                        </div>
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">
-                            <div class="flex justify-between"><strong class="text-white font-mono">completo</strong><span class="font-mono text-cyan-300">600 s</span></div>
-                            <p class="text-[10px] text-slate-400 mt-0.5">Al abrir el pull request a <span class="font-mono">dev</span> o <span class="font-mono">main</span>, y en push directo. Corre sobre <strong class="text-slate-200">todo el repo</strong>.</p>
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed mt-2"><strong class="text-slate-200">Lo elige el evento, no la persona.</strong> Cada push tiene que ser barato o el gate deja de ser una red y pasa a ser un embudo.</p>
-                </div>
-
-                <div class="glass-card p-3 rounded-xl border border-slate-800">
-                    <h4 class="font-mono text-amber-400 font-bold uppercase text-[11px] mb-2">Los cuatro niveles</h4>
-                    <div class="space-y-1.5 text-[11px] text-slate-300">
-                        <div class="flex gap-2 items-start"><span class="pill pill-danger text-[9px] shrink-0">bloquea</span><span class="text-[10px]">El hallazgo hace fallar la corrida</span></div>
-                        <div class="flex gap-2 items-start"><span class="pill pill-warning text-[9px] shrink-0">avisa</span><span class="text-[10px]">Se reporta y la corrida sigue</span></div>
-                        <div class="flex gap-2 items-start"><span class="pill pill-info text-[9px] shrink-0">arregla</span><span class="text-[10px]">Solo formato: corrige en tu working tree en vez de protestar</span></div>
-                        <div class="flex gap-2 items-start"><span class="pill text-[9px] shrink-0">off</span><span class="text-[10px]">No se ejecuta</span></div>
-                    </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed mt-2">En CI, <span class="font-mono">arregla</span> degrada a <span class="font-mono">bloquea</span>: el runner clona, corre y descarta, así que un arreglo ahí no llegaría nunca a la rama.</p>
-                    <p class="text-[10px] text-slate-500 leading-relaxed mt-1.5">Toda la política vive en <span class="font-mono text-slate-400">checks.yml</span>. Los scripts no deciden nada.</p>
-                </div>
-
-                <div class="glass-card p-3 rounded-xl border border-emerald-500/30 bg-emerald-950/10">
-                    <h4 class="font-mono text-emerald-400 font-bold uppercase text-[11px] mb-2">Los tres filtros del alcance</h4>
-                    <div class="space-y-1.5 text-[11px] text-slate-300">
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">
-                            <strong class="text-slate-100">1 · Diff.</strong> Solo lo que cambió. La deuda vieja no bloquea a nadie y se paga cuando se toca el archivo — el modelo <em>Clean as You Code</em>.
-                        </div>
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">
-                            <strong class="text-slate-100">2 · Propiedad.</strong> Solo lo nuestro. Lo que cae fuera de <span class="font-mono text-[10px]">owned-paths.txt</span> se reporta como informativo y <strong class="text-emerald-300">nunca bloquea</strong>, ni aunque lo arrastre un merge.
-                        </div>
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800">
-                            <strong class="text-slate-100">3 · Ruteo.</strong> Cada archivo al chequeo que le corresponde, por extensión y ruta.
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed mt-2">Es el mecanismo que deja convivir en un mismo repositorio el código de once equipos sin que nadie frene a nadie.</p>
-                </div>
-            </div>
-
-        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="31">
-
-            <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
-                <i data-lucide="git-branch" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Pipeline de Calidad
-            </div>
-            <h2 class="text-xl sm:text-3xl font-extrabold text-white mb-2">
-                Dónde corre: tu máquina, GitHub y el server
-            </h2>
-            <p class="text-xs sm:text-sm text-slate-300 mb-3 leading-relaxed">Todo el CI vive repartido en tres lugares distintos. La mayor parte de la confusión viene de mezclarlos.</p>
-
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-2.5 mb-2.5">
-                <div class="glass-card p-3 rounded-xl border border-blue-500/30 bg-blue-950/10">
-                    <div class="text-[10px] font-mono text-blue-400 font-bold uppercase mb-1">Tu máquina</div>
-                    <p class="text-[11px] text-slate-300 leading-relaxed"><span class="font-mono text-slate-100">./qa.sh</span> con tu Docker y tu CPU, sobre lo que cambiaste. El resultado queda en <span class="font-mono text-[10px]">.qa/resumen.md</span>.</p>
-                    <p class="text-[10px] text-slate-400 mt-1.5"><span class="font-mono">./qa.sh --remoto</span> empaqueta el working tree, lo manda al server por SSH y corre el mismo gate allá. <strong class="text-slate-200">GitHub no se entera.</strong></p>
-                </div>
-                <div class="glass-card p-3 rounded-xl border border-purple-500/30 bg-purple-950/10">
-                    <div class="text-[10px] font-mono text-purple-400 font-bold uppercase mb-1">GitHub</div>
-                    <p class="text-[11px] text-slate-300 leading-relaxed">Guarda el repositorio, lee <span class="font-mono text-[10px]">qa.yml</span> y encola el job. <strong class="text-slate-200">No ejecuta nada</strong>: no gasta un minuto de los de la cuenta.</p>
-                    <p class="text-[10px] text-slate-400 mt-1.5">La etapa <span class="font-mono">workflows</span> existe justamente para eso: bloquea desde el día uno cualquier workflow que pida una máquina de GitHub.</p>
-                </div>
-                <div class="glass-card p-3 rounded-xl border border-emerald-500/30 bg-emerald-950/10">
-                    <div class="text-[10px] font-mono text-emerald-400 font-bold uppercase mb-1">El server</div>
-                    <p class="text-[11px] text-slate-300 leading-relaxed">Tres <em>runners</em> self-hosted que toman el trabajo y lo corren en Docker. <strong class="text-slate-200">Cada runner con su propio repositorio Maven</strong>, para que dos corridas simultáneas no se pisen el <span class="font-mono text-[10px]">~/.m2</span>.</p>
-                    <p class="text-[10px] text-slate-400 mt-1.5">En Linux el contenedor corre con tu UID, no como root: lo que escribe queda tuyo.</p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
-                <div class="glass-card p-3 rounded-xl border border-slate-800">
-                    <h4 class="font-mono text-indigo-400 font-bold uppercase text-[11px] mb-2">Los tres números, medidos</h4>
-                    <div class="grid grid-cols-3 gap-2 text-center">
-                        <div class="stat-box p-2 rounded-lg">
-                            <div class="stat-value text-lg">12 s</div>
-                            <div class="stat-label text-[9px]">corrida <span class="font-mono">rapido</span></div>
-                        </div>
-                        <div class="stat-box p-2 rounded-lg">
-                            <div class="stat-value text-lg">46 s</div>
-                            <div class="stat-label text-[9px]">corrida <span class="font-mono">completo</span></div>
-                        </div>
-                        <div class="stat-box p-2 rounded-lg">
-                            <div class="stat-value text-lg">171 s</div>
-                            <div class="stat-label text-[9px]">primera, construyendo la imagen</div>
-                        </div>
-                    </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed mt-2">Los 171 segundos pasan <strong class="text-slate-200">una sola vez por versión del Dockerfile</strong>: el tag de la imagen es el hash del archivo, así que se reconstruye únicamente cuando alguien lo cambia.</p>
-                </div>
-                <div class="glass-card p-3 rounded-xl border border-slate-800">
-                    <h4 class="font-mono text-cyan-400 font-bold uppercase text-[11px] mb-2">El front, en vivo y de solo lectura</h4>
-                    <p class="text-[11px] text-slate-300 leading-relaxed">Muestra <strong class="text-slate-100">dos listas de dos fuentes independientes</strong>: lo que dispara GitHub (API de Actions) y lo que corre en el server (un buzón de archivos). <strong class="text-slate-200">Si el front se cae, el CI sigue funcionando igual.</strong></p>
-                    <div class="grid grid-cols-2 gap-2 mt-2 text-[10px]">
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800"><span class="font-mono text-emerald-300">~5 s</span> · corridas del server</div>
-                        <div class="p-1.5 bg-slate-900/80 rounded border border-slate-800"><span class="font-mono text-amber-300">~20 s</span> · corridas de GitHub</div>
-                    </div>
-                    <p class="text-[10px] text-slate-400 leading-relaxed mt-2">El detalle etapa por etapa sale del buzón, no de la API: GitHub expone los tres <em>steps</em> del workflow, no las trece etapas del gate. Y el buzón se lee aunque no haya token.</p>
-                </div>
-            </div>
-
-        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="32">
-
-            <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
                 <i data-lucide="check-square" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Evaluación Analítica
             </div>
             <h2 class="text-xl sm:text-3xl font-extrabold text-white mb-2">
@@ -2236,7 +1938,7 @@ public class AntiFugaAdvisor implements CallAroundAdvisor {
             </div>
         
         </section>
-<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="33">
+<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="29">
 
             <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
                 <i data-lucide="activity" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> LLMOps & Control de Deriva
@@ -2286,7 +1988,7 @@ public class AntiFugaAdvisor implements CallAroundAdvisor {
             </div>
         
         </section>
-<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="34">
+<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="30">
 
             <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
                 <i data-lucide="database" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Persistencia Forense
@@ -2323,7 +2025,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
             </div>
         
         </section>
-<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="35">
+<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="31">
 
             <div class="slide-tag">Riesgos</div>
             <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
@@ -2381,7 +2083,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
             </div>
         
         </section>
-<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="36">
+<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="32">
 
             <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
                 <i data-lucide="shield-alert" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Gobernanza & Finanzas (GRC / FinOps)
@@ -2422,7 +2124,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
             </div>
         
         </section>
-<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="37">
+<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="33">
 
             <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
                 <i data-lucide="gauge" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> FinOps · Números Reales
@@ -2468,7 +2170,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                 </div>
             </div>
 
-        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="38">
+        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="34">
             <div class="slide-tag">Trazabilidad</div>
             <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
                 Alineaci&oacute;n con PRD y Decisiones de Arquitectura
@@ -2533,7 +2235,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                 <div class="text-[10px] font-mono text-red-400 font-bold mb-1 uppercase">Regla Fundamental de Responsabilidad</div>
                 <p class="text-xs sm:text-sm text-slate-200 leading-relaxed">El microservicio de IA <strong>informa</strong> y <strong>ejecuta inferencia</strong>. El core <strong>consume datos</strong> y <strong>toma decisiones de negocio</strong>. La calibraci&oacute;n de RF-IA-36 es bloqueante sin override: el core consulta el estado del microservicio y bloquea la transición draft→activo si no está aprobada. Ni el ADMIN puede autorizar el arranque con el set base como reemplazo.</p>
             </div>
-        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="39">
+        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="35">
 
             <div class="slide-tag">PRD</div>
             <h2 class="text-xl sm:text-3xl md:text-4xl font-extrabold text-white mb-2">
@@ -2596,7 +2298,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
             </div>
         
         </section>
-<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="40">
+<section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="36">
 
             <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
                 <i data-lucide="puzzle" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Plan de Trabajo
@@ -2641,7 +2343,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                 </div>
             </div>
 
-        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="41">
+        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="37">
 
             <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
                 <i data-lucide="scale" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Estado del Proyecto
@@ -2683,7 +2385,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                 </div>
             </div>
 
-        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="42">
+        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="38">
 
             <div class="flex items-center gap-2 text-indigo-400 text-[10px] sm:text-xs font-mono font-bold tracking-widest uppercase mb-1">
                 <i data-lucide="book-open" class="w-3.5 h-3.5 sm:w-4 sm:h-4"></i> Dónde Está Cada Cosa
@@ -2696,16 +2398,16 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-2.5">
                 <div class="glass-card p-3 rounded-xl border border-slate-800">
                     <div class="font-mono text-[11px] text-slate-300 leading-relaxed space-y-1">
-                        <div><span class="text-indigo-300 font-bold">docs/</span> <span class="text-slate-500">· 16 documentos</span></div>
-                        <div class="pl-4 text-[10px] text-slate-400">La documentación de trabajo del equipo. Es la que manda cuando algo se contradice, y la única que el gate verifica.</div>
+                        <div><span class="text-indigo-300 font-bold">docs/</span> <span class="text-slate-500">· 18 documentos</span></div>
+                        <div class="pl-4 text-[10px] text-slate-400">La documentación de trabajo del equipo. Es la que manda cuando algo se contradice.</div>
                         <div class="pt-1"><span class="text-cyan-300 font-bold">docs/importado/</span> <span class="text-slate-500">· 25 documentos</span></div>
                         <div class="pl-4 text-[10px] text-slate-400">Especificación técnica, nueve planes de ejecución e investigación de jailbreak. Material de profundización y defensa.</div>
                         <div class="pt-1"><span class="text-emerald-300 font-bold">codigo-ejemplo/</span> <span class="text-slate-500">· 2 proyectos</span></div>
                         <div class="pl-4 text-[10px] text-slate-400">Una carpeta por autor: <span class="font-mono">ms-evaluacion-llm/</span> el esqueleto del servicio real, del equipo · <span class="font-mono">lara-heredia-demo-llm-spring-ai/</span> la demo de tutor con Spring AI, de Lara Heredia</div>
                         <div class="pt-1"><span class="text-purple-300 font-bold">presentaciones/</span></div>
-                        <div class="pl-4 text-[10px] text-slate-400">Esta presentación, y el PRD como wiki navegable.</div>
-                        <div class="pt-1"><span class="text-amber-300 font-bold">tools/</span></div>
-                        <div class="pl-4 text-[10px] text-slate-400"><span class="font-mono">qa/</span> el gate de calidad · <span class="font-mono">ci-front/</span> el panel que muestra las corridas en vivo</div>
+                        <div class="pl-4 text-[10px] text-slate-400">Esta presentación, la de integración y contratos, el PRD como wiki navegable y tres documentos de consulta.</div>
+                        <div class="pt-1"><span class="text-amber-300 font-bold">demo/</span></div>
+                        <div class="pl-4 text-[10px] text-slate-400">La interfaz de demostración: chat del tutor, guardarraíles y métricas de costo, en un <span class="font-mono">docker compose up</span></div>
                     </div>
                 </div>
 
@@ -2718,12 +2420,12 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                     <div class="glass-card p-3 rounded-xl border border-slate-800">
                         <h4 class="font-mono text-cyan-400 font-bold uppercase text-[11px] mb-1.5">El material de otros equipos entró sin tocar</h4>
                         <p class="text-[11px] text-slate-300 leading-relaxed">Cada archivo importado es <strong class="text-slate-100">byte a byte idéntico</strong> a su rama de origen, y <strong class="text-slate-100">la carpeta lleva el nombre de quien lo escribió</strong>. Lo que había que corregir quedó <em>anotado</em> en un <span class="font-mono text-[10px]">CORRECCIONES-SUGERIDAS.md</span> por carpeta, no aplicado.</p>
-                        <p class="text-[10px] text-slate-400 leading-relaxed mt-1.5">Y queda fuera de <span class="font-mono">owned-paths.txt</span>: el gate lo reporta como informativo y nunca bloquea por él. Es el mismo mecanismo que va a permitir convivir con los otros diez equipos en el monorepo.</p>
+                        <p class="text-[10px] text-slate-400 leading-relaxed mt-1.5">La regla es la misma que va a permitir convivir con los otros diez equipos en el monorepo: <strong class="text-slate-200">lo ajeno se importa, no se edita</strong>, y la corrección se propone aparte.</p>
                     </div>
                 </div>
             </div>
 
-        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="43">
+        </section><section class="slide flex-col max-w-6xl h-full w-full mx-auto my-auto justify-center py-2" data-slide="39">
 
             <div class="inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 text-[10px] sm:text-xs font-semibold mb-2">
                 <i data-lucide="check-circle" class="w-3.5 h-3.5"></i> 16 Decisiones de Arquitectura Consolidadas

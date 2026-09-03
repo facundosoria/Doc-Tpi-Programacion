@@ -146,7 +146,7 @@ API Gateway nunca sabe que existe un LLM; y el AI Gateway nunca recibe una petic
 | **Shadow Deployment** | La calibración ya validaba contra el golden set | ✅ **Adoptado, pero para calibrar**, no para desplegar |
 | **Feature Flags** | La tabla `funcion → modelo` de RF-IA-24 | 🟡 **Ya lo hacíamos.** Lo que faltaba era el nombre |
 | **Infraestructura como código (Terraform, Ansible)** | El server del CI ya existe y se administra a mano | ❌ Fuera de alcance |
-| **Pipelines de CI/CD** | Tenemos la mitad izquierda construida ([16](16-pipeline-y-verificaciones.md)) | 🟡 **El hueco de CD ahora está declarado** |
+| **Pipelines de CI/CD** | Todavía no hay pipeline: ni integración ni entrega automatizadas | 🟡 **El hueco de CD ahora está declarado** |
 | **Secretos (Vault)** | Los tres niveles están en [06](06-operacion-e-ingenieria.md) Parte 5 | 🟡 Coincidimos; la herramienta concreta sigue sin dueño |
 | **Prometheus / Grafana** | Micrometer + Actuator, elegidos en [02](02-arquitectura-y-stack.md) | 🟡 Compatibles: Micrometer exporta a Prometheus |
 
@@ -188,7 +188,7 @@ hay un canary, la respuesta no puede ser que no se nos ocurrió.
 | **`ip_hash` / sticky sessions** | Nuestro servicio es stateless por diseño. **Y no es un detalle: es lo que permite que `--scale worker=6` funcione sin pensarlo.** Un servicio con afinidad de cliente no se escala cambiando un número |
 | **`envsubst`** | **La propia unidad explica por qué no nos hace falta:** Angular lo necesita porque ya generó archivos estáticos y no queda proceso que consulte el entorno. Spring lee variables en cada arranque. Misma meta —una imagen para todos los entornos—, mecanismo distinto |
 | **BFF** | Ninguna de nuestras pantallas combina datos de varios microservicios. Un BFF acá sería una capa sin trabajo que hacer |
-| **Terraform / Ansible** | No hay infraestructura que provisionar: el server del CI ya existe y su inventario está en [16](16-pipeline-y-verificaciones.md) Parte 7 |
+| **Terraform / Ansible** | No hay infraestructura que provisionar: los entornos son los tres de [06](06-operacion-e-ingenieria.md) Parte 7 §5 y se administran a mano |
 
 ## 6. Lo que aportamos que la unidad no cubre
 
@@ -210,7 +210,7 @@ hay un canary, la respuesta no puede ser que no se nos ocurrió.
 | 2 | El borde nginx en el diagrama de sistema | [02](02-arquitectura-y-stack.md) §2 |
 | 3 | Estrategia de despliegue, rollback, ventana post-release, sonda de salud y staging | [06](06-operacion-e-ingenieria.md) Parte 7 |
 | 4 | ADR-013, ADR-014 y ADR-015 | [08](08-decisiones-y-pendientes.md) |
-| 5 | El hueco de CD declarado | [16](16-pipeline-y-verificaciones.md) |
+| 5 | El hueco de CD declarado | [06](06-operacion-e-ingenieria.md) Parte 7 §6 |
 | 6 | Corregido: la tabla *"Qué se despliega"* decía **Python FastAPI** contra ADR-005 | [02](02-arquitectura-y-stack.md) §10 |
 
 ### Pendiente

@@ -16,13 +16,11 @@ git log --format='%an  %ad  %s' --date=short -- docs/importado/
 > posteriores y los reemplazan. Descartarlos fue la única forma de que no existan
 > dos versiones del mismo texto contradiciéndose.
 
-> **Alcance del gate de calidad:** esta carpeta está excluida en `owned-paths.txt`
-> con la línea `!docs/importado/**`, así que el gate la reporta como informativa pero
-> nunca bloquea por ella. Es material de otra fuente y otro estilo de redacción;
-> forzarlo al diccionario rioplatense sería reescribirlo entero.
->
-> La exclusión es explícita porque la carpeta vive adentro de `docs/`, y `docs/**`
-> sí es nuestro: sin esa línea, el anidado volvería propio material ajeno.
+> **Esta carpeta no se edita:** es material de otra fuente y otro estilo de
+> redacción, y vive adentro de `docs/` sólo para que la raíz tenga una única carpeta
+> de documentación. Lo que haya que corregirle va anotado en
+> [`CORRECCIONES-SUGERIDAS.md`](CORRECCIONES-SUGERIDAS.md), no aplicado sobre el
+> texto.
 
 ## `especificacion-tecnica/`
 

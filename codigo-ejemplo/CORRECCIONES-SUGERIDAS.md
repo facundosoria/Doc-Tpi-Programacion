@@ -39,10 +39,9 @@ obligatorio, no opcional** — es el único paso que la invalida de verdad.
    El comentario que ya está arriba de esa línea explica justamente esto, así que el
    cambio es coherente con lo que el archivo dice de sí mismo.
 
-**Mientras tanto:** el gate de calidad tiene la etapa `secretos` en `bloquea`, pero
-esta carpeta queda fuera de `owned-paths.txt`, así que el hallazgo se reporta como
-informativo y no frena las corridas de nadie. Esa es la razón por la que no se rompió
-nada al importar la demo — no que el problema no exista.
+**Mientras tanto:** la key sigue versionada en la rama de origen y en esta carpeta.
+Que no haya roto nada al importar la demo no quiere decir que el problema no exista:
+mientras no se rote, cualquiera que clone el repositorio la tiene.
 
 ---
 

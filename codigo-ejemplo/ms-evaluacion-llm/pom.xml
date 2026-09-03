@@ -174,8 +174,8 @@
   </build>
 
   <profiles>
-    <!-- Perfil completo: lo que corre el CI. Suma los tests de integracion, que
-         levantan Postgres y Redis y no entran en el presupuesto del gate local. -->
+    <!-- Perfil completo: suma los tests de integracion, que levantan Postgres y
+         Redis. Quedan fuera del build de todos los dias porque tardan. -->
     <profile>
       <id>completo</id>
       <build>

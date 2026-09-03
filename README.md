@@ -54,11 +54,14 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 | 13 | [La rúbrica y los prompts](docs/13-rubrica-y-prompts.md) | 📝 El artefacto central del equipo: las 5 dimensiones con sus anclas y los prompts de cada función |
 | 14 | [Sincronización con la guía didáctica](docs/14-sincronizacion-guia-didactica.md) | 🔄 **Comparación con el otro set de documentación**: los 6 conflictos, lo que hay que adoptar y lo que aportamos |
 | 15 | [Sincronización con la U1 de Front End](docs/15-sincronizacion-arquitectura-y-despliegue.md) | 🔄 **Infraestructura y despliegue**: los tres «gateway», qué adoptamos de las seis estrategias de release y qué descartamos con fundamento |
-| 16 | [El pipeline de calidad](docs/16-pipeline-y-verificaciones.md) | ⚙️ **Todo el gate en un solo lugar**: que problema resuelve, con que esta hecho, que hace cada comando, que comprueba cada etapa, donde corre cada cosa —tu maquina, GitHub y el server— y que verificaciones conviene sumar |
 | 17 | [El mapa de integración](docs/17-mapa-de-integracion.md) | 🔌 **Cómo se comunica el servicio, en una sola vista**: quién nos habla y por dónde, el verbo de cada endpoint, cuánto tarda cada camino, qué modelo resuelve cada función y con qué costo, y qué le debemos a cada equipo |
 | 18 | [Contratos inter-equipos](docs/18-contratos-inter-equipos.md) | 🤝 **El punto de entrada para la sesión de integración**: los 6 endpoints con schemas, los 4 eventos que publicamos, los 3 que consumimos, lo que necesitamos de cada equipo, el mapa de dependencias y la agenda de 8 ítems para acordar antes de codear |
 | 19 | [Modernización, seguridad y rate limit LLM](docs/19-modernizacion-seguridad-y-ratelimit-llm.md) | 🛡️ **Protección y sostenibilidad**: Rate limiting en 3 capas (Bucket4j, cuota por desafío, Resilience4j), mitigación de Denial of Wallet y checklist de modernización |
 | — | [Suite API Gateway y Service Discovery](docs/gateway-y-discovery/README.md) | 🚪 **Borde y ruteo (Tema 01)**: Guía de 7 documentos sobre arquitectura de red, Eureka, M2M con tokens técnicos, filtros WebFlux RS256 y resiliencia |
+
+> **El 16 no está y el número queda reservado.** Documenta el pipeline de calidad, que
+> por ahora vive en la rama `dev` y no se publica acá. Renumerar el 17, el 18 y el 19
+> haría que el mismo número signifique cosas distintas según la rama.
 
 ## Lo demás que hay en el repositorio
 
@@ -67,8 +70,7 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 | **[`docs/importado/`](docs/importado/)** | `Brf93` (`421562`) | Anidado adentro de `docs/`, para que la raíz tenga una sola carpeta de documentación. 25 documentos: especificación técnica, nueve planes de ejecución e investigación sobre jailbreak. Material de profundización, no de trabajo diario |
 | **[`codigo-ejemplo/`](codigo-ejemplo/)** | una carpeta por autor | [`ms-evaluacion-llm/`](codigo-ejemplo/ms-evaluacion-llm/), el esqueleto del servicio real, del equipo · [`lara-heredia-demo-llm-spring-ai/`](codigo-ejemplo/lara-heredia-demo-llm-spring-ai/), la demo de tutor con Spring AI, de Lara Heredia |
 | **[`demo/`](demo/)** | el equipo | Interfaz web interactiva de demostración (Frontend Nginx + chat tutor + guardarraíles + métricas de costos). Se levanta en un comando con Docker Compose o scripts locales |
-| **[`presentaciones/`](presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` y equipo | [`defensa-43-slides.html`](presentaciones/defensa-43-slides.html), el deck de defensa (43 slides) · [`presentacion-integracion-servicios.html`](presentaciones/presentacion-integracion-servicios.html), deck interactivo de integración y contratos (17 slides) · [`prd-wiki-consulta.html`](presentaciones/prd-wiki-consulta.html), el PRD como wiki de consulta. Más tres documentos HTML armados sobre `doc-tpi-unificada` —mapa de requerimientos, guía del golden set e informe de gestión de modelos—: su núcleo normativo coincide con `docs/`, pero **ADR, endpoints y costo total no**. Las ocho diferencias están en [`CORRECCIONES-SUGERIDAS.md`](presentaciones/CORRECCIONES-SUGERIDAS.md) |
-| **[`tools/`](tools/)** | `facundosoria` | El gate de calidad (`qa/`) y el panel que muestra sus corridas en vivo (`ci-front/`). Documentados en [16](docs/16-pipeline-y-verificaciones.md) |
+| **[`presentaciones/`](presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` y equipo | [`defensa-39-slides.html`](presentaciones/defensa-39-slides.html), el deck de defensa (39 slides) · [`presentacion-integracion-servicios.html`](presentaciones/presentacion-integracion-servicios.html), deck interactivo de integración y contratos (17 slides) · [`prd-wiki-consulta.html`](presentaciones/prd-wiki-consulta.html), el PRD como wiki de consulta. Más tres documentos HTML armados sobre `doc-tpi-unificada` —mapa de requerimientos, guía del golden set e informe de gestión de modelos—: su núcleo normativo coincide con `docs/`, pero **ADR, endpoints y costo total no**. Las ocho diferencias están en [`CORRECCIONES-SUGERIDAS.md`](presentaciones/CORRECCIONES-SUGERIDAS.md) |
 
 > ### Sobre el material que vino de otras ramas
 >
@@ -78,9 +80,6 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 > `CORRECCIONES-SUGERIDAS.md` de cada carpeta. **Hay una API key de Groq versionada en la demo que
 > necesita rotarse** — el detalle está en
 > [`codigo-ejemplo/CORRECCIONES-SUGERIDAS.md`](codigo-ejemplo/CORRECCIONES-SUGERIDAS.md).
->
-> Las tres rutas quedan fuera de `owned-paths.txt`, así que el gate las reporta como
-> informativas y nunca bloquea por ellas.
 
 > ### 📝 Sobre el contenido de ejemplo
 >
@@ -180,7 +179,7 @@ Cuatro ramas consolidadas en una sola estructura:
 | Rama | Autor | Qué aportó |
 |---|---|---|
 | `main` | — | La base de los quince documentos originales |
-| `feat/qa-gate` | `facundosoria` | Los documentos evolucionados (01 a 16), el gate de calidad, el front del CI y el esqueleto del microservicio |
+| `feat/qa-gate` | `facundosoria` | Los documentos evolucionados, el esqueleto del microservicio y la demo interactiva |
 | `lara` | `412181-HerediaLara` | La demo funcional de Spring AI, y dos de las presentaciones |
 | `doc-tpi-unificada` | `Brf93` (`421562`) | Los 25 documentos de `docs/importado/` y la presentación que quedó como base del deck |
 

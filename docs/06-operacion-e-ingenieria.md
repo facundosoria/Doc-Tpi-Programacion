@@ -1245,5 +1245,5 @@ Nada de esta parte existe todavía como archivo. Cuando se escriba el código:
 | `docker-compose.yml` | Servicio, worker, Postgres y Redis. **Sin puerto publicado para el servicio.** `healthcheck` en las dependencias y `condition: service_healthy` en el servicio |
 | `.env.example` | Ya pedido por la regla 4 de la Parte 5 |
 
-El hueco del lado del CI —build de imagen, registro y deploy— está declarado en
-[16](16-pipeline-y-verificaciones.md).
+El hueco del lado del CI —build de imagen, registro y deploy— sigue abierto: no hay
+todavía nada que construya la imagen, la publique en un registro y la despliegue sola.

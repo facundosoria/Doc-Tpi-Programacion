@@ -8,10 +8,10 @@
     Reglas de analisis estatico del Tema 07.
 
     Arranca corto a proposito: solo cosas que son defectos objetivos, no estilo.
-    Segun la regla de operacion del gate, esta etapa esta en `avisa` hasta que
-    demuestre que encuentra cosas reales; recien ahi se sube a `bloquea`.
+    Una regla nueva se deja avisando hasta que demuestre que encuentra cosas
+    reales; recien ahi tiene sentido que frene un build.
 
-    Para agregar una regla: sumala aca Y agrega su fixture en tools/qa/tests/.
+    Lo corre maven-pmd-plugin, declarado en el pom de este proyecto.
   </description>
 
   <!-- Codigo muerto: el requisito original que motivo todo esto. -->

@@ -5,7 +5,7 @@ no comparten `pom.xml`, ni paquete, ni ciclo de vida.
 
 | Carpeta | Quién lo hizo | Qué es | Estado |
 |---|---|---|---|
-| [`ms-evaluacion-llm/`](ms-evaluacion-llm/) | **El equipo** · `facundosoria`, en `feat/qa-gate` | El **esqueleto del microservicio real** del Tema 07 | Compila, testea y lo verifica el gate de calidad |
+| [`ms-evaluacion-llm/`](ms-evaluacion-llm/) | **El equipo** · `facundosoria`, en `feat/qa-gate` | El **esqueleto del microservicio real** del Tema 07 | Compila y pasa sus tests |
 | [`lara-heredia-demo-llm-spring-ai/`](lara-heredia-demo-llm-spring-ai/) | **Lara Heredia** · `412181-HerediaLara`, en la rama `lara` | Una **demo funcional** de tutor socrático con Spring AI + Groq | Anda de punta a punta, pero es material de exploración |
 
 **La carpeta lleva el nombre de quien la escribió** cuando el proyecto es de una
@@ -22,12 +22,11 @@ git log --format='%an  %ad  %s' --date=short -- codigo-ejemplo/lara-heredia-demo
 ## `ms-evaluacion-llm/`
 
 El microservicio que efectivamente vamos a entregar. Hoy es un esqueleto Spring Boot
-con el contrato del moderador y un test, deliberadamente mínimo: existe para que el
-gate de calidad tenga sobre qué correr desde el día uno.
+con el contrato del moderador y sus tests, deliberadamente mínimo: existe para que
+haya sobre qué construir desde el día uno.
 
-**Es el único proyecto que el gate compila, testea y mide.** Está declarado en
-`tools/qa/config/proyecto/owned-paths.txt` y en `PROYECTO_JAVA` dentro de
-`tools/qa/lib/orquestar.py`. Si se lo mueve de lugar, hay que tocar esos dos lugares.
+**Es el único proyecto del equipo.** El otro es material de exploración importado de
+otra rama, y no comparte con éste ni `pom.xml` ni ciclo de vida.
 
 Contexto de diseño: [`docs/02 · Arquitectura y stack`](../docs/02-arquitectura-y-stack.md).
 
@@ -67,7 +66,8 @@ Documentación propia de la demo, dentro de `BE/`:
 | `GUIA_API_KEYS.md` | Cómo sacar las keys de cada proveedor |
 | `POSTMAN_TEST.md` | Recorrido de prueba manual, con la colección en `postman/` |
 
-**Este proyecto queda fuera del gate de calidad**, igual que el resto del material
-importado de otras ramas: se reporta como informativo y nunca bloquea. Esa es la razón
-por la que la key hardcodeada no rompe las corridas de nadie — no que no sea un
-problema.
+**Este proyecto no se edita**, igual que el resto del material importado de otras
+ramas: entró byte a byte y lo que haya que corregirle va anotado en
+[`CORRECCIONES-SUGERIDAS.md`](CORRECCIONES-SUGERIDAS.md). Que la key hardcodeada siga
+ahí no significa que no sea un problema: significa que el arreglo se propone, no se
+aplica sobre código ajeno.

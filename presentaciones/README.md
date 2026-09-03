@@ -2,7 +2,7 @@
 
 | Archivo | Qué es | Cómo se usa | Alineado con `docs/` |
 |---|---|---|---|
-| [`defensa-43-slides.html`](defensa-43-slides.html) | **La presentación de defensa.** 43 slides | Se abre en el navegador. `←` `→` para navegar, `O` para el índice, `F` para pantalla completa | ✅ Sí |
+| [`defensa-39-slides.html`](defensa-39-slides.html) | **La presentación de defensa.** 39 slides | Se abre en el navegador. `←` `→` para navegar, `O` para el índice, `F` para pantalla completa | ✅ Sí |
 | [`presentacion-integracion-servicios.html`](presentacion-integracion-servicios.html) | **Integración y contratos inter-servicios.** 17 slides | Se abre en el navegador. Teclado (`←`/`→`/`Espacio`), touch, selector directo de slide | ✅ Sí |
 | [`prd-wiki-consulta.html`](prd-wiki-consulta.html) | El PRD, sección IA, como wiki navegable | Documento de consulta con barra lateral. **No es una presentación** | ✅ Sí |
 | [`mapa-conceptual-interactivo.html`](mapa-conceptual-interactivo.html) | Los 36 requerimientos de IA como mapa navegable, con matriz de trazabilidad, ADR, defensa oral, planes y seguridad | Seis solapas arriba. Cada requerimiento se abre y muestra rol, componente, regla y mapeo externo | ⚠️ **Parcial** |
@@ -56,23 +56,18 @@ git show origin/lara:demoLLMSpringAi/PROPUESTA_IA_LLM.html > propuesta-original.
 
 ## Qué se agregó
 
-Diez slides nuevas con material del proyecto que no estaba en ninguno de los dos
+Seis slides nuevas con material del proyecto que no estaba en ninguno de los dos
 decks, sacadas de la documentación de `docs/`:
 
 | # | Slide | De dónde sale |
 |---|---|---|
 | 03 | Los siete hallazgos que ordenan todo el trabajo | `README` y `docs/08` |
 | 09 | Los tres «gateway» que se dicen igual | `docs/15` §2 |
-| 28 | El gate de calidad: qué problema resuelve, y cuál no | `docs/16` parte 1 |
-| 29 | Las trece etapas, y sobre qué corre cada una | `docs/16` parte 5 |
-| 30 | Dos perfiles, cuatro niveles y tres filtros de alcance | `docs/16` partes 4 y 8 |
-| 31 | Dónde corre: tu máquina, GitHub y el server | `docs/16` partes 2, 6 y 7 |
-| 37 | El costo real, y dónde está la palanca | `docs/03` |
-| 40 | Los ocho módulos, y el reparto entre seis | `docs/10` parte 2 |
-| 41 | Decisiones cerradas, y lo que bloquea hoy | `README` y `docs/08` |
-| 42 | El mapa del repositorio unificado | esta unificación |
+| 33 | El costo real, y dónde está la palanca | `docs/03` |
+| 36 | Los ocho módulos, y el reparto entre seis | `docs/10` parte 2 |
+| 37 | Decisiones cerradas, y lo que bloquea hoy | `README` y `docs/08` |
+| 38 | El mapa del repositorio unificado | esta unificación |
 
-**Todos los números son los medidos, no estimaciones**: los 12 y 46 segundos de las
-corridas, el rango de USD 5 a 22 del cuatrimestre, las 22 anclas rotas que encontró el
-gate. Si alguno cambia en la documentación, hay que cambiarlo también acá — el deck no
-se genera solo.
+**Todos los números son los medidos, no estimaciones**: el rango de USD 5 a 22 del
+cuatrimestre, los costos unitarios por función, los pesos de la rúbrica. Si alguno
+cambia en la documentación, hay que cambiarlo también acá — el deck no se genera solo.

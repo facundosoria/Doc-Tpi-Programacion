@@ -1,10 +1,7 @@
 # Material de origen (se distribuye por la catedra)
 *.pdf
 
-# Salida del gate de calidad
-.qa/
-
-# Python del gate
+# Python
 __pycache__/
 *.pyc
 
@@ -21,10 +18,9 @@ desktop.ini
 *.iml
 
 # Configuracion con secretos. docker compose levanta el .env que este al lado del
-# compose file sin que nadie se lo pida, y el README del front muestra las lineas
-# a pegar ahi --incluido CI_TOKEN--. Sin esta regla, el que las pegue commitea el
-# token sin darse cuenta. La etapa `secretos` lo agarraria igual, pero un cinturon
-# no es razon para no cerrar la puerta.
+# compose file sin que nadie se lo pida, y el README de la demo muestra las lineas a
+# pegar ahi --incluida GROQ_API_KEY--. Sin esta regla, el que las pegue commitea la
+# key sin darse cuenta.
 .env
 .env.*
 !.env.example

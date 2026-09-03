@@ -1,9 +1,0 @@
-package ar.edu.utn.frc.tup.piv.evaluacionllm;
-
-/** Fixture: codigo muerto. PMD tiene que ver la variable que nadie lee. */
-public class VariableSinUsar {
-    public int calculate(int input) {
-        int neverRead = input * 2;
-        return input + 1;
-    }
-}
