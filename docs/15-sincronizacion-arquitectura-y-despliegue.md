@@ -145,7 +145,7 @@ API Gateway nunca sabe que existe un LLM; y el AI Gateway nunca recibe una petic
 | **A/B Testing** | Compararía versiones sobre alumnos distintos | 🔴 **Inaceptable por el dominio**, no por la infraestructura |
 | **Shadow Deployment** | La calibración ya validaba contra el golden set | ✅ **Adoptado, pero para calibrar**, no para desplegar |
 | **Feature Flags** | La tabla `funcion → modelo` de RF-IA-24 | 🟡 **Ya lo hacíamos.** Lo que faltaba era el nombre |
-| **Infraestructura como código (Terraform, Ansible)** | El server del CI ya existe y se administra a mano | ❌ Fuera de alcance |
+| **Infraestructura como código (Terraform, Ansible)** | No hay infraestructura propia que provisionar: los entornos se administran a mano | ❌ Fuera de alcance |
 | **Pipelines de CI/CD** | Todavía no hay pipeline: ni integración ni entrega automatizadas | 🟡 **El hueco de CD ahora está declarado** |
 | **Secretos (Vault)** | Los tres niveles están en [06](06-operacion-e-ingenieria.md) Parte 5 | 🟡 Coincidimos; la herramienta concreta sigue sin dueño |
 | **Prometheus / Grafana** | Micrometer + Actuator, elegidos en [02](02-arquitectura-y-stack.md) | 🟡 Compatibles: Micrometer exporta a Prometheus |
