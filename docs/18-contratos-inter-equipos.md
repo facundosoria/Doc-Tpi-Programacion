@@ -1,4 +1,4 @@
-﻿# 18 — Contratos inter-equipos
+# 18 — Contratos inter-equipos
 
 > **Con quién hablamos, qué les pedimos, qué les damos, por dónde y en qué formato.**
 >
@@ -76,7 +76,7 @@ es un error o diseño interno que no es parte del contrato público.
 
 ```json
 {
-  "idempotency_key": "uuid-v4-obligatorio",
+  "idempotency_key": "idem-uuid-001",
   "curso_cohorte_id": "sale-del-token-no-del-body",
   "alumno_id":        "sale-del-token-no-del-body",
   "payload": {
@@ -261,13 +261,16 @@ es un error o diseño interno que no es parte del contrato público.
 ### 4.1 Tema 02 — Cursos y Matrícula
 
 **Nos llaman para:**
+
 - `GET /ai/calibracion/{curso_cohorte_id}` — verificar si la calibración está aprobada antes de activar el curso
 
 **Nos tienen que dar:**
+
 - Material del curso para indexar (via `POST /ai/ingesta`)
 - Confirmación del modelo `curso_template_id` vs `curso_cohorte_id` (I-09)
 
 **🔴 Bloqueo crítico:**
+
 - El **golden set** (muestras del docente para calibrar la rúbrica). Sin esto, ningún curso puede activarse. Es la dependencia con el plazo más largo del proyecto.
 
 ---
@@ -275,10 +278,12 @@ es un error o diseño interno que no es parte del contrato público.
 ### 4.2 Tema 03 — Motor de Desafíos
 
 **Nos llaman para:**
+
 - `POST /ai/evaluador` (async)
 - `GET /ai/jobs/{job_id}`
 
 **Nos tienen que dar:**
+
 - Publicar `intento_cerrado` con los campos de §3
 - **🔴 Aceptar la entrega con el evaluador caído**: si respondemos `503`, el backend acepta igual con `score_agregado = null` y espera `score_pendiente_diferido`. La resiliencia de este punto es del lado que escribe en la base académica, no del nuestro.
 
@@ -290,10 +295,12 @@ Hay cuatro mecanismos escritos para que el score llegue al motor de desafíos. N
 ### 4.3 Tema 05 — Desafíos Prácticos
 
 **Nos llaman para:**
+
 - `POST /ai/tutor` — asistencia
 - `POST /ai/corrector` — corrección
 
 **🔴 Nos tienen que dar (crítico):**
+
 1. **La solución esperada del desafío** — sin esto el anti-fuga (RF-IA-20) no tiene contra qué comparar. Falta definir: ¿endpoint? ¿campo en el evento? ¿verbo?
 2. **Evento de ediciones y ejecuciones de tests del IDE** — 30% del score depende de esta señal. Si no se pide ahora, no va a existir.
 
@@ -302,9 +309,11 @@ Hay cuatro mecanismos escritos para que el score llegue al motor de desafíos. N
 ### 4.4 Tema 11 — Chat
 
 **Nos llaman para:**
+
 - `POST /ai/moderador` — siempre sync, siempre antes de entregar el mensaje al hilo
 
 **Nos tienen que dar:**
+
 - Incluir nuestros campos en el contrato de eventos del bus (ver §3)
 - Aclarar qué enum viaja en `estado` (I-05)
 
@@ -336,10 +345,12 @@ Hay cuatro mecanismos escritos para que el score llegue al motor de desafíos. N
 ### 4.5 Tema 12 — Backoffice / ADMIN
 
 **Nos llaman para:**
+
 - `GET /ai/calibracion/{curso_cohorte_id}` — ver estado
 - `POST /ai/calibracion` — disparar recalibración
 
 **Nos tienen que dar:**
+
 - Ser dueños de la pantalla de configuración del proveedor LLM
 - Ser dueños de la pantalla del golden set (actualmente sin dueño claro — I-15)
 
@@ -348,6 +359,7 @@ Hay cuatro mecanismos escritos para que el score llegue al motor de desafíos. N
 ### 4.6 Backend de negocio
 
 **Nos tienen que dar:**
+
 - **Endpoint de contexto del desafío** — el tutor necesita el enunciado para armar el prompt
 - **Aceptar entregas con evaluador caído** — igual que §4.2
 - Propagación del JWT en cada llamada
@@ -451,7 +463,7 @@ flowchart LR
 | Regla | Qué significa |
 |---|---|
 | **`idempotency_key` obligatoria** | Reintento por timeout no genera dos evaluaciones |
-| **`trace_id` en todo** | Request y evento. Es lo único útil para debuggear entre equipos |
+| **`trace_id` en todo** | Request y evento. Es lo único útil para depurar entre equipos |
 | **Errores tipados** | Campo `codigo` estable — nunca un string libre |
 | **Nunca devolvemos XP** | Solo `score_agregado` 0-100 con desglose |
 | **No escribimos en bases ajenas** | Devolvemos; el dueño persiste |

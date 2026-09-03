@@ -22,8 +22,8 @@ services:
       - "8087:8087"
     environment:
       # Si se pasa una GROQ_API_KEY se usa el modelo real Llama 3.3 70B.
-      # Si se deja vacía o 'mock-key', responde en modo simulación sin costo de tokens.
-      - GROQ_API_KEY=${GROQ_API_KEY:-mock-key}
+      # Si se deja vacía o 'mock', responde en modo simulación sin costo de tokens.
+      - GROQ_API_KEY=${GROQ_API_KEY:-mock}
       - GROQ_MODEL=${GROQ_MODEL:-llama-3.3-70b-versatile}
       - SPRING_PROFILES_ACTIVE=default
     networks:

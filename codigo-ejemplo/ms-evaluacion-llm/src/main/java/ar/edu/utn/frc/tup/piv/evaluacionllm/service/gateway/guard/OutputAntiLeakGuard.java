@@ -1,8 +1,7 @@
 package ar.edu.utn.frc.tup.piv.evaluacionllm.service.gateway.guard;
 
-import org.springframework.stereotype.Component;
-
 import java.util.regex.Pattern;
+import org.springframework.stereotype.Component;
 
 @Component
 public class OutputAntiLeakGuard {
@@ -14,20 +13,20 @@ public class OutputAntiLeakGuard {
             return false;
         }
 
-        // Si la respuesta incluye bloques de código extensos cuando no debería
+        // Si la respuesta incluye bloques de codigo extensos cuando no deberia
         var matcher = CODE_BLOCK_PATTERN.matcher(respuesta);
-        int codeBlockCount = 0;
         while (matcher.find()) {
-            codeBlockCount++;
             String bloque = matcher.group();
             if (bloque.lines().count() > 8) {
-                // Bloque de código sospechosamente largo para ser un tutor socrático
+                // Bloque de codigo sospechosamente largo para ser un tutor socratico
                 return true;
             }
         }
 
         if (solucionEsperada != null && !solucionEsperada.isBlank()) {
-            return respuesta.toLowerCase().contains(solucionEsperada.toLowerCase().trim());
+            return respuesta
+                    .toLowerCase()
+                    .contains(solucionEsperada.toLowerCase().trim());
         }
 
         return false;

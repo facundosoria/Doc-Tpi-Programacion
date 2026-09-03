@@ -1,21 +1,21 @@
 package ar.edu.utn.frc.tup.piv.evaluacionllm.service.gateway.adapter;
 
-import org.junit.jupiter.api.Test;
-
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+
+import org.junit.jupiter.api.Test;
 
 class GroqAdapterTest {
 
     @Test
     void getModelName_debeRetornarModeloConfigurado() {
-        GroqAdapter adapter = new GroqAdapter("https://api.groq.com/openai", "mock-key", "llama-3.3-70b-versatile");
+        GroqAdapter adapter = new GroqAdapter("https://api.groq.com/openai", "mock", "llama-3.3-70b-versatile");
         assertEquals("llama-3.3-70b-versatile", adapter.getModelName());
     }
 
     @Test
     void generar_cuandoApiKeyEsMock_debeRetornarRespuestaSimulada() {
-        GroqAdapter adapter = new GroqAdapter("https://api.groq.com/openai", "mock-key", "llama-3.3-70b-versatile");
+        GroqAdapter adapter = new GroqAdapter("https://api.groq.com/openai", "mock", "llama-3.3-70b-versatile");
         String resultado = adapter.generar("System prompt", "User prompt");
 
         assertTrue(resultado.contains("Respuesta simulada en entorno de desarrollo"));
@@ -33,7 +33,8 @@ class GroqAdapterTest {
     @Test
     void dtoEstructuras_gettersAndSetters() {
         GroqAdapter.ChatCompletionResponse response = new GroqAdapter.ChatCompletionResponse();
-        GroqAdapter.ChatCompletionResponse.Message message = new GroqAdapter.ChatCompletionResponse.Message("assistant", "Hola");
+        GroqAdapter.ChatCompletionResponse.Message message =
+                new GroqAdapter.ChatCompletionResponse.Message("assistant", "Hola");
         GroqAdapter.ChatCompletionResponse.Choice choice = new GroqAdapter.ChatCompletionResponse.Choice(message);
         response.setChoices(java.util.List.of(choice));
 
