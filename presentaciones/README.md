@@ -13,8 +13,16 @@ Los seis son un archivo HTML solo: no necesitan servidor ni compilación, se abr
 doble clic.
 
 **Las seis abren sin internet.** Cargan sus librerías desde [`vendor/`](vendor/), que
-está versionado acá al lado, y usan tipografías del sistema. Si movés esa carpeta, las
-seis pierden el estilo: las rutas son relativas a `presentaciones/`.
+está versionado acá al lado, y usan tipografías del sistema. Con esa carpeta al lado no
+salen a la red ni una vez.
+
+**Y las seis abren también solas.** Si el `.html` viaja sin `vendor/` —lo mandás por
+chat, o el otro se baja un archivo suelto desde GitHub— cada uno se da cuenta de que la
+librería local no cargó y la baja de un CDN, en la misma versión que está versionada.
+Antes, en ese caso, la página se veía sin estilo.
+
+El único caso que queda sin estilo es archivo suelto **y** sin internet: para proyectar
+en el aula, llevate `presentaciones/` entera.
 
 ## Las tres nuevas venían de otra rama, y ya están alineadas
 

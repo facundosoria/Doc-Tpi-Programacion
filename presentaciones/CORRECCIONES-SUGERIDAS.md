@@ -145,6 +145,13 @@ presentación de integración y el PRD-wiki tenían el mismo problema.
 | `vendor/marked.min.js` (12.0.2) | el informe |
 | `vendor/font-awesome/` (6.5.1, CSS y woff2) | la guía |
 
+> **Cada archivo tiene respaldo por CDN.** Vendorizar por ruta relativa arregló el aula
+> y rompió otro caso: el `.html` que viaja solo, sin `vendor/` al lado, se veía sin
+> estilo —antes del cambio, esos tres se lo bajaban del CDN y funcionaban—. Ahora cada
+> tag local va seguido de un respaldo que sólo actúa si la librería no quedó definida
+> (`window.tailwind`, `window.lucide`, `window.marked`; Font Awesome, por `onerror` del
+> `<link>`). Con `vendor/` presente el respaldo no dispara y no sale un pedido a la red.
+
 > **Mermaid se sacó del todo.** Tres archivos lo cargaban —3,3 MB— y **ninguno de los
 > seis dibuja un solo diagrama**: sólo llamaban a `mermaid.initialize()` sobre una
 > página sin diagramas. Se fue la librería y se fueron las llamadas.
@@ -171,5 +178,5 @@ requerimientos, los 15 ADR y los seis glosarios cargan.
 1. **Abrilas igual una vez en la máquina del aula.** Ya no necesitan red, pero un doble
    clic de prueba cuesta treinta segundos.
 2. El informe tiene su propio botón de imprimir a PDF, por si preferís llevarlo así.
-3. Si movés `vendor/`, los tres dejan de tener estilo: las rutas son relativas a
-   `presentaciones/`.
+3. Si el archivo viaja sin `vendor/`, el estilo sale del CDN y hace falta red. Para
+   proyectar sin internet, llevate `presentaciones/` completa, no un `.html` suelto.
