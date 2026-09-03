@@ -14,9 +14,12 @@ etapa, se afirma el resultado y se sacan. Es lento (cada mvn son segundos) pero
 prueba la cadena completa y no solo el adaptador.
 """
 
+import io
 import os
 import shutil
+import subprocess
 import sys
+import tempfile
 
 RUTA_LIB = os.path.dirname(os.path.abspath(__file__))
 RUTA_QA = os.path.dirname(RUTA_LIB)
@@ -160,6 +163,144 @@ def correr_caso_java(caso):
                 os.remove(ruta)
 
 
+class _MavenEspiado:
+    """Reemplaza a orquestar.maven() y guarda con que lo llamaron.
+
+    La etapa `formato` en nivel `arregla` ESCRIBE, asi que lo que hay que afirmar
+    no es que hallazgos devuelve --no devuelve ninguno-- sino sobre que archivos
+    le pidio trabajar a spotless. Correr Maven de verdad no agregaria nada y
+    costaria segundos.
+    """
+
+    def __init__(self):
+        # Una lista y no un solo valor: la etapa hace DOS llamadas --apply sobre
+        # lo tuyo y check sobre lo ajeno-- y quedarse con la ultima esconderia
+        # justo la que hay que afirmar.
+        self.llamadas = []
+
+    def __call__(self, objetivos, perfil_completo=False):
+        self.llamadas.append(list(objetivos))
+
+        class Resultado:
+            returncode = 0
+            stdout = ""
+            stderr = ""
+
+        return Resultado()
+
+
+def _git_en(directorio, *args, **entorno):
+    env = dict(os.environ)
+    env.update(entorno)
+    return subprocess.run(["git"] + list(args), cwd=directorio, env=env, check=True,
+                          stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+
+
+def correr_caso_atribucion(caso):
+    """Afirma que `spotless:apply` formatea lo tuyo y NO lo de un companero.
+
+    El fixture no es un archivo sino una situacion, y hace falta un repositorio
+    de verdad para armarla: una rama con tres archivos mal formateados, uno
+    commiteado por otra persona, uno commiteado por vos y uno todavia sin
+    commitear.
+
+    Lo que se prueba es el criterio, que es lo que se puede romper sin que nadie
+    lo note: la etapa decide por AUTORIA, no por "lo que tenes sin commitear".
+    La diferencia importa porque el gate se corre en los dos momentos --antes y
+    despues de commitear-- y el segundo criterio solo acierta en el primero: si
+    ya commiteaste, tus propios archivos quedarian afuera y el formato no se
+    corregiria nunca.
+
+    Va en un repositorio temporal --hace falta el commit de por medio para que
+    exista la distincion-- y con Maven espiado en vez de ejecutado: lo que se
+    afirma es sobre que archivos se le pidio trabajar. Que spotless formatee bien
+    ya lo prueba MalFormateado.java.txt.
+    """
+    yo = "yo@selftest"
+    companero = "companero@selftest"
+    mal_formateado = io.open(
+        os.path.join(RUTA_FIXTURES, "MalFormateado.java.txt"), encoding="utf-8"
+    ).read()
+
+    volver = os.getcwd()
+    temporal = tempfile.mkdtemp(prefix="qa-atribucion-")
+    maven_real = orquestar.maven
+    autor_previo = os.environ.get("QA_AUTOR")
+    try:
+        _git_en(temporal, "init", "-q")
+        _git_en(temporal, "config", "user.name", "selftest")
+        _git_en(temporal, "config", "user.email", yo)
+
+        destino = os.path.join(temporal, orquestar.PROYECTO_JAVA, "src", "main", "java")
+        os.makedirs(destino, exist_ok=True)
+        # hay_proyecto_java() mira que exista el pom; su contenido no importa aca.
+        io.open(os.path.join(temporal, orquestar.PROYECTO_JAVA, "pom.xml"), "w",
+                encoding="utf-8").write("<project/>")
+
+        def escribir(nombre):
+            ruta = os.path.join(destino, nombre)
+            io.open(ruta, "w", encoding="utf-8", newline="\n").write(mal_formateado)
+            return os.path.relpath(ruta, temporal).replace(os.sep, "/")
+
+        # La base: una rama main con el pom, para que base_de_comparacion() tenga
+        # contra que comparar. Sin base, todo se veria como "sin commits" y por
+        # lo tanto tuyo, y el caso no probaria nada.
+        _git_en(temporal, "checkout", "-q", "-b", "main")
+        _git_en(temporal, "add", "-A")
+        _git_en(temporal, "commit", "-q", "-m", "base")
+        _git_en(temporal, "checkout", "-q", "-b", "rama")
+
+        ruta_ajeno = escribir("DeUnCompanero.java")
+        _git_en(temporal, "add", "-A")
+        _git_en(temporal, "commit", "-q", "-m", "companero",
+                GIT_AUTHOR_EMAIL=companero, GIT_AUTHOR_NAME="companero",
+                GIT_COMMITTER_EMAIL=companero, GIT_COMMITTER_NAME="companero")
+
+        ruta_commiteado = escribir("MioCommiteado.java")
+        _git_en(temporal, "add", "-A")
+        _git_en(temporal, "commit", "-q", "-m", "mio")
+
+        ruta_sucio = escribir("MioSinCommitear.java")
+
+        os.chdir(temporal)
+        os.environ["QA_AUTOR"] = yo
+        orquestar.maven = _MavenEspiado()
+        # Los tres llegan en la lista: para el resto del gate los tres cambiaron
+        # respecto de la base. Quien tiene que dejar afuera al ajeno es la etapa.
+        todos = [ruta_ajeno, ruta_commiteado, ruta_sucio]
+        orquestar.correr_etapa("formato", "arregla", todos,
+                               {"formato": todos}, "rapido")
+        llamadas = list(orquestar.maven.llamadas)
+    finally:
+        orquestar.maven = maven_real
+        if autor_previo is None:
+            os.environ.pop("QA_AUTOR", None)
+        else:
+            os.environ["QA_AUTOR"] = autor_previo
+        os.chdir(volver)
+        shutil.rmtree(temporal, ignore_errors=True)
+
+    apply = next((c for c in llamadas if c and c[0] == "spotless:apply"), None)
+    if apply is None:
+        return [{"regla": "no-corrio-apply"}]
+
+    filtro = next((o for o in apply if o.startswith("-DspotlessFiles=")), None)
+    if filtro is None:
+        # Sin filtro, spotless reformatea el modulo entero: es exactamente el bug.
+        return [{"regla": "sin-filtro-de-archivos"}]
+
+    # El filtro son regex con los puntos escapados ("Mio\\.java"). Se comparan sin
+    # las barras para no atar el self-test a como se arma el patron.
+    plano = filtro.replace("\\", "")
+    if "DeUnCompanero.java" in plano:
+        return [{"regla": "formatea-lo-ajeno"}]
+    if "MioCommiteado.java" not in plano:
+        return [{"regla": "no-formatea-lo-tuyo-commiteado"}]
+    if "MioSinCommitear.java" not in plano:
+        return [{"regla": "no-formatea-lo-tuyo-sin-commitear"}]
+    return []
+
+
 def main():
     os.chdir(scope.raiz())
     casos = cargar_casos()
@@ -176,7 +317,9 @@ def main():
         try:
             # `destino` (main o test) es lo que distingue un fixture de Java: el
             # nombre no sirve, porque uno de ellos es un directorio con dos clases.
-            if caso.get("destino"):
+            if caso.get("por_autoria"):
+                hallazgos = correr_caso_atribucion(caso)
+            elif caso.get("destino"):
                 hallazgos = correr_caso_java(caso)
             else:
                 hallazgos = correr_caso_doc(caso)

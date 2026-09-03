@@ -458,6 +458,15 @@ def maven(objetivos, perfil_completo=False):
     return ejecutar(comando)
 
 
+def _patron(archivos):
+    """Regex para -DspotlessFiles, una por archivo.
+
+    Solo se escapa el punto: los demas caracteres de una ruta son literales en
+    regex de Java, y re.escape() genera secuencias que Java rechaza.
+    """
+    return ",".join(".*" + a.replace(".", r"\.") for a in archivos)
+
+
 def correr_etapa(etapa, nivel, archivos, ruteo, perfil):
     """Devuelve (hallazgos, ejecutada)."""
     java = ruteo.get("formato", [])
@@ -534,44 +543,61 @@ def correr_etapa(etapa, nivel, archivos, ruteo, perfil):
         if etapa == "formato":
             # `spotless:apply` sin acotar reformatea EL MODULO ENTERO, no lo que
             # tocaste. Basta con que cambies un .java para que reescriba tambien
-            # los de tus companeros: los commiteas vos, y `git blame` te atribuye
-            # lineas que escribio otro. Es un problema de atribucion, no de
-            # formato, y no se ve: la corrida queda en verde.
+            # los archivos de tus companeros: los commiteas vos, y `git blame` te
+            # atribuye lineas que escribio otro. A este equipo lo evaluan por
+            # lineas por persona, asi que no es cosmetico.
             #
             # El filtro va por -DspotlessFiles, que toma regex contra la ruta
-            # absoluta. `ratchetFrom` seria mas expresivo pero el plugin no lo lee
-            # de la linea de comandos: probado, con y sin el flag da lo mismo.
-            #
-            # La lista NO es la misma para escribir que para revisar:
-            #
-            #   apply  lo que tenes sin commitear. Un commit de un companero en
-            #          esta misma rama esta en HEAD, asi que queda afuera y no lo
-            #          reescribis con tu nombre.
-            #   check  todo lo que la rama cambio desde la base, lo haya escrito
-            #          quien lo haya escrito. Revisar no le atribuye nada a nadie.
-            if nivel == "arregla":
-                objetivo = "spotless:apply"
-                alcance = [a for a in scope.archivos_sin_commitear()
-                           if a.endswith(".java")]
-            else:
-                objetivo = "spotless:check"
-                alcance = java
-
-            if not alcance:
-                return [], False
-
-            # Solo se escapa el punto: los otros caracteres de una ruta son
-            # literales en regex de Java, y re.escape() genera secuencias que
-            # Java rechaza.
-            patron = ",".join(".*" + a.replace(".", r"\.") for a in alcance)
-            salida = maven([objetivo, "-DspotlessFiles=" + patron])
-
-            if nivel == "arregla":
+            # absoluta. `ratchetFrom` seria mas expresivo pero el plugin de Maven
+            # no lo lee de la linea de comandos: probado, con y sin el flag da
+            # exactamente lo mismo.
+            if nivel != "arregla":
+                # Revisar no le atribuye nada a nadie, asi que mira la rama
+                # entera: tiene que estar formateada antes de entrar, la haya
+                # escrito quien la haya escrito.
+                salida = maven(["spotless:check", "-DspotlessFiles=" + _patron(java)])
+                if salida.returncode != 0:
+                    return [_hallazgo(etapa, nivel, PROYECTO_JAVA, None, "spotless",
+                                      "hay archivos sin formatear")], True
                 return [], True
-            if salida.returncode != 0:
-                return [_hallazgo(etapa, nivel, PROYECTO_JAVA, None, "spotless",
-                                  "hay archivos sin formatear")], True
-            return [], True
+
+            # De aca para abajo se ESCRIBE, y ahi si importa de quien es cada
+            # archivo. El criterio es la autoria en git y no "lo que tenes sin
+            # commitear": el gate se corre en los dos momentos --antes y despues
+            # de commitear-- y el segundo criterio solo acierta en el primero.
+            tuyos, ajenos = scope.partir_por_autoria(java)
+
+            if tuyos is None:
+                # Sin saber quien sos no se puede distinguir tu commit del de un
+                # companero. Se cae a lo unico que es tuyo con certeza y se avisa,
+                # en vez de arriesgarse a reescribir codigo ajeno en silencio.
+                tuyos = [a for a in scope.archivos_sin_commitear()
+                         if a.endswith(".java")]
+                ajenos = []
+                aviso = [_hallazgo(etapa, "avisa", PROYECTO_JAVA, None,
+                                   "autor-desconocido",
+                                   "sin git user.email no se puede saber que "
+                                   "archivos son tuyos")]
+            else:
+                aviso = []
+
+            if tuyos:
+                maven(["spotless:apply", "-DspotlessFiles=" + _patron(tuyos)])
+
+            if ajenos:
+                # Lo de otros no se toca, pero si esta sin formatear la rama no
+                # va a pasar el CI. Se reporta con el mail de quien lo commiteo
+                # para que le llegue a la persona que si puede arreglarlo.
+                salida = maven(["spotless:check",
+                                "-DspotlessFiles=" + _patron(ajenos)])
+                if salida.returncode != 0:
+                    quienes = ", ".join(scope.quienes_tocaron(ajenos)) or "otra persona"
+                    aviso.append(_hallazgo(
+                        etapa, "avisa", PROYECTO_JAVA, None, "spotless-ajeno",
+                        "hay %d archivo(s) sin formatear commiteados por %s"
+                        % (len(ajenos), quienes)))
+
+            return aviso, True
 
         if etapa == "compila":
             salida = maven(["test-compile"])

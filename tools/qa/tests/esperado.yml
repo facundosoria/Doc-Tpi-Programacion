@@ -95,3 +95,22 @@ casos:
     etapa: tests
     destino: test
     reglas: [assertion-failed]
+
+  # No es un fixture sino una situacion: un companero commiteo codigo mal
+  # formateado y vos tenes otro archivo sin commitear. `spotless:apply` tiene que
+  # tocar el tuyo y NO el suyo.
+  #
+  # Sin esto, el chequeo que cubre `formato` es el de nivel `bloquea`, que corre
+  # `spotless:check` y no escribe nada: la rama que ESCRIBE quedaba sin probar. Y
+  # es la unica del gate que modifica archivos, o sea la unica que puede meterte
+  # en el historial lineas que no escribiste.
+  #
+  # Corre en un repositorio temporal --hace falta un commit de por medio para que
+  # exista la distincion-- y con Maven espiado en vez de ejecutado: lo que se
+  # afirma es sobre que archivos se le pidio trabajar, no que spotless formatee
+  # bien, que ya lo prueba MalFormateado.java.txt.
+  - fixture: atribucion (apply decide por autoria)
+    etapa: formato
+    por_autoria: true
+    reglas: []
+

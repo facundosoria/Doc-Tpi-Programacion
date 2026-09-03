@@ -92,15 +92,7 @@ def archivos_cambiados():
 
 
 def archivos_sin_commitear():
-    """Solo lo que tenes en el working tree: modificado o todavia sin trackear.
-
-    Es un subconjunto de archivos_cambiados(), que ademas incluye lo commiteado
-    desde la base. La diferencia importa cuando un chequeo ESCRIBE: en una rama
-    compartida, los commits de tus companeros tambien estan "cambiados desde la
-    base", y reformatearlos te los atribuye a vos en el `git blame`.
-
-    Lo que tenes sin commitear es lo unico que se puede afirmar que modificaste.
-    """
+    """Solo lo que tenes en el working tree: modificado o todavia sin trackear."""
     encontrados = _git("diff", "--name-only", "HEAD").splitlines()
     encontrados += _git("ls-files", "--others", "--exclude-standard").splitlines()
 
@@ -111,6 +103,69 @@ def archivos_sin_commitear():
             vistos.add(archivo)
             unicos.append(archivo)
     return unicos
+
+
+def autor_actual():
+    """Tu mail de git, normalizado. Vacio si no se puede saber.
+
+    QA_AUTOR lo pone qa.sh desde el host, porque adentro del contenedor el
+    `git config` global no existe: el `user.email` de tu maquina no se ve desde
+    ahi, y sin el no se puede distinguir tu commit del de un companero.
+    """
+    valor = os.environ.get("QA_AUTOR") or _git("config", "user.email")
+    return valor.strip().lower()
+
+
+def partir_por_autoria(candidatos, base=None):
+    """Separa (tuyos, ajenos) segun quien commiteo cada archivo en esta rama.
+
+    Devuelve (None, None) si no se puede saber quien sos: sin esa certeza,
+    adivinar seria peor que no hacer nada.
+
+    Por que la autoria y no "lo que tenes sin commitear": porque el gate se corre
+    en los dos momentos, antes y despues de commitear, y "sin commitear" solo
+    acierta en el primero. Si ya commiteaste, tus propios archivos quedarian
+    afuera y el formato no se corregiria nunca.
+
+    Un archivo es tuyo si TODOS los commits de la rama que lo tocaron son tuyos.
+    Alcanza con que un companero lo haya tocado una vez para que quede afuera:
+    reformatearlo te lo pondria a tu nombre en el `git blame`, y a este equipo lo
+    evaluan por lineas por persona.
+
+    Un archivo sin commits en la rama --recien creado, o solo modificado en el
+    working tree-- es tuyo: lo estas escribiendo vos ahora.
+    """
+    yo = autor_actual()
+    if not yo:
+        return None, None
+
+    if base is None:
+        base = base_de_comparacion()
+
+    tuyos, ajenos = [], []
+    for archivo in candidatos:
+        autores = set()
+        if base:
+            salida = _git("log", "--format=%ae", base + "..HEAD", "--", archivo)
+            autores = {a.strip().lower() for a in salida.splitlines() if a.strip()}
+        if not autores or autores == {yo}:
+            tuyos.append(archivo)
+        else:
+            ajenos.append(archivo)
+    return tuyos, ajenos
+
+
+def quienes_tocaron(archivos, base=None):
+    """Los mails de quienes commitearon estos archivos en la rama, ordenados."""
+    if base is None:
+        base = base_de_comparacion()
+    if not base:
+        return []
+    autores = set()
+    for archivo in archivos:
+        salida = _git("log", "--format=%ae", base + "..HEAD", "--", archivo)
+        autores |= {a.strip() for a in salida.splitlines() if a.strip()}
+    return sorted(autores)
 
 
 def todos_los_archivos():
