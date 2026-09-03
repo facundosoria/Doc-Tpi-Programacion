@@ -4,6 +4,33 @@
 >
 > Referencia de arquitectura: [02-arquitectura-y-stack.md](../../docs/02-arquitectura-y-stack.md)
 > Referencia de integración: [17-mapa-de-integracion.md](../../docs/17-mapa-de-integracion.md)
+> Reparto por persona y plan de la demo: [10-entregables-y-plan.md](../../docs/10-entregables-y-plan.md) Parte 2
+
+---
+
+## Cómo leer este documento
+
+**El árbol es el destino, no la foto de hoy.** Este repositorio tiene construida la rebanada
+de la demo (gateway + tutor); el resto de los paquetes son el lugar reservado para cuando se
+construyan. Cada carpeta lleva su estado y su dueño:
+
+| Marca | Significa |
+|---|---|
+| ✅ | **Existe hoy** en `src/`. Se puede leer el código |
+| 🟡 | Existe **parcialmente** — hay clases, faltan otras de la tabla |
+| ⬜ | **Destino.** La carpeta se crea cuando arranca ese módulo, no antes |
+
+**Dueño** es la persona del reparto de [10](../../docs/10-entregables-y-plan.md) Parte 2 (P1–P6).
+No es burocracia: es la respuesta a *«¿a quién le pregunto por esta carpeta?»* y a *«¿quién resuelve
+este conflicto de merge?»*.
+
+> **No crees paquetes Java vacíos «para que estén».** Git no versiona directorios vacíos —harían
+> falta `.gitkeep` en cada uno—, y un paquete sin clases ensucia los reportes de JaCoCo y PMD que
+> lee el gate. **El paquete nace con su primera clase.**
+>
+> **La excepción es `resources/`:** ahí los `.gitkeep` de `prompts/` sí valen la pena, porque
+> declaran dónde va a vivir cada prompt antes de que exista y evitan que alguien lo escriba
+> adentro del código. No son paquetes: no los mira ninguna herramienta de calidad.
 
 ---
 
@@ -28,6 +55,23 @@ entity       ←  las tablas como objetos Java · solo se usan en repository y s
 
 `queue`, `event` y `config` son capas de soporte: no tienen acceso entre sí ni a `controller`.
 
+### Lo que esta decisión NO te da — leelo antes de repartir el trabajo
+
+**Las fronteras entre módulos son de negocio, no de datos.** `service/` está partido en un paquete
+por módulo, pero `repository/` y `entity/` son **planos y compartidos**: la entidad de M3 y la de M2
+viven en la misma carpeta y cualquiera puede inyectar cualquier repositorio.
+
+Es una decisión consciente, no un olvido. Partir también los datos (`evaluacion/repository/`,
+`rag/repository/`) es lo correcto en un sistema grande, y acá sería sobreingeniería: son cuatro
+semanas, un solo esquema de base y una sola transacción.
+
+**Pero tiene un costo, y hay que administrarlo:** `repository/` y `entity/` son el punto de conflicto
+de merge más probable del proyecto. Por eso **cada tabla tiene un dueño declarado** en la tabla de
+[`repository/`](#repository--capa-de-acceso-a-datos), y la regla es:
+
+> **Podés leer la entidad de otro módulo. Para cambiarle un campo, hablás con su dueño.**
+> Un `ALTER` sobre una tabla ajena rompe el migration de otro y se descubre en el CI, no en tu máquina.
+
 ---
 
 ## Árbol completo
@@ -36,72 +80,77 @@ entity       ←  las tablas como objetos Java · solo se usan en repository y s
 src/
 ├── main/
 │   ├── java/ar/edu/utn/frc/tup/piv/evaluacionllm/
+│   │   │                                                   estado  dueño
+│   │   ├── Application.java                                   ✅     P6
 │   │   │
-│   │   ├── Application.java
+│   │   ├── controller/                  CAPA 1 · Presentación 🟡     P6
 │   │   │
-│   │   ├── controller/                       ← CAPA 1 · Presentación
+│   │   ├── dto/                         El contrato HTTP
+│   │   │   ├── request/                   DTOs de entrada     🟡     cada uno
+│   │   │   └── response/                  DTOs de salida      🟡     cada uno
 │   │   │
-│   │   ├── dto/
-│   │   │   ├── request/                      ← DTOs de entrada
-│   │   │   └── response/                     ← DTOs de salida
+│   │   ├── mapper/                      DTO ↔ entity          ⬜     P6
 │   │   │
-│   │   ├── exception/                        ← Manejo global de errores
+│   │   ├── exception/                   Errores → HTTP        🟡     P6
 │   │   │
-│   │   ├── service/                          ← CAPA 2 · Negocio (M1–M7)
-│   │   │   ├── gateway/                      ← M1 · AI Gateway
-│   │   │   │   ├── adapter/                  │   Adapters por proveedor LLM
-│   │   │   │   ├── quota/                    │   Contadores de cuota
-│   │   │   │   └── guard/                    │   Guardarraíles entrada/salida
-│   │   │   ├── rag/                          ← M2 · RAG
-│   │   │   ├── evaluacion/                   ← M3 · Evaluador
-│   │   │   ├── calibracion/                  ← M4 · Calibración
-│   │   │   ├── moderacion/                   ← M5 · Moderación de chat
-│   │   │   ├── tutor/                        ← M6 · Tutor
-│   │   │   ├── generacion/                   ← M7a · Generador de desafíos
-│   │   │   └── correccion/                   ← M7b · Corrector
+│   │   ├── service/                     CAPA 2 · Negocio
+│   │   │   ├── gateway/                   M1 · AI Gateway     🟡     P1
+│   │   │   │   ├── registry/                función → modelo  ⬜     P1
+│   │   │   │   ├── adapter/                 uno por proveedor 🟡     P1
+│   │   │   │   ├── quota/                   contadores        ⬜     P1
+│   │   │   │   ├── guard/                   guardarraíles     ✅     P5
+│   │   │   │   └── log/                     log de llamadas   ⬜     P1
+│   │   │   ├── rag/                       M2 · RAG            ⬜     P2
+│   │   │   ├── evaluacion/                M3 · Evaluador      ⬜     P3
+│   │   │   ├── calibracion/               M4 · Calibración    ⬜     P4
+│   │   │   ├── moderacion/                M5 · Moderación     ⬜     P5
+│   │   │   ├── tutor/                     M6 · Tutor          ✅     P6
+│   │   │   ├── generacion/                M7 · Generador      ⬜     P2
+│   │   │   └── correccion/                M7 · Corrector      ⬜     P3
 │   │   │
-│   │   ├── repository/                       ← CAPA 3 · Acceso a datos
+│   │   ├── repository/                  CAPA 3 · Datos        🟡     compartida
 │   │   │
-│   │   ├── entity/                           ← CAPA 4 · Entidades JPA
+│   │   ├── entity/                      CAPA 4 · JPA          🟡     compartida
 │   │   │
-│   │   ├── queue/                            ← CAPA 5 · Cola interna Redis (M8)
-│   │   │   ├── producer/
-│   │   │   └── worker/
+│   │   ├── queue/                       CAPA 5 · Cola Redis   ⬜     P6
+│   │   │   ├── producer/                  encola trabajos     ⬜     P6
+│   │   │   └── worker/                    drena la cola       ⬜     P6
 │   │   │
-│   │   ├── event/                            ← CAPA 6 · Bus de eventos (M8)
-│   │   │   ├── publisher/
-│   │   │   └── consumer/
+│   │   ├── event/                       CAPA 6 · Bus (M8)     ⬜     P6
+│   │   │   ├── publisher/                 lo que publicamos   ⬜     P6
+│   │   │   └── consumer/                  lo que consumimos   ⬜     P6
 │   │   │
-│   │   └── config/                           ← CAPA 7 · Configuración Spring (M8)
+│   │   └── config/                      CAPA 7 · Spring (M8) 🟡     P6
 │   │
 │   └── resources/
-│       ├── application.yml
-│       ├── contracts/                        ← OpenAPI por función
-│       ├── prompts/                          ← Prompts versionados fuera del código
-│       │   ├── evaluacion/
-│       │   ├── correccion/
-│       │   ├── generacion/
-│       │   ├── tutor/
-│       │   └── moderacion/
+│       ├── application.yml                                    ✅
+│       ├── contracts/                     OpenAPI por función 🟡     P6
+│       ├── prompts/                       Fuera del código
+│       │   ├── tutor/                                         ✅     P6
+│       │   ├── evaluacion/                                    ⬜     P3
+│       │   ├── correccion/                                    ⬜     P3
+│       │   ├── generacion/                                    ⬜     P2
+│       │   └── moderacion/                                    ⬜     P5
 │       └── db/
-│           └── migration/                    ← Scripts Flyway
+│           └── migration/                 Scripts Flyway      ⬜     P6
 │
 └── test/
-    └── java/ar/edu/utn/frc/tup/piv/evaluacionllm/
-        ├── controller/
-        ├── service/
-        │   ├── gateway/
-        │   ├── rag/
-        │   ├── evaluacion/
-        │   ├── calibracion/
-        │   ├── moderacion/
-        │   ├── tutor/
-        │   ├── generacion/
-        │   └── correccion/
-        ├── repository/
-        ├── queue/
-        └── event/
+    ├── java/ar/edu/utn/frc/tup/piv/evaluacionllm/
+    │   └── (espeja main/ paquete por paquete: el test de una clase
+    │        vive en el mismo paquete que la clase)
+    └── resources/
+        ├── application-test.yml           perfil de test      ⬜
+        └── fixtures/                      respuestas fijas    ⬜
+            ├── evaluacion/
+            ├── tutor/
+            └── moderacion/
 ```
+
+**Los tests espejan `main/` y no tienen árbol propio.** Un `TutorServiceImplTest` vive en
+`service/tutor/` igual que la clase que prueba; así el test ve los miembros package-private y
+nadie tiene que decidir dónde ponerlo. No hay carpeta aparte para los tests que llaman al modelo
+real: eso se resuelve con una etiqueta, y está explicado en
+[Cómo se separan los tests](#cómo-se-separan-los-tests).
 
 ---
 
@@ -175,6 +224,27 @@ cambiar una no debería forzar cambiar la otra.
 
 ---
 
+### `mapper/` — La conversión DTO ↔ entity
+
+**Qué va acá:** las clases que traducen entre el contrato HTTP (`dto/`) y las entidades JPA
+(`entity/`). Una por par, con métodos estáticos o con MapStruct.
+
+**Por qué existe la carpeta:** porque *«la conversión la hace el service o un mapper»* es la clase de
+libertad que, con seis personas, produce seis estilos distintos —y después nadie sabe dónde buscar
+por qué un campo llega en null. **Decidido: el mapeo vive acá y en ningún otro lado.**
+
+| Regla | Consecuencia |
+|---|---|
+| El `service` recibe y devuelve **entidades o tipos del dominio**, nunca DTOs | El negocio no depende del contrato HTTP |
+| El `controller` llama al mapper para entrar y para salir | El contrato cambia sin tocar el negocio |
+| El mapper **no tiene lógica**: no calcula, no valida, no consulta la BD | Si un mapeo necesita una regla, esa regla es del service |
+
+> **Si el mapeo de un módulo es de dos campos, un `record` con un método `from(...)` alcanza.**
+> No hace falta traer MapStruct hasta que duela: el objetivo es que el mapeo tenga **un** lugar,
+> no que tenga framework.
+
+---
+
 ### `exception/` — Manejo global de errores
 
 **Qué va acá:** Un `@RestControllerAdvice` que intercepta excepciones de servicio y las
@@ -214,18 +284,40 @@ Todo service que necesite un LLM llama a `LlmGateway` y no al proveedor directam
 > proveedor de LLM por su cuenta. Todo pasa por `LlmGateway`. Es lo que hace posible
 > RF-IA-23/24 (tabla función→modelo editable por ADMIN) y RF-IA-27 (degradación).
 
-**`service/gateway/adapter/`** — Adapters por proveedor
+**`service/gateway/`** (raíz) — La orquestación
 
 | Clase | Qué hace |
 |---|---|
-| `LlmGateway` | Interfaz central: `llamar(funcion, prompt) → LlmRespuesta` |
-| `LlmGatewayImpl` | Orquesta los 8 pasos (resolver función → cuota → guardarraíl → prompt → adapter → validar schema → anti-fuga → registrar) |
-| `AnthropicAdapter` | Traduce `LlmRequest` al formato de Anthropic y la respuesta al formato interno |
+| `LlmGateway` | Interfaz central: `llamar(funcion, prompt) → LlmRespuesta`. **Es lo único que ve el resto del servicio** |
+| `LlmGatewayImpl` | Orquesta los 8 pasos: resolver función → cuota → guardarraíl de entrada → prompt → adapter → validar schema → anti-fuga → registrar |
+| `EscaleraDegradacion` | Recorre los proveedores en orden ante una falla y decide cuándo parar (RF-IA-27). Vive acá y no en `adapter/`: **un adapter no puede saber que existen otros adapters** |
+| `LlmRequest` / `LlmResponse` | Tipos internos del gateway. No son los DTOs del contrato HTTP |
+
+**`service/gateway/registry/`** — La tabla función → modelo (RF-IA-23/24/35)
+
+> **Esto es lo más valioso del servicio y por eso tiene paquete propio.** Estaba metido dentro de
+> `adapter/` como una clase suelta, y es al revés: el registro **decide qué adapter se usa**, así que
+> no puede vivir adentro de uno de ellos. Si esta pieza está bien hecha, RF-IA-27, RF-IA-28 y
+> RF-IA-32 salen casi gratis ([02](../../docs/02-arquitectura-y-stack.md) Parte 1 §4).
+
+| Clase | Qué hace |
+|---|---|
+| `FuncionModeloRegistry` | Resuelve `funcion → proveedor + modelo + versión` leyendo la BD. **Nunca hardcodeado, nunca desde `application.yml`**: lo edita un ADMIN sin deploy |
+| `FuncionModeloCache` | Cachea la resolución para no pegarle a la BD en cada llamada, e invalida al recibir `modelo_llm_cambiado` |
+
+**`service/gateway/adapter/`** — Un adapter por proveedor
+
+| Clase | Qué hace |
+|---|---|
+| `LlmAdapter` | La interfaz que implementan todos. Recibe `LlmRequest`, devuelve `LlmResponse` |
+| `AnthropicAdapter` | Traduce al formato de Anthropic y la respuesta al formato interno |
 | `OpenAiAdapter` | Ídem para OpenAI |
 | `GroqAdapter` | Ídem para Groq |
 | `GoogleAdapter` | Ídem para Google Gemini |
-| `LlmRequest` / `LlmResponse` | DTOs internos del gateway (no son los del contrato HTTP) |
-| `FuncionModeloConfig` | Lee la tabla `funcion → proveedor + modelo + versión` de la BD (RF-IA-23/24) |
+
+> **Un adapter traduce y nada más.** No reintenta, no elige modelo, no cuenta cuota, no registra.
+> Todo eso es del gateway. Es lo que hace que sumar un proveedor sea una clase nueva y cero cambios
+> en el resto.
 
 **`service/gateway/quota/`** — Contadores (RF-IA-22)
 
@@ -243,6 +335,21 @@ Todo service que necesite un LLM llama a `LlmGateway` y no al proveedor directam
 
 > **`InputGuard` y `OutputAntiLeakGuard` son distintos** del `ModeracionService`: los guardarraíles
 > del gateway son para las 5 funciones de IA; el moderador es específico del chat de Tema 11.
+
+**`service/gateway/log/`** — Registro de llamadas (RF-IA-02/25/33)
+
+**Faltaba en la versión anterior de este árbol, y es un entregable comprometido**
+([10](../../docs/10-entregables-y-plan.md) Bloque 2, última fila). Sin esto no hay defensa posible
+de un score: *«¿con qué modelo se calculó esta nota?»* no tiene respuesta.
+
+| Clase | Qué hace |
+|---|---|
+| `LlamadaLlmLogger` | Persiste una fila por llamada: `model_id`, `model_version`, `prompt_version`, `rubric_version`, tokens de entrada y salida, costo estimado, latencia, `trace_id`, `curso_cohorte_id` |
+| `CostoEstimator` | Traduce tokens a plata según el precio del modelo. El precio es dato de config, no constante en el código |
+
+> **Lo escribe el gateway, siempre, incluso cuando la llamada falla.** Un error de proveedor
+> registrado es lo que después permite demostrar que la escalera de degradación se disparó.
+> Si el log lo hiciera cada service, habría cinco formatos y ninguno completo.
 
 ---
 
@@ -337,7 +444,13 @@ Depende de M1 (gateway), M2 (RAG para contexto) y M5 (guardarraíl anti-fuga de 
 
 ---
 
-#### `service/generacion/` — M7a · Generador de desafíos
+#### `service/generacion/` — M7 · Generador de desafíos
+
+> **M7 es un solo módulo en [02](../../docs/02-arquitectura-y-stack.md) y
+> [10](../../docs/10-entregables-y-plan.md); acá son dos paquetes.** No es una contradicción:
+> comparten dueño distinto (P2 el generador, P3 el corrector) y no comparten código, así que
+> separarlos evita que dos personas editen la misma carpeta. **Se los nombra M7, sin sufijos:**
+> «M7a/M7b» no existe en ningún otro documento y confunde en las reuniones de integración.
 
 **Qué va acá:** Genera enunciados de desafíos a partir de un blueprint. Es **asíncrono**
 (latencia alta, volumen muy bajo, hay revisión humana posterior).
@@ -350,7 +463,7 @@ Depende de M1 (gateway), M2 (RAG para contexto) y M5 (guardarraíl anti-fuga de 
 
 ---
 
-#### `service/correccion/` — M7b · Corrector
+#### `service/correccion/` — M7 · Corrector
 
 **Qué va acá:** El segundo juez. Evalúa la respuesta abierta de un alumno. Es **asíncrono**
 (latencia alta, volumen medio, alto riesgo — es una nota).
@@ -366,15 +479,25 @@ Depende de M1 (gateway), M2 (RAG para contexto) y M5 (guardarraíl anti-fuga de 
 **Qué va acá:** Interfaces de Spring Data JPA. Una por entidad. Nada más.
 Nunca tienen lógica de negocio: las queries complejas van en métodos con `@Query`.
 
-| Clase | Tabla que gestiona |
-|---|---|
-| `EvaluacionRepository` | `evaluaciones` (score, confianza, estado, trace_id, tokens…) |
-| `JobRepository` | `jobs` (estado de cada trabajo asíncrono, posicion_en_cola) |
-| `ChunkRepository` | `chunks` (texto + vector pgvector + `curso_cohorte_id`) |
-| `CalibracionRepository` | `calibraciones` (resultado, veredicto, deriva por dimensión) |
-| `GoldenSetRepository` | `golden_set_casos` (casos de prueba elaborados por los docentes) |
-| `FuncionModeloRepository` | `funcion_modelo_config` (tabla función → proveedor + modelo + versión, RF-IA-23/24) |
-| `QuotaRepository` | Lectura/escritura de contadores (se prefiere Redis directo desde `QuotaStore`) |
+**Esta carpeta es compartida y por eso cada fila tiene dueño.** El dueño es quien decide el esquema
+de esa tabla y quien escribe su migration; el resto lee sin pedir permiso y avisa antes de cambiar
+un campo.
+
+| Clase | Tabla que gestiona | Dueño |
+|---|---|---|
+| `EvaluacionRepository` | `evaluaciones` (score, confianza, estado, trace_id, tokens…) | P3 |
+| `JobRepository` | `jobs` (estado de cada trabajo asíncrono, posicion_en_cola) | P6 |
+| `ChunkRepository` | `chunks` (texto + vector pgvector + `curso_cohorte_id`) | P2 |
+| `CalibracionRepository` | `calibraciones` (resultado, veredicto, deriva por dimensión) | P4 |
+| `GoldenSetRepository` | `golden_set_casos` (casos de prueba elaborados por los docentes) | P4 |
+| `FuncionModeloRepository` | `funcion_modelo_config` (función → proveedor + modelo + versión, RF-IA-23/24) | P1 |
+| `LlamadaLlmRepository` | `llamadas_llm` (el log de RF-IA-02/25/33) | P1 |
+
+> **No hay `QuotaRepository`, y es a propósito.** El contador de cuota vive en Redis con TTL de 24 h
+> y lo maneja `QuotaStore`. Tener además un repositorio JPA de cuota garantiza que tarde o temprano
+> alguien decremente en un lado y lea del otro. **Una fuente de verdad: Redis.**
+> Si más adelante hace falta persistir el consumo para facturar o auditar, eso es una tabla de
+> histórico que se escribe desde `gateway/log/`, no un segundo contador.
 
 ---
 
@@ -385,8 +508,13 @@ Solo las usan `repository/` y `service/`. **Nunca salen del microservicio**: el 
 siempre devuelve DTOs, nunca entidades.
 
 > **Regla de oro: `curso_cohorte_id` va en TODA entidad** que tenga alcance de curso.
-> `EvaluacionEntity`, `ChunkEntity`, `CalibracionEntity`, `GoldenSetCasoEntity`, `JobEntity`.
-> Si no está desde el primer migration, agregarla después es una migración de datos.
+> `EvaluacionEntity`, `ChunkEntity`, `CalibracionEntity`, `GoldenSetCasoEntity`, `JobEntity`,
+> `LlamadaLlmEntity`. Si no está desde el primer migration, agregarla después es una migración de
+> datos ([02](../../docs/02-arquitectura-y-stack.md) Parte 1 §7).
+
+> **`V4__quota.sql` desaparece del plan de migrations.** Estaba descrito como *«backup de Redis»*
+> y no hay tal cosa: si Redis es la fuente de verdad, una tabla espejo solo puede estar desactualizada.
+> El slot queda libre para `V4__llamadas_llm.sql`, que sí hace falta.
 
 ---
 
@@ -496,16 +624,65 @@ aplicados: si hay que cambiar algo, se agrega un script nuevo.
 | `V1__init.sql` | Tablas base: `jobs`, `evaluaciones`, `calibraciones`, `funcion_modelo_config` |
 | `V2__pgvector.sql` | Extensión `pgvector`, tabla `chunks` con columna `vector(1536)` |
 | `V3__golden_set.sql` | Tabla `golden_set_casos` |
-| `V4__quota.sql` | Tabla `quota_diaria` (backup de Redis; Redis es la fuente de verdad) |
+| `V4__llamadas_llm.sql` | Tabla `llamadas_llm`: el log de RF-IA-02/25/33 (modelo, versión, tokens, costo, latencia, `trace_id`) |
+
+> **No hay migration de cuota.** Los contadores viven en Redis y solo ahí — ver la nota en
+> [`repository/`](#repository--capa-de-acceso-a-datos).
 
 > **`curso_cohorte_id` en V1.** Si se olvidó, hay que agregarlo en V2 con una columna nullable
 > y luego hacerla NOT NULL en V3 después de migrar los datos — ese trabajo no existe si está desde V1.
 
 ---
 
+## Cómo se separan los tests
+
+[TESTING.md](TESTING.md) pide que los tests que llaman a la API real estén *«en un módulo / carpeta
+separada»* y que **no corran en CI automático**. La carpeta separada no hace falta y además no
+alcanza: lo que decide qué corre es la etiqueta de JUnit, no la ruta del archivo.
+
+**Tres categorías, dos etiquetas:**
+
+| Categoría | Etiqueta | Corre en el gate local | Corre en CI (`--perfil completo`) | Gasta plata |
+|---|---|---|---|---|
+| **Unitario** — el LLM está mockeado | *(ninguna)* | ✅ | ✅ | No |
+| **Integración** — levanta Postgres y Redis | `@Tag("integracion")` | ❌ | ✅ | No |
+| **Modelo real** — pega contra el proveedor | `@Tag("modelo-real")` | ❌ | ❌ | **Sí** |
+
+**`modelo-real` está excluida en los dos perfiles y eso es deliberado.** El perfil `completo` levanta
+la exclusión de `integracion` —para eso existe— pero mantiene la de `modelo-real`, porque el CI corre
+en cada push a `dev` y a `main`. Un test que gasta plata sin que nadie lo pida no se descubre hasta
+que llega la factura.
+
+Para correrlos, a mano y a sabiendas:
+
+```bash
+./mvnw test -Dgroups=modelo-real -DexcludedGroups= -DtestFailureIgnore=false
+```
+
+> **Etiquetá bien y no te confíes de la carpeta.** `integracion` significa *«necesita Postgres o
+> Redis»*; `modelo-real` significa *«le pega al proveedor»*. Un test que hace las dos cosas lleva las
+> dos etiquetas: si solo lleva `integracion`, el CI lo va a ejecutar.
+
+**Dónde va cada archivo:** en el paquete espejo de la clase que prueba. La etiqueta va en la clase,
+no en la carpeta:
+
+```
+service/gateway/adapter/GroqAdapterTest.java          ← unitario, mock del HTTP
+service/gateway/adapter/GroqAdapterModeloRealTest.java ← @Tag("modelo-real")
+service/evaluacion/EvaluacionServiceTest.java          ← unitario
+repository/ChunkRepositoryTest.java                    ← @Tag("integracion"), necesita pgvector
+```
+
+**`src/test/resources/fixtures/`** guarda las respuestas fijas del modelo que pide TESTING.md: un
+JSON por caso, versionado en git. Es lo que hace que el test de parseo pruebe algo real sin llamar a
+nadie — y lo que permite reproducir un bug de parseo pegando la respuesta que lo rompió.
+
+---
+
 ## Reglas de comunicación entre capas
 
 ```
+controller  →  mapper          ✅  para entrar y para salir
 controller  →  service         ✅  la única dirección permitida
 service     →  repository      ✅
 service     →  queue/producer  ✅  para trabajos diferidos
@@ -513,47 +690,89 @@ service     →  event/publisher ✅  al terminar un trabajo
 event/consumer → service       ✅  el consumer delega al service
 queue/worker  → service        ✅  el worker delega al service
 
+cualquier service → gateway/LlmGateway  ✅  la ÚNICA puerta al modelo
+
 controller  →  repository      ❌  el controller no toca la BD
 controller  →  entity          ❌  el controller no conoce entidades JPA
+service     →  dto/            ❌  el negocio no conoce el contrato HTTP
 service     →  controller      ❌  el servicio no sabe que existe HTTP
 repository  →  service         ❌  el repo no tiene lógica
+mapper      →  repository      ❌  el mapper traduce, no consulta
 queue/worker → controller      ❌  el worker no emite HTTP responses
 event        ↔ queue           ❌  no se hablan entre sí
+
+cualquier service → adapter/   ❌  nadie llama a un proveedor por su cuenta
+gateway/adapter → registry/    ❌  un adapter no sabe que existen otros
 ```
+
+> **La última regla es la que sostiene todo lo demás.** Si un service llama a `GroqAdapter` en vez
+> de a `LlmGateway`, esa llamada no tiene cuota, ni guardarraíl, ni log, ni degradación — y la tabla
+> función→modelo deja de ser la verdad. Es el mismo argumento del AI Gateway, pero adentro del
+> equipo ([10](../../docs/10-entregables-y-plan.md) Parte 2 §1).
 
 ---
 
 ## Orden de implementación
 
+**Son dos órdenes distintos y conviene no mezclarlos.** El de la demo lo manda el calendario de
+cuatro semanas; el del producto lo mandan las dependencias entre módulos y los equipos que nos
+esperan.
+
+### Orden de la demo — las cuatro semanas de [10](../../docs/10-entregables-y-plan.md) Parte 2 §4
+
+Este es el orden que hay que seguir ahora. **Fuera de alcance en la demo:** `queue/`, `event/`,
+`config/EurekaConfig`, el fallback entre proveedores y el componente Angular. Se usa el Swagger UI
+que genera springdoc.
+
+| Semana | Qué se construye | Paquetes | Quién |
+|---|---|---|---|
+| **1** | `docker compose up` levanta el servicio y una llamada real responde | `config/` · `service/gateway/` con **un** adapter · `controller/` | P1, P6 |
+| **2** | Ingesta de un PDF → chunks con metadata → embeddings → búsqueda | `service/rag/` · `entity/ChunkEntity` · `repository/ChunkRepository` | P2 |
+| **3** | Generar 5 preguntas desde ese PDF, con salida estructurada y validación | `service/generacion/` · `resources/prompts/generacion/` | P2, P3 |
+| **4** | Corregir una respuesta y evaluar una transcripción | `service/correccion/` · `service/evaluacion/` · `service/gateway/guard/` | P3, P5 |
+
+> **Semana 1 es la que destraba a los otros cuatro.** Hasta que exista
+> `LlmGateway.llamar(funcion, prompt)` andando contra un proveedor real, P2, P3, P4 y P5 no tienen
+> sobre qué construir. Es la única semana donde el paralelismo no ayuda.
+
+### Orden del producto — cuando el alcance es el completo
+
 ```
-1. controller/  +  dto/  (stub que devuelve mocks hardcodeados)
-   → El Tema 02 puede arrancar contra el mock de GET /ai/calibracion/{id}
-   → El Tema 11 puede arrancar contra el mock de POST /ai/moderador
+1. controller/  +  dto/  +  mapper/   (stub que devuelve mocks hardcodeados)
+   → El Tema 02 arranca contra el mock de GET /ai/calibracion/{id}
+   → El Tema 11 arranca contra el mock de POST /ai/moderador
+   → Se publica el OpenAPI de resources/contracts/ ANTES de implementar
 
-2. service/gateway/  (M1 — sin esto nadie llama al LLM)
-   → adapter/ + quota/ + guard/
-   → Primero un solo adapter (el proveedor que eligió el equipo)
-   → La tabla funcion_modelo_config permite cambiar sin deploy
+2. service/gateway/   (M1 — sin esto nadie llama al LLM)
+   → registry/ primero: la tabla funcion→modelo es lo que permite cambiar sin deploy
+   → después adapter/ (uno solo), quota/, guard/, log/
+   → EscaleraDegradacion se agrega recién con el segundo adapter
 
-3. service/moderacion/  (M5 — capa clásica primero, sin LLM)
-   → CapaClasicaService funciona sola; el clasificador se agrega después
-   → Desbloquea al Tema 11 con respuestas reales (no mock)
-
-4. service/evaluacion/  (M3 — el núcleo del producto)
-   → Requiere service/gateway/ funcionando
-   → Requiere los prompts en resources/prompts/evaluacion/
-
-5. service/calibracion/  (M4)
-   → Requiere M3
-   → Desbloquea el GET /ai/calibracion/ con datos reales → Tema 02 activa cursos
-
-6. service/rag/  (M2)
+3. service/rag/       (M2)
    → Ingesta + chunking + embedding + retrieval
-   → Lo necesitan tutor y generador
+   → Lo necesitan tutor, evaluador y generador: adelantarlo desbloquea a tres personas
 
-7. service/tutor/  (M6)
-   → Requiere M1 + M2 + guard/ (ya están)
+4. service/evaluacion/ (M3 — el núcleo del producto)
+   → Requiere M1 y los prompts en resources/prompts/evaluacion/
 
-8. service/generacion/ + service/correccion/  (M7)
+5. service/calibracion/ (M4)
+   → Requiere M3
+   → Desbloquea el GET /ai/calibracion/ con datos reales → el Tema 02 activa cursos
+
+6. service/tutor/     (M6)
+   → Requiere M1 + M2 + gateway/guard/
+
+7. service/generacion/ + service/correccion/  (M7)
    → Requieren M1 + M2
+
+8. service/moderacion/ (M5)
+   → Va último: el chat es Fase 2 del PRD y no existe todavía
+   → Lo que sí se entrega temprano es su CONTRATO (resources/contracts/moderacion-v1.yaml),
+     para que el Tema 11 no cierre el suyo sin nuestros campos
 ```
+
+> **La moderación bajó del puesto 3 al 8 respecto de la versión anterior de este documento.**
+> El puesto 3 asumía que desbloqueaba al Tema 11, pero
+> [10](../../docs/10-entregables-y-plan.md) Bloque 3 es explícito: **el chat es Fase 2 y se
+> construye cuando el chat exista.** Lo que el Tema 11 necesita ya no es el código, es el `.yaml`
+> —y ese está entregado.
