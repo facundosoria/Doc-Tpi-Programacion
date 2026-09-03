@@ -162,7 +162,9 @@
           <!-- El gate lee los XML de surefire, asi que la suite no debe abortar
                el build antes de escribirlos. -->
           <testFailureIgnore>true</testFailureIgnore>
-          <excludedGroups>integracion</excludedGroups>
+          <!-- integracion: necesita Postgres y Redis levantados.
+               modelo-real: le pega a la API del proveedor y GASTA PLATA. Ver TESTING.md. -->
+          <excludedGroups>integracion,modelo-real</excludedGroups>
         </configuration>
       </plugin>
 
@@ -175,7 +177,15 @@
 
   <profiles>
     <!-- Perfil completo: lo que corre el CI. Suma los tests de integracion, que
-         levantan Postgres y Redis y no entran en el presupuesto del gate local. -->
+         levantan Postgres y Redis y no entran en el presupuesto del gate local.
+
+         Los `modelo-real` siguen excluidos ACA TAMBIEN: el CI corre en cada push
+         a dev y a main, y esos tests le pegan a la API del proveedor. Un test que
+         gasta plata sin que nadie lo pida no se descubre hasta que llega la
+         factura. Para correrlos, a mano y a sabiendas:
+
+             ./mvnw test -Dgroups=modelo-real -DexcludedGroups= -DtestFailureIgnore=false
+    -->
     <profile>
       <id>completo</id>
       <build>
@@ -184,7 +194,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <excludedGroups combine.self="override"/>
+              <excludedGroups combine.self="override">modelo-real</excludedGroups>
             </configuration>
           </plugin>
         </plugins>
