@@ -1412,6 +1412,74 @@ arregla acotando el `tar` a la carpeta del equipo más `tools/`, pero hay que ha
 
 ---
 
+# Parte 14 — Qué se saca cuando `dev` va a `main`
+
+**El gate vive en `dev` y no viaja a `main`.** La decisión se tomó en el commit
+`02d1f3f` («El gate de calidad no viaja a main todavia») y hasta ahora existía **solo
+ahí**: cada merge dependía de que alguien se acordara. Esta parte existe para que no
+dependa de la memoria.
+
+> **Por qué no viaja.** El pipeline todavía no se usa, y `main` es la rama que ve el
+> resto de la materia. Un `qa.sh` que nadie corre, un workflow que dispara sobre pushes
+> ajenos y 1.400 líneas de documento sobre un gate inactivo son ruido para quien abre
+> el repositorio a mirar el Tema 07.
+
+## Lo que se saca entero
+
+| Qué | Dónde |
+|---|---|
+| El script del gate | `qa.sh` |
+| El motor | `tools/qa/` |
+| El front del CI | `tools/ci-front/` |
+| El workflow de Actions | `.github/workflows/qa.yml` |
+| **Este documento** | `docs/16-pipeline-y-verificaciones.md` |
+| Las slides del deck que lo explican | `presentaciones/` |
+
+`.qa/` no hace falta sacarlo: está en el `.gitignore` y nunca se commitea.
+
+> **El número 16 queda reservado en el índice**, con una nota de dónde vive. Renumerar
+> 17, 18 y 19 haría que el mismo número signifique cosas distintas según la rama —y
+> los enlaces cruzados entre documentos apuntarían a otro lado.
+
+## Lo que se queda pero hay que redactar distinto
+
+**Este es el paso que se olvida.** El gate no es solo archivos: dejó frases sueltas en
+documentos que sí viajan. Un archivo que se queda no puede explicar sus decisiones
+diciendo *«porque el gate lee esto»* en una rama donde el gate no existe.
+
+| Archivo | Qué decir en `main` |
+|---|---|
+| `codigo-ejemplo/ms-evaluacion-llm/pom.xml` | Los comentarios de spotless, PMD, JaCoCo y surefire explican **qué hace el plugin**, no quién lee su reporte |
+| `codigo-ejemplo/ms-evaluacion-llm/ESTRUCTURA.md` | La tabla de etiquetas de test habla de «el build» y «el build completo», no de «el gate local» y «el CI» |
+| `README.md`, `docs/06`, `docs/15`, `docs/importado/`, `codigo-ejemplo/README.md` | Ya saneados en `02d1f3f`. Revisar que no hayan vuelto |
+
+**Lo que NO se toca:** el perfil `completo` del `pom.xml` y las etiquetas
+`@Tag("integracion")` / `@Tag("modelo-real")` son configuración de Maven legítima y
+funcionan igual sin gate. Se quedan; solo cambia cómo se las comenta. Las slides de
+SonarQube también se quedan: son la propuesta de la cátedra, no nuestro pipeline.
+
+## Deuda conocida
+
+🔴 **`main` todavía tiene una frase del gate sin sanear.** En
+`codigo-ejemplo/ms-evaluacion-llm/pom.xml` sobrevive *«El gate lee los XML de surefire»*:
+`02d1f3f` corrigió el comentario del perfil `completo` y se salteó ese. Es inofensivo
+—no revela nada que importe— pero conviene arreglarlo en el próximo merge, porque
+demuestra el punto: **el paso de redactar distinto es el que se escapa.**
+
+## La checklist del merge
+
+```
+1. git checkout main && git merge dev
+2. Sacar los archivos de la tabla "Lo que se saca entero"
+3. Redactar distinto los de la tabla de arriba
+4. Verificar que no quedó nada:
+   git grep -inE "qa\.sh|gate de calidad|tools/qa|el gate|perfil completo" main
+   → los unicos hits aceptables son el nombre del perfil de Maven
+5. Confirmar que el indice de docs/ sigue reservando el numero 16
+```
+
+---
+
 # Lo que todavía falta
 
 > ### El hueco más grande es la mitad derecha del pipeline
