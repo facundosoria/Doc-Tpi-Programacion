@@ -1415,9 +1415,16 @@ arregla acotando el `tar` a la carpeta del equipo más `tools/`, pero hay que ha
 # Parte 14 — Qué se saca cuando `dev` va a `main`
 
 **El gate vive en `dev` y no viaja a `main`.** La decisión se tomó en el commit
-`02d1f3f` («El gate de calidad no viaja a main todavia») y hasta ahora existía **solo
-ahí**: cada merge dependía de que alguien se acordara. Esta parte existe para que no
-dependa de la memoria.
+`02d1f3f` («El gate de calidad no viaja a main todavia») y hasta el pase de `9a3b75f` vivía
+**solo ahí**: el único merge que hubo en el medio —`1933340`— dependió de que alguien
+se acordara. Esta parte existe para que no dependa de la memoria.
+
+Se usó por primera vez en `9a3b75f`, y encontró dos cosas que la memoria había perdido
+—cinco frases sueltas en el `pom`, no una, y un documento nuevo que nadie había sumado
+a la tabla de abajo—. Las dos están corregidas acá; el detalle, en «La deuda que esta
+parte anotaba».
+
+El trabajo del gate, además, está archivado en la rama `archive/qa-y-server`.
 
 > **Por qué no viaja.** El pipeline todavía no se usa, y `main` es la rama que ve el
 > resto de la materia. Un `qa.sh` que nadie corre, un workflow que dispara sobre pushes
@@ -1449,34 +1456,59 @@ diciendo *«porque el gate lee esto»* en una rama donde el gate no existe.
 
 | Archivo | Qué decir en `main` |
 |---|---|
-| `codigo-ejemplo/ms-evaluacion-llm/pom.xml` | Los comentarios de spotless, PMD, JaCoCo y surefire explican **qué hace el plugin**, no quién lee su reporte |
-| `codigo-ejemplo/ms-evaluacion-llm/ESTRUCTURA.md` | La tabla de etiquetas de test habla de «el build» y «el build completo», no de «el gate local» y «el CI» |
-| `README.md`, `docs/06`, `docs/15`, `docs/importado/`, `codigo-ejemplo/README.md` | Ya saneados en `02d1f3f`. Revisar que no hayan vuelto |
+| `codigo-ejemplo/ms-evaluacion-llm/pom.xml` | **Todos** los comentarios —el encabezado del archivo, y los de spotless, PMD, JaCoCo, surefire y el perfil `completo`— explican **qué hace el plugin**, no quién lee su reporte |
+| `codigo-ejemplo/ms-evaluacion-llm/ESTRUCTURA.md` | La tabla de etiquetas de test habla de «el build de todos los días» y «`-Pcompleto`», no de «el gate local» y «el CI». Y dos frases sueltas más: los reportes de JaCoCo y PMD no los «lee el gate», y un `ALTER` sobre una tabla ajena no «se descubre en el CI» |
+| `docs/20-backlog-y-sprints.md` | La épica **E11 se queda entera** —es trabajo planificado, no documentación del gate— pero nombrando *«el pipeline de calidad»*, que es como lo llama el README de `main`, y sin citar `docs/16`, `qa.sh` ni `tools/ci-front`. Son **siete** lugares repartidos por el documento, no uno |
+| `docs/importado/CORRECCIONES-SUGERIDAS.md` | Explica que los quince documentos importados quedaron viejos porque `docs/` creció «y además se sumó `docs/16`». En `main` no se sumó nada: el argumento se sostiene igual hablando de documentos nuevos, sin dar el número |
+| `README.md`, `docs/06`, `docs/15`, `codigo-ejemplo/README.md` | Ya saneados en `02d1f3f`. Revisar que no hayan vuelto |
 
 **Lo que NO se toca:** el perfil `completo` del `pom.xml` y las etiquetas
 `@Tag("integracion")` / `@Tag("modelo-real")` son configuración de Maven legítima y
 funcionan igual sin gate. Se quedan; solo cambia cómo se las comenta. Las slides de
 SonarQube también se quedan: son la propuesta de la cátedra, no nuestro pipeline.
 
-## Deuda conocida
+> **Un documento nuevo entra a esta tabla el día que se escribe, no el día del merge.**
+> `docs/20` nació en `dev`, donde el gate existe, y nombrarlo era lo natural. Nadie lo
+> agregó acá hasta que el merge lo encontró. Si escribís un documento que viaja y
+> mencionás el pipeline, sumá el renglón en el mismo commit.
 
-🔴 **`main` todavía tiene una frase del gate sin sanear.** En
-`codigo-ejemplo/ms-evaluacion-llm/pom.xml` sobrevive *«El gate lee los XML de surefire»*:
-`02d1f3f` corrigió el comentario del perfil `completo` y se salteó ese. Es inofensivo
-—no revela nada que importe— pero conviene arreglarlo en el próximo merge, porque
-demuestra el punto: **el paso de redactar distinto es el que se escapa.**
+## La deuda que esta parte anotaba
+
+✅ **Saldada** —las cinco del `pom` en `9a3b75f`, la sexta en el merge siguiente— y de
+paso demostró el punto mejor de lo que la anotación pretendía.
+
+Esta sección decía que en `main` sobrevivía **una** frase del gate sin sanear —*«El gate
+lee los XML de surefire»*, en el `pom.xml`—. Eran **seis**. Cinco en el `pom`: `02d1f3f`
+corrigió el comentario del perfil `completo` y se salteó las de spotless, PMD, JaCoCo,
+surefire y el encabezado del archivo. Y una sexta en `docs/importado/CORRECCIONES-SUGERIDAS.md`,
+que ninguna de las dos cuentas había visto porque no está en la carpeta donde uno busca.
+Las seis están redactadas de nuevo.
+
+> **La lección no es que faltaba una frase: es que el que las contó también se equivocó.**
+> Buscar «lo que quedó del gate» leyendo el diff no alcanza, porque el diff muestra lo
+> que cambió y estas frases son justamente las que **no** cambiaron. Lo único que las
+> encuentra es el grep del paso 4 corrido sobre el árbol entero.
 
 ## La checklist del merge
 
 ```
-1. git checkout main && git merge dev
+1. git checkout main && git merge --no-commit --no-ff dev
 2. Sacar los archivos de la tabla "Lo que se saca entero"
 3. Redactar distinto los de la tabla de arriba
-4. Verificar que no quedó nada:
-   git grep -inE "qa\.sh|gate de calidad|tools/qa|el gate|perfil completo" main
-   → los unicos hits aceptables son el nombre del perfil de Maven
-5. Confirmar que el indice de docs/ sigue reservando el numero 16
+4. Verificar que no quedo nada, sobre el arbol entero y no sobre el diff:
+   git grep -inE "qa\.sh|tools/qa|tools/ci-front|gate de calidad|gate local|el gate\b|mk-luisao|16-pipeline|docs/16|self-test|--remoto" -- .
+   -> el unico hit aceptable es "el gate humano" de docs/04, que es la revision
+      humana de la catedra y no tiene nada que ver con este pipeline
+5. Confirmar que los enlaces relativos de los .md que cambiaron resuelven
+6. Confirmar que el indice de docs/ sigue reservando el numero 16
+7. Confirmar que el pom sigue parseando y que los dos perfiles dan
+   'integracion,modelo-real' por defecto y 'modelo-real' en completo
 ```
+
+> **`el gate` sin `\b` no sirve.** Matchea *«el gateway»*, que en este proyecto es el AI
+> Gateway del servicio (M1) y aparece decenas de veces en `docs/02`, `docs/18` y
+> `ESTRUCTURA.md`. La versión sin `\b` devuelve tanto ruido que el hallazgo real se
+> pierde adentro; es exactamente cómo sobrevivieron las cinco frases del `pom`.
 
 ---
 
