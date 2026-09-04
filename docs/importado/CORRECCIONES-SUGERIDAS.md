@@ -34,8 +34,8 @@ La rama traía también estas carpetas:
 Los quince eran **copias byte a byte** de los documentos `docs/01` a `docs/15` tal
 como estaban en `main`, solo que renombrados y repartidos en carpetas temáticas. Los
 de [`docs/`](../) son posteriores: crecieron bastante desde entonces —
-`04-funciones-de-ia.md` pasó de 54 KB a 101 KB, por ejemplo— y además se sumó
-`docs/16`.
+`04-funciones-de-ia.md` pasó de 54 KB a 101 KB, por ejemplo— y además se sumaron los
+documentos 17 a 20.
 
 Traer las dos versiones habría dejado el mismo texto dos veces, contradiciéndose. Se
 conservó la más nueva.
