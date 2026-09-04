@@ -1,6 +1,6 @@
 # 10 — Qué entregamos y cómo lo construimos
 
-> El inventario completo del aporte del equipo, y el plan de 12 pasos para seis personas.
+> El inventario completo del aporte del equipo, y el plan de 14 pasos para seis personas.
 
 ---
 
@@ -10,7 +10,8 @@
 > El inventario completo de lo que el equipo produce. Todo lo demás de esta carpeta explica **cómo**;
 > este documento dice **qué**.
 >
-> Estado al **2026-08-30**.
+> Estado al **2026-08-30**, con correcciones puntuales posteriores. **Lo que está decidido lo dice
+> la lista de ADR** de [08](08-decisiones-y-pendientes.md), Parte A — no este documento.
 
 ## 1. En una frase
 
@@ -54,7 +55,8 @@ con él, del RAG y del resto de las funciones de IA.
 | **RAG** | 🟡 A confirmar | Nadie más lo tiene, y el tutor lo necesita |
 | **Generador de evaluaciones** | 🟡 A confirmar | Figura en Tema 04/03 como opcional |
 | **Corrector de respuestas abiertas** | 🟡 A confirmar | **Solo abiertas** — el resto se corrige con código |
-| **Moderador de chat** | 🟡 A confirmar | Figura en Tema 11 |
+| **Moderador de chat** | 🟡 A confirmar | Figura en Tema 11. **El chat es Fase 2**: se diseña ahora, se construye cuando el chat exista |
+| **Agente `@mención`** | 🔵 Fase 3 | RF-CHT-05. Diseñado en [04](04-funciones-de-ia.md) Parte 4, fuera de este cuatrimestre |
 
 ### Bloque 4 — Los artefactos académicos
 
@@ -165,7 +167,7 @@ Y **ninguno lo podemos completar solos.**
 |---|---|
 | Personas | **6** |
 | Módulos | **8** |
-| Pasos hasta el núcleo funcionando | **12** |
+| Pasos hasta el núcleo funcionando | **14** (Paso 0 a Paso 13) |
 | Semanas de la demo local | **4** |
 | Costo de la demo | **USD 0** — free tier con datos sintéticos |
 | Costo de un cuatrimestre real | **USD 5 a 22** |
@@ -181,9 +183,10 @@ Y **ninguno lo podemos completar solos.**
 | 3 | **Pedir al PO responsable y fecha para el golden set** | Es el plazo más largo del proyecto y no depende de ningún equipo técnico |
 | 4 | **Escalar la consulta legal del free tier** | Las consultas legales tardan, y define el modelo de costos y los T&C |
 | 5 | **Pedirle al Tema 11 nuestros campos en el contrato de eventos** | Después es renegociar con cinco equipos |
-| 6 | **Preguntar si la cátedra permite Python**, o si el servicio va en Spring Boot | Decide el stack antes de escribir la primera línea |
+| 6 | ~~**Preguntar si la cátedra permite Python**~~ — **cerrado por ADR-005: el servicio va en Java Spring Boot** | Queda el caso del borde: si hacen falta embeddings locales, ADR-005 admite un **componente interno** Python que no es un microservicio |
 
-**Los seis son de esta semana. Cinco son conversaciones, no código.**
+**Cinco siguen abiertos y son de esta semana; el sexto ya está cerrado. Los cinco que quedan son
+conversaciones, no código.**
 
 ## 8. La frase para la defensa
 
@@ -230,10 +233,17 @@ explícita**, no un microservicio.
 | **M2 · RAG** | Ingesta de PDF, chunking, embeddings, retrieval | No |
 | **M3 · Evaluador** | Rúbrica versionada, prompt, scoring de la transcripción | M1 |
 | **M4 · Calibración** | Golden set, runner, comparación con PAR-14, deriva | M1 + M3 |
-| **M5 · Guardarraíles** | Filtro de entrada, salvaguarda anti-fuga con AST | M1 |
+| **M5 · Guardarraíles y moderación** | Filtro de entrada, salvaguarda anti-fuga con AST, y el moderador de chat (capa clásica + clasificador, ADR-012) | M1 |
 | **M6 · Tutor** | Servicio del tutor + componente Angular | M1 + M2 + M5 |
 | **M7 · Generador y corrector** | Blueprint, generación por slot, validación, corrección | M1 + M2 |
 | **M8 · Plataforma** | Docker, API, contratos, cola, base, eventos | No |
+
+> **El moderador de chat vive en M5 y no es un módulo aparte.** Es un clasificador de texto corto sin
+> contexto: comparte la capa clásica con el filtro de entrada y es del mismo
+> responsable. **No entra en las cuatro semanas de la demo** —el chat es Fase 2 del PRD— pero el
+> contrato sí conviene entregarlo temprano. El agente `@mención` (RF-CHT-05) es Fase 3 y, cuando
+> llegue, va en M6 junto al tutor: es un agente conversacional, no un filtro. Ver
+> [04](04-funciones-de-ia.md) Parte 4.
 
 ## 3. El reparto
 
@@ -243,7 +253,7 @@ explícita**, no un microservicio.
 | **P2** | **M2 · RAG** | **M7 · Generador** | El generador es el mayor consumidor del RAG. Quien lo construyó sabe cómo consultarlo |
 | **P3** | **M3 · Evaluador** | **M7 · Corrector** | El corrector es el mismo patrón de juez con otra rúbrica. Se reusa el 80% |
 | **P4** | **M4 · Calibración y golden set** | Perseguir a los docentes 😅 | Es el de **mayor riesgo de calendario**. Necesita a alguien dedicado y que empuje afuera del equipo |
-| **P5** | **M5 · Guardarraíles** | Comparación por AST multi-lenguaje | Es la parte más técnica y la más aislada. Se puede probar sin el resto |
+| **P5** | **M5 · Guardarraíles** | Comparación por AST multi-lenguaje, y el moderador de chat cuando el chat exista | Es la parte más técnica y la más aislada. Se puede probar sin el resto |
 | **P6** | **M8 · Plataforma** | **M6 · Tutor** + componente Angular | Arranca armando el esqueleto que todos usan, y sigue con lo que necesita Angular |
 
 ### Por qué P1 y P6 arrancan juntos y primero
@@ -353,7 +363,13 @@ Tres reglas que lo evitan:
 
 ## 8. El paso a paso concreto
 
-Doce pasos, en orden. Los primeros cuatro no requieren que nadie externo defina nada.
+Catorce pasos, del 0 al 13, en orden. Los primeros cuatro no requieren que nadie externo defina
+nada, y el último no entra en la demo — está para que la frontera exista.
+
+> 💰 **Con qué modelo probar cada uno de estos pasos sin pagar nada** está en
+> [03](03-modelos-costos-y-contexto.md) §8. Resumen: solo los pasos 1, 5, 10 y 12 llaman a un modelo,
+> y los cuatro entran en el free tier de Gemini. El paso 7 es el único donde conviene gastar
+> centavos a propósito.
 
 ### Paso 0 — El glosario (medio día, y evita semanas de confusión)
 
@@ -433,7 +449,16 @@ y te dice cuál es el más barato que pasa.
 
 ### Paso 8 — El endpoint de estado *(P6)*
 
-`GET /calibracion/{curso_cohorte_id}` → `{aprobada: bool, desviacion, modelo, fecha}`.
+`GET /ai/calibracion/{curso_cohorte_id}`
+
+```
+{ aprobada: bool, desviacion_promedio, desviacion_maxima_dimension,
+  model_id, model_version, rubric_version, golden_set_version, fecha }
+```
+
+**Son los ocho campos del contrato, no cuatro.** La forma exacta la fija
+[02](02-arquitectura-y-stack.md), Parte 3, endpoint 5: implementarla distinta acá es publicar dos
+contratos para el mismo endpoint.
 
 **Entregalo temprano aunque devuelva un mock:** el Tema 02 no puede activar cursos sin esto y es la
 dependencia más visible que otros tienen sobre ustedes.
@@ -461,6 +486,33 @@ porque junta latencia, RF-IA-04, los tres niveles de RF-IA-19 y el buffer de RF-
 
 **Solo para respuestas abiertas.** Multiple choice, V/F, ordenar, emparejar y tests se corrigen con
 código. Ver [04](04-funciones-de-ia.md) §1c.
+
+### Paso 13 — El moderador *(P5, cuando exista el chat)*
+
+**No va en las cuatro semanas de la demo.** El chat es Fase 2 del PRD; el moderador no tiene qué
+moderar todavía. Pero hay una parte que sí conviene entregar temprano y una parte que no:
+
+| Ahora | Cuando exista el chat |
+|---|---|
+| **El contrato**: `moderar(mensaje)` devuelve `categorias`, `severidad`, `confianza` y `origen` | La calibración contra mensajes reales, y cuánto resuelve cada capa según `origen` |
+| La capa clásica, que es código puro y se prueba sin proveedor | El registro de incidentes y el evento de severidad alta |
+| Los 100 mensajes etiquetados a mano — es una tarde, no un hito de calendario | La marca de retención de RF-CHT-14 |
+
+**Por qué el contrato ahora:** el Tema 11 está diseñando el chat. Si no sabe qué puede pedirnos ni
+cuánto tarda, lo va a diseñar asumiendo algo, y esa asunción va a estar mal. Es la misma lógica del
+Paso 8 con el endpoint de calibración.
+
+**⚠️ El moderador ya no sirve como primer ejercicio con un modelo:** ADR-012 lo dejó sin LLM. Sigue
+siendo la función más simple del proyecto —sin contexto, sin historial, sin RAG, sin rúbrica, y su
+salida es un JSON de cuatro campos—, pero por eso mismo dejó de ser práctica sobre M1: la capa
+clásica es código puro y el clasificador no lleva prompt. Como ejercicio de calentamiento sobre M1
+vale mucho; como prioridad de entrega, no compite con el evaluador.
+
+**Criterio de terminado:** le pasás 100 mensajes etiquetados y acierta más del 90% en severidad media
+y alta, con la capa clásica resolviendo la mayoría sin salir a la red.
+
+> El agente `@mención` (RF-CHT-05) **no tiene paso**. Es Fase 3, está diseñado en
+> [04](04-funciones-de-ia.md) Parte 4 y ahí se queda hasta que alguien lo priorice.
 
 ## 9. ¿Hace falta DDD?
 
@@ -500,7 +552,7 @@ aplicado la ceremonia completa.
 
 ## 10. Lo que hay que definir antes de empezar
 
-De los doce pasos, **solo tres dependen de definiciones externas:**
+De los catorce pasos, **solo tres dependen de definiciones externas:**
 
 | Paso | Depende de | Estado |
 |---|---|---|

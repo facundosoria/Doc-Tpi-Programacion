@@ -1,10 +1,11 @@
-# 04 — Las funciones de IA: generar, corregir y evaluar
+# 04 — Las funciones de IA: generar, corregir, evaluar y moderar
 
 > 🧪 **La transcripción de ejemplo del golden set y sus puntajes son inventados por nosotros**, para
 > ilustrar el formato. **Si un docente los toma como referencia, la calibración deja de medir nada**
 > (ítems E-07 y E-08 en [08](08-decisiones-y-pendientes.md), Parte C).
 
-> El generador de evaluaciones, los dos jueces del sistema, y el golden set que verifica que puntúen bien.
+> El generador de evaluaciones, los dos jueces del sistema, el golden set que verifica que puntúen
+> bien, y las dos funciones de IA que viven en el chat.
 
 ---
 
@@ -1104,3 +1105,793 @@ subestimada de las siete. Ver [01](01-problema-y-alcance.md) §3.2.
 | 5 | **¿Quién y para cuándo?** | 🔴 **26 h de trabajo docente, 3 semanas antes del inicio** | **PO — es P-04** |
 
 Los primeros cuatro los podés proponer vos. **El quinto no**, y es el que bloquea todo lo demás.
+
+
+---
+
+# Parte 4 — Las dos funciones del chat
+
+
+> El moderador y el agente `@mención`. Son **dos funciones distintas** que viven en la misma
+> superficie, y el PRD se toma el trabajo de aclarar que no se mezclan. Ninguna de las dos es MVP
+> —ver §4—, pero las dos están especificadas y las dos son nuestras.
+
+## 1. Son dos cosas separadas, y el PRD lo dice explícito
+
+RF-CHT-09 lo aclara en su propio texto: el moderador *"es una invocación de IA separada de los
+agentes conversacionales @mención y del evaluador de uso de IA de la Sección 15.1 — no comparte
+contexto ni conversación con ellos"*.
+
+Esa frase no es cosmética. **Prohíbe la optimización obvia** —una sola llamada que modere y responda
+al mismo tiempo— y con razón: si el moderador compartiera contexto con el agente, un mensaje
+malicioso podría usar la conversación para condicionar su propia clasificación.
+
+| | **Moderador** | **Agente `@mención`** |
+|---|---|---|
+| Requerimiento | RF-CHT-09 a 14 | RF-CHT-05 |
+| Se dispara con | **Todo** mensaje, siempre | Solo si el mensaje contiene `@agente` |
+| Canales | Grupales **y** 1:1 | Solo grupales de curso |
+| Contexto | **Ninguno** — cada mensaje es independiente | La conversación + RAG del curso |
+| Cuándo corre | **Antes** de entregar el mensaje | Después de entregarlo |
+| Sincronía | 🔴 Sincrónico, en el camino crítico | 🔴 Sincrónico |
+| Quién ve la salida | Nadie, o el profesor si hay incidente | **Todo el canal** |
+| Costo por llamada | **USD 0** — no hay tokens que facturar (ADR-012), ver [03](03-modelos-costos-y-contexto.md) | Del orden del tutor |
+| Retención | Solo el incidente (RF-CHT-14) | **Se conserva** como interacción de IA (RF-CHT-08) |
+
+```mermaid
+flowchart TD
+    A["Alumno escribe un mensaje"] --> B{"Capa clasica<br/>listas + heuristicas"}
+    B -->|"Obvio: bloquea"| X["Mensaje no entregado<br/>RF-CHT-12"]
+    B -->|"Duda: acoso o amenaza<br/>sin lexico"| C["Clasificador dedicado<br/>sin prompt, sin contexto"]
+    C -->|"Severidad media o alta"| X
+    C -->|"Baja o limpio"| D["Mensaje entregado al canal"]
+    D --> E{"Contiene @agente?"}
+    E -->|"No"| F["Fin"]
+    E -->|"Si"| G["Agente conversacional<br/>contexto + RAG"]
+    G --> H["Respuesta al canal"]
+    H --> I["Se conserva como<br/>interaccion de IA"]
+```
+
+## 2. El moderador
+
+### 2.0 Antes que nada: qué de todo esto es IA y qué consume tokens
+
+Se aclara acá arriba porque es la confusión más fácil de tener leyendo un documento que se llama
+"funciones de IA", y porque de esa confusión salen decisiones de costo equivocadas.
+
+| Pieza | ¿Es IA? | ¿Consume tokens? | ¿Sale a la red? |
+|---|---|---|---|
+| **Capa clásica** (listas, Aho-Corasick, regex, entropía, token bucket) | 🟢 **No. Nada.** Son algoritmos de los 70 y tablas de datos | 🟢 **No. Cero** | 🟢 **No.** Corre dentro de nuestro proceso |
+| **Clasificador** (`omni-moderation-latest`) | 🟡 Sí, es un modelo — pero **no es un LLM** | 🟢 **No. Cero, y además es gratis** | 🔴 Sí |
+| **LLM generativo con prompt** | — | — | **No lo usamos en el moderador** |
+
+**Las tres cosas que hay que tener claras:**
+
+1. **La capa clásica no tiene nada de inteligencia artificial.** Buscar palabras en una lista y contar
+   la entropía de un string es lo mismo que hacía un filtro de spam en 1998. **Ni un token, ni una
+   llamada de red, ni un modelo.**
+2. **El clasificador tampoco es un LLM.** Es un modelo de clasificación: entra texto, salen 13
+   etiquetas con score. No hay prompt, no hay conversación, no genera texto. Por eso no tiene tokens
+   de salida que cobrar — y el endpoint además **es gratuito**.
+3. **El moderador no tiene ningún LLM adentro.** Ninguna de las dos piezas escribe texto. La factura
+   del moderador en [03](03-modelos-costos-y-contexto.md) es **USD 0**, y no es una estimación
+   optimista: es que no hay nada que facturar.
+
+> ⚠️ **Corolario práctico, para no decidir mal más adelante:** si alguien propone recortar la capa
+> clásica *"para ahorrar"*, no hay nada que ahorrar. El motivo para tenerla es **latencia,
+> resiliencia y datos** —§2.3—, no plata. Y al revés: si alguien propone mandar todos los mensajes al
+> clasificador *"total es gratis"*, el problema tampoco es la plata, son los 300 ms.
+
+### 2.1 Las seis categorías (RF-CHT-10)
+
+**Cuatro de las seis se resuelven sin IA.** Esto no es una intuición: el filtrado de lenguaje
+ofensivo es un problema resuelto desde mucho antes de que existieran los LLM, con algoritmos,
+librerías y listas publicadas. Conviene separar las categorías por **quién las resuelve** antes de
+diseñar nada:
+
+| Categoría | Ejemplo | Quién lo resuelve | ¿Alcanza? |
+|---|---|---|---|
+| Lenguaje ofensivo o discriminatorio | Insultos, agravios | Lista con nivel + Aho-Corasick | 🟡 Lo obvio sí, el matiz no |
+| **Acoso** | Hostigamiento sostenido a una persona | **Clasificador** | 🔴 No hay técnica clásica: es contextual |
+| Contenido sexual o de violencia | — | Lista, y clasificador para el resto | 🟡 Con léxico sí; *"sé dónde vivís"* no |
+| **Spam o fuera de fines académicos** | Publicidad, cadenas | Heurística: repetición, conteo de URLs, frecuencia por usuario | 🟢 **Sí, entero** |
+| **Compartir soluciones de desafíos** | Pegar el código resuelto en el canal | Heurística de **forma**: densidad de llaves y palabras clave, líneas, `desafio_activo` | 🟢 **Sí** |
+| Eludir el "solo texto" (RF-CHT-07) | base64 disfrazando una imagen | Entropía de Shannon + charset + largo `% 4` | 🟢 **Sí, entero** |
+
+> ✅ **La quinta cambió de color, y vale explicar por qué.** Antes figuraba como 🔴 "hace falta LLM".
+> No: como el camino elegido es detectar la **forma** y no el contenido —ver el recuadro de abajo—, un
+> bloque de código extenso pegado en un canal social durante un desafío activo es una heurística, no
+> una inferencia. La categoría es específica de este producto, pero su detección es clásica.
+
+El residuo irreducible son **acoso** y **amenaza sin léxico explícito**. Ahí ninguna lista sirve, y es
+exactamente donde —y solo donde— entra el clasificador. Ver §2.3 y ADR-012.
+
+> ⚠️ **La quinta es la interesante y la que nadie tiene resuelta.** "Compartir soluciones" no es
+> moderación de convivencia: es **integridad académica**, y para detectarla bien haría falta saber
+> cuál es la solución del desafío. Eso choca de frente con ADR-008 —*la solución de referencia nunca
+> entra al contexto*—. El camino viable es detectar la **forma**: un bloque de código extenso pegado
+> en un canal social durante un desafío activo. No el contenido. Genera falsos positivos y hay que
+> asumirlo.
+
+### 2.2 Severidad y acción (RF-CHT-11)
+
+| Severidad | Acción | Consecuencia para nosotros |
+|---|---|---|
+| **Baja** | No bloquea, sin acción visible | Se registra igual: es la línea base para medir |
+| **Media** | Bloquea el mensaje + incidente visible al profesor | Necesita el dashboard de incidentes |
+| **Alta** | Bloquea + notificación inmediata a profesor y ADMIN | Necesita un evento hacia notificaciones |
+
+**El umbral es una decisión de producto, no de ingeniería.** El modelo devuelve una confianza; dónde
+se corta entre baja y media define cuántos falsos positivos come el alumno.
+
+### 2.3 La capa clásica, que es casi todo el moderador
+
+Regex, listas de términos, longitud, frecuencia por usuario y detección de base64 resuelven la mayor
+parte sin tocar un modelo.
+
+Sirve para tres cosas, y la tercera es la importante:
+
+1. **Latencia** — el presupuesto es < 300 ms ([02](02-arquitectura-y-stack.md)) y un roundtrip HTTP
+   externo se lo come casi entero. Un match en memoria es < 1 ms.
+2. **Datos** — cuantos menos mensajes de alumnos salgan del sistema, mejor ([07](07-datos-y-terminos.md)).
+3. **Es la red del fail-open.** Si el proveedor se cae, la capa clásica sigue corriendo. Sin ella,
+   fail-open significa *sin ninguna moderación*.
+
+> ⚠️ **El argumento no es ahorrar tokens.** La Moderation API es **gratuita** y no consume tokens del
+> presupuesto. Quien defienda esta arquitectura por costo de tokens la está defendiendo mal.
+
+#### 2.3.1 El stack: qué es cada cosa y de dónde sale
+
+Vale distinguir **tres naturalezas distintas**, porque no se instalan igual, no se versionan igual y
+no fallan igual:
+
+| Naturaleza | Qué implica |
+|---|---|
+| 🟦 **Parte del lenguaje (JDK)** | Ya está. No se agrega dependencia, no hay licencia que revisar, no hay nada que actualizar |
+| 🟩 **Librería externa (Maven)** | Una línea en el `pom.xml`. Corre **dentro** de nuestro proceso: sin red, sin latencia, sin datos que salgan |
+| 🟨 **Dato externo (lista)** | No es código: es un archivo de texto. Tiene licencia y hay que versionarlo nosotros |
+
+El resumen, y después el detalle de cada uno:
+
+| Pieza | Qué es | Naturaleza | Resuelve |
+|---|---|---|---|
+| **`com.modernmt.text:profanity-filter:1.0.1`** | Librería, Apache-2.0 | 🟩 Maven | **Los términos `es`/`en` con nivel, y el filtro. La base** |
+| `java.text.Normalizer` | Clase del JDK | 🟦 JDK | Evasión por acentos y Unicode |
+| `org.ahocorasick:ahocorasick:0.6.3` | Librería, Apache-2.0 | 🟩 Maven | Buscar miles de términos en una pasada |
+| `commons-text` (`LevenshteinDistance`) | Librería Apache Commons | 🟩 Maven | Typos y variantes cercanas |
+| `lucene-analysis-common` | Librería Apache Lucene | 🟩 Maven | Stemming — **opcional** |
+| `java.util.Base64` + entropía | Clase del JDK + ~10 líneas propias | 🟦 JDK | RF-CHT-10 categoría 6 |
+| `RateLimiter` de **Resilience4j** | Librería ya elegida en [02](02-arquitectura-y-stack.md) | 🟩 Maven | Spam por frecuencia (token bucket) |
+| LDNOOBW | Archivo de texto, CC-BY-4.0 | 🟨 dato | **Plan B / suplemento.** Ver abajo por qué no es la base |
+
+---
+
+**🟦 `java.text.Normalizer` — viene con Java, no se instala nada**
+
+Es una clase del JDK estándar. Aplica *normalización Unicode*: en forma **NFKD** descompone cada
+carácter acentuado en dos —`á` pasa a ser `a` + una marca de acento separada—, y después se borran
+todas las marcas con un regex (`\p{M}`, la categoría Unicode "Mark").
+
+**Qué problema resuelve:** que `pelotudo` y `pelotúdo` no sean dos strings distintos para el filtro.
+Sin esto, cualquiera esquiva la lista poniendo un acento de más.
+
+**Por qué importa que sea del JDK:** cero dependencias, cero licencia, cero mantenimiento. Es la
+opción más barata que existe y ya está instalada.
+
+---
+
+**🟩 `org.ahocorasick:ahocorasick` — el algoritmo, no la lista**
+
+Es una librería Java (Apache-2.0) que implementa el **algoritmo de Aho-Corasick**, publicado en 1975.
+Ojo con la confusión: **no trae ninguna palabra**. Trae el motor de búsqueda; las palabras las ponemos
+nosotros.
+
+**Qué problema resuelve.** Buscar 2.000 términos en un mensaje con un bucle ingenuo cuesta 2.000
+recorridas del texto. Aho-Corasick arma un **trie** (un árbol de prefijos) con todos los términos una
+sola vez, al arrancar, y después recorre el mensaje **una vez sola** encontrando todas las
+coincidencias al mismo tiempo. El costo deja de depender del tamaño de la lista. Eso es lo que hace
+que la capa clásica entre en el presupuesto de latencia.
+
+**El detalle que decide si sirve o no:** tiene `.onlyWholeWords()`. Sin esa opción, el filtro matchea
+por subcadena y produce el desastre de la sección siguiente.
+
+---
+
+**🟩 `com.modernmt.text:profanity-filter` — la opción llave en mano, y la mejor sorpresa**
+
+Librería Java (Apache-2.0) de ModernMT, una empresa de traducción automática. A diferencia de la
+anterior, **esta sí trae sus propios diccionarios**: es filtro y lista en un solo paquete. Cubre 59
+idiomas.
+
+✅ **Verificado sobre el repositorio, no sobre el README** —que no documenta nada—. Los diccionarios
+son `dictionary.<idioma>`, uno por idioma, y **están los dos que necesitamos**: `dictionary.es` con
+429 entradas y `dictionary.en` con 467.
+
+Y trae dos cosas que no esperábamos:
+
+**1. Los términos vienen con nivel, no con un booleano.** Cada línea es `término` + tabulador +
+score de 0 a 1. Eso es exactamente el "nivel por término" que RF-CHT-11 necesita para distinguir
+severidad baja de media, y que dábamos por trabajo propio.
+
+**2. El nivel está bien calibrado para el registro rioplatense.** Una muestra real del
+`dictionary.es`:
+
+| Término | Score | Por qué es la calibración correcta |
+|---|---|---|
+| `la concha de tu madre` | 0,79 | La frase completa es inequívoca |
+| `pelotudo` | 0,74 | Agravio en casi todo contexto |
+| `boludo` | **0,42** | Ambiguo a propósito: puede ser agravio o afecto |
+| `boludazo` | **0,00** | Prácticamente siempre afectuoso |
+| `concha` | **0,06** | Es una palabra común. **No dispara** |
+| `coger` | **0,06** | Neutro en España, vulgar acá. No dispara solo |
+
+**Ese `concha` en 0,06 es la defensa contra el problema de Scunthorpe hecha por otro.** Y el
+`boludo` en 0,42 contra `boludazo` en 0,00 muestra que quien armó la lista entendía el registro.
+
+**3. Soporta frases, no solo palabras** — `chupame la pija`, `la concha de tu madre`. Una lista de
+palabras sueltas no puede expresar eso.
+
+**Qué problema resuelve:** casi todo el trabajo que habíamos presupuestado como propio.
+
+##### ¿Pero entonces es una librería o es un archivo con palabras?
+
+**Las dos cosas a la vez, y por eso confunde.** Vale desarmarlo, porque de acá salen la mitad de las
+dudas:
+
+Un **JAR** es un archivo comprimido que Maven baja y que contiene dos clases de cosas: **código Java
+compilado** y **archivos de recursos** (texto, imágenes, lo que sea). `profanity-filter` trae las dos:
+
+```text
+profanity-filter-1.0.1.jar
+├── com/modernmt/text/profanity/
+│   ├── ProfanityFilter.class        ← CÓDIGO: el que busca
+│   └── dictionary/Dictionary.class
+└── com/modernmt/text/profanity/
+    ├── dictionary.es                ← DATO: el "bloc de notas"
+    ├── dictionary.en
+    └── ... 57 idiomas más
+```
+
+Y `dictionary.es` es, literalmente, un archivo de texto plano. Estas son líneas reales:
+
+```text
+la concha de tu madre	0.7948718
+pelotudo	0.73671496
+boludo	0.41732284
+concha	0.06215745
+```
+
+**Palabra, tabulador, número. Una por línea. 429 líneas.** Nada más. Si lo abrís con el Bloc de notas
+lo ves tal cual.
+
+**La diferencia práctica con LDNOOBW** —que es la misma idea pero suelta— está en cómo llega:
+
+| | LDNOOBW | `profanity-filter` |
+|---|---|---|
+| Qué es | Un `.txt` en GitHub | Un JAR con el `.txt` **adentro** |
+| Cómo llega al proyecto | Lo copiás al repo a mano | **Una línea en el `pom.xml`** y Maven lo baja |
+| Actualizarlo | Volver a copiarlo | Subir el número de versión |
+| Trae código | No, solo el dato | Sí, el dato **y** el que lo usa |
+
+##### ¿Y las palabras se buscan con expresión regular?
+
+**No, y es a propósito** — es la trampa más común de este problema. Regex es la solución que sale
+sola, y no escala:
+
+| | Con regex | Con Aho-Corasick |
+|---|---|---|
+| 429 términos | 429 pasadas sobre el texto, o **un `(a\|b\|c\|…)` gigante** que hace backtracking | **Una sola pasada** |
+| Si la lista crece a 2.000 | Cuesta 4 veces más | **Cuesta lo mismo** |
+| El puntaje de cada término | No tiene dónde vivir | Sale junto con el match |
+| Mantenerlo | Un regex de 429 alternativas, ilegible | Un archivo de texto, una palabra por línea |
+
+**Pero regex sí se usa, en otro lado.** La división es clara y conviene tenerla presente:
+
+| Se busca... | Con qué | Ejemplo |
+|---|---|---|
+| **Palabras concretas de una lista** | **Aho-Corasick** | *pelotudo*, *la concha de tu madre* |
+| **Formas y patrones**, sin lista de por medio | **Regex** | Sacar acentos (`\p{M}`), colapsar `holaaaa`, detectar la pinta de un base64, contar URLs |
+
+En una frase: **regex para formas, Aho-Corasick para la lista.** Usar regex para la lista es el error
+que hace que el filtro se vuelva lento e imposible de mantener a la vez.
+
+---
+
+**🟩 `commons-text` y `lucene-analysis-common` — refuerzos, no fundaciones**
+
+- **`LevenshteinDistance`** (Apache Commons Text) mide cuántas ediciones —insertar, borrar,
+  sustituir— separan dos palabras. Atrapa `pelotdo` o `pelotudoo` a distancia 1. **Cuidado:** subir el
+  umbral a 2 empieza a matchear palabras legítimas. Es un refuerzo, no la defensa principal.
+- **Lucene** es el motor de búsqueda de texto de Apache. De todo lo que trae, acá interesaría solo el
+  **stemming**: reducir *puta/putas/putazo* a una raíz común para no listar cada variante. **Es
+  opcional a propósito** — Lucene es una dependencia grande para un beneficio chico. Solo entra si la
+  lista se vuelve inmanejable a mano.
+
+---
+
+**🟦 Base64 y entropía — esto es todo nuestro, y es fácil**
+
+RF-CHT-10 pide detectar el intento de eludir el "solo texto" de RF-CHT-07, típicamente pegando una
+imagen codificada en base64. **No hace falta ninguna librería.** Un string en base64 tiene tres marcas
+que lo delatan a la vez: usa solo el alfabeto `A-Za-z0-9+/=`, su largo es múltiplo de 4, y su
+**entropía de Shannon** —una medida de cuánta información lleva cada carácter— es mucho más alta que
+la de un texto en castellano, porque el idioma es predecible y los datos comprimidos no.
+
+`java.util.Base64` es del JDK y el cálculo de entropía son unas diez líneas. **Categoría cerrada, sin
+IA y sin dependencias.**
+
+---
+
+**🟩 `RateLimiter` de Resilience4j — el token bucket, que ya lo tenemos**
+
+Para el spam por frecuencia. El algoritmo es el **token bucket**: cada usuario tiene un "balde" con N
+fichas que se rellena a ritmo constante y cada mensaje consume una; si el balde se vacía, está
+mandando demasiado rápido.
+
+⚠️ **No hay que escribirlo.** [02](02-arquitectura-y-stack.md) ya eligió **Resilience4j** para
+resiliencia —*"circuit breaker, retry, rate limiter"*—, y su `RateLimiter` es exactamente esto. La
+misma librería cubre además el circuit breaker del clasificador (§2.3.5), así que es una dependencia
+para dos usos, no dos.
+
+---
+
+**🟨 LDNOOBW — la lista alternativa, que es un dato y no un programa**
+
+[List of Dirty, Naughty, Obscene and Otherwise Bad Words](https://github.com/LDNOOBW/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words):
+listas publicadas originalmente por Shutterstock, un archivo de texto plano por idioma —incluidos `es`
+y `en`—, una palabra por línea. Existe un
+[fork V2](https://github.com/LDNOOBWV2/List-of-Dirty-Naughty-Obscene-and-Otherwise-Bad-Words_V2)
+**mantenido**; el original está congelado, así que conviene el fork.
+
+**No es código: es un dato.** Se versiona en el repo como cualquier archivo nuestro, se revisa en un
+pull request y no tiene actualizaciones automáticas.
+
+> 🔴 **CC-BY-4.0 obliga a atribuir.** Si la lista entra al repo, entra con su nota de atribución. Es
+> una obligación legal, no una cortesía.
+
+⚠️ **Quedó como plan B, no como primera opción.** Es **binaria** —una palabra por línea, sin nivel—,
+así que no puede expresar la diferencia entre `boludo` y `pelotudo` que RF-CHT-11 necesita, y su
+archivo `es` es de registro peninsular. Frente al diccionario de ModernMT pierde en las dos cosas.
+Sirve si hace falta **sumar** términos, no como base.
+
+#### 2.3.2 El trabajo real no es la lista: es la evasión y el falso positivo
+
+Son dos problemas opuestos que se tironean, y es donde fracasan los filtros clásicos mal hechos.
+
+**Evasión** — el usuario esquiva el match: `p3l0tud0`, `p-e-l-o-t-u-d-o`, `pelotuuuudo`, `реlotudo`
+(homoglifos cirílicos). Se responde con un pipeline de normalización **antes** de matchear, en este
+orden: minúsculas → NFKD y quitar diacríticos → mapa de homoglifos y *leet* (`0→o`, `3→e`, `1|!→i`,
+`@→a`, `$→s`) → colapsar repetidos (`aaa→a`) → eliminar separadores intercalados.
+
+**Falso positivo — el problema de Scunthorpe.** El caso canónico: en 1996 AOL bloqueó a los vecinos
+de [Scunthorpe](https://en.wikipedia.org/wiki/Scunthorpe_problem) porque el nombre del pueblo contiene
+una mala palabra como subcadena. En español pasa igual: **"cálculo"** contiene *culo*; **"putativo"**
+y **"disputa"** contienen *puta*; **"conchabar"** contiene *concha*. Dos defensas, **las dos
+obligatorias**:
+
+1. **Matchear con límite de palabra** (`.onlyWholeWords()` en `ahocorasick`), nunca por subcadena.
+2. **Whitelist de falsos positivos conocidos.**
+
+#### 2.3.3 La advertencia rioplatense, y por qué resultó más chica de lo previsto
+
+**El requisito de fondo no cambia:** una lista **binaria** no sirve para este producto. *Boludo* entre
+compañeros de cursada es afecto y *pelotudo* es agravio; *coger* es neutro en España y vulgar acá;
+*concha* es una palabra común. Con un booleano, cualquiera de esos casos bloquea media cursada — y el
+alumno que se come el falso positivo **ni siquiera puede saber por qué**, porque RF-CHT-12 no le
+explica el motivo. Hace falta un **nivel por término**, que es lo que RF-CHT-11 llama severidad baja
+frente a media.
+
+⚠️ **Lo que cambió es quién paga ese trabajo.** Se asumía que era todo nuestro. No lo es: el
+`dictionary.es` de ModernMT **ya viene con nivel por término y ya está calibrado para el registro
+rioplatense** —`boludo` 0,42, `boludazo` 0,00, `concha` 0,06—. La tabla completa está en §2.3.1.
+
+**Lo que sigue siendo trabajo propio, que es bastante menos:**
+
+1. **Términos ausentes.** *Forro*, *chabón* y *sorete* no están en ninguna de las dos listas. Hay que
+   sumarlos con su nivel.
+2. **Fijar los dos cortes.** El diccionario da un score continuo de 0 a 1; RF-CHT-11 pide tres
+   severidades. Dónde cortan baja→media y media→alta **no lo decide ninguna librería**: es la decisión
+   de producto que sigue abierta en la Parte C de [08](08-decisiones-y-pendientes.md).
+3. **Validar la calibración contra nuestro propio corpus.** Los scores vienen de otro dominio, no de
+   un chat de cursada. Los 100 mensajes etiquetados de §2.8 son justamente lo que dice si sirven.
+
+> 🔴 **El punto 2 es el que queda en el camino crítico.** Los otros dos son trabajo acotado; ese es
+> una decisión que necesita al Product Owner.
+
+#### 2.3.4 Cuánto se lleva, en realidad
+
+El **70%** que se estimaba era una suposición. Con cuatro de seis categorías del lado determinista
+debería ser bastante más — pero **se mide, no se opina**: el campo `origen` del contrato
+(`lista` | `heuristica` | `clasificador`) existe justamente para eso.
+
+#### 2.3.4b 🔴 La duda que hay que resolver antes de escribir código: ¿pipeline o cadena?
+
+Es **la** decisión estructural del moderador, y se presta a confusión porque los dos patrones se
+parecen: en los dos hay "etapas en orden". Se documenta acá con las opciones y el veredicto para que
+no se rediscuta de memoria dentro de seis meses.
+
+##### La diferencia, que es una sola
+
+| | **Pipeline** (*Pipes and Filters*) | **Cadena** (*Chain of Responsibility*) |
+|---|---|---|
+| ¿Corren todas las etapas? | **Sí, todas** | **No** — corta en la primera que resuelve |
+| ¿Qué hace cada etapa? | **Transforma** el dato y lo pasa | **Decide** si le toca a ella o al siguiente |
+| ¿Para qué existe? | Preparar o enriquecer un dato | **Ahorrar trabajo caro** |
+| ¿Importa el orden? | Sí, pero solo por corrección | **Sí, y define el rendimiento** |
+
+##### Las tres opciones, con su caso a favor y en contra
+
+**Opción A — Todo pipeline.** Corren todos los detectores *y* siempre se llama al clasificador.
+
+- 🟢 **A favor:** es el código más simple que existe. Sin condiciones, sin orden semántico, sin
+  eslabón que se pueda saltear por error. `categorias` sale completo siempre.
+- 🔴 **En contra, y es fatal:** **todos** los mensajes pagan el roundtrip HTTP. Con un presupuesto de
+  300 ms eso es insostenible, y además revienta el free tier de 5.000 pedidos por día del
+  clasificador. **Descartada por costo de latencia, no por elegancia.**
+
+**Opción B — Todo cadena.** Cada detector decide o pasa al siguiente; el primero que dispara corta.
+
+- 🟢 **A favor:** es la lectura intuitiva de "filtros en orden", y es lo que decía la primera versión
+  de este documento.
+- 🔴 **En contra, y también es fatal:** **contradice el contrato que ya escribimos.** `categorias` es
+  un **array** (RF-CHT-10): un mensaje puede ser spam **y** ofensivo a la vez. Cortando en el primero
+  que dispara, la segunda categoría se pierde y el profesor ve un incidente incompleto. Y encima no
+  compra nada: los detectores clásicos cuestan **microsegundos**, así que saltearlos no ahorra tiempo
+  medible. **Descartada por pérdida de información.**
+
+**Opción C — Pipeline con un único corte de cadena.** ✅ Corren todas las etapas clásicas y acumulan;
+un solo `if` decide si vale la pena llamar a la red.
+
+- 🟢 **A favor:** conserva `categorias` completo, no paga la red cuando ya hay veredicto, y deja **un
+  solo** punto de decisión en todo el diseño — fácil de leer, de testear y de explicar.
+- 🔴 **En contra, honestamente:** son dos patrones en lugar de uno, y hay que saber por qué. Este
+  documento existe para eso.
+
+##### ✅ La recomendación: Opción C
+
+Y la razón no es de gusto. **Es la asimetría de costo:**
+
+| Etapa | Cuánto cuesta |
+|---|---|
+| Normalizar + todos los detectores clásicos | **< 1 ms** |
+| La llamada al clasificador | **200 a 500 ms** |
+
+Hay un factor de ~1000 entre las dos. **Ese salto —y solo ese— es lo que justifica una cadena.**
+
+> 🟢 **La regla general, para reusarla en el resto del proyecto:**
+> **Usá cadena solo donde saltear un eslabón ahorre algo medible. Si todos los eslabones cuestan
+> parecido, es un pipeline.**
+>
+> Y el corolario que evita el error más caro: **en una cadena el orden es semántico.** Si alguien
+> mueve el clasificador al principio "para que sea más preciso", todos los mensajes pasan a pagar la
+> red y el diseño se convierte en la Opción A sin que nadie lo note. En un pipeline el orden solo
+> puede romper la corrección, no el rendimiento — por eso conviene tener **un solo** eslabón de
+> cadena y no cinco.
+
+##### Cómo queda, entonces
+
+```text
+  mensaje crudo
+       │
+       │  ── 1 · PIPELINE ─────────────  todas corren, cada una transforma
+       ├─► minúsculas
+       ├─► sacar acentos (NFKD)
+       ├─► deshacer leet (p3l0tud0 → pelotudo)
+       ├─► colapsar repetidos (holaaaa → hola)
+       └─► sacar separadores (p-e-l-o → pelo)
+       │
+       │  ── 2 · TODOS LOS DETECTORES ──  todos corren y ACUMULAN categorías
+       ├─► lista de términos      ─┐
+       ├─► entropía / base64       │
+       ├─► frecuencia (spam)       ├─► categorias[] + severidad máxima
+       └─► forma de código         ─┘
+       │
+       │  ── 3 · LA ÚNICA DECISIÓN QUE IMPORTA ──
+       └─► ¿ya hay severidad media o alta?
+              SÍ  → cortá acá. No se llama a la red
+              NO  → clasificador (el único eslabón caro)
+```
+
+**El patrón de cada parte:**
+
+| Parte | Patrón | Por qué |
+|---|---|---|
+| Normalización | **Pipes and Filters** | Todas transforman. Ninguna decide nada |
+| Los detectores clásicos | **Composite** de **Strategy** | Todos corren y sus veredictos se **fusionan**. El Composite se comporta como un detector más hacia afuera |
+| Clásico → clasificador | **Chain of Responsibility**, de **solo dos eslabones** | Acá sí hay algo caro que evitar: el roundtrip HTTP |
+
+> ⚠️ **Esto corrige la primera versión de este documento**, que decía *"las tres capas en cadena, la
+> primera que decide corta"* — o sea, la Opción B, descartada arriba. Chain of Responsibility sigue
+> estando, pero **en un solo lugar y con dos eslabones, no cinco**. El campo `origen` del contrato
+> reporta cuál de los dos resolvió. Es más simple que lo que estaba escrito antes, no más complejo —
+> que suele ser la señal de que ahora está bien.
+
+#### 2.3.4c El resto de los patrones, decisión por decisión
+
+**No es decoración académica:** el patrón es lo que hace que agregar el séptimo detector no obligue a
+tocar los seis anteriores.
+
+| Decisión de diseño | Patrón | Por qué ese y no otro |
+|---|---|---|
+| **Cada detector es intercambiable** (lista, entropía, frecuencia, forma de código) | **Strategy** (GoF) | Todos exponen la misma interfaz. Es lo que evita el `if/else` gigante que crece con cada categoría |
+| **Correr todos los detectores como si fueran uno** | **Composite** (GoF) | El grupo se comporta como un detector más. Sumar el séptimo no toca a los seis |
+| **Hablar con el proveedor externo** | **Adapter** (GoF) | 🟢 **Ya es vocabulario del proyecto** — ADR-001 y M1. Cambiar a pysentimiento es escribir un adapter, no tocar el moderador |
+| **Qué modelo usa cada función, editable por ADMIN** | **Factory Method** + registro | Lo exige RF-IA-11: el nombre del modelo vive en una tabla, no en el código |
+| **Qué pasa si el proveedor se cae** | **Circuit Breaker** | 🟢 **Ya elegido**: Resilience4j, en [02](02-arquitectura-y-stack.md). Es lo que implementa el fail-open de §2.4 |
+| **Frecuencia por usuario (spam)** | **Rate Limiter** (token bucket) | ⚠️ **Resilience4j ya lo trae.** No escribirlo a mano |
+| **Reintento por timeout sin duplicar el incidente** | **Idempotent Receiver** | Es para lo que existe `idempotency_key` en el contrato |
+| **El trie de Aho-Corasick** | Bean singleton **inmutable**, armado al arrancar | Compilar el autómata es caro; usarlo, no. Se arma una vez y se comparte |
+| **La lista con su nivel y su versión** | Configuración versionada + **Value Object** | Por eso el contrato devuelve `version_lista`: RF-IA-13/25 piden saber qué decidió cada llamada |
+
+> ⚠️ **¿No es mucho patrón para esto?** Es la objeción correcta. La respuesta es que **cinco de los
+> nueve ya estaban decididos antes del moderador** —Adapter, Factory, Circuit Breaker, Rate Limiter e
+> Idempotent Receiver vienen de ADR-001 y de [02](02-arquitectura-y-stack.md)—, así que lo que este
+> diseño agrega de verdad son tres: Pipeline, Strategy y Composite. Y los tres existen porque las seis
+> categorías de RF-CHT-10 ya piden al menos cinco detectores distintos. Si fueran dos filtros fijos y
+> para siempre, sería sobreingeniería.
+
+**Dos patrones que NO van, y conviene decir por qué:**
+
+- **Orquestador basado en LLM** para decidir qué detector aplicar: **lo prohíbe ADR-002.** Agrega
+  latencia, costo y —lo grave— una superficie de prompt injection sobre una decisión de control de
+  flujo.
+- **Observer / eventos** entre los detectores: el moderador es **sincrónico** (ADR-003) y está en el
+  camino crítico del chat. El evento va **después** de decidir, hacia notificaciones (RF-NOT-05), no
+  entre los filtros.
+
+#### 2.3.5 El clasificador: la única pieza que sale a la red
+
+Todo lo anterior corre dentro de nuestro proceso. Esta pieza no, y por eso se la trata aparte.
+
+**Qué es.** `omni-moderation-latest` es el endpoint de moderación de OpenAI. **No es un LLM y no se
+usa como un LLM:** se le manda un texto y devuelve 13 categorías, cada una con un score de 0 a 1. No
+hay prompt, no hay conversación, no hay tokens de salida.
+
+**De dónde sale.** Es un servicio HTTP de OpenAI — 🟥 **una cuarta naturaleza**, distinta de las tres
+de §2.3.1: no está en el JDK ni en el `pom.xml`, vive del otro lado de la red. Se accede con la misma
+API key y el mismo **adapter** del gateway M1 que ADR-001 ya obliga a construir, así que **no suma un
+proveedor, un contenedor ni un secreto nuevos.** Ese adapter es lo que hace que reemplazarlo por
+pysentimiento —ver el final de esta sección— sea escribir una clase, no tocar el moderador.
+
+**Qué problema resuelve.** El único que la técnica clásica no puede: **acoso y amenaza sin léxico
+explícito**. *"Seguí así y vas a ver"* y *"sé dónde vivís"* no tienen una sola mala palabra y ninguna
+lista los va a atrapar nunca. Requiere entender la frase, no buscarla.
+
+**Cuánto cuesta.** Nada: es gratuito, con un límite de 250 pedidos por minuto y 5.000 por día en el
+free tier. En español rinde por encima de lo que rendía el modelo anterior en inglés.
+
+**Los tres problemas que trae, y que hay que tener escritos:**
+
+| Problema | Por qué | Cómo se mitiga |
+|---|---|---|
+| **Latencia** | Es un roundtrip HTTP dentro de un presupuesto de 300 ms | Se invoca solo cuando la capa clásica no decidió. Timeout de 1 s y degradación |
+| **Los datos salen** | Mensajes de alumnos viajan a un tercero ([07](07-datos-y-terminos.md)) | Cuanto más resuelve la capa clásica, menos sale. Y hay salida local: ver abajo |
+| **Se puede caer** | Es una dependencia externa | **Circuit Breaker** de Resilience4j. Al abrirse, la capa clásica **sigue corriendo igual**: es la red del fail-open de P-02 |
+| **El límite del free tier** | 5.000 pedidos/día | Solo se llama al residuo, no a todos los mensajes. Si aun así no alcanza, se revisa ADR-012 |
+
+**La salida de emergencia, ya evaluada.** Si la política de datos llega a prohibir que los mensajes
+salgan del sistema, la alternativa es un modelo local:
+[**pysentimiento**](https://github.com/pysentimiento/pysentimiento) —basado en RoBERTuito, entrenado
+con tweets en español, hecho en Argentina, así que entiende el registro rioplatense mucho mejor que un
+modelo genérico— o Detoxify multilingüe. Cero datos afuera y cero costo por mensaje, pero **exige un
+componente Python**, que ADR-005 contempla explícitamente como *componente interno, no
+microservicio*.
+
+### 2.4 Qué pasa si se cae — el hueco del PRD
+
+RF-CHT-09 dice que corre sobre todo mensaje antes de entregarlo. **El PRD no dice qué pasa si no está
+disponible**, y RF-IA-27 enumera la degradación del tutor y del evaluador pero se olvida del
+moderador.
+
+**Recomendación: fail-open con red.** El mensaje se entrega, la capa clásica sigue corriendo, el
+mensaje queda marcado y se re-modera cuando el servicio vuelve; si ahí resulta media o alta, se
+retira y se genera el incidente. El fundamento está en [06](06-operacion-e-ingenieria.md).
+
+Es **decisión del Product Owner**: P-02 en [08](08-decisiones-y-pendientes.md).
+
+### 2.5 Feedback y apelación (RF-CHT-12 y RF-CHT-13)
+
+Al emisor se le avisa que el mensaje no se envió **sin explicar cómo se detectó** — mismo principio
+que RF-IA-10 con el jailbreak: no se le enseña al usuario a evadir el filtro. La apelación va al
+profesor, igual que RF-IA-18.
+
+**Consecuencia de diseño:** el motivo real y la categoría se guardan igual, porque el profesor los
+necesita para resolver la apelación. Lo que se recorta es lo que ve el emisor, no lo que se registra.
+
+### 2.6 RF-CHT-14 rompe la purga simple
+
+El chat social se purga físicamente al archivar el curso (RF-CHT-08) — es lo único de toda la
+plataforma que RF-NFR-01 permite borrar de verdad. **Salvo** que el mensaje haya sido reportado o
+bloqueado con severidad media o alta: en ese caso queda retenido **con su contexto inmediato**
+—mensaje anterior y posterior del mismo hilo— hasta que el incidente se resuelva.
+
+Eso significa que la purga no puede ser un borrado por curso. Necesita saber, mensaje por mensaje, si
+está retenido y por qué. Ver [07](07-datos-y-terminos.md).
+
+### 2.7 Qué construimos y qué no
+
+| Nuestro | De otro equipo |
+|---|---|
+| La capa clásica y el clasificador | El chat completo: canales, hilos, citas, entrega |
+| El registro de incidentes | La pantalla del dashboard de incidentes |
+| El evento de severidad alta | El envío de la notificación (RF-NOT-05) |
+| La marca de retención de RF-CHT-14 | La ejecución de la purga al archivar |
+
+> El chat es del Tema 11. **Nosotros aportamos una función, no una funcionalidad.** El contrato con
+> ellos es un único llamado sincrónico: `moderar(mensaje)` devuelve `categorias`, `severidad` y
+> `confianza`.
+
+✅ **El contrato ya está escrito en OpenAPI:**
+[`codigo-ejemplo/ms-evaluacion-llm/src/main/resources/contracts/moderacion-v1.yaml`](../codigo-ejemplo/ms-evaluacion-llm/src/main/resources/contracts/moderacion-v1.yaml).
+Es un recorte del sobre común `POST /ai/{funcion}` de [02](02-arquitectura-y-stack.md) —a propósito,
+para que el mock del otro equipo siga sirviendo para las cinco funciones—. Agrega tres campos que este
+diseño vuelve necesarios: `origen` (qué capa decidió), `desafio_activo` (lo necesita la heurística de
+integridad académica; el llamador lo sabe y el moderador no) y `version_lista` (RF-IA-13/25).
+
+### 2.8 Cómo se mide que anda
+
+100 mensajes etiquetados a mano, más del 90% de acierto en severidad media y alta. Está en
+[03](03-modelos-costos-y-contexto.md). Es el golden set del moderador, en chico — y es **mucho más
+barato de producir** que el del evaluador: etiquetar un mensaje lleva segundos, no diez minutos.
+
+### 2.9 Dos cosas que este diseño **no** resuelve
+
+**El acoso acumulativo.** RF-CHT-10 pide detectar hostigamiento sostenido a una persona, pero el
+contrato evalúa **un mensaje por vez** y no mantiene estado por hilo. Ni la capa clásica ni el
+clasificador lo ven: diez mensajes individualmente inocuos dirigidos a la misma persona pasan los
+diez. No es un agujero que introduzca ADR-012 —el diseño anterior con LLM tenía exactamente el mismo—,
+pero conviene dejarlo escrito en vez de que parezca cubierto. Resolverlo requiere estado por hilo, que
+hoy no tiene nadie.
+
+**El idioma, al revés de lo esperable.** Se cubre **español e inglés**, y eso va deliberadamente más
+allá del MVP: RF-NFR-07b dice *solo español en el primer release*. Se hace igual porque las
+herramientas elegidas traen los dos idiomas sin costo ni trabajo adicional, y porque RF-NFR-08 lo va a
+exigir en cuanto se sume un idioma. **Es un excedente consciente, no un olvido de alcance.**
+
+### 2.10 ¿En algún momento hay que meterle un LLM? — la respuesta corta es *no, y casi nunca*
+
+**Con lo diseñado alcanza para cumplir RF-CHT-09 a RF-CHT-14.** No hay un LLM esperando en el
+horizonte ni una "fase 2" pendiente. Pero conviene dejar escrito qué situaciones *sí* obligarían a
+revisar la decisión, para que dentro de seis meses nadie lo discuta de memoria.
+
+#### Lo que NO justifica meter un LLM
+
+Son los pedidos que van a aparecer, y para los que la respuesta correcta es "eso ya está resuelto":
+
+| Situación | Por qué no hace falta IA |
+|---|---|
+| *"Se nos escapan malas palabras nuevas"* | Es agregar términos a la lista con su nivel. Un pull request |
+| *"Hay que soportar otro idioma"* (RF-NFR-08) | El diccionario de ModernMT cubre 59 idiomas y el clasificador es multilingüe |
+| *"Están evadiendo el filtro con `p3l0tud0`"* | Es el pipeline de normalización de §2.3.2. Determinístico |
+| *"Están mandando imágenes en base64"* | Entropía + charset. Categoría cerrada, sin modelo |
+| *"Hay spam"* | Token bucket y conteo de URLs |
+| *"Bloquea `cálculo`"* | Es un bug de matching por subcadena, no falta de inteligencia. `.onlyWholeWords()` |
+
+#### Lo que SÍ lo justificaría
+
+Cuatro escenarios reales, en orden de probabilidad:
+
+| # | Disparador | Qué haría falta | ¿Cuán probable? |
+|---|---|---|---|
+| **1** | **Acoso acumulativo** — aparecen casos de hostigamiento sostenido con mensajes individualmente inocuos | **Cambiar el contrato**, no el modelo: `moderar(mensaje)` tendría que pasar a recibir una ventana del hilo. Ahí sí un LLM aporta algo que ninguna lista puede | 🟡 Media. **Es el único hueco real** (§2.9) |
+| **2** | **Falsos positivos de integridad académica insostenibles** — la detección por forma molesta más de lo que sirve | Un LLM que mire el contenido. **Pero eso choca con ADR-008**: habría que revisar ese ADR primero, y es una decisión más grande que el moderador | 🟡 Media. [04:2.1](#21-las-seis-categorías-rf-cht-10) ya avisa que genera falsos positivos |
+| **3** | **Criterios de moderación propios del curso** — un profesor quiere reglas que una lista no puede expresar (*"en este canal no se discute X"*) | Un LLM con prompt. Es una **función nueva**, no un ajuste del moderador | 🟢 Baja. Nadie lo pidió |
+| **4** | **El clasificador deja de servir** — se vuelve pago, el free tier no alcanza, o su calidad en español cae | **No implica un LLM.** La salida es el modelo local ya evaluado en §2.3.5 (pysentimiento / Detoxify) | 🟢 Baja |
+
+> 🔴 **El único que importa de verdad es el 1**, y fijate que **no se arregla cambiando de modelo: se
+> arregla cambiando el contrato.** Poner el LLM más caro del mundo detrás de `moderar(mensaje)` no
+> detecta acoso acumulativo, porque el problema es que solo ve un mensaje. Es un pendiente de diseño,
+> no de presupuesto.
+
+#### Cómo se decide, para que no sea una discusión de opiniones
+
+Los tres disparadores se **miden**, no se intuyen:
+
+- **El campo `origen`** del contrato dice qué proporción resuelve cada capa. Si el clasificador se
+  lleva mucho más de lo previsto, la capa clásica está fallando y hay que mirar por qué.
+- **Los 100 mensajes etiquetados** de §2.8 dicen si la calibración sirve. Deben incluir los casos
+  incómodos: *boludo* afectuoso, *"cálculo"*, y una amenaza sin malas palabras.
+- **El volumen de apelaciones de RF-CHT-13** es el indicador de falsos positivos que se le escapan a
+  las dos mediciones anteriores, porque lo reporta el alumno afectado.
+
+**Ninguno de los tres existe todavía.** Hasta que existan, cualquier propuesta de sumar un LLM al
+moderador es una intuición sin dato atrás — y ADR-012 se tomó justamente para no trabajar así.
+
+## 3. El agente `@mención`
+
+### 3.1 Lo que dice el PRD, que es poco
+
+RF-CHT-05, completo: *"Agentes de IA participan en canales grupales de curso solo si son invocados
+vía mención @agente."*
+
+Y una línea en RF-CHT-08: esas invocaciones **se conservan** como interacción con IA (RF-IA-02),
+aunque ocurran dentro de un canal social que se purga, *"porque son contenido pedagógico sujeto a las
+reglas de asistencia de RF-IA-04/19"*.
+
+Eso es todo. **Todo lo demás hay que diseñarlo.**
+
+### 3.2 No es el tutor del desafío con otra puerta de entrada
+
+Es la confusión que hay que evitar antes de escribir una línea:
+
+| | **Tutor en desafío** | **Agente `@mención`** |
+|---|---|---|
+| Audiencia | Un alumno | **Todo el canal del curso** |
+| Contexto | El desafío, su enunciado, el código del alumno | El curso, el hilo, el material |
+| ¿Sabe qué desafío está resolviendo quien pregunta? | Sí | **No necesariamente** |
+| ¿La conversación se evalúa? | Sí — es la transcripción de RF-IA-03 | **No está definido** |
+| Riesgo principal | Que resuelva el ejercicio | Que resuelva el ejercicio **para quince personas a la vez** |
+
+### 3.3 El problema nuevo: la respuesta es pública
+
+RF-IA-04 —*la IA nunca entrega la solución final*— ya rige. Pero en el desafío una fuga afecta a un
+alumno; en un canal grupal afecta al curso entero **y queda escrita**. Es el mismo guardarraíl con el
+impacto multiplicado.
+
+Peor: el agente no sabe en qué desafío está cada uno de los que leen. Un alumno pregunta algo
+inocente sobre un tema, y la respuesta le regala el razonamiento a otro que está trabado justo en el
+ejercicio de ese tema.
+
+**Mitigación mínima si esto entra:** el perímetro del agente en canal grupal tiene que ser **más
+restrictivo** que el del tutor, no igual. Teoría y documentación sí; razonamiento paso a paso sobre
+un problema concreto, no.
+
+### 3.4 La retención mixta es un problema de modelo de datos
+
+Dentro de un mismo canal social conviven mensajes que **se borran** y pares mención-respuesta que
+**se conservan**. La purga de RF-CHT-08 pasa de ser un borrado por canal a un borrado selectivo por
+mensaje, con dos excepciones simultáneas: la de RF-CHT-14 por incidentes, y esta.
+
+Y hay una arista fea: si un alumno escribe información personal en el mismo mensaje en el que
+menciona al agente, ese mensaje **se conserva bajo el régimen general** aunque el resto del canal se
+borre. Va a la Parte C de [08](08-decisiones-y-pendientes.md).
+
+> 📎 Detalle a tener en cuenta: RF-IA-02 habla de interacciones **en desafíos prácticos**. RF-CHT-08
+> lo extiende al chat de hecho, sin decirlo. No es contradictorio, pero sí es una ampliación
+> implícita del alcance de RF-IA-02 que conviene tener presente al modelar la tabla.
+
+### 3.5 Tres cosas que el PRD no responde
+
+| # | Pregunta | Por qué importa |
+|---|---|---|
+| 1 | ¿La respuesta **del agente** también se modera? | RF-CHT-09 dice "todo mensaje, antes de que se entregue a los demás participantes". Literalmente, sí. Y es sano: moderar la salida propia es la defensa contra un prompt injection plantado en el canal |
+| 2 | ¿Las menciones cuentan contra los límites de RF-IA-22? | Si no cuentan, son la vía libre para agotar la cuota del curso |
+| 3 | ¿Qué agente responde? RF-CHT-05 dice "agentes", en plural | ¿Hay uno solo por curso, o `@tutor` y `@material` son distintos? Cambia el ruteo del gateway |
+
+Las tres quedan anotadas como P-09, P-10 y P-11 en [08](08-decisiones-y-pendientes.md).
+
+## 4. Nada de esto es MVP, y conviene decirlo en voz alta
+
+Sección 18 del PRD, Tabla 11 — fuera de alcance del MVP:
+
+| Ítem | Destino | Referencia |
+|---|---|---|
+| Guided Tour completo y **chat interno** | Fase 2 | Sección 2 del PRD |
+| **Agentes de IA en canales grupales de chat** | Fase 3 | RF-CHT-05 |
+
+> 🔴 **La consecuencia que hay que ver:** el moderador **no** figura como fuera de alcance, pero
+> modera un chat que en el MVP no existe. Es una inconsistencia del PRD, no nuestra, y conviene
+> llevarla a la próxima revisión antes de que alguien la descubra planificando un sprint.
+
+**Qué hacer con eso:**
+
+- **El moderador se diseña ahora y se construye después.** Es barato, es la función de IA más simple
+  del proyecto y no bloquea a nadie. Entra cuando entre el chat.
+- **El agente `@mención` no se construye en este cuatrimestre.** Es Fase 3 y compite por tiempo con
+  el evaluador, que sí es el núcleo del tema.
+- **Lo que sí hay que hacer ahora es el contrato**: dejar escrito el llamado `moderar(mensaje)` para
+  que el Tema 11 pueda diseñar su chat sabiendo qué va a poder pedirnos.
+
+Si el PO decide adelantar el chat al MVP, el moderador pasa de "diseñado" a "camino crítico" — y con
+él la decisión de P-02, que ahí deja de ser teórica.
+
+## 5. Lo que hay que decidir
+
+| # | Pregunta | Propuesta | Quién decide |
+|---|---|---|---|
+| 1 | ¿Fail-open o fail-closed si el moderador se cae? | Fail-open con red | **PO — es P-02** |
+| 2 | ¿Dónde corta el umbral entre severidad baja y media? | Empezar permisivo y ajustar con datos | PO + nosotros |
+| 3 | ¿Se modera la respuesta del propio agente? | **Sí** | Nosotros — es P-09 |
+| 4 | ¿Las menciones cuentan en RF-IA-22? | **Sí**, el mismo pozo | Nosotros — es P-10 |
+| 5 | ¿Uno o varios agentes que se puedan mencionar? | **Uno** en Fase 3 | PO — es P-11 |
+| 6 | ¿Se adelanta el chat al MVP? | No | PO |

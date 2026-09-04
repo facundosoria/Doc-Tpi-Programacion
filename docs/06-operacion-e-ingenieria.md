@@ -113,8 +113,12 @@ flowchart TB
 
 | Camino | Optimiza | Sacrifica | Modelos | Timeout |
 |---|---|---|---|---|
-| Sincrónico | Latencia percibida | Costo por token, calidad | Haiku 4.5, nano, Flash-Lite | 10-20 s |
-| Asincrónico | Costo (-50%) y calidad | Latencia (minutos) | Sonnet 5 con Batch | Minutos, con reintentos |
+| Sincrónico | Latencia percibida | Costo por token, calidad | Flash-Lite en el tutor; el moderador no usa LLM (ADR-012) | 10-20 s |
+| Asincrónico | Costo (-50%) y calidad | Latencia (minutos) | Haiku 4.5 en evaluador y corrector, Flash-Lite en generador — los tres con Batch | Minutos, con reintentos |
+
+> **Sonnet 5 no es el modelo del camino asincrónico, es la escalada.** Solo se sube ahí si la
+> calibración contra PAR-14 falla con Haiku 4.5 — es la cláusula (b) de ADR-010. La asignación
+> vigente por función está en [03](03-modelos-costos-y-contexto.md) §1.
 
 ### Los tres beneficios que salen del mismo corte
 
@@ -373,10 +377,15 @@ arrancó a las 10:00 hace esperar a 30 correcciones de alumnos que están mirand
 | Prioridad | Trabajo | Por qué |
 |---|---|---|
 | **1 — Alta** | Corrección de una entrega recién hecha | **El alumno está esperando su nota.** Es la única cola con alguien mirando |
-| **2 — Media** | Evaluación de uso de IA | RF-IA-27 permite explícitamente diferirla. Nadie espera en pantalla |
-| **3 — Media-alta** | Evaluación de un curso próximo a cerrar | RF-IA-34 bloquea el cierre con pendientes. Se prioriza por **fecha de cierre**, no por antigüedad |
-| **4 — Baja** | Generación de parciales | El profesor sabe que tarda y no está mirando |
+| **2 — Media-alta** | Evaluación de un curso próximo a cerrar | RF-IA-34 bloquea el cierre con pendientes. Se prioriza por **fecha de cierre**, no por antigüedad |
+| **3 — Media** | Evaluación de uso de IA | RF-IA-27 permite explícitamente diferirla. Nadie espera en pantalla |
+| **4 — Baja** | Generación de parciales · ingesta de material de un curso | El profesor sabe que tarda y no está mirando |
 | **5 — Fondo** | Recalibración y detección de deriva | Programarla **fuera de horario pico**. No compite con nadie |
+
+> **El número es la prioridad efectiva.** Antes esta tabla listaba «3 — Media-alta» por debajo de
+> «2 — Media», con lo cual el nombre y el orden decían cosas distintas. La **ingesta** también entra
+> acá: es un trabajo encolado más (`POST /ai/ingesta` devuelve 202) y hasta ahora no figuraba en
+> ninguna banda. Si al equipo le cierra mejor en 5, se mueve — lo que no puede es faltar.
 
 ### Y necesita reserva de capacidad, no solo prioridad
 
@@ -385,8 +394,8 @@ horas. La solución es **reservar workers**:
 
 | Workers | Dedicados a |
 |---|---|
-| 3 | Prioridad 1 y 2 (correcciones y evaluaciones) |
-| 1 | Prioridad 3 y 4 (generaciones y cierres) — **siempre hay uno disponible** |
+| 3 | Prioridad 1, 2 y 3 (correcciones, cursos por cerrar y evaluaciones) |
+| 1 | Prioridad 4 y 5 (generaciones, ingesta y recalibración) — **siempre hay uno disponible** |
 
 Así una tormenta de correcciones no deja a un profesor esperando un parcial durante dos horas.
 
@@ -483,7 +492,7 @@ RF-CHT-09 dice que el moderador corre sobre **todo** mensaje, **antes** de que s
 |---|---|
 | **Fail-closed** — el chat se detiene | Cumple la regla de moderación. **Pero viola el espíritu de RF-IA-27**: una dependencia externa bloquea al usuario |
 | **Fail-open** — el mensaje se entrega sin moderar | El chat sigue. Riesgo: un mensaje de severidad alta se entrega |
-| **Fail-open con red** ✅ | Se entrega, pero: el pre-filtro determinístico sigue corriendo (atrapa lo obvio sin LLM), el mensaje se marca, y se re-modera cuando el servicio vuelve; si ahí resulta severidad media o alta, se retira y se genera el incidente |
+| **Fail-open con red** ✅ | Se entrega, pero: la capa clásica sigue corriendo (atrapa lo obvio sin salir a la red, ADR-012), el mensaje se marca, y se re-modera cuando el servicio vuelve; si ahí resulta severidad media o alta, se retira y se genera el incidente |
 
 **Recomendación: fail-open con red.** Fundamento: el chat social **no es producción académica** — es
 la única cosa que RF-NFR-01 permite borrar físicamente (RF-CHT-08). Bloquearlo por una caída externa
@@ -955,7 +964,7 @@ eval no podés cambiar un prompt sin miedo, y vas a cambiar prompts cincuenta ve
 | Nivel | Qué es | Dónde va | Ejemplo |
 |---|---|---|---|
 | **Secreto** | Si se filtra, hay que rotarlo | 🔴 **Nunca en el repo** | Claves de API de los proveedores, credenciales de la base, del bus, de MinIO |
-| **Configuración de entorno** | Cambia entre dev y producción | Variables de entorno o Spring Cloud Config | URLs, puertos, tamaños de pool, timeouts |
+| **Configuración de entorno** | Cambia entre dev, staging y producción | Variables de entorno o Spring Cloud Config | URLs, puertos, tamaños de pool, timeouts |
 | **Configuración de negocio** | La cambia un ADMIN en caliente | **Base de datos** | `funcion → modelo`, cuotas de RF-IA-22, umbrales |
 
 **Los tres son distintos y se manejan distinto.** El error clásico es tratarlos igual: poner la clave
@@ -969,7 +978,7 @@ en `application.yml` "solo para probar", o pedir un deploy para cambiar una cuot
 | 2 | **`.gitignore` con `application-local.yml`, `.env`, `*.key`** desde el primer commit | Antes de que alguien las cree |
 | 3 | **Variables de entorno en desarrollo**, Spring Cloud Config o secretos del orquestador en producción | |
 | 4 | **Un `.env.example` con las claves vacías** y comentadas | Documenta qué hace falta sin filtrar nada |
-| 5 | **Claves distintas por entorno** | Si se filtra la de desarrollo, producción sigue viva |
+| 5 | **Claves distintas por entorno** —son tres, y están en la Parte 7 §5 | Si se filtra la de desarrollo, producción sigue viva |
 | 6 | **La clave nunca se loguea ni se devuelve en un error** | Cuidado con los dumps de configuración al arrancar |
 | 7 | **Un solo lugar del código lee la clave**: el adapter del proveedor | Si está en cinco lugares, rotarla es una cacería |
 
@@ -1112,3 +1121,129 @@ Sin importar la tecnología:
 | 2 | **Idempotencia** | Si el worker muere a la mitad y otro lo toma, **no pueden salir dos parciales** |
 | 3 | **Estados explícitos** | `pendiente → en_proceso → completado \| fallido \| reintentando`. El profesor tiene que poder ver en cuál está |
 | 4 | **Alerta por antigüedad, no solo por tamaño** | Un trabajo pendiente hace 3 días es más grave que 50 de hace una hora |
+
+---
+
+# Parte 7 — Cómo se publica una versión
+
+> La [U1 de Front End](15-sincronizacion-arquitectura-y-despliegue.md) dedica media unidad a esto y
+> nuestra documentación no lo tenía escrito en ningún lado. Esta parte cierra ese hueco con lo que
+> aplica a un servicio con 1-2 réplicas sobre Docker Compose.
+
+## 1. La estrategia: rolling update
+
+**Las réplicas se reemplazan de a una y las dos versiones conviven durante la ventana**
+(ADR-013). No es una elección sofisticada: es lo que ya hace `docker compose up -d` con réplicas.
+Lo que la decisión agrega es hacerse cargo del costo.
+
+**El costo es uno solo y ya estaba escrito en otra parte:** durante la ventana, algunas peticiones
+las atiende la versión vieja y otras la nueva. Eso convierte la regla de versionado del contrato de
+[02](02-arquitectura-y-stack.md) —*un cambio incompatible sin aviso rompe al otro equipo*— en un
+requisito de despliegue, no en una buena costumbre.
+
+**En la práctica, tres reglas:**
+
+| # | Regla | Por qué |
+|---|---|---|
+| 1 | **Un campo se agrega opcional; nunca se renombra ni se borra en el mismo release** | Las dos versiones tienen que poder leer la misma respuesta |
+| 2 | **Las migraciones de base son aditivas** (`ADD COLUMN` con default, nunca `DROP` ni `NOT NULL` de golpe) | La versión vieja sigue escribiendo mientras dura la ventana |
+| 3 | **Borrar es un release aparte**, después de que la versión vieja ya no corre en ningún lado | Convierte un cambio riesgoso en dos cambios triviales |
+
+Por qué no Blue-Green, Canary ni A/B Testing: ADR-013 tiene el fundamento de cada uno. El resumen
+es que Blue-Green duplica infraestructura y choca con nuestras migraciones append-only, Canary
+necesita repartir tráfico por porcentaje —con 1-2 réplicas el mínimo es 50%— y **A/B Testing es
+inaceptable por el dominio**: dos alumnos con la misma transcripción recibirían notas de versiones
+distintas.
+
+## 2. El artefacto y el rollback
+
+**La imagen se etiqueta con el SHA del commit, no con `latest`.** Un `latest` no se puede revertir
+porque no nombra nada: no hay forma de decir *volvé a la de antes*.
+
+| Qué | Cómo |
+|---|---|
+| **Tag de la imagen** | `ms-evaluacion-llm:<sha-corto>`, más `:staging` o `:prod` como alias móvil |
+| **Rollback** | Volver a desplegar el tag anterior. **No hay un mecanismo aparte**: es el mismo rolling update apuntando a la imagen de antes |
+| **Lo que el rollback NO revierte** | Las migraciones ya aplicadas. Por eso la regla 2 de arriba: si son aditivas, la versión vieja arranca igual |
+| **Trazabilidad** | Qué SHA corre en cada entorno y desde cuándo. Sin eso, "volvé a la de antes" es una adivinanza |
+
+> ⚠️ **El rollback de código no deshace un score ya emitido.** Las notas son append-only
+> ([07](07-datos-y-terminos.md) §3.3) y RF-IA-13 prohíbe recalcular puntajes históricos. Si una
+> versión mala llegó a puntuar, revertir el binario detiene el daño pero **no lo repara**: eso es un
+> override de docente, que es un camino distinto y auditado.
+
+## 3. Qué mirar después de desplegar
+
+Las ocho métricas de la Parte 2 §7 ya existen; lo que faltaba era decir **cuáles se miran en la
+ventana posterior a un release y con qué umbral se revierte**.
+
+| Señal | Se revierte si |
+|---|---|
+| Tasa de error 5xx | Sube por encima de la línea base de la hora previa |
+| Latencia p95 del tutor | Cruza el objetivo declarado y no baja en 10 minutos |
+| Antigüedad del trabajo más viejo en cola | Crece de forma sostenida: significa que los workers nuevos no están tomando trabajo |
+| Fugas detectadas por el guardarraíl de salida | **Cualquier valor distinto de cero revierte de inmediato.** No hay umbral de tolerancia acá |
+
+**La ventana es de 30 minutos o hasta la primera evaluación completada, lo que ocurra después.** Un
+servicio cuyo trabajo real es asincrónico puede parecer sano un buen rato antes de que el primer
+trabajo termine mal.
+
+## 4. La sonda de salud: qué chequea y qué no
+
+Actuator da el endpoint gratis; lo que hay que decidir es **qué mira**.
+
+| Dependencia | ¿Entra en el readiness? | Por qué |
+|---|---|---|
+| **Postgres** | ✅ Sí | Sin base no se puede aceptar ni registrar trabajo |
+| **Redis / la cola** | ✅ Sí | Sin cola no se puede encolar, que es lo que el servicio promete cuando no hay modelo |
+| **Proveedor de LLM** | 🔴 **No** | ADR-014 |
+
+> ### 🔴 Por qué el proveedor queda afuera
+>
+> Una sonda que lo incluyera sacaría la instancia de rotación cuando el proveedor se cae. Y
+> **RF-IA-27 dice exactamente que la caída del proveedor no puede bloquear al alumno**: la escalera
+> de degradación de la Parte 2 §5 existe para que el servicio siga respondiendo sin modelo.
+>
+> Meterlo en el readiness convierte una degradación prevista en una caída total — el único resultado
+> que el requisito prohíbe. El estado del proveedor va a **métrica, alerta y circuit breaker**, que
+> es donde sirve.
+>
+> **El servicio está sano cuando puede aceptar trabajo y encolarlo.** Que ese trabajo termine con un
+> modelo o con la degradación es otra pregunta, y tiene su propia respuesta.
+
+**En el Compose, `depends_on` no alcanza:** espera a que el contenedor inicie, no a que el servicio
+esté listo para responder. Postgres y Redis necesitan `healthcheck` propio y el servicio los declara
+con `condition: service_healthy`. Sin eso, el arranque en frío falla de forma intermitente y siempre
+parece otra cosa.
+
+## 5. Los entornos son tres, no dos
+
+La Parte 5 habla de dev y producción. Falta el del medio, y es el que da sentido a la regla de que
+la configuración vive afuera de la imagen:
+
+| Entorno | Para qué | Modelos |
+|---|---|---|
+| **dev** | La máquina de cada uno. `docker compose up` | Free tier, o el proveedor apagado a propósito |
+| **staging** | Donde se prueba el despliegue antes de que lo vea un alumno. **Misma imagen que producción** | Free tier, con una clave distinta |
+| **producción** | Cursos reales | Los del catálogo de [03](03-modelos-costos-y-contexto.md) |
+
+> **La misma imagen viaja a los tres.** Lo único que cambia es el entorno con el que se levanta el
+> contenedor — que es la regla 5 de la Parte 5, ahora con el tercer entorno explícito.
+>
+> La U1 resuelve esto para Angular con `envsubst`, porque un frontend compilado ya generó archivos
+> estáticos y no queda proceso que consulte el entorno. **A nosotros no nos hace falta:** Spring lee
+> las variables en cada arranque. El detalle está en
+> [15](15-sincronizacion-arquitectura-y-despliegue.md).
+
+## 6. Lo que falta construir
+
+Nada de esta parte existe todavía como archivo. Cuando se escriba el código:
+
+| Artefacto | Qué tiene que cumplir |
+|---|---|
+| `Dockerfile` | **Build multietapa**: una etapa con Maven y el JDK que compila, otra con solo el JRE que corre. Ni Maven ni el código fuente llegan a la imagen final |
+| `docker-compose.yml` | Servicio, worker, Postgres y Redis. **Sin puerto publicado para el servicio.** `healthcheck` en las dependencias y `condition: service_healthy` en el servicio |
+| `.env.example` | Ya pedido por la regla 4 de la Parte 5 |
+
+El hueco del lado del CI —build de imagen, registro y deploy— sigue abierto: no hay
+todavía nada que construya la imagen, la publique en un registro y la despliegue sola.

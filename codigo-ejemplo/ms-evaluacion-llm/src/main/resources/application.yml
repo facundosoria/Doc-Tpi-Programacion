@@ -1,0 +1,31 @@
+server:
+  port: 8087
+
+spring:
+  application:
+    name: ms-evaluacion-llm
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:mem:evaluacionllm;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE}
+    driverClassName: ${SPRING_DATASOURCE_DRIVER:org.h2.Driver}
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:}
+  jpa:
+    database-platform: ${SPRING_JPA_DATABASE_PLATFORM:org.hibernate.dialect.H2Dialect}
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+  ai:
+    openai:
+      api-key: ${GROQ_API_KEY:mock-key}
+      base-url: ${GROQ_BASE_URL:https://api.groq.com/openai}
+      chat:
+        options:
+          model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+
+llm:
+  gateway:
+    groq:
+      api-key: ${GROQ_API_KEY:mock-key}
+      base-url: ${GROQ_BASE_URL:https://api.groq.com/openai}
+      model: ${GROQ_MODEL:llama-3.3-70b-versatile}
+      timeout-seconds: 15

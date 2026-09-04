@@ -1,0 +1,14 @@
+# Los fines de linea son propiedad del REPO, no de cada maquina.
+#
+# Sin esto, git normaliza segun el core.autocrlf de quien clone, y el conjunto de
+# "archivos cambiados" pasa a depender de la maquina: el mismo commit se ve distinto
+# en un Windows y en un contenedor Linux. Se detecto exactamente asi, con un documento
+# apareciendo como modificado solo adentro del contenedor.
+
+* text=auto eol=lf
+
+# Binarios: que git no toque nada.
+*.pdf binary
+*.png binary
+*.jpg binary
+*.woff2 binary

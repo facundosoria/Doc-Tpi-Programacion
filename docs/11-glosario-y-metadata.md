@@ -21,7 +21,7 @@ sesión de integración va a cerrar acuerdos que cada equipo entiende diferente.
 
 No es formalismo: es lo único de DDD que urge.
 
-## Las siete colisiones
+## Las ocho colisiones
 
 **Esta es la parte que hay que llevar a la integración.**
 
@@ -34,6 +34,7 @@ No es formalismo: es lo único de DDD que urge.
 | **"Entrenar"** | Se usa para el RAG | **Indexar.** No se entrena ningún modelo en este proyecto |
 | **"Umbral del 70%"** | Anti-fuga (Tema 07) · originalidad entre alumnos (Tema 05) | **PAR-11 / anti-fuga** · **umbral de originalidad** |
 | **"Curso"** | El template reutilizable · la cohorte que ocurre | **Curso template** · **curso-cohorte** |
+| **"Gateway"** | Nginx en el borde · el API Gateway de la plataforma · nuestro AI Gateway interno (M1) | **nginx** · **API Gateway** · **AI Gateway**. Nunca "el gateway" a secas |
 
 > **La de "entrenar" es la que más confusión genera fuera del equipo.** Cuando alguien dice "el
 > sistema se entrena con el apunte", está describiendo RAG. Ningún modelo se entrena acá, y RF-IA-29
@@ -106,9 +107,53 @@ No es formalismo: es lo único de DDD que urge.
 | **Función de IA** | Una de las cinco: tutor, evaluador, moderador, generador, corrector |
 | **Proveedor** | La empresa: Anthropic, Google, OpenAI |
 | **Modelo** | El modelo concreto. **Se asigna por función, y vive en una tabla editable por ADMIN** |
-| **Adapter** | El código que traduce nuestro formato interno al de cada proveedor |
+| **Adapter** | El código que traduce nuestro formato interno al de cada proveedor. Es un patrón GoF: por eso sumar un proveedor no toca ninguna función |
 | **Batch** | Modo asincrónico del proveedor, 50% más barato |
 | **Prompt caching** | Cobrar más barato el prefijo estable que se repite entre llamadas |
+
+### Patrones de diseño
+
+Los que aparecen por nombre en la documentación. **El mapa completo de qué patrón resuelve qué
+decisión está en [04](04-funciones-de-ia.md) §2.3.4b —pipeline contra cadena— y §2.3.4c.**
+
+| Término | Definición | Dónde se usa |
+|---|---|---|
+| **Pipes and Filters** (pipeline) | Etapas ordenadas; **corren todas** y cada una transforma el dato | La normalización previa al matching: acentos, leet, repetidos |
+| **Chain of Responsibility** (cadena) | Eslabones; **corta en el primero que resuelve**. No corren todos | Solo el corte capa clásica → clasificador. **Dos eslabones**, no cinco: es el único lugar donde hay trabajo caro que evitar |
+| **Strategy** | Varias implementaciones intercambiables detrás de una misma interfaz | Cada detector del moderador. Es lo que evita el `if/else` que crece con cada categoría |
+| **Composite** | Tratar a un grupo de objetos como si fuera uno solo | Los detectores clásicos: corren todos y fusionan veredictos, porque `categorias` es un array |
+| **Adapter** | Traduce entre nuestro formato y el de un tercero | Un adapter por proveedor de IA (M1, ADR-001) |
+| **Factory Method** | Construir el objeto concreto según configuración, no según código fijo | Elegir el modelo por función, que RF-IA-11 exige editable por ADMIN |
+| **Circuit Breaker** | Corta las llamadas a un servicio que está fallando y las reintenta más tarde | Todos los proveedores. **Resilience4j**, elegido en [02](02-arquitectura-y-stack.md) |
+| **Rate Limiter** (token bucket) | Limita cuántas operaciones por unidad de tiempo se permiten | Spam por usuario en el moderador. También Resilience4j |
+| **Idempotent Receiver** | Recibir dos veces el mismo pedido produce un solo efecto | El `idempotency_key` de todos los contratos `/ai/*` |
+| **Buffer Interceptor** | Retiene la salida en streaming hasta poder validarla | Salvaguarda anti-fuga del tutor ([14](14-sincronizacion-guia-didactica.md) A-1) |
+
+> ⚠️ **Pipeline y cadena se confunden todo el tiempo, y no son lo mismo.** En un **pipeline corren
+> todas** las etapas y cada una **transforma**; en una **cadena se corta** en la primera que
+> **decide**. El moderador usa los dos, en lugares distintos y por motivos distintos — el desarrollo
+> está en [04](04-funciones-de-ia.md) §2.3.4b.
+
+### Infraestructura y despliegue
+
+Vocabulario de la [U1 de Front End](15-sincronizacion-arquitectura-y-despliegue.md). Van acá porque
+aparecen en la defensa y porque **tres de ellos ya describían algo que hacíamos sin nombrarlo**.
+
+| Término | Definición | Dónde se usa |
+|---|---|---|
+| **Reverse proxy** | Se ubica del lado del servidor y lo oculta: el cliente ve una sola dirección pública | nginx en el borde, delante del API Gateway (ADR-015) |
+| **Forward proxy** | Lo contrario: se ubica del lado del cliente y lo oculta ante el servidor | No se usa en el proyecto. Está para no confundirlo con el anterior |
+| **BFF** (Backend for Frontend) | Un servidor por experiencia de frontend, que combina varios microservicios en una respuesta ya armada para una pantalla | **No lo usamos, y es deliberado.** Ninguna de nuestras pantallas combina datos de varios microservicios: todas leen del nuestro |
+| **Rolling update** | Reemplazar las instancias de a una; las dos versiones conviven durante la ventana | Nuestra estrategia de despliegue (ADR-013) |
+| **Feature flag** | Desplegar el código apagado y activarlo después, sin otro deploy | 🟡 **Ya lo hacíamos:** la tabla `funcion → modelo` de RF-IA-24 es exactamente esto |
+| **Shadow deployment** | Duplicar el tráfico real hacia la versión nueva y **descartar su respuesta** | ✅ Adoptado, pero para calibrar: validar una `rubric_version` nueva sin tocar la nota de nadie |
+| **Readiness / liveness** | Sondas que responden *¿puedo recibir tráfico?* y *¿sigo vivo?* | [06](06-operacion-e-ingenieria.md) Parte 7 §4. **El proveedor de LLM no entra** (ADR-014) |
+| **Build multietapa** | Un Dockerfile que compila en una etapa y copia solo el resultado a otra | Pendiente: el Dockerfile del servicio todavía no existe |
+
+> ⚠️ **"Feature flag" y "configuración de negocio" son la misma cosa dicha por dos oficios.** Cuando
+> [06](06-operacion-e-ingenieria.md) dice *"si lo cambia un ADMIN sin pedir un deploy, va en la
+> base"*, está describiendo un feature flag con persistencia en tabla. Conviene saber las dos
+> palabras: una la entiende el equipo, la otra la entiende la cátedra.
 
 ### Versionado
 

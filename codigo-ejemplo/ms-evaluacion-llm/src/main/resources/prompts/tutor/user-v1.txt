@@ -1,0 +1,10 @@
+TEMA DE LA CONVERSACIÓN:
+{tema}
+
+HISTÓRICO DE CHAT:
+{historico}
+
+PREGUNTA ACTUAL DEL ALUMNO:
+"{pregunta}"
+
+Responde guiando al alumno de forma socrática, sin darle código resuelto ni la solución directa:

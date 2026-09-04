@@ -1,0 +1,203 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+
+  <!--
+    Esqueleto minimo del microservicio de evaluacion.
+
+    NO tiene logica de negocio a proposito. Existe para que las verificaciones de
+    Java del build (formato, compilacion, tests, analisis estatico) se puedan
+    probar HOY, sembrando errores adrede, en vez de escribirlas a ciegas y
+    descubrir que no andan el dia del primer commit real.
+
+    El diseno del servicio esta en docs/02-arquitectura-y-stack.md.
+  -->
+
+  <parent>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter-parent</artifactId>
+    <version>3.5.0</version>
+    <relativePath/>
+  </parent>
+
+  <groupId>ar.edu.utn.frc.tup.piv</groupId>
+  <artifactId>ms-evaluacion-llm</artifactId>
+  <version>0.0.1-SNAPSHOT</version>
+  <name>ms-evaluacion-llm</name>
+  <description>Microservicio de evaluacion LLM - Tema 07</description>
+
+  <properties>
+    <java.version>21</java.version>
+    <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+    <spotless.version>2.44.0</spotless.version>
+    <pmd.version>3.26.0</pmd.version>
+    <jacoco.version>0.8.12</jacoco.version>
+  </properties>
+
+  <dependencies>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-web</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-validation</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-data-jpa</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>com.h2database</groupId>
+      <artifactId>h2</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.postgresql</groupId>
+      <artifactId>postgresql</artifactId>
+      <scope>runtime</scope>
+    </dependency>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <optional>true</optional>
+    </dependency>
+    <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-starter-test</artifactId>
+      <scope>test</scope>
+    </dependency>
+  </dependencies>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-compiler-plugin</artifactId>
+        <configuration>
+          <annotationProcessorPaths>
+            <path>
+              <groupId>org.projectlombok</groupId>
+              <artifactId>lombok</artifactId>
+            </path>
+          </annotationProcessorPaths>
+        </configuration>
+      </plugin>
+
+      <!-- Formato. `spotless:apply` corrige los archivos; `spotless:check` solo
+           avisa, para una corrida que no tiene que escribir nada. -->
+      <plugin>
+        <groupId>com.diffplug.spotless</groupId>
+        <artifactId>spotless-maven-plugin</artifactId>
+        <version>${spotless.version}</version>
+        <configuration>
+          <java>
+            <palantirJavaFormat/>
+            <removeUnusedImports/>
+            <trimTrailingWhitespace/>
+            <endWithNewline/>
+          </java>
+        </configuration>
+      </plugin>
+
+      <!-- Analisis estatico: codigo muerto, variables sin usar, catch vacios.
+           failOnViolation=false a proposito: el plugin reporta y no corta el build.
+           El XML queda en target/ para revisar los hallazgos. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-pmd-plugin</artifactId>
+        <version>${pmd.version}</version>
+        <configuration>
+          <failOnViolation>false</failOnViolation>
+          <printFailingErrors>true</printFailingErrors>
+          <format>xml</format>
+          <linkXRef>false</linkXRef>
+          <!-- CPD: cuantos tokens iguales seguidos cuentan como duplicacion. El
+               default de 100 solo caza copias enormes; 60 encuentra el
+               copiar-pegar real sin marcar cada getter parecido. -->
+          <minimumTokens>60</minimumTokens>
+          <rulesets>
+            <ruleset>${project.basedir}/pmd-ruleset.xml</ruleset>
+          </rulesets>
+        </configuration>
+      </plugin>
+
+      <!-- Cobertura. El umbral NO se pone aca: un porcentaje global sobre todo
+           el modulo premia testear getters y castiga testear lo dificil. La
+           cobertura se mide con diff-cover sobre las lineas que agregaste en
+           ESTE cambio, que es lo unico que no genera deuda retroactiva. Este plugin
+           solo produce el reporte XML que diff-cover lee. -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>${jacoco.version}</version>
+        <configuration>
+          <excludes>
+            <!-- Contar esto infla el numero sin que nadie teste nada real. -->
+            <exclude>**/*Application.class</exclude>
+            <exclude>**/config/**</exclude>
+            <exclude>**/dto/**</exclude>
+            <exclude>**/entity/**</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <id>preparar-agente</id>
+            <goals><goal>prepare-agent</goal></goals>
+          </execution>
+          <execution>
+            <id>reporte</id>
+            <phase>test</phase>
+            <goals><goal>report</goal></goals>
+          </execution>
+        </executions>
+      </plugin>
+
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-surefire-plugin</artifactId>
+        <configuration>
+          <!-- Los XML de surefire son el reporte de la corrida, asi que la suite
+               no debe abortar el build antes de escribirlos. -->
+          <testFailureIgnore>true</testFailureIgnore>
+          <!-- integracion: necesita Postgres y Redis levantados.
+               modelo-real: le pega a la API del proveedor y GASTA PLATA. Ver TESTING.md. -->
+          <excludedGroups>integracion,modelo-real</excludedGroups>
+        </configuration>
+      </plugin>
+
+      <plugin>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-maven-plugin</artifactId>
+      </plugin>
+    </plugins>
+  </build>
+
+  <profiles>
+    <!-- Perfil completo: suma los tests de integracion, que levantan Postgres y
+         Redis. Quedan fuera del build de todos los dias porque tardan.
+
+         Los `modelo-real` siguen excluidos ACA TAMBIEN: le pegan a la API del
+         proveedor y GASTAN PLATA. Un test que gasta sin que nadie lo pida no se
+         descubre hasta que llega la factura. Para correrlos, a mano y a sabiendas:
+
+             ./mvnw test -Dgroups=modelo-real -DexcludedGroups= -DtestFailureIgnore=false
+    -->
+    <profile>
+      <id>completo</id>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-surefire-plugin</artifactId>
+            <configuration>
+              <excludedGroups combine.self="override">modelo-real</excludedGroups>
+            </configuration>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+  </profiles>
+</project>

@@ -27,10 +27,38 @@ de modelo y varias además mejoran la calidad.**
 | Función | Modelo | Costo por consulta | Por qué |
 |---|---|---|---|
 | **Tutor** | Gemini 3.5 Flash-Lite | USD 0,00052 | Rápido y sigue instrucciones negativas razonablemente bien |
-| **Moderador** | GPT-5 nano | USD 0,000027 | Clasificación pura sobre texto corto |
+| **Moderador** | Capa clásica + `omni-moderation-latest` | **USD 0** | No es un LLM: listas y heurísticas resuelven 4 de 6 categorías, y el clasificador —que es gratuito— cubre el resto. Ver ADR-012 |
 | **Evaluador** | Claude Haiku 4.5 + Batch | USD 0,006 | Consistencia de criterio. **Acá no se ahorra** |
 | **Generador** | Gemini 3.5 Flash-Lite + Batch | USD 0,00083 | Hay revisión humana obligatoria |
 | **Corrector** | Claude Haiku 4.5 + Batch | USD 0,002 | Es una nota, sin gate de calibración |
+
+### El supuesto que más mueve este número: cuántos tokens pesa un prompt
+
+Todo el rango de arriba sale de contar el texto del alumno. **Pero el prompt del alumno nunca se
+envía solo.** El informe de gestión de modelos —[`presentaciones/informe-gestion-modelos.html`](../presentaciones/informe-gestion-modelos.html)—
+desarma el payload real de una consulta al tutor y le encuentra cuatro capas:
+
+| Capa | Tokens |
+|---|---|
+| Consulta cruda del alumno + su código | ~350 |
+| System prompt pedagógico y directivas anti-fuga (RF-IA-04) | +450 |
+| Delimitadores XML y guardarraíles anti-jailbreak (`<untrusted_student_input>`) | +150 |
+| Contexto del desafío, rúbrica 5D y RAG | +600 |
+| **Total de entrada por llamada** | **~1.550** |
+
+Son **4,4 veces** el texto crudo. Con esa hipótesis y el mismo volumen —5 consultas de tutor por
+alumno por semana, 120 alumnos—, el informe ubica el escenario realista en **USD 62 a 118 al año**,
+contra los **USD 5 a 22 por cuatrimestre** de acá arriba.
+
+**Las dos cuentas no se contradicen: parten de payloads distintos.** Y el informe agrega el dato que
+salva la diferencia: el sobrecosto neto de la seguridad no es del 400 % sino del **20 al 25 %**,
+porque el 80 % de ese payload es idéntico entre alumnos de la misma cohorte y entra por **prompt
+caching** con 75-90 % de descuento, y porque el filtro local de la capa 1 descarta los ataques
+burdos sin llamar a la API.
+
+> **Qué falta para cerrarlo:** medir el payload real cuando el servicio corra. Si son 1.550 tokens y
+> no 350, el rango de esta sección queda corto y hay que rehacer el ADR-010 con el número medido en
+> vez del estimado. Está anotado en [08](08-decisiones-y-pendientes.md), en el propio ADR-010.
 
 ## 2. Catálogo de modelos
 
@@ -39,7 +67,7 @@ de modelo y varias además mejoran la calidad.**
 | Modelo | Input | Output | Contexto | Nota |
 |---|---|---|---|---|
 | **GPT-5 nano** | 0,05 | 0,40 | — | El más barato del mercado |
-| **Gemini 3.5 Flash-Lite** | 0,15 | 1,25 | 1M | El caballo de batalla |
+| **Gemini 3.5 Flash-Lite** | 0,15 | 1,25 | 1M | El caballo de batalla. ⚠️ Dos fuentes externas discrepan: `0,15 / 1,25` contra `0,30 / 2,50`. Confirmar en la consola de Google antes de fijarlo |
 | **DeepSeek V4-Flash** | 0,22 | 0,66 | — | Off-peak. Cache hit: 0,007 |
 | **Gemini 3.1 Flash-Lite** | 0,25 | 1,50 | 1M | |
 | **DeepSeek V4-Pro** | 0,66 | 1,98 | — | Off-peak |
@@ -63,7 +91,14 @@ no en el código (RF-IA-11).
 ### Fichas
 
 **GPT-5 nano** — precio imbatible, muy rápido, excelente para clasificación. **Flojo siguiendo
-instrucciones negativas complejas.** Para el moderador es ideal; para el tutor hay que probarlo antes.
+instrucciones negativas complejas.** Era el candidato del moderador hasta ADR-012; para el tutor hay
+que probarlo antes.
+
+**`omni-moderation-latest`** — el clasificador de moderación de OpenAI. **No es un LLM:** recibe texto
+y devuelve 13 categorías con score, sin prompt. **Es gratuito** (250 req/min, 5.000 req/día en el free
+tier) y su rendimiento en español supera al del inglés del modelo anterior. Sus categorías mapean casi
+uno a uno con RF-CHT-10, salvo las dos propias de este producto —integridad académica y elusión del
+solo-texto—, que resuelve la capa clásica.
 
 **Gemini 3.5 Flash-Lite** — free tier real (~1.500 req/día sin vencimiento), muy rápido, contexto de
 1M, multimodal para PDF escaneado. **Su salida es cara en proporción** (1,25 contra 0,15 de entrada):
@@ -132,7 +167,7 @@ Más útil que el precio por millón, porque es lo que realmente pasa.
 |---|---|---|
 | Una pregunta generada | Flash-Lite + Batch | USD 0,00083 → **un parcial de 15: 1,2 centavos** |
 | Corregir una respuesta | Haiku + Batch | USD 0,002 |
-| Moderar un mensaje | GPT-5 nano | USD 0,000027 → **mil mensajes: 3 centavos** |
+| Moderar un mensaje | Capa clásica + `omni-moderation-latest` | **USD 0** — no hay tokens que facturar (ADR-012) |
 
 ## 4. Qué significa "que funcione" y cómo probarlo
 
@@ -141,7 +176,7 @@ Cada barra es concreta y verificable. **Ninguna es una opinión.**
 | Función | "Funciona" significa | Cómo se prueba | ¿Barra dura? |
 |---|---|---|---|
 | **Tutor** | **Nunca emite la solución**, ni bajo presión | 30 intentos de jailbreak + 20 pedidos directos. **Cero fugas** | 🔴 Sí — RSK-09 |
-| **Moderador** | Detecta las 6 categorías de RF-CHT-10 | 100 mensajes etiquetados a mano. >90% en severidad media/alta | 🟡 Medible |
+| **Moderador** | Detecta las 6 categorías de RF-CHT-10 **sin comerse los falsos positivos rioplatenses** | 100 mensajes etiquetados a mano. >90% en severidad media/alta. **El set debe incluir *boludo* afectuoso y "cálculo"** | 🟡 Medible |
 | **Evaluador** | **Pasa PAR-14**: ±5 promedio, ±10 por dimensión | El golden set. **Es la prueba, literalmente** | 🔴 **Sí — sin esto el curso no arranca** |
 | **Generador** | El profesor usa las preguntas sin reescribirlas todas | 20 preguntas, un docente marca cuáles usaría. >70% | 🟢 Blanda — hay gate humano |
 | **Corrector** | Coincide con corrección humana | 30 respuestas corregidas a mano vs el modelo | 🟡 Medible |
@@ -190,7 +225,7 @@ profesor las descarta. Es el lugar más seguro para probar lo barato.
 | 3 | **Prompt caching** en tutor y evaluador | −60% del input efectivo | No |
 | 4 | Salida del tutor: 400 → **250 tokens** | −38% del costo de salida y **−40% de latencia** | **Mejora.** RF-IA-04 pide pistas, no ensayos |
 | 5 | **Batch** en evaluador, generador y corrector | −50% | No. Es la latencia que RF-IA-27 ya tolera |
-| 6 | **Pre-filtro determinístico** antes del moderador | −70% de las llamadas | No |
+| 6 | **Capa clásica** antes del clasificador | −70% de las llamadas o más — se mide con `origen` | No. **Además es la red del fail-open** |
 
 ### El caching del evaluador es la más subestimada
 
@@ -410,6 +445,56 @@ Funciona, **y la clave es que un pico solo es problema si alguien está esperand
 RF-IA-27 que hay que construir igual — solo cambia el disparador: en vez de "el proveedor falló", es
 "se acabó la cuota".
 
+### Qué usar para probar cada paso, sin pagar nada
+
+Los pasos son los de [10](10-entregables-y-plan.md) Parte 2, §8. **La mitad no necesita ningún
+modelo** — conviene verlo antes de preocuparse por cuotas.
+
+| Paso | Qué probás | Con qué | Costo |
+|---|---|---|---|
+| 0 · Glosario | — | Nada | — |
+| 1 · Esqueleto | Que `llamar_modelo()` ande contra un proveedor real | **Gemini free tier** | USD 0 |
+| 2 · Metadata | Captura de tiempos y ediciones | **Nada** — es código puro | USD 0 |
+| 3 · Rúbrica | Que el artefacto declarativo cargue y valide | **Nada** | USD 0 |
+| 4 · Features determinísticos | Conteos, tiempos, ediciones | **Nada** | USD 0 |
+| 5 · Evaluar una transcripción | Que devuelva 5 dimensiones válidas contra schema | **Gemini free tier** | USD 0 |
+| 6 · Golden set chico | Acuerdo entre dos personas | **Nada** — son humanos puntuando | USD 0 |
+| 7 · Runner de calibración | Comparar 3 modelos candidatos contra el golden set | **Free + los USD 5 de Anthropic** | ~USD 0,10 |
+| 8 · Endpoint de estado | Un JSON | **Nada** — puede ser mock | USD 0 |
+| 9 · RAG | Ingesta, chunking, embeddings, retrieval | **Nada** — embeddings locales (ADR-006) | USD 0 |
+| 10 · Generador | 5 preguntas desde un PDF, con fuente | **Gemini free tier** | USD 0 |
+| 11 · Guardarraíles | AST, comparación, filtro de entrada | **Nada** — es análisis estático | USD 0 |
+| 11b · Tutor | Latencia, RF-IA-04, los tres niveles de RF-IA-19 | **Gemini free tier** | USD 0 |
+| 12 · Corrector | Nota + justificación sobre respuesta abierta | **Gemini free tier** | USD 0 |
+| 13 · Moderador | 100 mensajes etiquetados, acierto en media/alta | **Nada** — capa clásica sin modelo + Moderation API gratuita (ADR-012) | USD 0 |
+
+**Los cuatro pasos que sí llaman a un modelo son 1, 5, 10 y 12** — más el 7, que es el único donde
+conviene gastar unos centavos a propósito.
+
+### El único proveedor con free tier realmente usable sigue siendo Gemini
+
+Ver la tabla de §8. **OpenAI y Anthropic dan USD 5 por única vez y vencen**: no sirven como motor de
+desarrollo, sí como **munición para el Paso 7**, que es exactamente donde hace falta comparar contra
+un modelo que no es Gemini. Guardá esos créditos para eso y no los quemes en el Paso 1.
+
+### El límite que te va a molestar no es el diario, son los 15 req/min
+
+1.500 requests por día alcanzan de sobra para seis personas desarrollando. **15 por minuto no**, si
+seis personas comparten una sola clave y alguien corre un lote.
+
+**La solución es trivial y hay que decirla el día 1: cada persona saca su propia clave del free
+tier.** Son gratis, no piden tarjeta, y el registro `función → proveedor + modelo` del Paso 1 ya
+soporta que la credencial venga de una variable de entorno distinta por máquina.
+
+> 🔴 **Lo que NO se hace con el free tier: datos reales de alumnos.** Los free tiers suelen permitir
+> al proveedor entrenar con lo enviado, y eso choca con RF-NFR-09 y RSK-01. **Para desarrollo y demo
+> todo es sintético**, así que no hay problema; el día que entre un curso real, la respuesta la da la
+> consulta legal de P-06 en [08](08-decisiones-y-pendientes.md), no nosotros.
+
+> ⚠️ **Probar con free no es elegir el modelo.** El evaluador se decide contra el golden set en el
+> Paso 7, y RF-IA-25 le prohíbe pool y enrutamiento. Que Flash-Lite ande bien en el Paso 5 no
+> significa que pase PAR-14 — eso lo dice la calibración, y **es la única forma legítima de decidirlo**.
+
 ## 9. Escenarios y presupuesto
 
 ### 🎯 Piso — si todo lo barato pasa sus pruebas
@@ -417,7 +502,7 @@ RF-IA-27 que hay que construir igual — solo cambia el disparador: en vez de "e
 | Función | Modelo | Costo |
 |---|---|---|
 | Tutor | GPT-5 nano | USD 3,24 |
-| Moderador | nano + pre-filtro | USD 0,31 |
+| Moderador | Capa clásica + clasificador | **USD 0** |
 | Evaluador | Flash-Lite + Batch | USD 2,53 |
 | Generador | nano + Batch | USD 0,24 |
 | Corrector | Flash-Lite + Batch | USD 0,80 |
@@ -428,7 +513,7 @@ RF-IA-27 que hay que construir igual — solo cambia el disparador: en vez de "e
 | Función | Modelo | Costo |
 |---|---|---|
 | Tutor | Flash-Lite | USD 10,00 |
-| Moderador | nano + pre-filtro | USD 0,31 |
+| Moderador | Capa clásica + clasificador | **USD 0** |
 | **Evaluador** | **Haiku 4.5 + Batch + caching** | **USD 10,70** |
 | Generador | Flash-Lite + Batch | USD 0,70 |
 | Corrector | Flash-Lite + Batch | USD 0,80 |
@@ -455,7 +540,7 @@ RF-IA-27 que hay que construir igual — solo cambia el disparador: en vez de "e
 |---|---|---|
 | **Evaluador en un modelo que no calibró** | USD 11 | 🔴 **El curso no arranca.** RF-IA-36, sin override |
 | Evaluar solo una muestra de desafíos | ~USD 5 | 🔴 Desarma el mecanismo académico central (RF-IA-15) |
-| Sacar el moderador | USD 0,31 | 🔴 Viola RF-CHT-09 |
+| Sacar el moderador | **USD 0** — ya no cuesta nada | 🔴 Viola RF-CHT-09 |
 | Contexto del tutor bajo 2.500 tokens | centavos | 🔴 El tutor deja de ver el código del alumno |
 | Cachear respuestas del tutor entre alumnos | poco | 🔴 Contamina la evaluación de RF-IA-09 |
 

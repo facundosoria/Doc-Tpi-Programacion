@@ -62,6 +62,7 @@ que haber dibujado seis cajitas.**
 ```mermaid
 flowchart TB
     FE["Front End - monolito Angular compartido"]
+    NX["nginx - borde<br/>sirve el Angular compilado · reverse proxy de /api"]
     GW["API GATEWAY<br/>unica puerta · valida token · propaga contexto"]
     SD["Service Discovery<br/>registro dinamico"]
 
@@ -85,7 +86,8 @@ flowchart TB
 
     BUS["BUS DE EVENTOS<br/>lo asincronico NO pasa por el gateway"]
 
-    FE --> GW
+    FE --> NX
+    NX --> GW
     GW <-.->|"resuelve instancia"| SD
     GW --> otros
     GW --> nuestro
@@ -108,6 +110,22 @@ flowchart TB
 **Los dos existen y no compiten.** Redis con workers es cómo resolvemos internamente el trabajo
 diferido; el bus es cómo le contamos al mundo que terminamos.
 
+### Tres cosas se llaman «gateway» — no confundirlas
+
+La [U1 de Front End](15-sincronizacion-arquitectura-y-despliegue.md) enseña **Nginx como gateway** de
+microservicios. Esa palabra ya nombra otras dos cosas en este proyecto, y las tres aparecen en este
+mismo documento:
+
+| Cuál | Qué es | Quién lo decide |
+|---|---|---|
+| **nginx (borde)** | Sirve el Angular compilado y hace de reverse proxy hacia adentro. Termina TLS | Infraestructura compartida |
+| **API Gateway** | La única puerta a los microservicios. Valida el token y resuelve instancia contra Service Discovery | La cátedra: es regla no negociable |
+| **AI Gateway** | El módulo M1, **adentro** de nuestro servicio: envuelve toda llamada a un LLM. No rutea tráfico HTTP entrante | Nosotros, es diseño interno |
+
+**Nginx no reemplaza al API Gateway: está antes.** Y ninguno de los dos es el AI Gateway. El detalle
+de por qué, y qué de esa unidad adoptamos, está en
+[15](15-sincronizacion-arquitectura-y-despliegue.md).
+
 ## 3. Adentro: los ocho módulos
 
 No son ocho microservicios: son **ocho carpetas con una interfaz explícita cada una**.
@@ -118,7 +136,7 @@ No son ocho microservicios: son **ocho carpetas con una interfaz explícita cada
 | **M2 · RAG** | Ingesta, chunking, embeddings, retrieval | — |
 | **M3 · Evaluador** | Rúbrica versionada, prompt, scoring | M1 |
 | **M4 · Calibración** | Golden set, runner, comparación con PAR-14, deriva | M1 + M3 |
-| **M5 · Guardarraíles** | Filtro de entrada, salvaguarda anti-fuga con AST | M1 |
+| **M5 · Guardarraíles y moderación** | Filtro de entrada, salvaguarda anti-fuga con AST, moderador de chat (capa clásica + clasificador, ADR-012) | M1 |
 | **M6 · Tutor** | Servicio + componente Angular | M1 + M2 + M5 |
 | **M7 · Generador y corrector** | Blueprint, generación por slot, validación, corrección | M1 + M2 |
 | **M8 · Plataforma** | Docker, API, contratos, cola, base, eventos | — |
@@ -204,10 +222,17 @@ vuelven imposibles sin refactor.
 | Función | Latencia | Volumen | Riesgo si falla | Modo | Fallback de modelo |
 |---|---|---|---|---|---|
 | **Tutor** | < 2 s | Alto | Bajo — RF-IA-27: el alumno sigue sin él | Sincrónico | Sí |
-| **Moderador** | < 300 ms | Muy alto | Medio | Sincrónico | Sí |
+| **Moderador** | < 300 ms ⚠️ | Muy alto | Medio | Sincrónico | Sí |
 | **Evaluador** | Minutos | Bajo | **Alto — modifica XP, el XP define promoción** | Asincrónico | **NO (RF-IA-25)** |
 | **Generador** | Minutos | Muy bajo | Bajo — hay revisión humana | Asincrónico | Sí |
 | **Corrector** | Minutos | Medio | Alto — es una nota | Asincrónico | Sí |
+
+> ⚠️ **Los 300 ms del moderador son dos presupuestos distintos, no uno.** La capa clásica resuelve en
+> **< 1 ms** —es un match en memoria—, pero el clasificador externo se lleva un roundtrip HTTP que
+> consume casi todo el margen. Por eso ADR-012 empuja tanto trabajo como puede al lado determinístico:
+> **la latencia es uno de los dos motivos de esa decisión**, junto con el fail-open. El timeout hacia
+> el proveedor es de 1 s ([14](14-sincronizacion-guia-didactica.md) A-3), y al vencerse aplica la
+> degradación `prefiltro_solamente` del contrato.
 
 ## 6. Los contratos
 
@@ -296,8 +321,8 @@ externa al equipo."** Confirma con las mismas palabras el riesgo de calendario q
 
 | Contenedor | Stack | Réplicas | Nota |
 |---|---|---|---|
-| `ms-evaluacion-llm` | Python FastAPI | 1-2 | Sin puerto publicado |
-| `worker` | Python FastAPI | 2-6 | **Misma imagen, distinto comando** |
+| `ms-evaluacion-llm` | Java Spring Boot | 1-2 | Sin puerto publicado, ni siquiera detrás de nginx |
+| `worker` | Java Spring Boot | 2-6 | **Misma imagen, distinto comando** |
 | `postgres` | Postgres + pgvector | 1 | **Base propia y exclusiva** |
 | `redis` | Redis persistente | 1 | Cola + contadores de cuota |
 
@@ -663,11 +688,16 @@ Request
 Response 200 (sync)   → { resultado, trace_id, metadata: { model_id, model_version, tokens } }
 Response 202 (async)  → { job_id, estado: "pendiente" }
 Response 429          → { error: "cuota_agotada", limite, reinicia_en }
-Response 503          → { error: "proveedor_no_disponible", degradacion: "score_neutro" | "diferido" }
+Response 503          → { error: "proveedor_no_disponible", degradacion: "score_neutro" | "prefiltro_solamente" | "diferido" }
 ```
 
 > **`idempotency_key` no es opcional.** Si el llamador reintenta por timeout, no queremos dos
 > parciales generados ni dos evaluaciones del mismo intento.
+
+> **Cada valor de `degradacion` es de una función distinta.** `score_neutro` es del evaluador
+> (RF-IA-27: el score se computa neutro y la entrega se acepta igual); `prefiltro_solamente` es del
+> moderador —la capa clásica sigue decidiendo sola, ADR-012—; `diferido` sirve a las dos. **El sobre
+> los enumera a todos; el recorte de cada función se queda con los suyos.**
 
 ### 2 · Estado de un trabajo
 

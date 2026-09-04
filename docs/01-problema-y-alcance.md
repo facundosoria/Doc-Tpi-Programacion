@@ -65,7 +65,14 @@ flowchart TB
 | 2 | **Generador de evaluaciones** | RF-DES-05 | Asincrónico, con gate humano |
 | 3 | **Evaluador de uso de IA** | RF-IA-12 a 18, 25, 28 a 36 | **Emite los números.** No asigna XP. Ver §2c |
 | 4 | **Corrector de respuestas** | (no especificado — ver P-01) | Asincrónico |
-| 5 | **Moderador de chat** | RF-CHT-09 a 14 | Es función de IA aunque el chat sea de otro equipo |
+| 5 | **Moderador de chat** | RF-CHT-09 a 14 | Es función de IA aunque el chat sea de otro equipo. Ver [04](04-funciones-de-ia.md) Parte 4 |
+| 6 | **Agente `@mención` en canales de curso** | RF-CHT-05 | 🟡 **Fase 3 en el PRD.** Se diseña, no se construye este cuatrimestre |
+
+> ⚠️ **Las dos piezas de chat no son MVP.** La Tabla 11 del PRD deja el **chat interno en Fase 2** y
+> los **agentes de IA en canales grupales en Fase 3**. El moderador no figura como fuera de alcance,
+> pero modera un chat que en el MVP no existe: es una inconsistencia del PRD que conviene llevar a
+> revisión. Lo que sí hay que entregar ahora es el **contrato** `moderar(mensaje)`, para que el Tema
+> 11 pueda diseñar su chat. El desarrollo completo está en [04](04-funciones-de-ia.md) Parte 4.
 
 Más lo transversal que las envuelve a todas: el **AI Gateway**, el **runner de calibración** y los
 **workers asincrónicos**.
@@ -147,18 +154,16 @@ Es lo que el usuario intuyó como *"algo a definir"*. Estos cuatro puntos:
 
 ### Lo que ya NO es tu decisión
 
-**Java Spring Boot vs Python para el backend de negocio no es tu llamada.** El análisis de
-[02](02-arquitectura-y-stack.md) sigue sirviendo — pero como **argumento para llevar a la
-discusión**, no como decisión propia.
+**Java Spring Boot vs Python para el backend de negocio no es tu llamada.** Y tampoco lo es para el
+`ms-evaluacion-llm`: **ADR-005 cerró esa decisión — el servicio va en Java Spring Boot**, igual que el
+resto de la plataforma.
 
-Lo que sí es tuyo: **el `ai-service` es tu servicio, y su lenguaje lo elegís vos.** Ese es el
-argumento a defender, y es fácil de defender: si el resto del backend va en Java, el `ai-service` en
-Python **no le agrega complejidad a nadie más** — es un contenedor con un endpoint. Y a vos te da
-`tree-sitter` para RF-IA-20, ingesta de PDF, embeddings locales y ciclos de iteración rápidos.
+El fundamento completo —ventajas y desventajas de cada uno, herramientas por capa, y por qué Java gana
+en este contexto— está en [02 · Arquitectura y stack](02-arquitectura-y-stack.md), Parte 2.
 
-> **Cómo plantearlo:** "el `ai-service` es un contenedor detrás de una API REST; para ustedes es una
-> caja negra con 6 endpoints. Nosotros lo hacemos en Python porque ahí están las librerías de AST y
-> de documentos que los requerimientos nos exigen."
+Lo que ADR-005 **sí** deja abierto: si hace falta un componente auxiliar para embeddings locales o AST
+multilingüe, puede agregarse como **componente interno — no microservicio**. Las interfaces ya están
+preparadas desde el diseño inicial.
 
 ## 3. Lo que necesitás pedirle a los otros equipos
 
@@ -197,7 +202,7 @@ Siete pantallas. **Ninguna la hacés vos, y sin ellas la IA no se puede usar ni 
 
 ### 3.3 Del Product Owner
 
-Las 8 preguntas abiertas de [08](08-decisiones-y-pendientes.md). Las tres que más te bloquean:
+Las 11 preguntas abiertas de [08](08-decisiones-y-pendientes.md). Las tres que más te bloquean:
 
 | # | Pregunta | Por qué te bloquea |
 |---|---|---|

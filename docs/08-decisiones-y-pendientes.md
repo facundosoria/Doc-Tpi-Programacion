@@ -136,6 +136,13 @@ tiene. Ningún jailbreak extrae algo que el modelo nunca vio.
 
 ### ADR-009 — Sin streaming token a token en desafíos prácticos (MVP)
 
+> ⚠️ **Revisada.** La tabla «Decisiones que se revisaron durante el diseño», más abajo en este mismo
+> documento, la reemplaza por el **Buffer Interceptor** de la guía didáctica
+> ([14](14-sincronizacion-guia-didactica.md) C-2): se transmite, pero la entrega al alumno se retiene
+> hasta que el guardarraíl valida. El texto original se conserva porque un ADR se anota, no se
+> reescribe. **La propagación al resto de los documentos está pendiente** — hoy 05, 03, 06, 09, 10 y
+> el README siguen diciendo «sin streaming».
+
 **Decisión:** en prácticos, la respuesta del tutor se muestra completa después de pasar el
 guardarraíl anti-fuga. Streaming pleno solo en desafíos de riesgo bajo.
 
@@ -155,12 +162,18 @@ bloques de código hasta validarlos.
 con Batch, moderador en GPT-5 nano con pre-filtro. Contexto del tutor recortado a ~3.000 tokens con
 prompt caching.
 
+> ⚠️ **La cláusula del moderador quedó superada por ADR-012**, que lo dejó sin LLM: esa línea del
+> presupuesto pasó de USD 0,31 a **USD 0**. El resto del escenario sigue vigente, y el total apenas se
+> mueve. Se conserva el texto original porque un ADR se anota, no se reescribe.
+
 **Por qué:** entra en el objetivo de USD 15-20, y los ~USD 7 de diferencia contra la opción más
 barata compran la única cosa que el PRD marca como bloqueante del arranque del curso (RF-IA-36).
 
 **Se revisa si:** (a) un modelo se retira — hay dos con fecha anunciada; (b) la calibración de PAR-14
 falla con Haiku 4.5 → subir a Sonnet 5; (c) GPT-5 nano supera las pruebas de jailbreak → bajar el
-tutor y ahorrar USD 7.
+tutor y ahorrar USD 7; (d) **el payload real medido se acerca a los 1.550 tokens** en vez de los ~350
+del texto crudo — la hipótesis está desarrollada en [03](03-modelos-costos-y-contexto.md) §1, y de
+confirmarse este escenario hay que rehacerlo con el número medido.
 
 📄 [03](03-modelos-costos-y-contexto.md)
 
@@ -177,6 +190,173 @@ arranca** (RF-IA-36, sin override).
 **Se revisa si:** un modelo abierto pasa la calibración de forma reproducible. Se mide, no se opina.
 
 📄 [03](03-modelos-costos-y-contexto.md)
+
+---
+
+### ADR-012 — El moderador resuelve con técnica clásica; la IA solo cubre el residuo
+
+**Decisión:** el moderador resuelve con **tecnología clásica** todo lo resoluble —listas con nivel por
+término, heurísticas de spam, forma de código y detección de base64—, que cubre **cuatro de las seis
+categorías** de RF-CHT-10. La base de términos es el `dictionary.es`/`dictionary.en` de
+`com.modernmt.text:profanity-filter` (Apache-2.0), **verificado**: trae score por término en vez de
+booleano y está calibrado para el registro rioplatense. LDNOOBW queda como plan B. Para el residuo
+contextual —acoso y amenaza sin léxico explícito— invoca un **clasificador dedicado**
+(`omni-moderation-latest`), **no un LLM con prompt**.
+
+**Por qué:** el filtrado de lenguaje ofensivo es un problema resuelto desde antes de que existieran
+los LLM, y hay librerías Java maduras y listas publicadas que lo hacen. Cuatro razones concretas:
+
+1. **Latencia** — el presupuesto es < 300 ms ([02](02-arquitectura-y-stack.md)) y un roundtrip HTTP
+   externo se lo come casi entero. Un match en memoria es < 1 ms.
+2. **Es la red del fail-open** — sin capa clásica, el fail-open de P-02 significa *sin ninguna
+   moderación*.
+3. **Datos** — cuantos menos mensajes de alumnos salgan del sistema, mejor ([07](07-datos-y-terminos.md)).
+4. **Elimina el prompt del moderador** — y con él la superficie de prompt injection sobre el
+   moderador, la necesidad de `temperature: 0` + `seed` (A-3 de
+   [14](14-sincronizacion-guia-didactica.md)) y el pendiente E-05. Un clasificador no interpreta
+   instrucciones: recibe texto y devuelve etiquetas con score.
+
+> ⚠️ **El argumento no es el ahorro de tokens.** La Moderation API es **gratuita** y no consume
+> tokens del presupuesto. Quien justifique esta decisión por costo de tokens la está justificando
+> mal: las razones son latencia, resiliencia y datos.
+
+**Para que no quede duda de qué es cada pieza:** la capa clásica **no es IA** —son algoritmos y tablas
+de datos, cero tokens, cero red— y el clasificador **no es un LLM** —entra texto, salen etiquetas, sin
+prompt y sin tokens de salida—. **El moderador queda sin ningún LLM generativo adentro**, y su costo
+en [03](03-modelos-costos-y-contexto.md) es USD 0 porque no hay nada que facturar, no porque se haya
+estimado con optimismo. La tabla está en [04](04-funciones-de-ia.md) §2.0.
+
+**Se revisa si:** la medición del campo `origen` muestra que la capa clásica decide una proporción
+baja de los mensajes, o si los falsos positivos rioplatenses resultan inmanejables. Si además la
+política de datos llega a prohibir que los mensajes salgan del sistema, la alternativa evaluada es un
+modelo local —**pysentimiento** (RoBERTuito, entrenado en español rioplatense) o Detoxify
+multilingüe—, que ADR-005 contempla como *componente interno Python, no microservicio*.
+
+**¿Y si en algún momento hay que meterle un LLM?** Con esto alcanza para cumplir RF-CHT-09 a
+RF-CHT-14; no hay una fase 2 pendiente. Los cuatro escenarios que sí obligarían a revisarlo —y los
+seis pedidos habituales que **no** lo justifican— están enumerados en [04](04-funciones-de-ia.md)
+§2.10. El único serio es el **acoso acumulativo**, y ahí la observación importante es que **no se
+arregla cambiando de modelo sino cambiando el contrato**: el LLM más caro del mundo detrás de
+`moderar(mensaje)` tampoco lo detecta, porque el problema es que solo ve un mensaje.
+
+**Los patrones que implementan esta decisión** están mapeados uno a uno en
+[04](04-funciones-de-ia.md) §2.3.4b y §2.3.4c. En resumen: **Pipes and Filters** para la
+normalización, **Composite** de **Strategy** para los detectores clásicos —que corren **todos** y
+fusionan veredictos, porque `categorias` es un array—, y **Chain of Responsibility** de **solo dos
+eslabones** para el corte clásico → clasificador, que es el único lugar donde hay trabajo caro que
+evitar. El resto —**Adapter**, **Factory Method**, **Circuit Breaker**, **Rate Limiter**,
+**Idempotent Receiver**— ya venía de ADR-001 y de [02](02-arquitectura-y-stack.md).
+
+Ahí también está por qué **no** va un orquestador LLM (lo prohíbe ADR-002) ni eventos entre los
+detectores (el moderador es sincrónico, ADR-003).
+
+📄 [03](03-modelos-costos-y-contexto.md), [04](04-funciones-de-ia.md), [13](13-rubrica-y-prompts.md)
+
+---
+
+### ADR-013 — Rolling update como estrategia de despliegue
+
+**Decisión:** las versiones nuevas se publican con **rolling update**: las réplicas se reemplazan de
+a una y conviven las dos versiones durante la ventana. **Blue-Green, Canary y A/B Testing quedan
+descartados**, cada uno por un motivo distinto. El rollback es volver a desplegar el tag anterior, no
+un mecanismo aparte.
+
+**Por qué:** es lo que ya hace `docker compose up -d` con réplicas, así que la decisión no agrega
+infraestructura; solo le pone nombre a lo que ocurre y hace explícito el costo que trae. Ese costo es
+uno solo y ya estaba escrito: **las dos versiones tienen que poder convivir**, que es exactamente la
+regla de versionado del contrato de [02](02-arquitectura-y-stack.md) —*"un cambio incompatible sin
+aviso rompe al otro equipo en medio de su sprint"*—. Rolling update la convierte de recomendación en
+requisito de despliegue.
+
+Por qué no las otras tres:
+
+| Estrategia | Por qué no |
+|---|---|
+| **Blue-Green** | Duplica la infraestructura, y su punto débil declarado son las migraciones de base. Las nuestras son append-only ([07](07-datos-y-terminos.md) §3.3), y van camino a triggers de inmutabilidad en la base ([14](14-sincronizacion-guia-didactica.md) A-5): dos esquemas vivos a la vez es peor acá que en un CRUD |
+| **Canary** | Necesita repartir tráfico por porcentaje. Con 1-2 réplicas el mínimo alcanzable es 50%, que ya no es un canario |
+| **A/B Testing** | 🔴 **Inaceptable por el dominio, no por la infraestructura.** Compara versiones sobre poblaciones distintas: dos alumnos con la misma transcripción recibirían notas de versiones distintas. Una nota no es una tasa de conversión |
+
+**Shadow deployment sí se adopta, pero no como estrategia de release:** se usa para validar una
+`rubric_version` o un `prompt_version` nuevos contra tráfico real descartando la salida. Está en
+[15](15-sincronizacion-arquitectura-y-despliegue.md).
+
+**Se revisa si:** el servicio deja de correr sobre Docker Compose y pasa a un orquestador que dé
+balanceo por porcentaje, o si el número de réplicas crece lo suficiente como para que un canario del
+5% sea representable.
+
+📄 [06](06-operacion-e-ingenieria.md), [15](15-sincronizacion-arquitectura-y-despliegue.md)
+
+---
+
+### ADR-014 — El proveedor de LLM no entra en la sonda de readiness
+
+**Decisión:** el endpoint de salud de `ms-evaluacion-llm` chequea **Postgres y Redis**, y nada más.
+El estado del proveedor de modelos **no** afecta al readiness: va a métrica, a alerta y al circuit
+breaker, nunca a la sonda.
+
+**Por qué:** una sonda que incluyera al proveedor sacaría la instancia de rotación cuando el
+proveedor se cae. Y **RF-IA-27 dice justamente que la caída del proveedor no puede bloquear al
+alumno**: la escalera de degradación existe para que el servicio siga respondiendo sin modelo. Meter
+al proveedor en el readiness convierte una degradación prevista en una caída total, que es el único
+resultado que el requisito prohíbe.
+
+Es la asimetría del proyecto aplicada a la infraestructura: **un solo camino, y prohibido cortarlo**.
+El servicio está sano cuando puede aceptar trabajo y encolarlo; que ese trabajo termine con un modelo
+o con la degradación es otra pregunta.
+
+**Se revisa si:** aparece una función que sin modelo no tenga ninguna respuesta útil que dar ni
+siquiera degradada. Hoy no existe: el evaluador encola, y el tutor y el moderador tienen fail-open
+definido.
+
+📄 [06](06-operacion-e-ingenieria.md), [15](15-sincronizacion-arquitectura-y-despliegue.md)
+
+---
+
+### ADR-015 — Nginx vive en el borde; no rutea hacia nuestro servicio
+
+**Decisión:** nginx sirve el Angular compilado, termina TLS y hace de reverse proxy hacia el **API
+Gateway**. **No** hay bloque `location` ni `upstream` que apunte a `ms-evaluacion-llm`, y nuestro
+servicio sigue **sin puerto publicado**. El balanceo entre réplicas lo resuelve el gateway contra
+Service Discovery.
+
+**Por qué:** la [U1 de Front End](15-sincronizacion-arquitectura-y-despliegue.md) enseña a Nginx como
+gateway de microservicios, con un `location` por servicio. Aplicado acá chocaría de frente con dos
+reglas no negociables de [02](02-arquitectura-y-stack.md): *"el API Gateway es la única puerta de
+entrada"* y *"no hay comunicación directa entre microservicios"*. Un `proxy_pass` a nuestro servicio
+abre una segunda puerta que no valida el token, y deja el registro dinámico sin sentido.
+
+Las dos capas no compiten: **nginx es el borde, el gateway es el ruteo**. Lo que la unidad enseña
+sobre `upstream` y algoritmos de balanceo se aplica al frente web de la plataforma, no a nosotros; y
+`ip_hash` en particular no aplica en ningún caso, porque nuestro servicio es stateless por diseño —la
+identidad la deriva del token propagado, nunca de la conexión.
+
+**Se revisa si:** la plataforma abandona el API Gateway de Spring Cloud, o si aparece un requisito de
+tráfico que el gateway no pueda absorber y haya que balancear antes.
+
+📄 [02](02-arquitectura-y-stack.md), [15](15-sincronizacion-arquitectura-y-despliegue.md)
+
+---
+
+## ⚠️ Decisiones que se revisaron durante el diseño
+
+**Leé esto antes de reabrir una discusión.** Siete decisiones cambiaron mientras se armaba la
+documentación, y los documentos ya reflejan la versión final — pero si encontrás una afirmación que
+parece contradecir a otra, probablemente sea una de estas.
+
+| # | Antes | Ahora | Por qué cambió |
+|---|---|---|---|
+| 1 | Monolito modular | **Microservicios** | La cátedra los declara no negociables |
+| 2 | pgvector en base compartida | **Base propia y exclusiva** | *"Cada servicio es dueño exclusivo de su base"* |
+| 3 | Python FastAPI | **Java Spring Boot** | La materia es de Java + fricción con Spring Cloud |
+| 4 | Sin streaming en prácticos | **Buffer Interceptor** | La guía didáctica lo resuelve mejor ([14](14-sincronizacion-guia-didactica.md) C-2) |
+| 5 | Redis obligatorio | **Probablemente innecesario** | A 120 usuarios, Postgres alcanza |
+| 6 | El corrector no usa el RAG | **Sí lo usa**, por el chunk trazado | La pregunta nació de un fragmento; ese fragmento sirve al corregir |
+| 7 | ~USD 125 por cuatrimestre | **USD 5 a 22** | Al optimizar el contexto del tutor |
+
+> **La #4 vino de afuera:** existe otro set de documentación (la *guía didáctica*) que en ese punto
+> tenía mejor solución que la nuestra. La comparación completa está en
+> [14](14-sincronizacion-guia-didactica.md).
+
 
 ---
 
@@ -208,7 +388,7 @@ idéntico. Si el PO decide que no, que sea una decisión consciente y quede regi
 enumera la degradación del tutor y del evaluador, pero **no dice nada del moderador**.
 
 **Opciones:** fail-closed (se detiene el chat) / fail-open (se entrega sin moderar) / fail-open con
-red (se entrega, el pre-filtro determinístico sigue corriendo, se marca y se re-modera al volver).
+red (se entrega, la capa clásica sigue corriendo, se marca y se re-modera al volver).
 
 **Recomendación: fail-open con red.** El chat social no es producción académica — es lo único que
 RF-NFR-01 permite borrar físicamente. Bloquearlo por una caída externa contradice el principio rector
@@ -327,6 +507,61 @@ de proteger, y sumar los de riesgo alto después con el guardarraíl ya probado.
 
 ---
 
+### ❓ P-09 — ¿La respuesta del propio agente `@mención` también se modera?
+
+**El hueco:** RF-CHT-09 dice que el moderador corre sobre *"todo mensaje... antes de que se entregue
+a los demás participantes"*. Leído literal, la respuesta del agente es un mensaje que se entrega a
+los demás participantes, así que sí. Pero el PRD nunca lo dice de forma explícita, y es la clase de
+cosa que se implementa como se leyó y después no coincide entre equipos.
+
+**Por qué importa:** es la defensa contra un prompt injection plantado en el canal. Si alguien
+consigue que el agente escriba algo que no debería, moderar la salida es lo único que lo detiene
+antes de que quince personas lo lean.
+
+**Recomendación: sí, se modera igual que cualquier otro mensaje.** Duplica el costo de una mención
+—dos llamadas en vez de una— y ese costo es despreciable frente al riesgo.
+
+**Prioridad:** Baja mientras el agente sea Fase 3. Sube a Alta el día que se adelante.
+
+📄 [04](04-funciones-de-ia.md) Parte 4
+
+---
+
+### ❓ P-10 — ¿Las menciones al agente cuentan contra los límites de RF-IA-22?
+
+**El hueco:** RF-IA-22 pide límites de uso de IA por usuario, y P-05 propone umbrales concretos para
+el tutor y el generador. **Ninguno contempla el chat.**
+
+**Por qué importa:** si las menciones no cuentan, son la vía libre para agotar la cuota del curso —y
+encima desde el canal más informal, que es donde menos se mira.
+
+**Recomendación: sí, el mismo pozo que el tutor.** Un alumno tiene N interacciones de IA por día,
+las gaste donde las gaste. Es más simple de explicar y no deja un agujero.
+
+**Prioridad:** Baja hoy; se resuelve junto con P-05.
+
+📄 [04](04-funciones-de-ia.md) Parte 4
+
+---
+
+### ❓ P-11 — ¿A cuántos agentes se puede mencionar, y cómo se llaman?
+
+**El hueco:** RF-CHT-05 dice *"agentes de IA"*, en plural, y `@agente` como ejemplo. No define si hay
+uno solo por curso o varios con roles distintos.
+
+**Por qué importa para nosotros:** cambia el ruteo del gateway. Un agente único es una fila más en la
+tabla `función → proveedor + modelo`. Varios agentes son varias funciones, cada una con su prompt, su
+perímetro y su costo.
+
+**Recomendación: uno solo cuando llegue la Fase 3.** Sumar `@material` o `@tutor` después es barato;
+arrancar con tres y descubrir que dos no se usan, no.
+
+**Prioridad:** Baja — no bloquea nada hasta Fase 3.
+
+📄 [04](04-funciones-de-ia.md) Parte 4
+
+---
+
 ## Parte C — Cosas por definir cuando llegue el momento
 
 No urgentes, pero anotadas para no redescubrirlas:
@@ -341,6 +576,16 @@ No urgentes, pero anotadas para no redescubrirlas:
   cuesta cero y después vale mucho.
 - Qué pasa con las evaluaciones en curso cuando el ADMIN cambia el modelo evaluador a mitad de
   cuatrimestre (RF-IA-28 lo permite; RF-IA-33 pide señalizar la cohorte afectada).
+- **Purga selectiva del chat social.** RF-CHT-08 borra el canal al archivar el curso, pero RF-CHT-14
+  retiene los mensajes con incidente y su contexto inmediato, y RF-CHT-08 retiene además los pares
+  mención-respuesta del agente. Son dos excepciones dentro del mismo canal: la purga no puede ser un
+  borrado por curso. Ver [04](04-funciones-de-ia.md) Parte 4.
+- **Dato personal escrito junto a una mención.** Si un alumno menciona al agente en el mismo mensaje
+  en el que escribe algo personal, ese mensaje queda bajo el régimen general de retención aunque el
+  resto del canal se borre. Se cruza con RSK-11 y con el mecanismo de supresión diferido.
+- **Umbral entre severidad baja y media del moderador.** RF-CHT-11 define las acciones pero no dónde
+  corta. Es lo que determina cuántos falsos positivos come el alumno; se afina con datos reales, no
+  antes.
 
 
 ---
@@ -350,6 +595,14 @@ No urgentes, pero anotadas para no redescubrirlas:
 
 > Estado al **2026-08-30**. Consolidado de todo lo que está abierto, ordenado por qué bloquea.
 > Cada punto trae **mi recomendación**, así en la mayoría solo hace falta confirmar, no deliberar.
+>
+> ⚠️ **Esa fecha quedó atrás y esta parte no se volvió a consolidar.** Después del 30 de agosto entraron
+> ADR-012 a ADR-015, el documento [15](15-sincronizacion-arquitectura-y-despliegue.md) completo y el
+> contrato del moderador. Hay puntos de acá que otro documento ya movió: ADR-012 cierra E-05 y le
+> pone una red al fail-open que C-5 sigue preguntando —la capa clásica sigue corriendo—, aunque
+> **la decisión entre fail-open y fail-closed sigue siendo del PO**; y ADR-005 ya fijó Java Spring
+> Boot, que [10](10-entregables-y-plan.md) §7 todavía lista como pregunta abierta de la semana.
+> **Antes de reabrir una discusión de esta parte, chequeá la lista de ADR de la Parte A.**
 
 ## Resuelto desde la primera versión
 
@@ -552,7 +805,7 @@ El PRD monta toda la maquinaria de calibración para el **evaluador de uso de IA
 
 Solo aplica si el moderador es tuyo. RF-CHT-09 dice que corre sobre todo mensaje antes de entregarlo; **el PRD no dice qué pasa si no está disponible**.
 
-**Recomendación: fail-open con red.** Se entrega, el pre-filtro determinístico sigue corriendo, se marca y se re-modera al volver. El chat social no es producción académica — es lo único que RF-NFR-01 permite borrar.
+**Recomendación: fail-open con red.** Se entrega, la capa clásica sigue corriendo, se marca y se re-modera al volver. El chat social no es producción académica — es lo único que RF-NFR-01 permite borrar.
 
 ---
 
@@ -672,8 +925,12 @@ dónde está, quién lo define y cuándo.
 | E-02 | Prompt del evaluador | [13](13-rubrica-y-prompts.md) §6 | 📝 | P3 | Paso 5 |
 | E-03 | Prompt del tutor + las 3 variantes de riesgo | [13](13-rubrica-y-prompts.md) §7 | 📝 | P5 + P6 | Paso 11 |
 | E-04 | Prompt del generador | [13](13-rubrica-y-prompts.md) §8 | 📝 | P2 | Paso 10 |
-| E-05 | Prompt del moderador | [13](13-rubrica-y-prompts.md) §9 | 📝 | — | Fase 2 |
+| ~~E-05~~ | ~~Prompt del moderador~~ | — | ✅ | **Cerrado por ADR-012** | — |
 | E-06 | Los schemas de salida | [13](13-rubrica-y-prompts.md) §6-9 | 📝 | Cada dueño de módulo | Con su función |
+
+> ✅ **E-05 quedó sin objeto.** ADR-012 reemplazó el LLM del moderador por un clasificador dedicado, y
+> un clasificador no lleva prompt. **El schema de salida sí sigue existiendo** —`moderacion.json`, bajo
+> E-06—: lo que desapareció es la plantilla, no el contrato.
 
 > **E-01 es el más importante de la tabla.** Nuestras anclas son un punto de partida para que los
 > docentes no arranquen de cero — **no son la rúbrica**. El proceso que las convierte en definitivas
@@ -708,7 +965,7 @@ dónde está, quién lo define y cuándo.
 |---|---|---|---|---|---|
 | E-15 | Nombres de campos y tablas | [11](11-glosario-y-metadata.md) Parte B | 📝 | P5 | 🔴 Paso 2 — esta semana |
 | E-16 | **Qué es un "mensaje trivial"** (¿menos de cuántos caracteres?) | [11](11-glosario-y-metadata.md) Parte B | ⬜ | P3, ajustando contra el golden set | Paso 4 |
-| E-17 | Las 7 colisiones del glosario | [11](11-glosario-y-metadata.md) Parte A | 📝 | 🔴 **La sesión de integración**, no nosotros solos | Esta semana |
+| E-17 | Las 8 colisiones del glosario | [11](11-glosario-y-metadata.md) Parte A | 📝 | 🔴 **La sesión de integración**, no nosotros solos | Esta semana |
 | E-18 | Campos del contrato de eventos | [02](02-arquitectura-y-stack.md) Parte 3 | 📝 | 🔴 **Tema 11**, antes de que lo cierren | Esta semana |
 
 ### Números y umbrales
@@ -732,9 +989,16 @@ dónde está, quién lo define y cuándo.
 | E-28 | Los 7 estados del componente del tutor | [06](06-operacion-e-ingenieria.md) Parte 4 | 📝 | P6 |
 | E-29 | Los mensajes de error al usuario | [06](06-operacion-e-ingenieria.md) Parte 4 | 📝 | P6 + PO |
 
+### Infraestructura y despliegue
+
+| # | Qué | Dónde | Marca | Quién lo define |
+|---|---|---|---|---|
+| E-30 | **Quién provee el gestor de secretos en producción.** [06](06-operacion-e-ingenieria.md) Parte 5 dice *"secretos del orquestador"* sin decir cuál | [15](15-sincronizacion-arquitectura-y-despliegue.md) §7 | ⬜ | 🔴 **La sesión de integración**: es infraestructura compartida |
+| E-31 | El modo shadow del evaluador: dónde se activa, dónde va la salida descartada, cómo se compara | [15](15-sincronizacion-arquitectura-y-despliegue.md) §7 | ⬜ | Nosotros, con el módulo de calibración |
+
 ## Lo que hay que definir esta semana
 
-De los 29 ítems, **cinco no pueden esperar**:
+De los 31 ítems uno ya está cerrado —E-05, por ADR-012—, así que quedan **30 abiertos**. De esos treinta, **cinco no pueden esperar**:
 
 | # | Qué | Por qué ahora |
 |---|---|---|
@@ -744,4 +1008,4 @@ De los 29 ítems, **cinco no pueden esperar**:
 | **E-09** | Tamaño del golden set y responsable | Es el plazo más largo del proyecto |
 | **E-16** | Qué cuenta como mensaje trivial | Bloquea el cálculo de features |
 
-**Los otros 24 se resuelven a medida que se construye cada pieza.**
+**Los otros 25 se resuelven a medida que se construye cada pieza.**

@@ -26,9 +26,14 @@ Lo que lo vuelve difícil no es integrar un modelo de lenguaje:
 
 ## 👉 Si te sumás al proyecto
 
-Empezá por **[15 · Estado actual y cómo continuar](docs/15-estado-y-como-continuar.md)**: dice dónde
-está todo, qué está decidido, qué bloquea y qué hacer a continuación, sin tener que leer los otros 14
-documentos primero.
+Tres documentos, en este orden, y no hace falta leer los otros doce:
+
+1. **[01 · Problema, alcance y equipo](docs/01-problema-y-alcance.md)** — qué construimos y qué no.
+2. **[10 · Qué entregamos y cómo](docs/10-entregables-y-plan.md), Parte 2** — el plan de trabajo: los
+   módulos, el reparto entre seis, las cuatro semanas de demo y **los 14 pasos concretos** de §8.
+   Con qué modelo free probar cada paso está en [03](docs/03-modelos-costos-y-contexto.md) §8.
+3. **[08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md)** — qué está decidido, qué
+   bloquea, y las decisiones que ya se revisaron una vez — conviene mirarlas antes de reabrir una discusión.
 
 ## Documentación
 
@@ -37,24 +42,55 @@ documentos primero.
 | 01 | [Problema, alcance y equipo](docs/01-problema-y-alcance.md) | Qué es nuestro, qué no, y qué reclamarle a los otros equipos |
 | 02 | [Arquitectura y stack](docs/02-arquitectura-y-stack.md) | Reglas de la cátedra, diagrama de sistema, los 8 módulos, el AI Gateway, y el fundamento completo de Java vs Python |
 | 03 | [Modelos, costos y contexto](docs/03-modelos-costos-y-contexto.md) | Qué modelo para cada función, costo por consulta, cuánto contexto meter, qué puede ser gratis |
-| 04 | [Las funciones de IA](docs/04-funciones-de-ia.md) | El generador de evaluaciones, los dos jueces del sistema, y el golden set |
+| 04 | [Las funciones de IA](docs/04-funciones-de-ia.md) | El generador, los dos jueces, el golden set, y las dos funciones del chat |
 | 05 | [Seguridad](docs/05-seguridad.md) | Prompt injection, fuga de solución, dónde corre cada guardarraíl, de dónde sale cada nota |
 | 06 | [Operación e ingeniería](docs/06-operacion-e-ingenieria.md) | Colas y prioridades, pico, degradación, caché — y cómo se prueba algo no determinístico |
 | 07 | [Datos y T&C](docs/07-datos-y-terminos.md) | Qué se guarda, quién lo ve, cuánto dura, y el borrador de Términos y Condiciones |
-| 08 | [Decisiones y pendientes](docs/08-decisiones-y-pendientes.md) | Registro de decisiones (ADR) y **lo que falta definir** |
+| 08 | [Decisiones y pendientes](docs/08-decisiones-y-pendientes.md) | Registro de decisiones (ADR), las que ya se revisaron, y **lo que falta definir** |
 | 09 | [Preguntas y respuestas](docs/09-preguntas-y-respuestas.md) | El porqué de cada decisión, **con el caso a favor y el caso en contra** |
-| 10 | [Qué entregamos y cómo](docs/10-entregables-y-plan.md) | El inventario del aporte del equipo y el plan de 12 pasos para 6 personas |
+| 10 | [Qué entregamos y cómo](docs/10-entregables-y-plan.md) | El inventario del aporte del equipo y el plan de 14 pasos para 6 personas |
 | 11 | [Glosario y metadata](docs/11-glosario-y-metadata.md) | El vocabulario para la integración y las tres tablas que hay que crear ya |
 | 12 | [Almacenamiento e ingesta](docs/12-almacenamiento-e-ingesta.md) | Qué base de datos y cuántas, MinIO, y cómo se baja a texto un PDF con imágenes |
 | 13 | [La rúbrica y los prompts](docs/13-rubrica-y-prompts.md) | 📝 El artefacto central del equipo: las 5 dimensiones con sus anclas y los prompts de cada función |
 | 14 | [Sincronización con la guía didáctica](docs/14-sincronizacion-guia-didactica.md) | 🔄 **Comparación con el otro set de documentación**: los 6 conflictos, lo que hay que adoptar y lo que aportamos |
-| 15 | [Estado actual y cómo continuar](docs/15-estado-y-como-continuar.md) | 👉 **Empezá por acá.** Dónde está todo, qué bloquea, qué hacer a continuación y las 7 decisiones que se revisaron |
+| 15 | [Sincronización con la U1 de Front End](docs/15-sincronizacion-arquitectura-y-despliegue.md) | 🔄 **Infraestructura y despliegue**: los tres «gateway», qué adoptamos de las seis estrategias de release y qué descartamos con fundamento |
+| 17 | [El mapa de integración](docs/17-mapa-de-integracion.md) | 🔌 **Cómo se comunica el servicio, en una sola vista**: quién nos habla y por dónde, el verbo de cada endpoint, cuánto tarda cada camino, qué modelo resuelve cada función y con qué costo, y qué le debemos a cada equipo |
+| 18 | [Contratos inter-equipos](docs/18-contratos-inter-equipos.md) | 🤝 **El punto de entrada para la sesión de integración**: los 6 endpoints con schemas, los 4 eventos que publicamos, los 3 que consumimos, lo que necesitamos de cada equipo, el mapa de dependencias y la agenda de 8 ítems para acordar antes de codear |
+| 19 | [Modernización, seguridad y rate limit LLM](docs/19-modernizacion-seguridad-y-ratelimit-llm.md) | 🛡️ **Protección y sostenibilidad**: Rate limiting en 3 capas (Bucket4j, cuota por desafío, Resilience4j), mitigación de Denial of Wallet y checklist de modernización |
+| 20 | [Backlog general y plan de sprints](docs/20-backlog-y-sprints.md) | 🗂️ **Qué hay que hacer y quién lo hace**: las 12 épicas con sus 100 historias estimadas, el reparto en seis células de dos para 12 personas, los siete sprints de dos semanas con su objetivo y su criterio de cierre, y lo que queda afuera del cuatrimestre con fundamento |
+| — | [Suite API Gateway y Service Discovery](docs/gateway-y-discovery/README.md) | 🚪 **Borde y ruteo (Tema 01)**: Guía de 7 documentos sobre arquitectura de red, Eureka, M2M con tokens técnicos, filtros WebFlux RS256 y resiliencia |
+
+> **El 16 no está y el número queda reservado.** Documenta el pipeline de calidad, que
+> vive en la rama `feat/qa-gate` y no se publica acá. Renumerar el 17, el 18 y el 19
+> haría que el mismo número signifique cosas distintas según la rama.
+
+## Lo demás que hay en el repositorio
+
+| Carpeta | Quién lo hizo | Qué hay adentro |
+|---|---|---|
+| **[`docs/importado/`](docs/importado/)** | `Brf93` (`421562`) | Anidado adentro de `docs/`, para que la raíz tenga una sola carpeta de documentación. 25 documentos: especificación técnica, nueve planes de ejecución e investigación sobre jailbreak. Material de profundización, no de trabajo diario |
+| **[`codigo-ejemplo/`](codigo-ejemplo/)** | una carpeta por autor | [`ms-evaluacion-llm/`](codigo-ejemplo/ms-evaluacion-llm/), el esqueleto del servicio real, del equipo · [`lara-heredia-demo-llm-spring-ai/`](codigo-ejemplo/lara-heredia-demo-llm-spring-ai/), la demo de tutor con Spring AI, de Lara Heredia |
+| **[`demo/`](demo/)** | el equipo | Interfaz web interactiva de demostración (Frontend Nginx + chat tutor + guardarraíles + métricas de costos). Se levanta en un comando con Docker Compose o scripts locales |
+| **[`presentaciones/`](presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` y equipo | [`defensa-39-slides.html`](presentaciones/defensa-39-slides.html), el deck de defensa (39 slides) · [`presentacion-integracion-servicios.html`](presentaciones/presentacion-integracion-servicios.html), deck interactivo de integración y contratos (17 slides) · [`prd-wiki-consulta.html`](presentaciones/prd-wiki-consulta.html), el PRD como wiki de consulta. Más tres documentos HTML armados sobre `doc-tpi-unificada` —mapa de requerimientos, guía del golden set e informe de gestión de modelos—: venían desalineados con `docs/` en ocho puntos y **ya están corregidos**, con el registro de qué se cambió en [`CORRECCIONES-SUGERIDAS.md`](presentaciones/CORRECCIONES-SUGERIDAS.md). Las seis abren sin internet |
+
+> ### Sobre el material que vino de otras ramas
+>
+> `docs/importado/` y `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` se importaron **sin tocar
+> una sola línea**: cada archivo es byte a byte idéntico a su rama de origen, y lo que había que
+> corregir está anotado, no aplicado, en el `CORRECCIONES-SUGERIDAS.md` de cada carpeta.
+>
+> **Los tres HTML nuevos de `presentaciones/` son la excepción:** venían desalineados con `docs/` en
+> ocho puntos —ADR, ADR-005 con FastAPI, endpoints, deriva, costos, catálogo de modelos, enlaces y
+> dependencia del CDN— y se corrigieron. El detalle está en
+> [`presentaciones/CORRECCIONES-SUGERIDAS.md`](presentaciones/CORRECCIONES-SUGERIDAS.md). **Hay una API key de Groq versionada en la demo que
+> necesita rotarse** — el detalle está en
+> [`codigo-ejemplo/CORRECCIONES-SUGERIDAS.md`](codigo-ejemplo/CORRECCIONES-SUGERIDAS.md).
 
 > ### 📝 Sobre el contenido de ejemplo
 >
 > Varios documentos traen anclas, prompts, transcripciones y números **de ejemplo**, para que el
 > mecanismo se entienda y para no arrancar de cero. **Nada de eso es definitivo.**
-> El inventario completo —los 29 ítems, qué marca tiene cada uno, quién lo define y cuándo— está en
+> El inventario completo —los 31 ítems, qué marca tiene cada uno, quién lo define y cuándo— está en
 > [08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md), **Parte C**.
 
 ### Por dónde entrar
@@ -98,13 +134,16 @@ documentos primero.
 - [Arquitectura interna](https://claude.ai/code/artifact/3289c8d8-1ecb-45b6-8ec8-f064b70089c5) —
   los 8 módulos, cómo se conectan los modelos, el reparto entre 6
 - [Construcción del Tema 07](https://claude.ai/code/artifact/ddc1b820-b1aa-4dc2-ad20-aad24af54ca9) —
-  los 12 pasos en 4 semanas, con dependencias
+  los pasos en 4 semanas, con dependencias
 - [Java o Python](https://claude.ai/code/artifact/6bda78ed-698b-48dd-aa10-3268c107be13) —
   comparación capa por capa de los dos stacks
 - [Pantalla del golden set](https://claude.ai/code/artifact/0854689d-1746-486e-b30f-a9cdced0a2d2) —
   mockup con las 7 decisiones a debatir
 
-Los documentos incluyen además diagramas Mermaid, que GitHub renderiza directamente.
+Los documentos incluyen además diagramas Mermaid, que GitHub renderiza directamente. **Los nueve
+que cruzan endpoints, latencias, modelos y dependencias están juntos en
+[17 · El mapa de integración](docs/17-mapa-de-integracion.md)** — es el documento para llevar a la
+sesión de integración.
 
 ## Lo que bloquea hoy
 
@@ -133,9 +172,35 @@ Detalle y recomendación de cada uno en [08 · Decisiones y pendientes](docs/08-
 
 - `PRD-Plataforma-Gamificada-TP.pdf` (v2.1) — definición funcional del producto
 - `TUP_PIV_BE_PROPUESTA_ARQ.pdf` — propuesta de arquitectura de la cátedra
+- `TUP_PIV_FE_TEO_U1_ARQUITECTURA_DESPLIEGUE.pdf` — teórico de Front End, Unidad 1: arquitectura y
+  despliegue. Sincronizado en [15](docs/15-sincronizacion-arquitectura-y-despliegue.md)
 
 > Los PDF de origen no se versionan en este repositorio. Se distribuyen por los canales de la cátedra.
 
+## Cómo se armó este repositorio
+
+Cuatro ramas consolidadas en una sola estructura:
+
+| Rama | Autor | Qué aportó |
+|---|---|---|
+| `main` | — | La base de los quince documentos originales |
+| `feat/qa-gate` | `facundosoria` | Los documentos evolucionados, el esqueleto del microservicio y la demo interactiva |
+| `lara` | `412181-HerediaLara` | La demo funcional de Spring AI, y dos de las presentaciones |
+| `doc-tpi-unificada` | `Brf93` (`421562`) | Los 25 documentos de `docs/importado/` y la presentación que quedó como base del deck |
+
+La autoría de cualquier archivo sale del historial, que es la fuente que no se
+desactualiza:
+
+```bash
+git log --format='%an  %ad  %s' --date=short -- <ruta>
+```
+
+Donde el mismo documento existía dos veces, **quedó la versión más nueva**. Quince
+archivos de `doc-tpi-unificada` eran copias byte a byte de versiones anteriores de
+`docs/01` a `docs/15` y se descartaron; la tabla de equivalencias, por si alguien busca
+uno por el nombre viejo, está en
+[`docs/importado/CORRECCIONES-SUGERIDAS.md`](docs/importado/CORRECCIONES-SUGERIDAS.md).
+
 ---
 
-*Documentación viva. Última actualización: 2026-08-30.*
+*Documentación viva. Última actualización: 2026-09-02.*

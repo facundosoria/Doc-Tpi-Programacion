@@ -1,0 +1,257 @@
+openapi: 3.0.3
+
+# Contrato del moderador de chat (RF-CHT-09 a RF-CHT-14).
+#
+# Es un recorte del sobre comun POST /ai/{funcion} descrito en
+# docs/02-arquitectura-y-stack.md, Parte 3. Solo documenta funcion=moderador.
+# No inventa un endpoint propio a proposito: el equipo de Tema 11 arranca
+# contra un mock, y ese mock tiene que servir para las cinco funciones.
+#
+# Este archivo es el contrato, no la implementacion. Ver ADR-012.
+
+info:
+  title: Servicio de IA - funcion moderador
+  version: 1.0.0
+  description: |
+    Clasificacion de mensajes de chat antes de su entrega (RF-CHT-09).
+
+    Invocacion sincronica y sin contexto: cada mensaje se evalua de forma
+    independiente, sin historial y sin compartir conversacion con los agentes
+    @mencion ni con el evaluador de uso de IA.
+
+    Se resuelve en dos capas. La capa deterministica --listas con nivel por
+    termino, heuristicas de spam, forma de codigo y deteccion de base64--
+    decide la mayoria de los casos sin salir del proceso. El clasificador
+    externo se invoca solo para el residuo contextual que la capa
+    deterministica no puede resolver: acoso y amenaza sin lexico explicito.
+    El campo `origen` de la respuesta permite medir esa proporcion.
+
+    Limitacion conocida: el acoso acumulativo --hostigamiento sostenido a lo
+    largo de un hilo-- no lo detecta ninguna de las dos capas, porque el
+    contrato evalua un mensaje por vez y no mantiene estado por hilo.
+
+servers:
+  - url: /ai
+    description: Ruta relativa detras del API Gateway de la catedra.
+
+paths:
+  /moderador:
+    post:
+      summary: Modera un mensaje de chat
+      operationId: moderarMensaje
+      description: |
+        Siempre sincronico (ADR-003). El chat es camino critico: no va por cola.
+
+        El llamador NO debe entregar el mensaje a los demas participantes hasta
+        recibir 200 con severidad `baja`, o hasta aplicar la degradacion
+        declarada en un 503.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PedidoModeracion"
+      responses:
+        "200":
+          description: Mensaje clasificado.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/RespuestaModeracion"
+        "429":
+          description: Cuota agotada.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorCuota"
+        "503":
+          description: |
+            Proveedor no disponible. El campo `degradacion` le dice al llamador
+            que hacer. La decision entre fail-open y fail-closed es del Product
+            Owner: pendiente P-02 en docs/08-decisiones-y-pendientes.md.
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ErrorProveedor"
+
+components:
+  schemas:
+    PedidoModeracion:
+      type: object
+      required: [contexto, payload, modo, idempotency_key]
+      properties:
+        contexto:
+          $ref: "#/components/schemas/Contexto"
+        payload:
+          $ref: "#/components/schemas/PayloadModeracion"
+        modo:
+          type: string
+          enum: [sync]
+          description: El moderador es siempre sincronico (ADR-003).
+        idempotency_key:
+          type: string
+          description: |
+            No es opcional. Si el llamador reintenta por timeout, no queremos
+            dos incidentes registrados para el mismo mensaje.
+
+            Patron: Idempotent Receiver. Recibir dos veces el mismo pedido tiene
+            que producir un solo efecto. Ver docs/04 seccion 2.3.4b.
+        trace_id:
+          type: string
+
+    Contexto:
+      type: object
+      description: Sobre comun a las cinco funciones de IA.
+      properties:
+        curso_cohorte_id:
+          type: string
+        usuario_ref:
+          type: string
+          description: Referencia opaca al emisor. No es el email ni el nombre.
+
+    PayloadModeracion:
+      type: object
+      required: [mensaje, canal_ref, autor_ref]
+      properties:
+        mensaje:
+          type: string
+          maxLength: 4000
+          description: |
+            Texto plano o texto enriquecido (RF-CHT-06). Nunca adjuntos: el chat
+            es solo texto (RF-CHT-07), y el intento de eludir esa restriccion
+            --por ejemplo base64 disfrazando una imagen-- es una de las
+            categorias a detectar (RF-CHT-10).
+        canal_ref:
+          type: string
+        autor_ref:
+          type: string
+          description: |
+            Necesario para la heuristica de frecuencia por usuario, que es como
+            se detecta el spam sin recurrir al clasificador.
+        desafio_activo:
+          type: boolean
+          default: false
+          description: |
+            Si el emisor tiene un desafio en curso. Lo necesita la heuristica de
+            integridad academica, que detecta la FORMA --un bloque de codigo
+            extenso pegado en un canal social-- y no el contenido, porque
+            ADR-008 prohibe que la solucion de referencia entre al contexto.
+            El llamador lo sabe; el moderador no puede deducirlo.
+
+    RespuestaModeracion:
+      type: object
+      required: [resultado, trace_id]
+      properties:
+        resultado:
+          $ref: "#/components/schemas/ResultadoModeracion"
+        trace_id:
+          type: string
+        metadata:
+          type: object
+          properties:
+            model_id:
+              type: string
+              nullable: true
+              description: Nulo cuando resolvio la capa deterministica.
+            model_version:
+              type: string
+              nullable: true
+            latencia_ms:
+              type: integer
+
+    ResultadoModeracion:
+      type: object
+      required: [categorias, severidad, confianza, origen]
+      properties:
+        categorias:
+          type: array
+          description: Vacio si el mensaje esta limpio.
+          items:
+            $ref: "#/components/schemas/Categoria"
+        severidad:
+          $ref: "#/components/schemas/Severidad"
+        confianza:
+          type: number
+          format: float
+          minimum: 0
+          maximum: 1
+        origen:
+          type: string
+          enum: [lista, heuristica, clasificador]
+          description: |
+            Que capa decidio. No es telemetria decorativa: es lo unico que
+            permite medir cuanto resuelve la capa deterministica, y lo primero
+            que se mira para depurar un falso positivo por subcadena.
+
+            `lista` y `heuristica` son los detectores de la capa clasica, que
+            corren TODOS y fusionan sus veredictos (Composite de Strategy):
+            un mensaje puede ser spam y ofensivo a la vez, por eso `categorias`
+            es un array. `clasificador` es el segundo y ultimo eslabon de la
+            cadena, y solo se invoca si la capa clasica no llego a severidad
+            media o alta. Ver docs/04 seccion 2.3.4b.
+        version_lista:
+          type: string
+          description: |
+            Version de la lista de terminos que se aplico. RF-IA-13 y RF-IA-25
+            exigen saber que decidio cada llamada.
+
+    Categoria:
+      type: string
+      description: Las seis categorias de RF-CHT-10.
+      enum:
+        - ofensivo_discriminatorio
+        - acoso
+        - sexual_violencia
+        - spam_no_academico
+        - integridad_academica
+        - elusion_solo_texto
+
+    Severidad:
+      type: string
+      enum: [baja, media, alta]
+      description: |
+        RF-CHT-11. `baja` no bloquea pero se registra igual --es la linea base
+        para medir--; `media` bloquea y genera incidente visible al profesor;
+        `alta` bloquea y ademas dispara notificacion a profesor y ADMIN.
+
+        El corte entre baja y media es una decision de producto, no de
+        ingenieria: define cuantos falsos positivos come el alumno. Sigue
+        abierto, Parte C de docs/08-decisiones-y-pendientes.md.
+
+        Al emisor se le avisa sin exponer el detalle de la deteccion
+        (RF-CHT-12), pero la categoria y el motivo se guardan igual, porque el
+        profesor los necesita para resolver la apelacion de RF-CHT-13.
+
+    ErrorCuota:
+      type: object
+      properties:
+        error:
+          type: string
+          enum: [cuota_agotada]
+        limite:
+          type: integer
+        reinicia_en:
+          type: string
+          format: date-time
+
+    ErrorProveedor:
+      type: object
+      properties:
+        error:
+          type: string
+          enum: [proveedor_no_disponible]
+        degradacion:
+          type: string
+          enum: [prefiltro_solamente, diferido]
+          description: |
+            `prefiltro_solamente`: la capa deterministica sigue corriendo y su
+            veredicto es el que vale. Es la red que hace tolerable el
+            fail-open: sin ella, fail-open significa sin ninguna moderacion.
+
+            Lo implementa el Circuit Breaker de Resilience4j: cuando se abre,
+            la cadena corta antes del ultimo eslabon en vez de esperar el
+            timeout de cada mensaje.
+
+            `diferido`: el mensaje se entrega marcado y se re-modera cuando el
+            servicio vuelve; si ahi resulta media o alta, se retira y se genera
+            el incidente.

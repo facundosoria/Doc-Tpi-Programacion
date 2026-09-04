@@ -316,23 +316,30 @@ salida, **fuera del contexto del modelo**.
 > que inventar el criterio después, cuando ya nadie se acuerda qué se quería evaluar. Y es lo que
 > después usa el corrector.
 
-## 9. Prompt del moderador
+## 9. El moderador no tiene prompt
 
-El más simple y el más barato. **Sin historial: cada mensaje es independiente.**
+✅ **Esta sección solía contener un prompt. Ya no, y es a propósito** — ADR-012.
 
-```
-[SISTEMA]
-  Clasificá el mensaje en las categorías de RF-CHT-10.
-  Devolvé solo el JSON.
+El moderador no invoca un LLM: usa una **capa clásica** (listas con nivel por término sobre
+Aho-Corasick, heurísticas de spam y de forma de código, detección de base64 por entropía) que resuelve
+cuatro de las seis categorías de RF-CHT-10, y un **clasificador dedicado** para el residuo contextual
+—acoso y amenaza sin léxico explícito—. Un clasificador recibe texto y devuelve etiquetas con score:
+**no hay prompt que escribir, versionar ni proteger.**
 
-[USUARIO]
-  <mensaje> ... </mensaje>
-```
+Lo que eso elimina:
 
-Salida: `categorias[]`, `severidad` (baja/media/alta), `confianza`.
+| Ya no aplica al moderador | Por qué |
+|---|---|
+| `plantillas/moderador.v1.txt` | No existe la plantilla |
+| El pendiente E-05 | Cerrado en [08](08-decisiones-y-pendientes.md) |
+| `temperature: 0` + `seed` (A-3 de [14](14-sincronizacion-guia-didactica.md)) | Un clasificador ya es determinístico |
+| Superficie de prompt injection sobre el moderador | No interpreta instrucciones, clasifica |
 
-**Un pre-filtro determinístico antes** —regex, listas, longitud, detección de base64— saca el ~70% de
-las llamadas sin tocar el modelo.
+**Lo que sí sigue existiendo es el contrato de salida:** `categorias[]`, `severidad`
+(baja/media/alta), `confianza` y `origen` — formalizado en
+[`contracts/moderacion-v1.yaml`](../codigo-ejemplo/ms-evaluacion-llm/src/main/resources/contracts/moderacion-v1.yaml)
+y con su schema en `schemas/moderacion.json` (E-06). El diseño completo está en
+[04](04-funciones-de-ia.md) §2.
 
 ## 10. Dónde viven
 
@@ -347,7 +354,6 @@ prompts/
     tutor.riesgo-medio.v1.txt
     tutor.riesgo-bajo.v1.txt
     generador.v1.txt
-    moderador.v1.txt
   schemas/
     evaluacion.json
     pregunta.json

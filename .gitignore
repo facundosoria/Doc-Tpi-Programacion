@@ -1,14 +1,26 @@
 # Material de origen (se distribuye por la catedra)
 *.pdf
 
+# Python
+__pycache__/
+*.pyc
+
+# Build de Java
+target/
+
 # Sistema
 .DS_Store
 Thumbs.db
 desktop.ini
 
-# Secrets and local environments
+# IDE
+.idea/
+*.iml
+
+# Configuracion con secretos. docker compose levanta el .env que este al lado del
+# compose file sin que nadie se lo pida, y el README de la demo muestra las lineas a
+# pegar ahi --incluida GROQ_API_KEY--. Sin esta regla, el que las pegue commitea la
+# key sin darse cuenta.
 .env
 .env.*
-*.env
-application-local.properties
-application-local.yml
+!.env.example

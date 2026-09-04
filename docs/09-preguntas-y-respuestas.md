@@ -22,7 +22,7 @@
 | [Q-05](#q-05) | ¿Se puede gastar USD 15-20 en vez de 125? | **Sí. La palanca son los tokens, no el modelo** |
 | [Q-06](#q-06) | ¿Se puede gastar muchísimo menos todavía? | **Sí, ~USD 3, con tres condiciones** |
 | [Q-07](#q-07) | ¿Free tier primero y desborde a pago? | **Sí, salvo en el evaluador** |
-| [Q-08](#q-08) | ¿Java Spring Boot o Python para el back? | **No es tu decisión. El `ai-service` sí: Python** |
+| [Q-08](#q-08) | ¿Java Spring Boot o Python para el back? | **Java Spring Boot — decisión cerrada (ADR-005)** |
 | [Q-09](#q-09) | ¿Modelo local? ¿Cuánto hardware? | **Solo el moderador. Nunca el evaluador** |
 | [Q-10](#q-10) | ¿Cómo crecer en horarios pico? | **Con una cola. Casi no hace falta escalar** |
 | [Q-11](#q-11) | ¿Cómo resolver prompt injection y fuga? | **Defensa en capas; la clave es no darle la solución al modelo** |
@@ -37,6 +37,10 @@
 | [Q-20](#q-20) | ¿El RAG es la fuente de verdad de todo? | **De tres funciones. La cuarta —la nuestra— no lo usa** |
 | [Q-21](#q-21) | ¿La salvaguarda va antes o después del modelo? | **Después. Revisa la respuesta del propio modelo** |
 | [Q-22](#q-22) | ¿Alguna política nos impide guardar los chats académicos? | **No. El PRD los exige.** El riesgo está en otro lado |
+| [Q-23](#q-23) | ¿No existe ya una librería para las malas palabras? | **Sí, y cubre 4 de 6 categorías.** Lo que no cubre no se arregla con más listas |
+| [Q-24](#q-24) | El clasificador de moderación, ¿es agregar otra IA? | **No. El moderador quedó con menos IA que antes** |
+| [Q-25](#q-25) | ¿Resolverlo sin IA para no gastar tokens? | **Sin IA sí, pero por latencia y resiliencia. La API es gratis** |
+| [Q-26](#q-26) | Para el moderador, ¿pipeline o cadena? | **Pipeline, con un único corte de cadena antes de la red** |
 
 ---
 
@@ -324,39 +328,50 @@ Y dos advertencias más:
 <a name="q-08"></a>
 ## Q-08 — ¿Java Spring Boot o Python para el backend?
 
-**Respuesta:** Para el backend de negocio, **no es decisión del equipo de IA**. Para el
-`ai-service`, **Python**.
+**Respuesta:** **Java Spring Boot** — tanto para el backend de negocio como para el `ms-evaluacion-llm`.
+Decisión cerrada por **ADR-005**. El `pom.xml` existe y el esqueleto compila.
 
-### Por qué el `ai-service` en Python
+### Por qué Java Spring Boot para el `ms-evaluacion-llm`
 
-El argumento decisivo no es "Python tiene más librerías". Es concreto:
+- **Programación IV es una materia de Java.** El equipo lo conoce y los otros once equipos también.
+- **La cátedra impuso exactamente las capas donde Java gana:** Service Discovery, API Gateway y bus de
+  eventos — las tres donde un servicio Python pagaría fricción todas las semanas.
+- **El argumento de `tree-sitter` perdió peso:** si los desafíos son en Java, `JavaParser` es mejor.
+- **Los embeddings tienen camino en Java** con DJL o directamente por API mientras el corpus sea chico.
 
-> **RF-IA-20 exige comparar ASTs entre el código de la IA y la solución esperada. Y los desafíos no
-> van a ser todos en Java.** `tree-sitter` tiene bindings de Python maduros y cubre decenas de
-> lenguajes; JavaParser solo entiende Java.
+Lo que ADR-005 **sí** deja abierto: si hace falta un componente auxiliar (embeddings locales, modelo
+local de moderación de ADR-012), puede agregarse como **componente interno — no microservicio**. Las
+interfaces ya están preparadas desde el diseño.
 
-Más: ingesta de PDF/OCR/PPT, embeddings locales en tres líneas, e iteración rápida sobre prompts —
-que vas a hacer cincuenta veces.
-
-### Por qué el núcleo en Java (si te preguntan)
+### Por qué el núcleo del backend de negocio en Java (si te preguntan)
 
 - La economía de gamificación necesita ACID: XP, monedas, vidas, compras.
 - RF-NFR-02 pide 2FA obligatorio para los tres roles: Spring Security lo tiene resuelto.
 - Percentiles P90, cascada de desempate, curva de niveles: muchas reglas entrelazadas donde el
   tipado fuerte paga.
 
-### El caso en contra del híbrido
+---
 
-Es real: dos lenguajes, dos builds, un contrato que mantener, debugging distribuido. **Y requiere al
-menos una persona cómoda en Python.**
+### Contexto histórico — por qué se consideró Python (valor educativo)
 
-Contrapeso: si el equipo de IA es el que hace el `ai-service`, **el híbrido no le agrega complejidad
-a nadie más** — para el otro equipo es una caja negra con 6 endpoints.
+> ℹ️ **La respuesta original proponía Python para el `ai-service`.** Se conserva para que se entienda
+> el razonamiento que ADR-005 revisó.
 
-### Qué cambiaría la respuesta
+El argumento inicial no era "Python tiene más librerías". Era concreto:
 
-Que nadie en el equipo de IA esté cómodo en Python. Ahí: todo Java, con la IA como módulo de
-frontera dura.
+> **RF-IA-20 exige comparar ASTs entre el código de la IA y la solución esperada. Y los desafíos no
+> iban a ser todos en Java.** `tree-sitter` tiene bindings de Python maduros y cubre decenas de
+> lenguajes; JavaParser solo entiende Java.
+
+Más: ingesta de PDF/OCR/PPT, embeddings locales en tres líneas, e iteración rápida sobre prompts.
+
+**El caso en contra del híbrido** es real: dos lenguajes, dos builds, un contrato que mantener,
+debugging distribuido. Requiere al menos una persona cómoda en Python. Lo que lo hacía aceptable era
+que, para los otros equipos, el `ai-service` era una caja negra con 6 endpoints — no les agregaba
+complejidad.
+
+**Qué cambió:** al asumir que los desafíos son en Java, `JavaParser` supera a `tree-sitter` para el
+caso concreto, y la ventaja principal de Python desapareció.
 
 📄 [02](02-arquitectura-y-stack.md), [01](01-problema-y-alcance.md) §2
 
@@ -878,6 +893,239 @@ Incluso el "derecho al olvido" quedó **fuera de alcance como decisión conscien
 | Enviarlo a un **free tier que puede entrenar con ello** | 🔴 **C-2, sin resolver** |
 
 📄 [07](07-datos-y-terminos.md) §6b
+
+---
+
+<a name="q-23"></a>
+
+## Q-23 — ¿No existe ya una librería que resuelva las malas palabras, en español o inglés?
+
+**Respuesta corta: sí, y más de una — pero cubre menos de lo que parece.** El filtrado de lenguaje
+ofensivo es un problema resuelto desde mucho antes de que existieran los LLM. Hay algoritmos
+publicados, librerías Java maduras y listas de términos con licencia permisiva. El detalle completo de
+cada herramienta está en [04](04-funciones-de-ia.md) §2.3.1.
+
+### Por qué SÍ usarlas
+
+- **Cubren cuatro de las seis categorías** de RF-CHT-10 sin tocar un modelo.
+- **Latencia:** un match en memoria es < 1 ms contra los 300 ms de presupuesto.
+- **Es la red del fail-open** (P-02): si el proveedor externo se cae, esto sigue corriendo. Sin esta
+  capa, fail-open significa *sin ninguna moderación*.
+- **Menos datos salen del sistema.**
+
+### Por qué NO alcanzan solas (y es lo importante de esta respuesta)
+
+**Tres huecos, y ninguno se tapa con más listas:**
+
+1. **Acoso y amenaza sin léxico explícito.** *"Sé dónde vivís"* no tiene una sola mala palabra. Es
+   comprensión de la frase, no búsqueda de un término.
+2. **Dos categorías son propias de este producto** y no existen en ninguna herramienta del mundo:
+   *compartir soluciones de desafíos* (integridad académica) y *eludir el solo-texto*. La primera la
+   resolvemos por **forma** y no por contenido —lo obliga ADR-008—; la segunda con entropía.
+3. **Ojo con cuál lista.** Una lista **binaria** —una palabra por línea, sin nivel— no puede expresar
+   que *boludo* entre compañeros es afecto y *pelotudo* es agravio, y aplicada tal cual **bloquearía
+   media cursada**. LDNOOBW es binaria y peninsular; **el diccionario de ModernMT no**, y esa fue la
+   diferencia que decidió cuál usar (ver más abajo).
+
+### El problema técnico que nadie menciona hasta que explota
+
+Se llama [**problema de Scunthorpe**](https://en.wikipedia.org/wiki/Scunthorpe_problem): en 1996 AOL
+bloqueó a los habitantes de ese pueblo inglés porque el nombre contiene una mala palabra como
+subcadena. En castellano pasa igual: **"cálculo"** contiene *culo*, **"putativo"** contiene *puta*,
+**"conchabar"** contiene *concha*.
+
+Y tironea contra el problema opuesto —la evasión: `p3l0tud0`, `p-e-l-o-t-u-d-o`—, porque cuanto más
+agresivo el matching, más falsos positivos. **Ese equilibrio es el trabajo real, no conseguir la
+lista.** Ver [04](04-funciones-de-ia.md) §2.3.2.
+
+### ✅ La verificación que cambió parte de esta respuesta
+
+Se revisó el repositorio de `com.modernmt.text:profanity-filter` —el README no documenta nada, así que
+hubo que mirar los archivos— y **trae más de lo que esperábamos**: `dictionary.es` (429 entradas) y
+`dictionary.en` (467), **cada término con un score de 0 a 1 en vez de un booleano**, y con el registro
+rioplatense razonablemente calibrado: `pelotudo` 0,74, `boludo` **0,42**, `boludazo` **0,00**,
+`concha` **0,06**, `coger` **0,06**. Soporta además frases enteras, no solo palabras sueltas.
+
+Ese `concha` en 0,06 es, literalmente, **la defensa contra el problema de Scunthorpe ya resuelta por
+otro**. La conclusión práctica: el "nivel por término" que dábamos por trabajo propio en buena medida
+ya existe, y **LDNOOBW pasó de primera opción a plan B**.
+
+Lo que queda nuestro es bastante menos: sumar los términos ausentes (*forro*, *chabón*, *sorete*),
+**fijar dónde cortan baja→media y media→alta** —eso no lo da ninguna librería y es decisión de
+producto, Parte C de [08](08-decisiones-y-pendientes.md)— y validar la calibración contra los 100
+mensajes etiquetados.
+
+### Qué cambiaría la respuesta
+
+Que la validación contra nuestro propio corpus muestre que los scores, que vienen de otro dominio, no
+se trasladan a un chat de cursada. En ese caso el diccionario sigue sirviendo como punto de partida,
+pero hay que recalibrarlo con datos nuestros.
+
+📄 [04](04-funciones-de-ia.md) §2.3, ADR-012
+
+---
+
+<a name="q-24"></a>
+
+## Q-24 — El clasificador de moderación, ¿es agregar otra IA al proyecto?
+
+**Respuesta corta: no. Al revés — el moderador quedó con menos IA que antes.**
+
+Es la pregunta correcta para un proyecto que ya tiene cinco funciones de IA. Tres cortes:
+
+| | |
+|---|---|
+| **¿Otra función de IA?** | **No.** RF-IA-23 asigna el modelo *por función*, no globalmente, y el moderador ya tenía el suyo. Cambiar cuál usa no crea una sexta función |
+| **¿Otro proveedor?** | **No.** Es un endpoint más de OpenAI: misma API key, mismo adapter del gateway M1 que ADR-001 ya exige. Ni un contenedor ni un secreto de más |
+| **¿Otro LLM?** | **No, y esto es lo importante.** Es un **clasificador**: entra texto, salen etiquetas con score |
+
+### Qué elimina, que es el verdadero argumento
+
+El diseño anterior era *pre-filtro + GPT-5 nano con prompt propio*. El nuevo es *capa clásica +
+clasificador*. Lo que desapareció:
+
+| Antes estaba planificado | Ahora |
+|---|---|
+| `prompts/plantillas/moderador.v1.txt` | No existe — no hay prompt que escribir |
+| El pendiente E-05 | Cerrado |
+| `temperature: 0` + `seed` (A-3 de [14](14-sincronizacion-guia-didactica.md)) | No aplica: un clasificador ya es determinístico |
+| Superficie de prompt injection sobre el moderador | Cero: no interpreta instrucciones |
+
+Y como *compartir soluciones* se detecta por **forma**, **el moderador quedó sin ningún LLM
+generativo adentro.**
+
+### Por qué NO — el caso en contra, honesto
+
+- **Sigue siendo una dependencia externa.** Menos IA no es cero red: los mensajes del residuo salen
+  igual del sistema.
+- **Sigue habiendo un proveedor que puede cambiar su modelo debajo nuestro** sin avisar, y la
+  clasificación puede moverse. Es el mismo riesgo que RF-IA-11 mitiga con el nombre del modelo en
+  tabla editable, no en el código.
+- **Un clasificador es una caja más cerrada que un prompt.** Con un prompt podés ajustar el criterio
+  escribiendo; con un clasificador solo podés mover el umbral. Menos superficie de ataque, pero
+  también menos control.
+
+### Qué cambiaría la respuesta
+
+Que necesitemos criterios de moderación específicos del producto que el clasificador no expone. Ahí
+volvería un LLM con prompt — y con él, todo lo que la tabla de arriba eliminó.
+
+📄 ADR-012, [04](04-funciones-de-ia.md) §2.3.5
+
+---
+
+<a name="q-25"></a>
+
+## Q-25 — ¿Conviene resolverlo sin IA para no gastar tokens?
+
+**Respuesta corta: conviene resolverlo sin IA, pero el ahorro de tokens no es la razón — y creerlo
+lleva a decidir mal en otros lados.**
+
+### El dato que corrige la premisa
+
+**La Moderation API es gratuita.** No consume tokens del presupuesto. Si el argumento para empujar
+trabajo a la capa clásica fuera el costo, **no habría argumento**: en esta función el costo por
+consulta es USD 0 de las dos maneras.
+
+### Las tres razones que sí valen
+
+1. **Latencia.** El presupuesto es < 300 ms ([02](02-arquitectura-y-stack.md)) y un roundtrip HTTP se
+   lo come casi entero. Un match en memoria es < 1 ms. **En el chat esto se nota; el usuario está
+   esperando.**
+2. **Resiliencia.** La capa clásica es la red del fail-open de P-02. Sin ella, que el proveedor se
+   caiga significa *sin ninguna moderación*.
+3. **Datos.** Cuantos menos mensajes de alumnos viajen a un tercero, mejor
+   ([07](07-datos-y-terminos.md)).
+
+### Por qué NO llevarlo al extremo
+
+**Resolver todo sin IA no se puede, y el intento tiene un costo.** Cada categoría que se fuerza al
+lado determinista con reglas cada vez más finas produce más falsos positivos, y **el falso positivo
+del moderador se lo come un alumno** que ve su mensaje bloqueado sin saber por qué (RF-CHT-12 no le
+explica el motivo, justamente para no enseñarle a evadir el filtro). Una lista agresiva es peor que
+una llamada de red.
+
+El corte está donde la técnica clásica deja de tener información suficiente: acoso y amenaza sin
+léxico. Ahí no es que la regla sea difícil — **es que no existe**.
+
+### Entonces, ¿en algún momento hay que meterle IA?
+
+**No, y con lo diseñado alcanza para cumplir RF-CHT-09 a RF-CHT-14.** No hay fase 2 pendiente.
+
+Los pedidos que van a aparecer —*"se escapan malas palabras nuevas"*, *"hay que soportar otro
+idioma"*, *"están evadiendo con `p3l0tud0`"*, *"hay spam"*— **ya están resueltos** y no necesitan un
+modelo. El único hueco serio es el **acoso acumulativo**, y ahí lo importante es que **no se arregla
+cambiando de modelo sino cambiando el contrato**: como `moderar(mensaje)` ve un mensaje por vez, el
+LLM más caro del mundo tampoco lo detectaría. La lista completa de escenarios —los cuatro que sí lo
+justificarían y los seis que no— está en [04](04-funciones-de-ia.md) §2.10.
+
+### Qué cambiaría la respuesta
+
+Que la Moderation API deje de ser gratuita, o que su free tier no alcance. En ese caso el costo entra
+al análisis y hay que revisar ADR-012 — pero la conclusión probablemente no cambie, porque las tres
+razones de arriba siguen valiendo igual.
+
+📄 ADR-012, [03](03-modelos-costos-y-contexto.md), [04](04-funciones-de-ia.md) §2.0 y §2.10
+
+---
+
+<a name="q-26"></a>
+
+## Q-26 — Para el moderador, ¿pipeline o cadena de responsabilidad?
+
+**Respuesta corta: pipeline como estructura principal, con un único corte de cadena antes de la
+llamada de red.**
+
+Es la decisión estructural del moderador y se presta a confusión porque los dos patrones se parecen:
+en los dos hay "etapas en orden". La diferencia real es una sola:
+
+- **Pipeline** → **corren todas** las etapas, cada una **transforma** el dato.
+- **Cadena** → **corta** en la primera que **decide**. No corren todas.
+
+### Por qué NO todo pipeline
+
+Sería el código más simple: sin condiciones, sin orden semántico. Pero significa **llamar al
+clasificador para todos los mensajes**, y eso rompe dos cosas a la vez: el presupuesto de 300 ms y el
+free tier de 5.000 pedidos diarios. Descartada por latencia, no por elegancia.
+
+### Por qué NO todo cadena
+
+Es la lectura intuitiva de "filtros en orden" —y es lo que decía la primera versión de
+[04](04-funciones-de-ia.md)—, pero **contradice el contrato que ya escribimos**: `categorias` es un
+**array**, porque un mensaje puede ser spam **y** ofensivo. Cortando en el primer detector que
+dispara, la segunda categoría se pierde y el profesor ve un incidente incompleto.
+
+Y encima no compra nada: los detectores clásicos cuestan **microsegundos**, así que saltearlos no
+ahorra tiempo medible.
+
+### Por qué SÍ el híbrido
+
+Por una asimetría de costo de ~1000×:
+
+| Etapa | Costo |
+|---|---|
+| Normalizar + todos los detectores clásicos | **< 1 ms** |
+| La llamada al clasificador | **200 a 500 ms** |
+
+Ese salto —y solo ese— es lo que justifica una cadena. Todo lo demás es pipeline.
+
+### 🟢 La regla, para reusarla en el resto del proyecto
+
+> **Usá cadena solo donde saltear un eslabón ahorre algo medible. Si todos los eslabones cuestan
+> parecido, es un pipeline.**
+
+Y el corolario, que evita el error caro: **en una cadena el orden es semántico.** Si alguien mueve el
+clasificador al principio *"para que sea más preciso"*, todos los mensajes pasan a pagar la red y el
+diseño se convierte en el que descartamos, sin que nadie lo note. Por eso conviene tener **un solo**
+eslabón de cadena y no cinco.
+
+### Qué cambiaría la respuesta
+
+Que algún detector clásico deje de costar microsegundos — por ejemplo, si la detección de integridad
+académica pasara a parsear el AST del bloque de código pegado. Ahí ese detector se volvería caro y
+merecería su propio eslabón de cadena.
+
+📄 [04](04-funciones-de-ia.md) §2.3.4b, [11](11-glosario-y-metadata.md)
 
 ---
 
