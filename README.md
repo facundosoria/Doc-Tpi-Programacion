@@ -61,7 +61,7 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 | — | [Suite API Gateway y Service Discovery](docs/gateway-y-discovery/README.md) | 🚪 **Borde y ruteo (Tema 01)**: Guía de 7 documentos sobre arquitectura de red, Eureka, M2M con tokens técnicos, filtros WebFlux RS256 y resiliencia |
 
 > **El 16 no está y el número queda reservado.** Documenta el pipeline de calidad, que
-> por ahora vive en la rama `dev` y no se publica acá. Renumerar el 17, el 18 y el 19
+> vive en la rama `feat/qa-gate` y no se publica acá. Renumerar el 17, el 18 y el 19
 > haría que el mismo número signifique cosas distintas según la rama.
 
 ## Lo demás que hay en el repositorio

@@ -329,8 +329,8 @@ son nuestras porque nadie más entiende para qué existen.
 
 ## E11 · Calidad, CI/CD y observabilidad
 
-**Célula C1.** El pipeline de calidad ya existe —vive en la rama `dev` y no se publica acá—; esta
-épica es hacerlo cumplir sobre el código nuevo y sumarle lo que hoy no mira.
+**Célula C1.** El pipeline de calidad ya existe —vive en la rama `feat/qa-gate` y no se publica
+acá—; esta épica es hacerlo cumplir sobre el código nuevo y sumarle lo que hoy no mira.
 
 | ID | Historia | Criterio de aceptación | SP | Dep. | Prio |
 |---|---|---|---|---|---|
