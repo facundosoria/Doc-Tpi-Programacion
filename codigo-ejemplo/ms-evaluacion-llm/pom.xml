@@ -7,10 +7,10 @@
   <!--
     Esqueleto minimo del microservicio de evaluacion.
 
-    NO tiene logica de negocio a proposito. Existe para que las etapas de Java del
-    gate (formato, compilacion, tests, analisis estatico, idioma) se puedan probar
-    HOY, sembrando errores adrede, en vez de escribirlas a ciegas y descubrir que
-    no andan el dia del primer commit real.
+    NO tiene logica de negocio a proposito. Existe para que las verificaciones de
+    Java del build (formato, compilacion, tests, analisis estatico) se puedan
+    probar HOY, sembrando errores adrede, en vez de escribirlas a ciegas y
+    descubrir que no andan el dia del primer commit real.
 
     El diseno del servicio esta en docs/02-arquitectura-y-stack.md.
   -->
@@ -86,8 +86,8 @@
         </configuration>
       </plugin>
 
-      <!-- Formato. El gate corre spotless:apply en local (te corrige los archivos)
-           y spotless:check en el CI (el runner no escribe nada). -->
+      <!-- Formato. `spotless:apply` corrige los archivos; `spotless:check` solo
+           avisa, para una corrida que no tiene que escribir nada. -->
       <plugin>
         <groupId>com.diffplug.spotless</groupId>
         <artifactId>spotless-maven-plugin</artifactId>
@@ -103,8 +103,8 @@
       </plugin>
 
       <!-- Analisis estatico: codigo muerto, variables sin usar, catch vacios.
-           failOnViolation=false a proposito: quien decide si un hallazgo frena
-           es checks.yml, no el plugin. El gate lee el XML de target/. -->
+           failOnViolation=false a proposito: el plugin reporta y no corta el build.
+           El XML queda en target/ para revisar los hallazgos. -->
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-pmd-plugin</artifactId>
@@ -125,9 +125,9 @@
       </plugin>
 
       <!-- Cobertura. El umbral NO se pone aca: un porcentaje global sobre todo
-           el modulo premia testear getters y castiga testear lo dificil. El gate
-           mide con diff-cover la cobertura de las lineas que agregaste en ESTE
-           cambio, que es lo unico que no genera deuda retroactiva. Este plugin
+           el modulo premia testear getters y castiga testear lo dificil. La
+           cobertura se mide con diff-cover sobre las lineas que agregaste en
+           ESTE cambio, que es lo unico que no genera deuda retroactiva. Este plugin
            solo produce el reporte XML que diff-cover lee. -->
       <plugin>
         <groupId>org.jacoco</groupId>
@@ -159,10 +159,12 @@
         <groupId>org.apache.maven.plugins</groupId>
         <artifactId>maven-surefire-plugin</artifactId>
         <configuration>
-          <!-- El gate lee los XML de surefire, asi que la suite no debe abortar
-               el build antes de escribirlos. -->
+          <!-- Los XML de surefire son el reporte de la corrida, asi que la suite
+               no debe abortar el build antes de escribirlos. -->
           <testFailureIgnore>true</testFailureIgnore>
-          <excludedGroups>integracion</excludedGroups>
+          <!-- integracion: necesita Postgres y Redis levantados.
+               modelo-real: le pega a la API del proveedor y GASTA PLATA. Ver TESTING.md. -->
+          <excludedGroups>integracion,modelo-real</excludedGroups>
         </configuration>
       </plugin>
 
@@ -175,7 +177,14 @@
 
   <profiles>
     <!-- Perfil completo: suma los tests de integracion, que levantan Postgres y
-         Redis. Quedan fuera del build de todos los dias porque tardan. -->
+         Redis. Quedan fuera del build de todos los dias porque tardan.
+
+         Los `modelo-real` siguen excluidos ACA TAMBIEN: le pegan a la API del
+         proveedor y GASTAN PLATA. Un test que gasta sin que nadie lo pida no se
+         descubre hasta que llega la factura. Para correrlos, a mano y a sabiendas:
+
+             ./mvnw test -Dgroups=modelo-real -DexcludedGroups= -DtestFailureIgnore=false
+    -->
     <profile>
       <id>completo</id>
       <build>
@@ -184,7 +193,7 @@
             <groupId>org.apache.maven.plugins</groupId>
             <artifactId>maven-surefire-plugin</artifactId>
             <configuration>
-              <excludedGroups combine.self="override"/>
+              <excludedGroups combine.self="override">modelo-real</excludedGroups>
             </configuration>
           </plugin>
         </plugins>

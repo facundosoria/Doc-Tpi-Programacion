@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Guía Integral: El Golden Set en el TPI — Programación IV</title>
   <script src="vendor/tailwind-play-3.4.16.js"></script>
+  <!-- Si el .html viaja solo, sin vendor/ al lado, lo baja del CDN. -->
+  <script>window.tailwind||document.write('<script src="https://cdn.tailwindcss.com/3.4.16"><\/script>');</script>
   <script>
     tailwind.config = {
       darkMode: 'class',
@@ -33,7 +35,8 @@
     }
   </script>
   <!-- Tipografias del sistema; Font Awesome servido desde el repo -->
-  <link rel="stylesheet" href="vendor/font-awesome/css/all.min.css">
+  <!-- Si el .html viaja solo, sin vendor/ al lado, lo baja del CDN. -->
+  <link rel="stylesheet" href="vendor/font-awesome/css/all.min.css" onerror="this.onerror=null;this.href='https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css'">
 
   <style>
     body {
