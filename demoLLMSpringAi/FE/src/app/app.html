@@ -1,0 +1,333 @@
+<!-- NAVBAR -->
+<header class="navbar">
+  <div class="brand">
+    <div class="brand-icon">
+      <i class="fa-solid fa-graduation-cap"></i>
+    </div>
+    <div>
+      <h1>Tutor IA Pedagógico <span class="badge-rag">Angular 21 + RAG</span></h1>
+      <p class="subtitle">Spring AI • In-Memory TF-IDF Vector Store • Guardrails & Token Saver</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div class="token-saver-pill" title="Tokens ahorrados por filtros locales, guardrails y caché">
+      <i class="fa-solid fa-bolt"></i>
+      <span>Ahorro de Tokens: <strong>{{ tokensSaved() }}</strong></span>
+    </div>
+    <a href="http://localhost:8080/swagger-ui.html" target="_blank" class="btn-swagger">
+      <i class="fa-solid fa-code"></i> API Docs
+    </a>
+  </div>
+</header>
+
+<!-- SPLIT CONTAINER -->
+<main class="split-container">
+
+  <!-- PANEL IZQUIERDO: RAG & DOCUMENTO PDF -->
+  <section class="panel-left">
+    <div class="panel-header">
+      <div class="panel-title">
+        <i class="fa-solid fa-file-pdf"></i>
+        <h2>Material Educativo (RAG)</h2>
+      </div>
+      <span class="status-indicator" [class.active]="hasDocument()">
+        <span class="status-dot"></span>
+        <span>{{ hasDocument() ? 'Indexado en Memoria' : 'Sin documento' }}</span>
+      </span>
+    </div>
+
+    <!-- ZONA DRAG & DROP -->
+    @if (!hasDocument()) {
+      <div
+        class="drop-zone"
+        [class.dragover]="isDragOver()"
+        (dragover)="onDragOver($event)"
+        (dragleave)="onDragLeave($event)"
+        (drop)="onDrop($event)"
+        (click)="fileInputHidden.click()"
+      >
+        <input #fileInputHidden type="file" accept=".pdf" class="file-input-hidden" (change)="onFileSelected($event)" />
+
+        @if (isUploading()) {
+          <div class="drop-content">
+            <div class="drop-icon"><i class="fa-solid fa-spinner fa-spin"></i></div>
+            <h3>{{ uploadProgressText() }}</h3>
+            <p>Segmentación semántica y cálculo de vectores TF-IDF</p>
+          </div>
+        } @else {
+          <div class="drop-content">
+            <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+            <h3>Arrastra y suelta tu archivo PDF aquí</h3>
+            <p>O haz clic para seleccionarlo de tu equipo</p>
+            <div class="drop-specs">
+              <span><i class="fa-regular fa-file"></i> Solo formato .pdf</span>
+              <span><i class="fa-solid fa-shield-halved"></i> Máximo 25 MB</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- BOTÓN DE PRUEBA RÁPIDA -->
+      <div class="sample-action-box">
+        <button class="btn-sample" (click)="loadSamplePdf()" [disabled]="isUploading()">
+          <i class="fa-solid fa-wand-magic-sparkles"></i> Cargar PDF de Prueba (PRD Gamificado)
+        </button>
+      </div>
+    }
+
+    <!-- CARD DOCUMENTO ACTIVO -->
+    @if (hasDocument()) {
+      <div class="doc-card">
+        <div class="doc-card-header">
+          <div class="doc-type-icon"><i class="fa-solid fa-file-pdf"></i></div>
+          <div class="doc-meta-info">
+            <h4 [title]="activeDocument()?.fileName">{{ activeDocument()?.fileName }}</h4>
+            <span>{{ formatBytes(activeDocument()?.fileSizeBytes) }}</span>
+          </div>
+          <button class="btn-icon-danger" (click)="removeDocument()" title="Quitar documento">
+            <i class="fa-solid fa-trash-can"></i>
+          </button>
+        </div>
+
+        <div class="doc-stats-grid">
+          <div class="stat-box">
+            <i class="fa-solid fa-book-open"></i>
+            <div>
+              <strong>{{ activeDocument()?.pageCount }}</strong>
+              <span>Páginas</span>
+            </div>
+          </div>
+          <div class="stat-box">
+            <i class="fa-solid fa-cubes-stacked"></i>
+            <div>
+              <strong>{{ activeDocument()?.chunkCount }}</strong>
+              <span>Chunks</span>
+            </div>
+          </div>
+          <div class="stat-box">
+            <i class="fa-solid fa-brain"></i>
+            <div>
+              <strong>TF-IDF</strong>
+              <span>Vectorizado</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="doc-preview-box">
+          <label><i class="fa-solid fa-quote-left"></i> Extracto inicial:</label>
+          <p>{{ activeDocument()?.previewText }}</p>
+        </div>
+
+        <button class="btn-secondary" (click)="toggleChunksView()">
+          <i class="fa-solid fa-layer-group"></i>
+          {{ showChunks() ? 'Ocultar Fragmentos' : 'Ver Fragmentos Indexados (' + chunks().length + ')' }}
+        </button>
+
+        @if (showChunks()) {
+          <div class="chunks-accordion">
+            <div class="chunks-list">
+              @for (chunk of chunks(); track chunk.id) {
+                <div class="chunk-item">
+                  <div class="chunk-item-header">
+                    <span>Página {{ chunk.pageNumber }} • Chunk #{{ chunk.chunkIndex + 1 }}</span>
+                    <span>{{ chunk.content.length }} chars</span>
+                  </div>
+                  <div class="chunk-item-body">{{ chunk.content }}</div>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- GUARDRAILS & TOKEN SAVER INFO -->
+    <div class="security-card">
+      <h3><i class="fa-solid fa-shield-cat"></i> Guardrails & Token Economy</h3>
+      <ul class="security-list">
+        <li><i class="fa-solid fa-check text-green"></i> <strong>Filtro de malas palabras:</strong> Bloqueo pre-LLM (0 tokens).</li>
+        <li><i class="fa-solid fa-check text-green"></i> <strong>Anti-Prompt Injection:</strong> Blindaje de rol inalterable.</li>
+        <li><i class="fa-solid fa-check text-green"></i> <strong>Respuestas concisas:</strong> Máximo 2-3 párrafos al grano.</li>
+        <li><i class="fa-solid fa-check text-green"></i> <strong>Caché en memoria:</strong> Consultas idénticas con 0 tokens.</li>
+        <li><i class="fa-solid fa-check text-green"></i> <strong>Top-K acotado:</strong> Solo 2 a 3 fragmentos clave por prompt.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- PANEL DERECHO: CHATBOT TUTOR PEDAGÓGICO -->
+  <section class="panel-right">
+    
+    <!-- CABECERA DEL CHAT -->
+    <div class="chat-header">
+      <div class="tutor-profile">
+        <div class="tutor-avatar">
+          <i class="fa-solid fa-chalkboard-user"></i>
+          <span class="online-indicator"></span>
+        </div>
+        <div>
+          <h3>{{ tutorRole() }}</h3>
+          <p>{{ hasDocument() ? ('Especialista en ' + activeDocument()?.fileName) : 'Especialista pedagógico adaptado al material' }}</p>
+        </div>
+      </div>
+      <div class="chat-header-actions">
+        <button class="btn-ghost" (click)="clearChat()" title="Limpiar conversación">
+          <i class="fa-solid fa-broom"></i> Limpiar
+        </button>
+      </div>
+    </div>
+
+    <!-- MENSAJES -->
+    <div class="chat-messages" #messagesContainer>
+      @for (msg of messages(); track msg.id) {
+        <div
+          class="message"
+          [class.student-message]="msg.sender === 'student'"
+          [class.tutor-message]="msg.sender === 'tutor'"
+        >
+          <div class="msg-avatar">
+            @if (msg.sender === 'student') {
+              <i class="fa-solid fa-user-graduate"></i>
+            } @else {
+              <i class="fa-solid fa-chalkboard-user"></i>
+            }
+          </div>
+
+          <div class="msg-body">
+            <div class="msg-header" [style.justify-content]="msg.sender === 'student' ? 'flex-end' : 'flex-start'">
+              <span class="msg-author">{{ msg.sender === 'student' ? 'Estudiante' : (msg.rolTutor || tutorRole()) }}</span>
+              @if (msg.sender === 'tutor') {
+                <span class="badge-role">Pedagógico</span>
+              }
+            </div>
+
+            <div
+              class="msg-content"
+              [class.guardrail-blocked]="msg.status === 'BLOCKED_PROFANITY'"
+              [class.guardrail-injection]="msg.status === 'BLOCKED_INJECTION'"
+            >
+              <!-- BADGES DE GUARDRAILS -->
+              @if (msg.status === 'BLOCKED_PROFANITY') {
+                <div class="blocked-badge">
+                  <i class="fa-solid fa-hand"></i> Lenguaje Inapropiado Interceptado (0 Tokens)
+                </div>
+              }
+              @if (msg.status === 'BLOCKED_INJECTION') {
+                <div class="blocked-badge" style="background:rgba(139,92,246,0.2); color:#c4b5fd; border-color:rgba(139,92,246,0.4);">
+                  <i class="fa-solid fa-shield-halved"></i> Intento de Manipulación Neutralizado (0 Tokens)
+                </div>
+              }
+              @if (msg.cached) {
+                <div class="blocked-badge" style="background:rgba(16,185,129,0.2); color:#6ee7b7; border-color:rgba(16,185,129,0.4);">
+                  <i class="fa-solid fa-bolt"></i> Respuesta de Caché en Memoria (0 Tokens)
+                </div>
+              }
+
+              <!-- CONTENIDO HTML RENDERIZADO -->
+              <div [innerHTML]="msg.htmlContent"></div>
+
+              <!-- FUENTES CITADAS DEL PDF -->
+              @if (msg.fuentes && msg.fuentes.length > 0) {
+                <div class="msg-sources-box">
+                  <button class="sources-toggle-btn" (click)="toggleMessageSources(msg)">
+                    <i class="fa-solid fa-book-bookmark"></i> Fuentes consultadas del PDF ({{ msg.fuentes.length }})
+                    <i class="fa-solid" [class.fa-chevron-down]="!msg.showSources" [class.fa-chevron-up]="msg.showSources" style="font-size:0.7em;"></i>
+                  </button>
+
+                  @if (msg.showSources) {
+                    <div class="sources-content">
+                      @for (fuente of msg.fuentes; track fuente.chunkIndex) {
+                        <div class="source-item">
+                          <div class="source-badge">
+                            Página {{ fuente.pageNumber }} • Relevancia: {{ (fuente.score * 100) | number:'1.0-0' }}%
+                          </div>
+                          <div class="source-text">"{{ fuente.textoExtracto }}"</div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      <!-- INDICADOR DE ESCRITURA (THINKING) -->
+      @if (isThinking()) {
+        <div class="message tutor-message">
+          <div class="msg-avatar"><i class="fa-solid fa-chalkboard-user"></i></div>
+          <div class="msg-body">
+            <div class="msg-header"><span class="msg-author">{{ tutorRole() }}</span></div>
+            <div class="msg-content">
+              <div class="typing-dots">
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+                <span class="typing-dot"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- SUGERENCIAS RÁPIDAS (CHIPS) -->
+    @if (hasDocument()) {
+      <div class="quick-prompts">
+        <span class="quick-title"><i class="fa-regular fa-lightbulb"></i> Preguntas sugeridas:</span>
+        <button class="chip-btn" (click)="useQuickPrompt('¿Cuál es el objetivo principal del documento?')">¿Objetivo principal?</button>
+        <button class="chip-btn" (click)="useQuickPrompt('Explícame los conceptos y requisitos clave.')">Conceptos clave</button>
+        <button class="chip-btn" (click)="useQuickPrompt('¿Podrías hacerme una pregunta para evaluar si entendí el tema?')">Evaluar mi comprensión</button>
+      </div>
+    }
+
+    <!-- ÁREA DE ENTRADA -->
+    <div class="chat-input-area">
+      
+      <!-- ALERTA DE VALIDACIÓN PRE-LLM -->
+      @if (validationAlert()) {
+        <div class="validation-alert">
+          <i class="fa-solid fa-circle-exclamation"></i>
+          <span>{{ validationAlert() }}</span>
+        </div>
+      }
+
+      <div class="chat-form">
+        <div class="input-wrapper">
+          <textarea
+            [(ngModel)]="queryText"
+            (input)="onInputChange()"
+            (keydown)="onKeyDown($event)"
+            rows="1"
+            placeholder="Haz una consulta específica sobre el PDF (ej. ¿cuáles son los requerimientos?)..."
+            maxlength="600"
+          ></textarea>
+
+          <div class="input-footer">
+            <span class="char-counter" [class.limit-warn]="isCharLimitWarn()">{{ charCount() }} / 600</span>
+            <span class="concise-hint"><i class="fa-solid fa-feather-pointed"></i> Respuestas cortas y concisas</span>
+          </div>
+        </div>
+
+        <button class="btn-send" (click)="sendQuery()" [disabled]="isThinking()" title="Enviar pregunta (Enter)">
+          <i class="fa-solid fa-paper-plane"></i>
+        </button>
+      </div>
+    </div>
+
+  </section>
+</main>
+
+<!-- TOASTS DE NOTIFICACIÓN -->
+<div class="toast-container">
+  @for (toast of toasts(); track toast.id) {
+    <div class="toast" [ngClass]="toast.type">
+      <i class="fa-solid" [ngClass]="{
+        'fa-circle-check': toast.type === 'success',
+        'fa-circle-exclamation': toast.type === 'error',
+        'fa-triangle-exclamation': toast.type === 'warn',
+        'fa-circle-info': toast.type === 'info'
+      }"></i>
+      <span>{{ toast.message }}</span>
+    </div>
+  }
+</div>
