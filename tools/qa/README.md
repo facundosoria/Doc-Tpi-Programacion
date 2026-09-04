@@ -161,8 +161,8 @@ no aparezca en tu diff. Lo que ya estaba roto se informa sin frenar.
 
 ## Puesta en marcha en el server
 
-Hecho el 2026-09-01, salvo la rama `dev` y el branch protection, que siguen
-pendientes. La máquina es `mk-luisao-02`: Ubuntu 24.04, 4 cores, 15 GB.
+Hecho el 2026-09-01, salvo el branch protection sobre `dev`, que sigue
+pendiente. La máquina es `mk-luisao-02`: Ubuntu 24.04, 4 cores, 15 GB.
 
 Todo el CI vive en `/opt/TP-Pipelines/`:
 
@@ -236,18 +236,14 @@ cubren dos; el que decide es el `completo` del PR, que ocupa un runner hasta 600
 segundos: con dos, esa corrida deja uno solo para las otras cinco personas. Con
 tres quedan dos libres, que es la capacidad de régimen. Por eso son tres.
 
-### 2. La rama `dev` y el branch protection
+### 2. El branch protection sobre `dev`
 
 **Es lo único que falta.** Es lo que hace que el gate frene algo: sin esto informa
 y nada más.
 
-```bash
-git checkout main
-git checkout -b dev
-git push -u origin dev
-```
-
-Después, en **Settings → Branches → Add branch protection rule**:
+La rama ya existe --sale de `main` y no tiene el gate adentro, que es a propósito:
+el gate corre sobre lo que se le manda, no desde la rama que protege--. Lo que
+falta es la regla, en **Settings → Branches → Add branch protection rule**:
 
 - Branch name pattern: `dev`
 - **Require a pull request before merging**
@@ -301,9 +297,10 @@ arregladas, pero conviene saber que existen:
 
 - `owned-paths.txt` incluye todo `docs/`. Cuando entre contenido de otros equipos
   al repo, **no** lo agregues: lo que no está listado nunca bloquea.
-- Falta la rama `dev` y el branch protection del paso 2. Hasta entonces el gate
-  informa pero no bloquea ningún merge.
-- El front muestra datos de prueba hasta que se le cargue `CI_TOKEN` en
-  `/opt/TP-Pipelines/front/.env`.
+- Falta el branch protection sobre `dev`, el paso 2. La rama ya existe; lo que no
+  existe es la regla. Hasta entonces el gate informa pero no bloquea ningún merge.
+- ~~El front muestra datos de prueba hasta que se le cargue `CI_TOKEN`.~~ Cargado el
+  2026-09-01 en `/opt/TP-Pipelines/front/.env`: lee la API real. Lo mismo dice la
+  lista de pendientes de `docs/16`, que estaba al día mientras esta no.
 - ArchUnit, cuando existan los 8 módulos: convierte las reglas de arquitectura de
   [`docs/02`](../../docs/02-arquitectura-y-stack.md) en tests que fallan.

@@ -1412,20 +1412,23 @@ arregla acotando el `tar` a la carpeta del equipo más `tools/`, pero hay que ha
 
 ---
 
-# Parte 14 — Qué se saca cuando `dev` va a `main`
+# Parte 14 — Qué se saca cuando el gate va a `main`
 
-**El gate vive en `dev` y no viaja a `main`.** La decisión se tomó en el commit
-`02d1f3f` («El gate de calidad no viaja a main todavia») y hasta el pase de `9a3b75f` vivía
-**solo ahí**: el único merge que hubo en el medio —`1933340`— dependió de que alguien
-se acordara. Esta parte existe para que no dependa de la memoria.
+**El gate vive en `feat/qa-gate` y no viaja a `main`.** La decisión se tomó en el commit
+`02d1f3f` («El gate de calidad no viaja a main todavia») y hasta el pase de `9a3b75f`
+vivía **solo** en el mensaje de ese commit: el único merge que hubo en el medio
+—`1933340`— dependió de que alguien se acordara. Esta parte existe para que no dependa
+de la memoria.
 
 Se usó por primera vez en `9a3b75f`, y encontró dos cosas que la memoria había perdido
 —cinco frases sueltas en el `pom`, no una, y un documento nuevo que nadie había sumado
 a la tabla de abajo—. Las dos están corregidas acá; el detalle, en «La deuda que esta
 parte anotaba».
 
-El trabajo del gate, además, está archivado en la rama
-`archive/gate-y-ci-front-2026-09-03`, que es `dev` entero en el momento del pase.
+> **Vivía en `dev` hasta este commit.** `dev` pasó a ser igual a `main` —sin gate— y todo
+> esto se concentró en `feat/qa-gate`, que es la única rama donde existe. Si buscás el
+> pipeline y no lo encontrás, es acá. La rama de archivo que había en el medio se borró:
+> era esta misma, con otro nombre.
 
 > **Por qué no viaja.** El pipeline todavía no se usa, y `main` es la rama que ve el
 > resto de la materia. Un `qa.sh` que nadie corre, un workflow que dispara sobre pushes
@@ -1469,7 +1472,7 @@ funcionan igual sin gate. Se quedan; solo cambia cómo se las comenta. Las slide
 SonarQube también se quedan: son la propuesta de la cátedra, no nuestro pipeline.
 
 > **Un documento nuevo entra a esta tabla el día que se escribe, no el día del merge.**
-> `docs/20` nació en `dev`, donde el gate existe, y nombrarlo era lo natural. Nadie lo
+> `docs/20` nació del lado del gate, donde existe, y nombrarlo era lo natural. Nadie lo
 > agregó acá hasta que el merge lo encontró. Si escribís un documento que viaja y
 > mencionás el pipeline, sumá el renglón en el mismo commit.
 
@@ -1493,7 +1496,7 @@ Las seis están redactadas de nuevo.
 ## La checklist del merge
 
 ```
-1. git checkout main && git merge --no-commit --no-ff dev
+1. git checkout main && git merge --no-commit --no-ff feat/qa-gate
 2. Sacar los archivos de la tabla "Lo que se saca entero"
 3. Redactar distinto los de la tabla de arriba
 4. Verificar que no quedo nada, sobre el arbol entero y no sobre el diff:
@@ -1530,9 +1533,9 @@ Las seis están redactadas de nuevo.
 > **No es una omisión del gate:** el gate hace lo que promete. Es que el proyecto todavía no tiene
 > qué desplegar.
 
-- **La rama `dev` y el branch protection.** Es lo único que hace que el gate frene
-  algo: hoy informa y marca el commit, pero no bloquea ningún merge. El
-  procedimiento está en [`tools/qa/README.md`](../tools/qa/README.md).
+- **El branch protection sobre `dev`.** Es lo único que hace que el gate frene algo:
+  hoy informa y marca el commit, pero no bloquea ningún merge. La rama ya existe; el
+  procedimiento de la regla está en [`tools/qa/README.md`](../tools/qa/README.md).
 - ~~**El token del front.**~~ Cargado el 1 de septiembre de 2026: el front lee la
   API real y ya no muestra datos de prueba.
 - ~~**El fixture de cobertura del self-test falla.**~~ Ya no: `./qa.sh --self-test` reporta
