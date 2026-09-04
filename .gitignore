@@ -5,3 +5,10 @@
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# Secrets and local environments
+.env
+.env.*
+*.env
+application-local.properties
+application-local.yml
