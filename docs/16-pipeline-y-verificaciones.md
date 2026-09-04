@@ -1424,7 +1424,8 @@ Se usó por primera vez en `9a3b75f`, y encontró dos cosas que la memoria habí
 a la tabla de abajo—. Las dos están corregidas acá; el detalle, en «La deuda que esta
 parte anotaba».
 
-El trabajo del gate, además, está archivado en la rama `archive/qa-y-server`.
+El trabajo del gate, además, está archivado en la rama
+`archive/gate-y-ci-front-2026-09-03`, que es `dev` entero en el momento del pase.
 
 > **Por qué no viaja.** El pipeline todavía no se usa, y `main` es la rama que ve el
 > resto de la materia. Un `qa.sh` que nadie corre, un workflow que dispara sobre pushes
