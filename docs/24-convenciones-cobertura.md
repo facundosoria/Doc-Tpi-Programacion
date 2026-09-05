@@ -35,6 +35,20 @@ El PR debe informar el porcentaje de backend y frontend, enlazar ambos reportes 
 
 Además de alcanzar el porcentaje mínimo, las pruebas deben cubrir los recorridos relevantes de la historia: caso exitoso, validación de entrada, autorización, idempotencia, fallo de dependencia y recuperación cuando corresponda. El porcentaje nunca sustituye las pruebas de contrato, integración, seguridad ni demo exigidas por el playbook.
 
+## Pruebas de infraestructura
+
+La cobertura de código no reemplaza la verificación del entorno donde se ejecuta el servicio. La CI debe ejecutar y conservar evidencia de las pruebas de infraestructura aplicables a la fase; su detalle, estado y comando de ejecución se mantienen en la [matriz de pruebas de infraestructura](25-matriz-pruebas-infraestructura.md).
+
+| Componente | Pruebas obligatorias cuando esté disponible |
+|---|---|
+| PostgreSQL | Flyway aplica el esquema; se rechazan puntajes incompletos; y las tablas append-only no admiten mutaciones. |
+| Docker Compose | Las dependencias quedan saludables antes del arranque, `llm-service` ejecuta las migraciones y Actuator responde `UP`. |
+| API Gateway | La ruta `/api/llm/**` conserva el path y `X-Request-Id`; se validan identidad y correlación; se rechazan headers de identidad falsificados y rutas fuera del prefijo. |
+| Eureka | `LLM-SERVICE` se registra y se resuelve desde Gateway; el tráfico se distribuye entre dos instancias y continúa por la instancia sana ante una caída; las rutas descubiertas se mantienen durante la ventana de caché ante una caída temporal del registry. |
+| Kafka | La outbox publica eventos; el consumo es idempotente; y se verifica reintento y recuperación tras reiniciar el consumidor. |
+
+PostgreSQL y Docker Compose aplican desde el Sprint 1. Gateway y Eureka se ejecutan en CI cuando existan sus módulos reales; Kafka se incorpora en S6 junto con eventos, workers y outbox. No se considera satisfecha una prueba de infraestructura mediante mocks del servicio de negocio: debe levantar los componentes reales definidos para la suite. La evidencia requerida es el log o reporte de CI, junto con el comando empleado y los contenedores/servicios involucrados.
+
 ## Incumplimiento
 
 Si el umbral no se cumple, la historia vuelve a estado en progreso. No se reduce el mínimo por urgencia, y un bloqueo de infraestructura se registra conforme al workflow diario con evidencia y responsable.
