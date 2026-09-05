@@ -1,0 +1,30 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: llm
+      POSTGRES_USER: llm
+      POSTGRES_PASSWORD: llm
+    ports: ["5432:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U llm -d llm"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  llm-service:
+    build: .
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/llm
+      SPRING_DATASOURCE_USERNAME: llm
+      SPRING_DATASOURCE_PASSWORD: llm
+      SPRING_PROFILES_ACTIVE: workbench
+    depends_on:
+      postgres:
+        condition: service_healthy
+    ports: ["8080:8080"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:8080/actuator/health | grep -q UP"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
