@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <title>Pipeline de Seguridad LLM: Paso a Paso (Vulnerable vs Protegido en Java 21)</title>
+    <!-- Servidos desde el repo: offline 100% -->
+    <script src="vendor/tailwind-play-3.4.16.js"></script>
+    <script>window.tailwind||document.write('<script src="https://cdn.tailwindcss.com/3.4.16"><\/script>');</script>
+    <script src="vendor/lucide.min.js"></script>
+    <script>window.lucide||document.write('<script src="https://unpkg.com/lucide@0.469.0/dist/umd/lucide.min.js"><\/script>');</script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        cyber: {
+                            dark: '#080c16',
+                            card: '#0e1526',
+                            cardLight: '#162038',
+                            border: '#1e293b',
+                            borderLight: '#334155',
+                            accent: '#6366f1',
+                            cyan: '#38bdf8',
+                            emerald: '#10b981',
+                            rose: '#f43f5e',
+                            amber: '#f59e0b',
+                            purple: '#a855f7'
+                        }
+                    },
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Fira Code', 'Cascadia Code', 'Menlo', 'monospace'],
+                        sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body {
+            height: 100%;
+            height: 100dvh;
+            background-color: #080c16;
+            color: #f1f5f9;
+            font-family: 'Inter', system-ui, sans-serif;
+            overflow: hidden;
+        }
+        
+        /* Custom scrollbars */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: #080c16; }
+        ::-webkit-scrollbar-thumb { background: #1e293b; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #334155; }
+
+        .code-font {
+            font-family: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', monospace;
+        }
+
+        /* Stepper Node Active Styles */
+        .step-node.active {
+            border-color: #38bdf8;
+            background-color: #0369a1;
+            color: #ffffff;
+            box-shadow: 0 0 12px rgba(56, 189, 248, 0.4);
+        }
+        .step-node.passed {
+            border-color: #10b981;
+            background-color: #065f46;
+            color: #ffffff;
+        }
+
+        /* Scanline and Glowing accents */
+        .glow-red { box-shadow: 0 0 15px rgba(244, 63, 94, 0.2); }
+        .glow-green { box-shadow: 0 0 15px rgba(16, 185, 129, 0.2); }
+    </style>
+</head>
+<body class="flex flex-col h-screen select-none bg-cyber-dark text-slate-100">
+
+    <!-- ================================================================= -->
+    <!-- BARRA SUPERIOR (HEADER Y PRESETS)                                 -->
+    <!-- ================================================================= -->
+    <header class="h-14 border-b border-cyber-border bg-cyber-card/90 backdrop-blur px-4 flex items-center justify-between z-30 shrink-0">
+        
+        <!-- Left: Branding & Stack Info -->
+        <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-lg bg-indigo-600/20 border border-indigo-500/40 flex items-center justify-center text-cyan-400 shadow-[0_0_10px_rgba(56,189,248,0.2)]">
+                <i data-lucide="shield-check" class="w-5 h-5"></i>
+            </div>
+            <div>
+                <h1 class="text-xs sm:text-sm font-bold tracking-wide text-white flex items-center gap-2">
+                    <span>DEFENSA EN PROFUNDIDAD LLM</span>
+                    <span class="text-[10px] px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-700/50 font-mono hidden md:inline">Java 21 · Spring Boot 3.4 · 6 Capas</span>
+                </h1>
+                <p class="text-[10px] text-slate-400 font-mono hidden sm:block">Comparativa Paso a Paso: Sin Protección (Vulnerable) vs Con Protección Java (ADR-005)</p>
+            </div>
+        </div>
+
+        <!-- Right: Preset Selector, IBM Matrix, Custom Input & Controls -->
+        <div class="flex items-center gap-2">
+            
+            <!-- Selector de Vector de Ataque -->
+            <div class="flex items-center gap-1.5 bg-cyber-dark border border-cyber-border rounded-lg px-2.5 py-1.5">
+                <i data-lucide="target" class="w-4 h-4 text-cyber-amber"></i>
+                <select id="attack-preset-select" class="bg-transparent text-xs text-slate-200 font-mono focus:outline-none cursor-pointer max-w-[160px] sm:max-w-xs truncate">
+                    <option value="preset_direct_dan">1. Inyección Directa / DAN (RF-IA-05)</option>
+                    <option value="preset_base64">2. Base64 Ofuscado (RF-CHT-10)</option>
+                    <option value="preset_cross_course">3. Cross-Course Leak (RF-IA-06)</option>
+                    <option value="preset_solution_beg">4. Petición Solución Directa (RF-IA-19)</option>
+                    <option value="preset_skeleton_ast">5. Skeleton Key / AST Fuga (RF-IA-20)</option>
+                    <option value="preset_legit_query">6. Consulta Alumno Legítima (200 OK)</option>
+                    <option value="preset_custom">✍️ Prompt Personalizado...</option>
+                </select>
+            </div>
+
+            <!-- Botón Matriz IBM (8 Amenazas) -->
+            <button id="btn-open-ibm-matrix" class="px-2.5 py-1.5 rounded-lg bg-indigo-950/70 border border-indigo-500/50 hover:bg-indigo-900 text-xs font-mono text-indigo-300 hover:text-white flex items-center gap-1.5 transition cursor-pointer" title="Ver Mapeo de las 8 Amenazas de IBM">
+                <i data-lucide="table" class="w-3.5 h-3.5 text-cyan-400"></i>
+                <span class="hidden lg:inline font-bold">Matriz IBM (8 Amenazas)</span>
+            </button>
+
+            <!-- Botón Editar Prompt -->
+            <button id="btn-open-custom-prompt" class="p-1.5 rounded-lg bg-cyber-dark border border-cyber-border hover:border-slate-500 text-slate-300 hover:text-white transition cursor-pointer" title="Inyectar Prompt Arbitrario">
+                <i data-lucide="edit-3" class="w-4 h-4 text-cyan-400"></i>
+            </button>
+
+            <div class="h-5 w-[1px] bg-cyber-border mx-0.5"></div>
+
+            <!-- Audio Toggle -->
+            <button id="btn-audio-toggle" class="p-1.5 rounded-lg bg-cyber-dark border border-cyber-border hover:text-cyan-400 transition text-cyan-400 cursor-pointer" title="Silenciar / Activar Sonido (M)">
+                <i data-lucide="volume-2" class="w-4 h-4" id="audio-icon-elem"></i>
+            </button>
+
+            <!-- Fullscreen -->
+            <button id="btn-fullscreen-toggle" class="p-1.5 rounded-lg bg-cyber-dark border border-cyber-border hover:text-cyan-400 transition text-slate-400 cursor-pointer" title="Pantalla Completa (F)">
+                <i data-lucide="maximize" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <!-- ================================================================= -->
+    <!-- STEPPER SUPERIOR (BARRA DE PROGRESO DE LOS 8 PASOS)               -->
+    <!-- ================================================================= -->
+    <nav class="h-14 border-b border-cyber-border bg-cyber-card/60 px-4 flex items-center justify-between shrink-0 overflow-x-auto">
+        <div class="flex items-center gap-1 sm:gap-2 mx-auto max-w-5xl w-full justify-between font-mono text-[11px]">
+            
+            <button class="step-nav-btn flex items-center gap-1.5 px-2 py-1 rounded-md transition cursor-pointer" data-step="0">
+                <span class="step-node w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border border-slate-600 bg-slate-800 text-slate-400">0</span>
+                <span class="hidden md:inline text-slate-300">Entrada</span>
+            </button>
+            <span class="text-slate-700">──</span>
+
+            <button class="step-nav-btn flex items-center gap-1.5 px-2 py-1 rounded-md transition cursor-pointer" data-step="1">
+                <span class="step-node w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border border-slate-600 bg-slate-800 text-slate-400">1</span>
+                <span class="hidden md:inline text-slate-300">1. Regex</span>
+            </button>
+            <span class="text-slate-700">──</span>
+
+            <button class="step-nav-btn flex items-center gap-1.5 px-2 py-1 rounded-md transition cursor-pointer" data-step="2">
+                <span class="step-node w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border border-slate-600 bg-slate-800 text-slate-400">2</span>
+                <span class="hidden md:inline text-slate-300">2. XML</span>
+            </button>
+            <span class="text-slate-700">──</span>
+
+            <button class="step-nav-btn flex items-center gap-1.5 px-2 py-1 rounded-md transition cursor-pointer" data-step="3">
+                <span class="step-node w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border border-slate-600 bg-slate-800 text-slate-400">3</span>
+                <span class="hidden md:inline text-slate-300">3. RAG</span>
+            </button>
+            <span class="text-slate-700">──</span>
+
+            <button class="step-nav-btn flex items-center gap-1.5 px-2 py-1 rounded-md transition cursor-pointer" data-step="4">
+                <span class="step-node w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border border-slate-600 bg-slate-800 text-slate-400">4</span>
+                <span class="hidden md:inline text-slate-300">4. Intent</span>
+            </button>
+            <span class="text-slate-700">──</span>
+
+            <button class="step-nav-btn flex items-center gap-1.5 px-2 py-1 rounded-md transition cursor-pointer" data-step="5">
+                <span class="step-node w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border border-slate-600 bg-slate-800 text-slate-400">5</span>
+                <span class="hidden md:inline text-slate-300">5. Zero-Leak</span>
+            </button>
+            <span class="text-slate-700">──</span>
+
+            <button class="step-nav-btn flex items-center gap-1.5 px-2 py-1 rounded-md transition cursor-pointer" data-step="6">
+                <span class="step-node w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border border-slate-600 bg-slate-800 text-slate-400">6</span>
+                <span class="hidden md:inline text-slate-300">6. AST</span>
+            </button>
+            <span class="text-slate-700">──</span>
+
+            <button class="step-nav-btn flex items-center gap-1.5 px-2 py-1 rounded-md transition cursor-pointer" data-step="7">
+                <span class="step-node w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold border border-slate-600 bg-slate-800 text-slate-400">7</span>
+                <span class="hidden md:inline text-slate-300">Fin</span>
+            </button>
+
+        </div>
+    </nav>
+
+    <!-- ================================================================= -->
+    <!-- ÁREA PRINCIPAL: COMPARADOR LADO A LADO (VULNERABLE VS PROTEGIDO) -->
+    <!-- ================================================================= -->
+    <main class="flex-1 p-3 sm:p-5 overflow-y-auto flex flex-col justify-between max-w-7xl mx-auto w-full">
+        
+        <!-- Header del Paso Activo -->
+        <div class="mb-3 flex flex-col md:flex-row md:items-center justify-between border-b border-cyber-border pb-2.5 gap-2">
+            <div>
+                <div class="flex flex-wrap items-center gap-2">
+                    <span id="step-badge-number" class="px-2 py-0.5 rounded-full bg-blue-950 text-cyan-400 border border-blue-700/50 font-mono text-xs font-bold">PASO 2 DE 7</span>
+                    <h2 id="step-title" class="text-base sm:text-lg font-bold text-white">Separación Estructural y Delimitación XML</h2>
+                    
+                    <!-- Badges de Mitigación IBM y OWASP Top 10 -->
+                    <span id="step-badge-ibm" class="px-2 py-0.5 rounded-md bg-indigo-950/90 text-indigo-300 border border-indigo-500/50 font-mono text-[11px] font-semibold flex items-center gap-1">
+                        <i data-lucide="shield-alert" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        <span id="step-badge-ibm-text">IBM: Vector 1 (Secuestro)</span>
+                    </span>
+                    <span id="step-badge-owasp" class="px-2 py-0.5 rounded-md bg-rose-950/90 text-rose-300 border border-rose-500/50 font-mono text-[11px] font-semibold flex items-center gap-1">
+                        <i data-lucide="alert-octagon" class="w-3.5 h-3.5 text-rose-400"></i>
+                        <span id="step-badge-owasp-text">OWASP LLM01 (#1 Prompt Injection)</span>
+                    </span>
+                </div>
+                <p id="step-subtitle" class="text-xs text-slate-400 mt-1 font-sans">El input del alumno se encapsula como dato pasivo, impidiendo el secuestro de instrucciones base.</p>
+            </div>
+            <div class="flex items-center gap-2 font-mono text-xs shrink-0">
+                <span id="step-metric-latency" class="px-2 py-1 rounded bg-slate-900 border border-cyber-border text-cyan-400">Latencia: 0ms</span>
+                <span id="step-metric-cost" class="px-2 py-1 rounded bg-slate-900 border border-cyber-border text-emerald-400">Costo: $0</span>
+            </div>
+        </div>
+
+        <!-- Contenedor Comparativo Dividido 50/50 -->
+        <div class="flex-1 grid grid-cols-1 lg:grid-cols-2 gap-4 min-h-0 items-stretch">
+            
+            <!-- PANEL IZQUIERDO: 🔴 SIN PROTECCIÓN (VULNERABLE) -->
+            <div class="border border-rose-500/40 rounded-xl bg-cyber-card/80 p-4 flex flex-col justify-between glow-red min-h-[360px] overflow-hidden">
+                <div class="flex flex-col h-full justify-between">
+                    <!-- Title Banner -->
+                    <div>
+                        <div class="flex items-center justify-between text-rose-400 font-bold text-xs font-mono pb-2 border-b border-rose-900/40 mb-3">
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="x-circle" class="w-4 h-4"></i>
+                                SIN PROTECCIÓN (ARQUITECTURA VULNERABLE)
+                            </span>
+                            <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-950 border border-rose-800 text-rose-300">INSEGURO</span>
+                        </div>
+
+                        <!-- Code / Flow Box -->
+                        <div id="vulnerable-code-box" class="p-3 rounded-lg bg-slate-950/90 border border-rose-900/30 text-xs code-font text-slate-300 leading-relaxed overflow-x-auto whitespace-pre-wrap max-h-64 sm:max-h-80 overflow-y-auto">
+                            <!-- Inyectado dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Vulnerability Alert / Impact Banner -->
+                    <div id="vulnerable-impact-box" class="mt-3 p-3 rounded-lg bg-rose-950/40 border border-rose-600/40 text-xs text-rose-200">
+                        <!-- Inyectado dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL DERECHO: 🟢 CON PROTECCIÓN (BACKEND JAVA 21) -->
+            <div class="border border-emerald-500/40 rounded-xl bg-cyber-card/80 p-4 flex flex-col justify-between glow-green min-h-[360px] overflow-hidden">
+                <div class="flex flex-col h-full justify-between">
+                    <!-- Title Banner -->
+                    <div>
+                        <div class="flex items-center justify-between text-emerald-400 font-bold text-xs font-mono pb-2 border-b border-emerald-900/40 mb-3">
+                            <span class="flex items-center gap-1.5">
+                                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+                                CON PROTECCIÓN (BACKEND JAVA · SPRING BOOT 3.4)
+                            </span>
+                            <span id="protected-class-badge" class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-950 border border-emerald-800 text-emerald-300">PromptBuilderService.java</span>
+                        </div>
+
+                        <!-- Code / Flow Box -->
+                        <div id="protected-code-box" class="p-3 rounded-lg bg-slate-950/90 border border-emerald-900/30 text-xs code-font text-slate-200 leading-relaxed overflow-x-auto whitespace-pre-wrap max-h-64 sm:max-h-80 overflow-y-auto">
+                            <!-- Inyectado dinámicamente -->
+                        </div>
+                    </div>
+
+                    <!-- Protection Mechanism / Action Banner -->
+                    <div id="protected-impact-box" class="mt-3 p-3 rounded-lg bg-emerald-950/40 border border-emerald-600/40 text-xs text-emerald-200">
+                        <!-- Inyectado dinámicamente -->
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+    </main>
+
+    <!-- ================================================================= -->
+    <!-- BARRA INFERIOR (CONTROLES STEPPER: ANTERIOR / SIGUIENTE)          -->
+    <!-- ================================================================= -->
+    <footer class="h-14 border-t border-cyber-border bg-cyber-card/95 px-4 flex items-center justify-between z-20 shrink-0">
+        <!-- Botón Paso Anterior -->
+        <button id="btn-prev-step" class="px-4 py-2 rounded-lg bg-cyber-dark border border-cyber-border hover:border-slate-400 text-xs font-mono font-bold flex items-center gap-2 text-slate-300 hover:text-white transition cursor-pointer">
+            <i data-lucide="chevron-left" class="w-4 h-4"></i>
+            <span>Paso Anterior</span>
+            <span class="text-[10px] text-slate-500 hidden sm:inline">[←]</span>
+        </button>
+
+        <!-- Indicador Central -->
+        <div class="text-center font-mono text-xs">
+            <span class="text-slate-400">Progreso del Pipeline: </span>
+            <span id="footer-step-counter" class="text-cyan-400 font-bold">Paso 2 / 7</span>
+            <span class="text-slate-600 mx-1">|</span>
+            <span id="footer-step-layer-name" class="text-slate-300 font-semibold">Capa 2: Separación Estructural</span>
+        </div>
+
+        <!-- Botón Paso Siguiente -->
+        <button id="btn-next-step" class="px-4 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 border border-indigo-400/50 text-xs font-mono font-bold flex items-center gap-2 text-white transition cursor-pointer shadow-[0_0_12px_rgba(99,102,241,0.3)]">
+            <span>Siguiente Paso</span>
+            <span class="text-[10px] text-indigo-200 hidden sm:inline">[→]</span>
+            <i data-lucide="chevron-right" class="w-4 h-4"></i>
+        </button>
+    </footer>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 1: MATRIZ IBM DE LAS 8 SITUACIONES DE AMENAZA                -->
+    <!-- ================================================================= -->
+    <div id="modal-ibm-matrix" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-3 sm:p-6">
+        <div class="bg-cyber-card border border-cyber-border rounded-xl max-w-5xl w-full max-h-[90vh] flex flex-col shadow-2xl overflow-hidden font-sans">
+            
+            <!-- Header Modal -->
+            <div class="p-4 border-b border-cyber-border flex items-center justify-between bg-slate-900/90 shrink-0">
+                <div class="flex items-center gap-3">
+                    <div class="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/40 flex items-center justify-center text-cyan-400">
+                        <i data-lucide="shield-alert" class="w-5 h-5"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm sm:text-base font-bold text-white">Matriz de Investigación IBM Security: 8 Vectores vs 6 Capas Java</h3>
+                        <p class="text-xs text-slate-400">Mapeo exhaustivo de las amenazas de IBM contra las defensas de docs/05-seguridad.md</p>
+                    </div>
+                </div>
+                <button id="btn-close-ibm-matrix" class="text-slate-400 hover:text-white p-1.5 rounded-lg hover:bg-slate-800 transition cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Tabla de las 8 Amenazas de IBM -->
+            <div class="p-4 overflow-y-auto space-y-3 font-sans text-xs leading-relaxed">
+                <div class="overflow-x-auto rounded-lg border border-cyber-border bg-slate-950/70 shadow-inner">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="border-b border-cyber-border bg-slate-900/90 text-slate-300 text-[11px] font-mono uppercase tracking-wider">
+                                <th class="p-3 w-[22%]"># Vector de Amenaza (IBM)</th>
+                                <th class="p-3 w-[30%]">Mecánica del Ataque</th>
+                                <th class="p-3 w-[20%] text-center">Capa Responsable</th>
+                                <th class="p-3 w-[28%]">Mitigación en Backend Java (ADR-005)</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800/60 text-xs text-slate-300">
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="p-3 font-bold text-cyan-300">
+                                    <div class="font-mono text-xs text-cyan-300">1. Inyección Directa</div>
+                                    <div class="text-[10px] text-slate-500 font-sans font-normal">Direct Prompt Injection</div>
+                                </td>
+                                <td class="p-3 text-slate-300">"Ignore previous instructions..." para alterar el flujo del sistema.</td>
+                                <td class="p-3 text-center">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-md bg-blue-950 text-blue-300 border border-blue-800 font-mono text-[11px] font-bold">
+                                        Capa 1 & Capa 2
+                                    </span>
+                                </td>
+                                <td class="p-3 text-emerald-300">
+                                    <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">HarmlessnessFilter</code> (Regex) + <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">&lt;untrusted_student_input&gt;</code> XML.
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="p-3 font-bold text-cyan-300">
+                                    <div class="font-mono text-xs text-cyan-300">2. Inyección Indirecta RAG</div>
+                                    <div class="text-[10px] text-slate-500 font-sans font-normal">Indirect Prompt Injection</div>
+                                </td>
+                                <td class="p-3 text-slate-300">Payloads maliciosos camuflados en fuentes externas o documentos indexados.</td>
+                                <td class="p-3 text-center">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-md bg-emerald-950 text-emerald-300 border border-emerald-800 font-mono text-[11px] font-bold">
+                                        Capa 3
+                                    </span>
+                                </td>
+                                <td class="p-3 text-emerald-300">
+                                    <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">RetrievalBoundaryEnforcer</code> con filtro estricto <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">curso_id</code> en PostgreSQL pgvector.
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="p-3 font-bold text-cyan-300">
+                                    <div class="font-mono text-xs text-cyan-300">3. Roleplay / DAN / STAN</div>
+                                    <div class="text-[10px] text-slate-500 font-sans font-normal">Adopción de Personas Ilícitas</div>
+                                </td>
+                                <td class="p-3 text-slate-300">Forzar a encarnar personajes sin límites éticos o modo API técnico universal.</td>
+                                <td class="p-3 text-center">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-md bg-purple-950 text-purple-300 border border-purple-800 font-mono text-[11px] font-bold">
+                                        Capa 1 & Capa 4
+                                    </span>
+                                </td>
+                                <td class="p-3 text-emerald-300">
+                                    Scanner de arquetipos + <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">AsyncIntentClassifier</code> en paralelo.
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="p-3 font-bold text-cyan-300">
+                                    <div class="font-mono text-xs text-cyan-300">4. Many-Shot Flooding</div>
+                                    <div class="text-[10px] text-slate-500 font-sans font-normal">Context Flooding Attacks</div>
+                                </td>
+                                <td class="p-3 text-slate-300">Saturar la ventana de contexto con decenas de ejemplos falsos ("Q:/A:").</td>
+                                <td class="p-3 text-center">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-md bg-blue-950 text-blue-300 border border-blue-800 font-mono text-[11px] font-bold">
+                                        Capa 1
+                                    </span>
+                                </td>
+                                <td class="p-3 text-emerald-300">
+                                    Validación Jakarta <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">@Size(max=4000)</code> y detección de patrones <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">Q:/A:</code>.
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="p-3 font-bold text-cyan-300">
+                                    <div class="font-mono text-xs text-cyan-300">5. Ofuscación Base64</div>
+                                    <div class="text-[10px] text-slate-500 font-sans font-normal">Ciphers & Encoding (RF-CHT-10)</div>
+                                </td>
+                                <td class="p-3 text-slate-300">Ocultar comandos prohibidos en Base64 o Ciphers (RF-CHT-10).</td>
+                                <td class="p-3 text-center">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-md bg-blue-950 text-blue-300 border border-blue-800 font-mono text-[11px] font-bold">
+                                        Capa 1
+                                    </span>
+                                </td>
+                                <td class="p-3 text-emerald-300">
+                                    Decodificador <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">Base64.getDecoder()</code> y re-escaneo léxico en memoria RAM.
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="p-3 font-bold text-cyan-300">
+                                    <div class="font-mono text-xs text-cyan-300">6. Ataque Crescendo</div>
+                                    <div class="text-[10px] text-slate-500 font-sans font-normal">Inercia en 5 Turnos</div>
+                                </td>
+                                <td class="p-3 text-slate-300">Manipulación multironda progresiva por inercia textual autorreferencial (5 turnos).</td>
+                                <td class="p-3 text-center">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-md bg-rose-950 text-rose-300 border border-rose-800 font-mono text-[11px] font-bold">
+                                        Capa 6
+                                    </span>
+                                </td>
+                                <td class="p-3 text-emerald-300">
+                                    <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">AstStreamingGuardrail</code> con <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">JavaParser</code> (si similitud ≥ 70% PAR-11, drop en RAM).
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="p-3 font-bold text-cyan-300">
+                                    <div class="font-mono text-xs text-cyan-300">7. Skeleton Key</div>
+                                    <div class="text-[10px] text-slate-500 font-sans font-normal">Warning Disclaimer Bypass</div>
+                                </td>
+                                <td class="p-3 text-slate-300">Anteponer un descargo de responsabilidad para obligar al LLM a emitir código.</td>
+                                <td class="p-3 text-center">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-md bg-rose-950 text-rose-300 border border-rose-800 font-mono text-[11px] font-bold">
+                                        Capa 6
+                                    </span>
+                                </td>
+                                <td class="p-3 text-emerald-300">
+                                    Buffer interceptor en streaming: retiene el flujo hasta evaluar el AST completo.
+                                </td>
+                            </tr>
+                            <tr class="hover:bg-slate-900/40 transition">
+                                <td class="p-3 font-bold text-cyan-300">
+                                    <div class="font-mono text-xs text-cyan-300">8. Fuga Solución Oficial</div>
+                                    <div class="text-[10px] text-slate-500 font-sans font-normal">Prompt Leaks (RF-IA-04 / RSK-09)</div>
+                                </td>
+                                <td class="p-3 text-slate-300">Exfiltrar las soluciones de referencia o tests de evaluación (RSK-09 / RF-IA-04).</td>
+                                <td class="p-3 text-center">
+                                    <span class="inline-flex items-center gap-1 whitespace-nowrap px-2.5 py-1 rounded-md bg-amber-950 text-amber-300 border border-amber-800 font-mono text-[11px] font-bold">
+                                        Capa 5 & Capa 6
+                                    </span>
+                                </td>
+                                <td class="p-3 text-emerald-300">
+                                    <code class="text-cyan-300 font-mono text-[11px] bg-slate-900 px-1 py-0.5 rounded">ContextMinimizerService</code> (Zero-Leaks por diseño): la solución nunca entra al LLM.
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Footer Modal -->
+            <div class="p-3 border-t border-cyber-border bg-slate-900/90 flex justify-end shrink-0">
+                <button id="btn-close-ibm-matrix-2" class="px-5 py-2 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-xs font-mono font-bold text-white cursor-pointer transition shadow-[0_0_10px_rgba(99,102,241,0.3)]">
+                    Entendido / Cerrar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================================================================= -->
+    <!-- MODAL 2: EDITOR DE PROMPT PERSONALIZADO                           -->
+    <!-- ================================================================= -->
+    <div id="modal-custom-prompt" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-cyber-card border border-cyber-border rounded-xl max-w-2xl w-full p-4 flex flex-col shadow-2xl space-y-3 font-mono">
+            <div class="flex items-center justify-between border-b border-cyber-border pb-2">
+                <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                    <i data-lucide="shield-alert" class="w-4 h-4 text-cyber-amber"></i>
+                    Inyectar Payload Personalizado al Pipeline
+                </h3>
+                <button id="btn-close-modal" class="text-slate-400 hover:text-white p-1 cursor-pointer">
+                    <i data-lucide="x" class="w-4 h-4"></i>
+                </button>
+            </div>
+            <div class="space-y-2 text-xs">
+                <div>
+                    <label class="text-slate-400 font-semibold block mb-1">Mensaje / Consulta del Alumno:</label>
+                    <textarea id="custom-prompt-input" rows="4" class="w-full bg-cyber-dark border border-cyber-border rounded p-2 text-slate-100 focus:outline-none focus:border-cyan-500 font-mono text-xs" placeholder="Escribe aquí el prompt o inyección a depurar..."></textarea>
+                </div>
+                <div>
+                    <label class="text-slate-400 font-semibold block mb-1">Código del Alumno (opcional):</label>
+                    <textarea id="custom-code-input" rows="3" class="w-full bg-cyber-dark border border-cyber-border rounded p-2 text-slate-100 focus:outline-none focus:border-cyan-500 font-mono text-xs" placeholder="// Código que envía el estudiante..."></textarea>
+                </div>
+                <div class="grid grid-cols-2 gap-2">
+                    <div>
+                        <label class="text-slate-400 font-semibold block mb-1">Curso ID (Sesión Servidor):</label>
+                        <input id="custom-course-id" type="number" value="104" class="w-full bg-cyber-dark border border-cyber-border rounded p-1.5 text-slate-100 font-mono text-xs">
+                    </div>
+                    <div>
+                        <label class="text-slate-400 font-semibold block mb-1">ID Alumno:</label>
+                        <input id="custom-student-id" type="text" value="alumno_401" class="w-full bg-cyber-dark border border-cyber-border rounded p-1.5 text-slate-100 font-mono text-xs">
+                    </div>
+                </div>
+            </div>
+            <div class="flex justify-end gap-2 pt-2 border-t border-cyber-border">
+                <button id="btn-cancel-custom" class="px-3 py-1 rounded bg-slate-800 hover:bg-slate-700 text-xs text-slate-300 cursor-pointer">Cancelar</button>
+                <button id="btn-apply-custom" class="px-3 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-xs text-white font-bold cursor-pointer">Cargar en Pipeline</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCRIPT DEL PIPELINE -->
+    <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Golden Set — Calibrador Docente y Evaluador LLM (Programación 3)</title>
+    
+    <!-- Librerías locales en vendor/ (100% offline & autónomo) -->
+    <script src="vendor/tailwind-play-3.4.16.js"></script>
+    <script src="vendor/lucide.min.js"></script>
+    <script src="vendor/marked.min.js"></script>
+    <link rel="stylesheet" href="vendor/font-awesome/css/all.min.css">
+    
+    <!-- Estilos personalizados -->
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col antialiased selection:bg-cyan-500 selection:text-black">
+
+    <!-- Top Navigation Header -->
+    <header class="sticky top-0 z-40 bg-slate-950/85 backdrop-blur-md border-b border-slate-800">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <!-- Logo y Título de Cátedra -->
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-600 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                    <i data-lucide="scale" class="w-5 h-5 text-white"></i>
+                </div>
+                <div>
+                    <div class="flex items-center gap-2">
+                        <h1 class="text-sm font-extrabold text-white tracking-tight">UTN FRC · Programación III</h1>
+                        <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">
+                            GOLDEN SET v1.0
+                        </span>
+                    </div>
+                    <p class="text-xs text-slate-400">Calibración Docente en 5 Rúbricas Fijas (RF-IA-15 / RF-IA-30b) y Disyuntor PAR-14</p>
+                </div>
+            </div>
+
+            <!-- Navegación por Pestañas -->
+            <nav class="flex items-center gap-1 bg-slate-900/90 p-1 rounded-2xl border border-slate-800">
+                <button id="tab-debug-btn" class="nav-tab-btn px-4 py-2 rounded-xl text-xs font-bold bg-cyan-950/70 text-cyan-400 border border-cyan-500/40 shadow-lg shadow-cyan-500/10 flex items-center gap-2 transition">
+                    <i data-lucide="activity" class="w-4 h-4"></i>
+                    <span>Modo Debug Paso a Paso</span>
+                </button>
+                <button id="tab-interactive-btn" class="nav-tab-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center gap-2">
+                    <i data-lucide="sliders" class="w-4 h-4"></i>
+                    <span>Calibrador Interactivo Real</span>
+                </button>
+                <button id="tab-rubric-btn" class="nav-tab-btn px-4 py-2 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/60 transition flex items-center gap-2">
+                    <i data-lucide="book-open" class="w-4 h-4"></i>
+                    <span>Rúbrica & Criterios 5D</span>
+                </button>
+            </nav>
+
+            <!-- Acciones Rápidas -->
+            <div class="flex items-center gap-2">
+                <button id="open-help-modal-btn" class="px-3 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white rounded-xl text-xs font-medium border border-slate-800 transition flex items-center gap-1.5" title="Arquitectura y Fundamentos">
+                    <i data-lucide="help-circle" class="w-4 h-4 text-cyan-400"></i>
+                    <span>Guía Docente</span>
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+        
+        <!-- PESTAÑA 1: MODO DEBUG PASO A PASO (SECCIÓN 1) -->
+        <section id="debug-demo-container">
+            <!-- Inyectado por DebugDemo -->
+        </section>
+
+        <!-- PESTAÑA 2: CALIBRADOR INTERACTIVO CON IA REAL (SECCIÓN 2) -->
+        <section id="interactive-demo-container" class="hidden">
+            <!-- Inyectado por InteractiveDemo -->
+        </section>
+
+        <!-- PESTAÑA 3: RÚBRICA & ESPECIFICACIÓN 5D -->
+        <section id="rubric-spec-container" class="hidden space-y-6">
+            <div class="bg-slate-900 border border-slate-800 rounded-2xl p-6 shadow-xl space-y-6">
+                
+                <!-- Encabezado Oficial -->
+                <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2.5 py-0.5 rounded text-xs font-mono font-bold bg-purple-500/20 text-purple-400 border border-purple-500/30">
+                                RF-IA-15 / RF-IA-19 / RF-IA-30b / PAR-14
+                            </span>
+                        </div>
+                        <h2 class="text-xl font-bold text-white mt-1">Rúbrica Oficial en 5 Dimensiones y Arquitectura de Calibración</h2>
+                        <p class="text-xs text-slate-400">Ponderaciones fijas por diseño de plataforma (30/25/20/15/10%) con Scoring Híbrido Determinístico (0 a 100 pts) y modulación de enfoque docente.</p>
+                    </div>
+
+                    <div class="p-3 bg-slate-950 rounded-xl border border-slate-800 text-center font-mono text-xs">
+                        <div class="text-slate-500 text-[10px]">TOLERANCIA DE DERIVA</div>
+                        <strong class="text-amber-400 text-base">MAE &le; &plusmn;5.0 pts</strong>
+                    </div>
+                </div>
+
+                <!-- Banner Informativo: Scoring Híbrido y Enfoque de Cátedra -->
+                <div class="p-4 rounded-xl bg-purple-950/40 border border-purple-500/30 text-xs text-purple-200 flex items-start gap-3">
+                    <i data-lucide="scale" class="w-5 h-5 text-purple-400 shrink-0 mt-0.5"></i>
+                    <div>
+                        <strong class="font-bold text-white">¿Cómo se evalúa al estudiante en cada dimensión?</strong>
+                        <p class="text-slate-300 text-[11px] mt-0.5 leading-relaxed">
+                            Cada dimensión se califica en una escala continua de <strong>0 a 100 puntos</strong> mediante <em>Scoring Híbrido</em>: entre el <strong>45% y 60%</strong> de la nota proviene de <strong>evidencia forense determinística de IDE</strong> (calculada en código a partir de telemetría de compilaciones, pruebas y tiempos), mientras que el porcentaje restante evalúa semánticamente el diálogo según el <strong>Enfoque de Cátedra</strong> fijado por el profesor.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Grilla de las 5 Dimensiones Oficiales (RF-IA-15) -->
+                <div>
+                    <h3 class="text-xs font-bold text-slate-300 uppercase tracking-wider font-mono mb-3 flex items-center gap-2">
+                        <i data-lucide="layers" class="w-4 h-4 text-cyan-400"></i>
+                        Especificación Técnica de las 5 Rúbricas Fijas de Plataforma
+                    </h3>
+
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-4">
+                        <!-- Dimensión 1: Autonomía -->
+                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between font-mono mb-2">
+                                    <span class="text-xs font-bold text-emerald-400">1. Autonomía</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30" title="Peso fijo inalterable por plataforma">🔒 30%</span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 leading-relaxed mb-2 font-medium">
+                                    Mide si el estudiante investiga y prueba antes de consultar, cuestiona y no delega pasivamente la solución.
+                                </p>
+                            </div>
+                            <div class="text-[10px] space-y-2 text-slate-400 border-t border-slate-800/80 pt-2.5">
+                                <div>
+                                    <span class="text-emerald-400 font-mono font-bold block mb-0.5">📊 Telemetría Forense (Código):</span>
+                                    Ediciones de código previas al 1º mensaje, ejecuciones de tests locales y tiempo previo a la consulta.
+                                </div>
+                                <div>
+                                    <span class="text-purple-400 font-mono font-bold block mb-0.5">🎯 Enfoque Docente (RF-IA-30b):</span>
+                                    Exigir formulación de hipótesis técnicas y análisis de trade-offs de concurrencia o complejidad.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dimensión 2: Claridad -->
+                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between font-mono mb-2">
+                                    <span class="text-xs font-bold text-sky-400">2. Claridad</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-sky-500/20 text-sky-300 border border-sky-500/30" title="Peso fijo inalterable por plataforma">🔒 25%</span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 leading-relaxed mb-2 font-medium">
+                                    Formulación estructurada de preguntas de ingeniería con código, síntomas precisos y stack trace.
+                                </p>
+                            </div>
+                            <div class="text-[10px] space-y-2 text-slate-400 border-t border-slate-800/80 pt-2.5">
+                                <div>
+                                    <span class="text-sky-400 font-mono font-bold block mb-0.5">📊 Telemetría Forense (Código):</span>
+                                    Detección de código adjunto, mensajes del compilador y delimitación concreta del error.
+                                </div>
+                                <div>
+                                    <span class="text-purple-400 font-mono font-bold block mb-0.5">🎯 Enfoque Docente (RF-IA-30b):</span>
+                                    Exigir aislamiento de la causa raíz con fragmentos relevantes y mensajes de error exactos.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dimensión 3: Progresión -->
+                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between font-mono mb-2">
+                                    <span class="text-xs font-bold text-indigo-400">3. Progresión</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/30" title="Peso fijo inalterable por plataforma">🔒 20%</span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 leading-relaxed mb-2 font-medium">
+                                    Capacidad de asimilar pistas socráticas, reportar resultados de lo probado y avanzar acumulativamente.
+                                </p>
+                            </div>
+                            <div class="text-[10px] space-y-2 text-slate-400 border-t border-slate-800/80 pt-2.5">
+                                <div>
+                                    <span class="text-indigo-400 font-mono font-bold block mb-0.5">📊 Telemetría Forense (Código):</span>
+                                    Modificaciones sucesivas en el código fuente entre turnos y ausencia de bucles repetitivos.
+                                </div>
+                                <div>
+                                    <span class="text-purple-400 font-mono font-bold block mb-0.5">🎯 Enfoque Docente (RF-IA-30b):</span>
+                                    Exigir que el alumno reporte qué ocurrió al probar la pista antes de hacer una nueva consulta.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dimensión 4: Cumplimiento -->
+                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between font-mono mb-2">
+                                    <span class="text-xs font-bold text-amber-400">4. Ética y Límites</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30" title="Peso fijo inalterable por plataforma">🔒 15%</span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 leading-relaxed mb-2 font-medium">
+                                    Respeto a las reglas pedagógicas. Penaliza pedidos directos de solución o intentos de manipulación.
+                                </p>
+                            </div>
+                            <div class="text-[10px] space-y-2 text-slate-400 border-t border-slate-800/80 pt-2.5">
+                                <div>
+                                    <span class="text-amber-400 font-mono font-bold block mb-0.5">📊 Telemetría Forense (Código):</span>
+                                    Activación de guardarraíles de seguridad, incidentes de prompt injection o evasión de rol.
+                                </div>
+                                <div>
+                                    <span class="text-purple-400 font-mono font-bold block mb-0.5">🎯 Enfoque Docente (RF-IA-30b):</span>
+                                    Cero tolerancia ante pedidos de código resuelto o intentos de sobreescritura de instrucciones.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Dimensión 5: Eficiencia -->
+                        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-col justify-between space-y-3">
+                            <div>
+                                <div class="flex items-center justify-between font-mono mb-2">
+                                    <span class="text-xs font-bold text-rose-400">5. Eficiencia</span>
+                                    <span class="px-2 py-0.5 rounded text-xs font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30" title="Peso fijo inalterable por plataforma">🔒 10%</span>
+                                </div>
+                                <p class="text-[11px] text-slate-300 leading-relaxed mb-2 font-medium">
+                                    Densidad técnica por turno. Penaliza ráfagas de mensajes vacíos o consultas redundantes sin propósito.
+                                </p>
+                            </div>
+                            <div class="text-[10px] space-y-2 text-slate-400 border-t border-slate-800/80 pt-2.5">
+                                <div>
+                                    <span class="text-rose-400 font-mono font-bold block mb-0.5">📊 Telemetría Forense (Código):</span>
+                                    Ratio de mensajes triviales (< 10 caracteres, monosilábicos), conteo de turnos y cadencia.
+                                </div>
+                                <div>
+                                    <span class="text-purple-400 font-mono font-bold block mb-0.5">🎯 Enfoque Docente (RF-IA-30b):</span>
+                                    Priorizar turnos de alto valor técnico y penalizar consultas fragmentadas innecesarias.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Panel Arquitectónico: Calibración Neutral vs. Riesgo Operativo del Desafío (RF-IA-19) -->
+                <div class="bg-slate-950 border border-cyan-500/30 rounded-2xl p-5 space-y-4">
+                    <div class="flex items-center gap-2 pb-2 border-b border-slate-800">
+                        <i data-lucide="shield-alert" class="w-5 h-5 text-cyan-400"></i>
+                        <div>
+                            <h3 class="text-sm font-bold text-white">Arquitectura: Calibración Neutral de Cátedra vs. Nivel de Riesgo Operativo (RF-IA-19)</h3>
+                            <p class="text-xs text-slate-400">El riesgo no calibra al tutor ni clasifica al estudiante: es un parámetro del ejercicio que modula la soltura socrática en tiempo de ejecución.</p>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-5 text-xs">
+                        <!-- Columna 1: Calibración del Tutor -->
+                        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+                            <div class="flex items-center gap-2 text-purple-300 font-bold font-mono">
+                                <span class="w-6 h-6 rounded-lg bg-purple-500/20 border border-purple-500/30 flex items-center justify-center text-xs">1</span>
+                                Calibración Neutral de Cátedra (RF-IA-30b / PAR-14)
+                            </div>
+                            <p class="text-slate-300 leading-relaxed">
+                                El profesor calibra al agente tutor y al evaluador <strong>de manera estándar y neutral</strong> para toda la materia utilizando el <em>Golden Set</em> (10 casos de muestra).
+                            </p>
+                            <ul class="space-y-1.5 text-slate-400 font-mono text-[11px]">
+                                <li class="flex items-start gap-1.5">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
+                                    <span><strong>Pesos 5D Invariables:</strong> 30% / 25% / 20% / 15% / 10% fijos.</span>
+                                </li>
+                                <li class="flex items-start gap-1.5">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
+                                    <span><strong>Enfoque Conceptual:</strong> Directivas de rigor técnico por rúbrica.</span>
+                                </li>
+                                <li class="flex items-start gap-1.5">
+                                    <i data-lucide="check" class="w-3.5 h-3.5 text-emerald-400 shrink-0 mt-0.5"></i>
+                                    <span><strong>Disyuntor PAR-14:</strong> MAE &le; 5.0 pts para publicar el curso.</span>
+                                </li>
+                            </ul>
+                        </div>
+
+                        <!-- Columna 2: Riesgo del Desafío -->
+                        <div class="p-4 rounded-xl bg-slate-900 border border-slate-800 space-y-3">
+                            <div class="flex items-center gap-2 text-cyan-300 font-bold font-mono">
+                                <span class="w-6 h-6 rounded-lg bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center text-xs">2</span>
+                                Parámetro de Riesgo Operativo del Desafío (RF-IA-19)
+                            </div>
+                            <p class="text-slate-300 leading-relaxed">
+                                Al publicarse una actividad, el motor inyecta el <strong>nivel de riesgo por parámetro</strong> al tutor ya calibrado, limitando o habilitando su soltura conversacional:
+                            </p>
+                            <div class="space-y-2 pt-1">
+                                <div class="p-2 rounded-lg bg-rose-950/40 border border-rose-500/30 text-[11px]">
+                                    <strong class="text-rose-400 font-mono">🔴 Riesgo Alto (Exámenes / Parciales):</strong>
+                                    <span class="text-slate-300 block mt-0.5">Poco colaborativo. Mínima soltura. Solo guía con preguntas reflexivas; jamás revela pistas directas ni valida sintaxis.</span>
+                                </div>
+                                <div class="p-2 rounded-lg bg-amber-950/40 border border-amber-500/30 text-[11px]">
+                                    <strong class="text-amber-400 font-mono">🟡 Riesgo Medio (TPs Guiados / Laboratorios):</strong>
+                                    <span class="text-slate-300 block mt-0.5">Sugerencias conceptuales. Puede orientar sobre trade-offs y caminos algorítmicos alternativos.</span>
+                                </div>
+                                <div class="p-2 rounded-lg bg-emerald-950/40 border border-emerald-500/30 text-[11px]">
+                                    <strong class="text-emerald-400 font-mono">🟢 Riesgo Bajo (Prácticas Libres / Exploratorias):</strong>
+                                    <span class="text-slate-300 block mt-0.5">Mayor libertad conversacional. Explicaciones teóricas extensas, ejemplos didácticos y debate de diseño.</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Resumen de Guardarraíles y Disyuntor PAR-14 -->
+                <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 flex flex-wrap items-center justify-between gap-4 text-xs">
+                    <div class="space-y-1">
+                        <span class="font-mono text-purple-400 font-bold">🔒 Resguardo de Equidad Académica</span>
+                        <p class="text-slate-400 leading-relaxed text-[11px]">
+                            La combinación de pesos fijos inalterables, evidencia forense de IDE y calibración neutral garantiza que la evaluación sea comparable y justa entre comisiones.
+                        </p>
+                    </div>
+                    <div class="flex items-center gap-3 font-mono text-[11px]">
+                        <span class="px-3 py-1.5 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                            <i data-lucide="check" class="w-3.5 h-3.5 inline mr-1"></i> PAR-14 MAE &le; 5.0
+                        </span>
+                        <span class="px-3 py-1.5 rounded-lg bg-cyan-500/10 text-cyan-400 border border-cyan-500/30">
+                            <i data-lucide="shield" class="w-3.5 h-3.5 inline mr-1"></i> Guardarraíl RF-IA-29
+                        </span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal de Guía Docente y Arquitectura -->
+    <div id="help-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 hidden">
+        <div class="bg-slate-900 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 shadow-2xl space-y-4 max-h-[90vh] overflow-y-auto">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i data-lucide="book-open" class="w-5 h-5 text-cyan-400"></i>
+                    Guía de Funcionamiento del Golden Set y Calibración
+                </h3>
+                <button id="close-help-modal-btn" class="p-1 hover:bg-slate-800 rounded-lg text-slate-400 hover:text-white transition">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3 text-xs text-slate-300 leading-relaxed">
+                <p>
+                    <strong>¿Qué es el Golden Set?</strong><br/>
+                    Es un banco de pruebas de referencia compuesto por 10 exámenes y correcciones reales de alumnos en <em>Programación III</em>, puntuados por docentes con criterios consensuados (RF-IA-30).
+                </p>
+
+                <p>
+                    <strong>¿Qué calibra el Profesor (RF-IA-30b)?</strong><br/>
+                    El docente calibra el <em>anclaje al dominio temático</em> de su materia. Ajusta directivas de rigor conceptual para las 5 dimensiones fijas sin tocar los pesos matemáticos de plataforma (30/25/20/15/10%).
+                </p>
+
+                <p>
+                    <strong>¿Por qué se calibra (PAR-14)?</strong><br/>
+                    Para evitar el <em>Model Drift</em> (deriva del modelo de IA). Si el Error Absoluto Medio (MAE) supera los <strong>5.0 puntos</strong>, se dispara el <em>Circuit Breaker</em> y el curso queda bloqueado en <code>DRAFT</code> con HTTP 503.
+                </p>
+
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-[11px] text-cyan-300">
+                    Atajos de Teclado: [1] Modo Debug | [2] Modo Interactivo | [3] Rúbrica | [Espacio] Auto-Play | [→ / ←] Siguiente/Anterior
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="border-t border-slate-900 bg-slate-950/80 py-4 text-center text-xs text-slate-500 font-mono">
+        UTN FRC · Cátedra de Programación III · Trabajo Práctico Integrador — Capa de IA & LLMOps (Tema 07)
+    </footer>
+
+    <!-- Scripts de la Aplicación -->
+    <script src="js/data/golden_set_data.js"></script>
+    <script src="js/services/scoring_engine.js"></script>
+    <script src="js/services/ai_service.js"></script>
+    <script src="js/components/charts.js"></script>
+    <script src="js/components/debug_demo.js"></script>
+    <script src="js/components/interactive_demo.js"></script>
+    <script src="js/app.js"></script>
+</body>
+</html>

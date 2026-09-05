@@ -1,0 +1,94 @@
+asyncapi: 3.0.0
+info:
+  title: LLM Service Kafka Events
+  version: 1.0.0
+  description: Eventos asíncronos de llm-service. La correlación viaja en headers traceparent y X-Request-Id.
+servers:
+  platformKafka:
+    host: kafka:9092
+    protocol: kafka
+channels:
+  intento_cerrado.v1:
+    address: intento_cerrado.v1
+    messages:
+      intentoCerrado: { $ref: '#/components/messages/IntentoCerrado' }
+  curso_archivado.v1:
+    address: curso_archivado.v1
+    messages:
+      cursoArchivado: { $ref: '#/components/messages/CursoArchivado' }
+  modelo_llm_cambiado.v1:
+    address: modelo_llm_cambiado.v1
+    messages:
+      modeloCambiado: { $ref: '#/components/messages/ModeloCambiado' }
+  score_de_ia_calculado.v1:
+    address: score_de_ia_calculado.v1
+    messages:
+      scoreCalculado: { $ref: '#/components/messages/ScoreCalculado' }
+  score_pendiente_diferido.v1:
+    address: score_pendiente_diferido.v1
+    messages:
+      scoreDiferido: { $ref: '#/components/messages/ScoreDiferido' }
+  calibracion_aprobada.v1:
+    address: calibracion_aprobada.v1
+    messages:
+      calibracionAprobada: { $ref: '#/components/messages/CalibrationResult' }
+  calibracion_fuera_de_tolerancia.v1:
+    address: calibracion_fuera_de_tolerancia.v1
+    messages:
+      calibracionFallida: { $ref: '#/components/messages/CalibrationResult' }
+  incidente_de_jailbreak.v1:
+    address: incidente_de_jailbreak.v1
+    messages:
+      incidente: { $ref: '#/components/messages/Incident' }
+operations:
+  consumeIntentoCerrado: { action: receive, channel: { $ref: '#/channels/intento_cerrado.v1' } }
+  consumeCursoArchivado: { action: receive, channel: { $ref: '#/channels/curso_archivado.v1' } }
+  consumeModeloCambiado: { action: receive, channel: { $ref: '#/channels/modelo_llm_cambiado.v1' } }
+  publishScoreCalculado: { action: send, channel: { $ref: '#/channels/score_de_ia_calculado.v1' } }
+  publishScoreDiferido: { action: send, channel: { $ref: '#/channels/score_pendiente_diferido.v1' } }
+  publishCalibrationResult: { action: send, channel: { $ref: '#/channels/calibracion_aprobada.v1' } }
+  publishCalibrationFailure: { action: send, channel: { $ref: '#/channels/calibracion_fuera_de_tolerancia.v1' } }
+  publishIncident: { action: send, channel: { $ref: '#/channels/incidente_de_jailbreak.v1' } }
+components:
+  messages:
+    IntentoCerrado:
+      payload: { $ref: '#/components/schemas/AttemptClosed' }
+    CursoArchivado:
+      payload: { $ref: '#/components/schemas/CourseArchived' }
+    ModeloCambiado:
+      payload: { $ref: '#/components/schemas/ModelChanged' }
+    ScoreCalculado:
+      payload: { $ref: '#/components/schemas/ScoreResult' }
+    ScoreDiferido:
+      payload: { $ref: '#/components/schemas/DeferredScore' }
+    CalibrationResult:
+      payload: { $ref: '#/components/schemas/CalibrationResult' }
+    Incident:
+      payload: { $ref: '#/components/schemas/Incident' }
+  schemas:
+    Envelope:
+      type: object
+      required: [eventId, version, occurredAt, producer, data]
+      properties:
+        eventId: { type: string, format: uuid }
+        version: { type: string, const: '1.0' }
+        occurredAt: { type: string, format: date-time }
+        producer: { type: string }
+        data: { type: object }
+    AttemptClosed:
+      allOf:
+        - $ref: '#/components/schemas/Envelope'
+        - type: object
+          properties: { data: { type: object, required: [attemptId, courseCohortId, learnerId, transcript], properties: { attemptId: { type: string, format: uuid }, courseCohortId: { type: string, format: uuid }, learnerId: { type: string, format: uuid }, transcript: { type: array, items: { type: object } } } } }
+    CourseArchived:
+      allOf: [ { $ref: '#/components/schemas/Envelope' }, { type: object } ]
+    ModelChanged:
+      allOf: [ { $ref: '#/components/schemas/Envelope' }, { type: object } ]
+    ScoreResult:
+      allOf: [ { $ref: '#/components/schemas/Envelope' }, { type: object } ]
+    DeferredScore:
+      allOf: [ { $ref: '#/components/schemas/Envelope' }, { type: object } ]
+    CalibrationResult:
+      allOf: [ { $ref: '#/components/schemas/Envelope' }, { type: object } ]
+    Incident:
+      allOf: [ { $ref: '#/components/schemas/Envelope' }, { type: object } ]

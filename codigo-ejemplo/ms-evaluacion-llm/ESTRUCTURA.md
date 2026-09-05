@@ -1,5 +1,14 @@
 # Estructura de carpetas — ms-evaluacion-llm
 
+> ## Migración pendiente de implementación
+>
+> Este documento describe el árbol previo a la alineación. Para nuevas clases, contratos y tests
+> mandan [`docs/00`](../../docs/00-fuentes-de-verdad-y-convenciones.md) y
+> [`docs/contracts/`](../../docs/contracts/): el destino es `llm-service`, con base path
+> `/api/llm`, headers `traceparent`/`X-Request-Id`, API por recursos y Kafka para eventos.
+> Las rutas `/ai/*`, `/api/conversaciones` y el campo `trace_id` que aparecen abajo son legado;
+> no deben extenderse.
+
 > Organización **por capas** del microservicio Java Spring Boot (Tema 07).
 >
 > Referencia de arquitectura: [02-arquitectura-y-stack.md](../../docs/02-arquitectura-y-stack.md)

@@ -1,0 +1,164 @@
+openapi: 3.1.0
+info:
+  title: LLM Service API
+  version: 1.0.0
+  description: API privada de llm-service. Toda llamada ingresa mediante API Gateway.
+servers:
+  - url: /api/llm
+security:
+  - serviceJwt: []
+paths:
+  /tutor/interactions:
+    post:
+      summary: Genera una respuesta socrática para un intento práctico
+      operationId: createTutorInteraction
+      parameters:
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TutorInteractionRequest' }
+      responses:
+        '200': { description: Respuesta segura del tutor, content: { application/json: { schema: { $ref: '#/components/schemas/TutorInteractionResponse' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '429': { $ref: '#/components/responses/Problem' }
+        '503': { $ref: '#/components/responses/Problem' }
+  /evaluations/{evaluationId}:
+    get:
+      summary: Consulta el detalle de una evaluación de uso de IA
+      operationId: getEvaluation
+      parameters: [ { $ref: '#/components/parameters/EvaluationId' } ]
+      responses:
+        '200': { description: Evaluación, content: { application/json: { schema: { $ref: '#/components/schemas/Evaluation' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+  /evaluations/{evaluationId}/appeals:
+    post:
+      summary: Registra la apelación del alumno
+      operationId: createAppeal
+      parameters: [ { $ref: '#/components/parameters/EvaluationId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/AppealRequest' } } }
+      responses: { '202': { description: Apelación registrada }, '409': { $ref: '#/components/responses/Problem' } }
+  /evaluations/{evaluationId}/overrides:
+    post:
+      summary: Registra un override docente append-only
+      operationId: createEvaluationOverride
+      parameters: [ { $ref: '#/components/parameters/EvaluationId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/OverrideRequest' } } }
+      responses: { '201': { description: Override auditado }, '403': { $ref: '#/components/responses/Problem' } }
+  /golden-sets:
+    post:
+      summary: Crea una versión de golden set
+      operationId: createGoldenSet
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [rubricVersion, language], properties: { rubricVersion: { type: string }, language: { type: string, const: es } } } } }
+      responses: { '201': { description: Golden set creado }, '403': { $ref: '#/components/responses/Problem' } }
+  /golden-sets/{goldenSetId}/entries:
+    post:
+      summary: Incorpora una transcripción con puntaje docente de referencia
+      operationId: createGoldenSetEntry
+      parameters: [ { $ref: '#/components/parameters/GoldenSetId' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [transcript, referenceScores], properties: { transcript: { type: array, items: { type: object } }, referenceScores: { $ref: '#/components/schemas/Dimensions' } } } } }
+      responses: { '201': { description: Entrada creada }, '422': { $ref: '#/components/responses/Problem' } }
+  /calibrations:
+    post:
+      summary: Inicia una corrida de calibración
+      operationId: createCalibration
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [courseCohortId, goldenSetId], properties: { courseCohortId: { type: string, format: uuid }, goldenSetId: { type: string, format: uuid } } } } }
+      responses: { '202': { description: Trabajo aceptado, headers: { Location: { schema: { type: string } } } }, '403': { $ref: '#/components/responses/Problem' } }
+  /jobs/{jobId}:
+    get:
+      summary: Consulta el estado de un trabajo asíncrono
+      operationId: getJob
+      parameters: [ { $ref: '#/components/parameters/JobId' } ]
+      responses: { '200': { description: Estado de trabajo, content: { application/json: { schema: { $ref: '#/components/schemas/Job' } } } }, '404': { $ref: '#/components/responses/Problem' } }
+  /course-cohorts/{courseCohortId}/calibration:
+    get:
+      summary: Consulta la habilitación de calibración de una cohorte
+      operationId: getCourseCalibration
+      parameters: [ { $ref: '#/components/parameters/CourseCohortId' } ]
+      responses: { '200': { description: Estado de calibración }, '404': { $ref: '#/components/responses/Problem' } }
+  /course-cohorts/{courseCohortId}/pending-evaluations:
+    get:
+      summary: Cuenta las evaluaciones diferidas que bloquean el cierre
+      operationId: getPendingEvaluations
+      parameters: [ { $ref: '#/components/parameters/CourseCohortId' } ]
+      responses: { '200': { description: Pendientes, content: { application/json: { schema: { type: object, required: [count], properties: { count: { type: integer, minimum: 0 }, oldestPendingSince: { type: string, format: date-time } } } } } } }
+  /model-assignments/{function}:
+    get:
+      summary: Consulta el modelo activo para una función
+      operationId: getModelAssignment
+      parameters: [ { $ref: '#/components/parameters/Function' } ]
+      responses: { '200': { description: Asignación activa } }
+    put:
+      summary: Cambia la asignación modelo-función con auditoría
+      operationId: putModelAssignment
+      parameters: [ { $ref: '#/components/parameters/Function' }, { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content: { application/json: { schema: { type: object, required: [provider, modelId], properties: { provider: { type: string }, modelId: { type: string }, modelVersion: { type: string } } } } }
+      responses: { '200': { description: Asignación actualizada }, '403': { $ref: '#/components/responses/Problem' } }
+components:
+  securitySchemes:
+    serviceJwt:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  parameters:
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+    EvaluationId: { name: evaluationId, in: path, required: true, schema: { type: string, format: uuid } }
+    GoldenSetId: { name: goldenSetId, in: path, required: true, schema: { type: string, format: uuid } }
+    JobId: { name: jobId, in: path, required: true, schema: { type: string, format: uuid } }
+    CourseCohortId: { name: courseCohortId, in: path, required: true, schema: { type: string, format: uuid } }
+    Function: { name: function, in: path, required: true, schema: { type: string, enum: [tutor, evaluator] } }
+  responses:
+    Problem: { description: RFC 7807 Problem Details; requestId travels in X-Request-Id and body extension. }
+  schemas:
+    TutorInteractionRequest:
+      type: object
+      required: [attemptId, challengeId, courseCohortId, learnerId, message, riskLevel]
+      properties:
+        attemptId: { type: string, format: uuid }
+        challengeId: { type: string, format: uuid }
+        courseCohortId: { type: string, format: uuid }
+        learnerId: { type: string, format: uuid }
+        message: { type: string, minLength: 1 }
+        riskLevel: { type: string, enum: [high, medium, low] }
+    TutorInteractionResponse:
+      type: object
+      required: [message, state]
+      properties: { message: { type: string }, state: { type: string, enum: [completed, blocked, unavailable] } }
+    Dimensions:
+      type: object
+      required: [clarity, autonomy, progression, compliance, efficiency]
+      properties:
+        clarity: { type: integer, minimum: 0, maximum: 100 }
+        autonomy: { type: integer, minimum: 0, maximum: 100 }
+        progression: { type: integer, minimum: 0, maximum: 100 }
+        compliance: { type: integer, minimum: 0, maximum: 100 }
+        efficiency: { type: integer, minimum: 0, maximum: 100 }
+    Evaluation:
+      type: object
+      required: [id, aggregateScore, dimensions, confidence, rubricVersion, modelId, modelVersion]
+      properties:
+        id: { type: string, format: uuid }
+        aggregateScore: { type: integer, minimum: 0, maximum: 100 }
+        dimensions: { $ref: '#/components/schemas/Dimensions' }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        rubricVersion: { type: string }
+        modelId: { type: string }
+        modelVersion: { type: string }
+    AppealRequest: { type: object, required: [reason], properties: { reason: { type: string, minLength: 1 } } }
+    OverrideRequest: { type: object, required: [aggregateScore, reason], properties: { aggregateScore: { type: integer, minimum: 0, maximum: 100 }, reason: { type: string, minLength: 1 } } }
+    Job: { type: object, required: [id, state], properties: { id: { type: string, format: uuid }, state: { type: string, enum: [queued, running, completed, failed] } } }

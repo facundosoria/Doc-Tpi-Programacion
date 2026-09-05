@@ -1,11 +1,20 @@
 # Código de ejemplo
 
+> ## Estado frente a las convenciones vigentes
+>
+> El árbol `ms-evaluacion-llm/` es un **esqueleto previo a la alineación**. Su código no debe
+> copiarse como contrato: todavía declara `ms-evaluacion-llm`, rutas `/ai/*`, `trace_id` y
+> endpoints directos de conversaciones. La migración de implementación deberá adoptar
+> `llm-service`, `/api/llm/**`, `traceparent` y `X-Request-Id` según
+> [`docs/00-fuentes-de-verdad-y-convenciones.md`](../docs/00-fuentes-de-verdad-y-convenciones.md)
+> y los contratos v1. Esta nota no modifica el código ejemplo.
+
 Dos proyectos Java distintos, con propósitos distintos. Van separados a propósito:
 no comparten `pom.xml`, ni paquete, ni ciclo de vida.
 
 | Carpeta | Quién lo hizo | Qué es | Estado |
 |---|---|---|---|
-| [`ms-evaluacion-llm/`](ms-evaluacion-llm/) | **El equipo** · `facundosoria`, en `feat/qa-gate` | El **esqueleto del microservicio real** del Tema 07 | Compila y pasa sus tests |
+| [`ms-evaluacion-llm/`](ms-evaluacion-llm/) | **El equipo** · `facundosoria`, en `feat/qa-gate` | Esqueleto histórico a migrar a `llm-service` | Compila, pero no cumple aún el contrato v1 |
 | [`lara-heredia-demo-llm-spring-ai/`](lara-heredia-demo-llm-spring-ai/) | **Lara Heredia** · `412181-HerediaLara`, en la rama `lara` | Una **demo funcional** de tutor socrático con Spring AI + Groq | Anda de punta a punta, pero es material de exploración |
 
 **La carpeta lleva el nombre de quien la escribió** cuando el proyecto es de una

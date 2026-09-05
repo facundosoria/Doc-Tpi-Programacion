@@ -2,6 +2,7 @@
 
 | Archivo | Qué es | Cómo se usa | Alineado con `docs/` |
 |---|---|---|---|
+| [`Demos/Seguridad/index.html`](../Demos/Seguridad/index.html) | **Simulador de Seguridad LLM (8 Capas).** 11 slides interactivas | Se abre en el navegador o vía `node server.js`. Modo debug en tiempo real, inyección de payloads y pipeline E2E | ✅ Sí |
 | [`defensa-39-slides.html`](defensa-39-slides.html) | **La presentación de defensa.** 39 slides | Se abre en el navegador. `←` `→` para navegar, `O` para el índice, `F` para pantalla completa | ✅ Sí |
 | [`presentacion-integracion-servicios.html`](presentacion-integracion-servicios.html) | **Integración y contratos inter-servicios.** 17 slides | Se abre en el navegador. Teclado (`←`/`→`/`Espacio`), touch, selector directo de slide | ✅ Sí |
 | [`prd-wiki-consulta.html`](prd-wiki-consulta.html) | El PRD, sección IA, como wiki navegable | Documento de consulta con barra lateral. **No es una presentación** | ✅ Sí |
@@ -9,8 +10,7 @@
 | [`guia-golden-set.html`](guia-golden-set.html) | El golden set explicado entero: qué es, cómo se opera, DDL, runner y Q&A de cátedra | Documento largo con índice lateral. **No es una presentación** | ✅ Sí |
 | [`informe-gestion-modelos.html`](informe-gestion-modelos.html) | Proveedores, costos, seguridad y local contra cloud, con calculadora de 5 intensidades | Documento con índice y botón de imprimir a PDF | ✅ Sí |
 
-Los seis son un archivo HTML solo: no necesitan servidor ni compilación, se abren con
-doble clic.
+Todos son archivos HTML autónomos: no necesitan servidor ni compilación obligatoria, se abren directamente con doble clic.
 
 **Las seis abren sin internet.** Cargan sus librerías desde [`vendor/`](vendor/), que
 está versionado acá al lado, y usan tipografías del sistema. Con esa carpeta al lado no

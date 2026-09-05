@@ -1,5 +1,9 @@
 # Guía de Adaptación: De la Demo de Lara al Microservicio `ms-evaluacion-llm`
 
+> **Estado histórico.** La adaptación posterior debe seguir `docs/00` y los contratos v1:
+> `llm-service`, `/api/llm/**`, `traceparent` y `X-Request-Id`. Las rutas y campos de este
+> documento no constituyen el contrato vigente.
+
 > 📄 **Documento de transferencia técnica** para explicar los cambios, motivos arquitectónicos y cómo se integró el trabajo de Lara (`lara-heredia-demo-llm-spring-ai`) dentro del microservicio oficial del Tema 07 ([`ms-evaluacion-llm`](./ESTRUCTURA.md)).
 
 ---

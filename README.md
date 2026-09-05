@@ -3,6 +3,15 @@
 Documentación de diseño de la capa de inteligencia artificial de la **Plataforma de Aprendizaje
 Gamificado**.
 
+> ## Estado de alineación — 2026-09-04
+>
+> Para planificar o implementar Tema 07, mandan primero el PRD y
+> [`idea.pptx.pdf`](idea.pptx.pdf). La aplicación concreta para este repositorio está en
+> [`docs/00-fuentes-de-verdad-y-convenciones.md`](docs/00-fuentes-de-verdad-y-convenciones.md):
+> el servicio es **`llm-service`**, sus rutas privadas viven bajo **`/api/llm/**`** y la
+> correlación usa **`traceparent` + `X-Request-Id`**. Los ejemplos que aún mencionan
+> `ms-evaluacion-llm`, `/ai/*` o `trace_id` se consideran antecedentes hasta que se reescriban.
+
 **UTN FRC · Tecnicatura Universitaria en Programación · Programación IV — Back End · 2.º año, 4.º cuatrimestre**
 
 ---
@@ -26,19 +35,31 @@ Lo que lo vuelve difícil no es integrar un modelo de lenguaje:
 
 ## 👉 Si te sumás al proyecto
 
-Tres documentos, en este orden, y no hace falta leer los otros doce:
+Para comenzar a trabajar, leer en este orden:
 
-1. **[01 · Problema, alcance y equipo](docs/01-problema-y-alcance.md)** — qué construimos y qué no.
-2. **[10 · Qué entregamos y cómo](docs/10-entregables-y-plan.md), Parte 2** — el plan de trabajo: los
-   módulos, el reparto entre seis, las cuatro semanas de demo y **los 14 pasos concretos** de §8.
-   Con qué modelo free probar cada paso está en [03](docs/03-modelos-costos-y-contexto.md) §8.
-3. **[08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md)** — qué está decidido, qué
+1. **[00 · Fuentes de verdad y convenciones](docs/00-fuentes-de-verdad-y-convenciones.md)** y
+   **[01 · Problema y alcance](docs/01-problema-y-alcance.md)** — reglas vigentes y límites del servicio.
+2. **[23 · Plan de construcción del producto LLM](docs/23-plan-construccion-producto-llm.md)** —
+   planificación vigente: **10 integrantes, 3 fases, 19 sprints de dos semanas y un entregable
+   funcional por sprint**. De 350 horas-persona nominales se descuentan 90 de reuniones y 52 de
+   reserva: quedan **208 horas para entregables**. RAG se entrega por primera vez en S14.
+3. **[Plan de ejecución](<Plan de ejecucion/README.md>)** — guía de incorporación desde cero:
+   tecnologías, paso a paso de las tres fases, Docker, pruebas, Git y Pull Requests.
+4. **[21 · Matriz de trazabilidad](docs/21-matriz-trazabilidad-llm.md)** y
+   **[08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md)** — qué está decidido, qué
    bloquea, y las decisiones que ya se revisaron una vez — conviene mirarlas antes de reabrir una discusión.
+
+Para la Planning y el cierre, usar la [plantilla de sprint](docs/plantillas/sprint-llm.md).
+El [plan de 14 pasos para seis personas](docs/10-entregables-y-plan.md), sus cuatro semanas de demo
+y el [backlog de siete sprints para doce](docs/20-backlog-y-sprints.md) se conservan como antecedentes.
+Los ejemplos de modelos por paso siguen en [03](docs/03-modelos-costos-y-contexto.md) §8; no sustituyen
+la verificación de disponibilidad y calibración del modelo que se implemente.
 
 ## Documentación
 
 | # | Documento | Qué responde |
 |---|---|---|
+| 00 | [Fuentes de verdad y convenciones](docs/00-fuentes-de-verdad-y-convenciones.md) | 🔴 Punto de partida: precedencia, identidad, red, fases y pares canónicos. |
 | 01 | [Problema, alcance y equipo](docs/01-problema-y-alcance.md) | Qué es nuestro, qué no, y qué reclamarle a los otros equipos |
 | 02 | [Arquitectura y stack](docs/02-arquitectura-y-stack.md) | Reglas de la cátedra, diagrama de sistema, los 8 módulos, el AI Gateway, y el fundamento completo de Java vs Python |
 | 03 | [Modelos, costos y contexto](docs/03-modelos-costos-y-contexto.md) | Qué modelo para cada función, costo por consulta, cuánto contexto meter, qué puede ser gratis |
@@ -48,7 +69,7 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 | 07 | [Datos y T&C](docs/07-datos-y-terminos.md) | Qué se guarda, quién lo ve, cuánto dura, y el borrador de Términos y Condiciones |
 | 08 | [Decisiones y pendientes](docs/08-decisiones-y-pendientes.md) | Registro de decisiones (ADR), las que ya se revisaron, y **lo que falta definir** |
 | 09 | [Preguntas y respuestas](docs/09-preguntas-y-respuestas.md) | El porqué de cada decisión, **con el caso a favor y el caso en contra** |
-| 10 | [Qué entregamos y cómo](docs/10-entregables-y-plan.md) | El inventario del aporte del equipo y el plan de 14 pasos para 6 personas |
+| 10 | [Qué entregamos y cómo](docs/10-entregables-y-plan.md) | Inventario y plan histórico de 14 pasos para 6 personas; calendario vigente en 23. |
 | 11 | [Glosario y metadata](docs/11-glosario-y-metadata.md) | El vocabulario para la integración y las tres tablas que hay que crear ya |
 | 12 | [Almacenamiento e ingesta](docs/12-almacenamiento-e-ingesta.md) | Qué base de datos y cuántas, MinIO, y cómo se baja a texto un PDF con imágenes |
 | 13 | [La rúbrica y los prompts](docs/13-rubrica-y-prompts.md) | 📝 El artefacto central del equipo: las 5 dimensiones con sus anclas y los prompts de cada función |
@@ -57,7 +78,13 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 | 17 | [El mapa de integración](docs/17-mapa-de-integracion.md) | 🔌 **Cómo se comunica el servicio, en una sola vista**: quién nos habla y por dónde, el verbo de cada endpoint, cuánto tarda cada camino, qué modelo resuelve cada función y con qué costo, y qué le debemos a cada equipo |
 | 18 | [Contratos inter-equipos](docs/18-contratos-inter-equipos.md) | 🤝 **El punto de entrada para la sesión de integración**: los 6 endpoints con schemas, los 4 eventos que publicamos, los 3 que consumimos, lo que necesitamos de cada equipo, el mapa de dependencias y la agenda de 8 ítems para acordar antes de codear |
 | 19 | [Modernización, seguridad y rate limit LLM](docs/19-modernizacion-seguridad-y-ratelimit-llm.md) | 🛡️ **Protección y sostenibilidad**: Rate limiting en 3 capas (Bucket4j, cuota por desafío, Resilience4j), mitigación de Denial of Wallet y checklist de modernización |
-| 20 | [Backlog general y plan de sprints](docs/20-backlog-y-sprints.md) | 🗂️ **Qué hay que hacer y quién lo hace**: las 12 épicas con sus 100 historias estimadas, el reparto en seis células de dos para 12 personas, los siete sprints de dos semanas con su objetivo y su criterio de cierre, y lo que queda afuera del cuatrimestre con fundamento |
+| 20 | [Backlog general y plan de sprints](docs/20-backlog-y-sprints.md) | Antecedente: 12 épicas, 100 historias, 12 personas y siete sprints; no usar sus estimaciones sin revisar alcance y contratos. Plan vigente en 23. |
+| 21 | [Matriz de trazabilidad LLM](docs/21-matriz-trazabilidad-llm.md) | Requisitos, fase, contratos, dependencias y pruebas para desarrollo. |
+| 22 | [Informe comparativo de alineación](docs/22-informe-comparativo-alineacion-llm.md) | Diferencias entre la documentación anterior y la vigente. |
+| 23 | [Plan de construcción del producto LLM](docs/23-plan-construccion-producto-llm.md) | Plan vigente desde cero hasta el producto completo: 3 fases, 19 sprints, capacidad con reuniones, dependencias, entregables y aceptación. |
+| — | [Plan de ejecución](<Plan de ejecucion/README.md>) | Guía práctica de incorporación, tecnologías, fases, Docker, pruebas y flujo Git. |
+| — | [Plantilla de sprint LLM](docs/plantillas/sprint-llm.md) | Registro de Planning, disponibilidad individual, reuniones, historias, dependencias, Review/demo y retro. |
+| — | [Contratos v1](docs/contracts/) | OpenAPI de HTTP y AsyncAPI de eventos Kafka. |
 | — | [Suite API Gateway y Service Discovery](docs/gateway-y-discovery/README.md) | 🚪 **Borde y ruteo (Tema 01)**: Guía de 7 documentos sobre arquitectura de red, Eureka, M2M con tokens técnicos, filtros WebFlux RS256 y resiliencia |
 
 > **El 16 no está y el número queda reservado.** Documenta el pipeline de calidad, que
@@ -69,7 +96,7 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 | Carpeta | Quién lo hizo | Qué hay adentro |
 |---|---|---|
 | **[`docs/importado/`](docs/importado/)** | `Brf93` (`421562`) | Anidado adentro de `docs/`, para que la raíz tenga una sola carpeta de documentación. 25 documentos: especificación técnica, nueve planes de ejecución e investigación sobre jailbreak. Material de profundización, no de trabajo diario |
-| **[`codigo-ejemplo/`](codigo-ejemplo/)** | una carpeta por autor | [`ms-evaluacion-llm/`](codigo-ejemplo/ms-evaluacion-llm/), el esqueleto del servicio real, del equipo · [`lara-heredia-demo-llm-spring-ai/`](codigo-ejemplo/lara-heredia-demo-llm-spring-ai/), la demo de tutor con Spring AI, de Lara Heredia |
+| **[`codigo-ejemplo/`](codigo-ejemplo/)** | una carpeta por autor | [`ms-evaluacion-llm/`](codigo-ejemplo/ms-evaluacion-llm/), esqueleto histórico a migrar a `llm-service` · [`lara-heredia-demo-llm-spring-ai/`](codigo-ejemplo/lara-heredia-demo-llm-spring-ai/), demo de tutor con Spring AI |
 | **[`demo/`](demo/)** | el equipo | Interfaz web interactiva de demostración (Frontend Nginx + chat tutor + guardarraíles + métricas de costos). Se levanta en un comando con Docker Compose o scripts locales |
 | **[`presentaciones/`](presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` y equipo | [`defensa-39-slides.html`](presentaciones/defensa-39-slides.html), el deck de defensa (39 slides) · [`presentacion-integracion-servicios.html`](presentaciones/presentacion-integracion-servicios.html), deck interactivo de integración y contratos (17 slides) · [`prd-wiki-consulta.html`](presentaciones/prd-wiki-consulta.html), el PRD como wiki de consulta. Más tres documentos HTML armados sobre `doc-tpi-unificada` —mapa de requerimientos, guía del golden set e informe de gestión de modelos—: venían desalineados con `docs/` en ocho puntos y **ya están corregidos**, con el registro de qué se cambió en [`CORRECCIONES-SUGERIDAS.md`](presentaciones/CORRECCIONES-SUGERIDAS.md). Las seis abren sin internet |
 
@@ -97,8 +124,8 @@ Tres documentos, en este orden, y no hace falta leer los otros doce:
 
 - **Para entender antes que implementar** → [09 · Preguntas y respuestas](docs/09-preguntas-y-respuestas.md).
   Es el razonamiento en lenguaje llano y el mejor material para la defensa.
-- **Para empezar a trabajar** → [11 · Glosario y metadata](docs/11-glosario-y-metadata.md) y
-  [10 · Plan](docs/10-entregables-y-plan.md).
+- **Para empezar a trabajar** → [23 · Plan vigente](docs/23-plan-construccion-producto-llm.md),
+  [Plan de ejecución](<Plan de ejecucion/README.md>), [plantilla de sprint](docs/plantillas/sprint-llm.md) y [11 · Glosario y metadata](docs/11-glosario-y-metadata.md).
 - **Para la sesión de integración** → [08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md), parte B.
 - **Para decidir modelos** → [03 · Modelos y costos](docs/03-modelos-costos-y-contexto.md).
 
@@ -171,6 +198,7 @@ Detalle y recomendación de cada uno en [08 · Decisiones y pendientes](docs/08-
 ## Fuentes
 
 - `PRD-Plataforma-Gamificada-TP.pdf` (v2.1) — definición funcional del producto
+- `idea.pptx.pdf` — convenciones obligatorias de Gateway, Eureka, seguridad, ruteo y pruebas
 - `TUP_PIV_BE_PROPUESTA_ARQ.pdf` — propuesta de arquitectura de la cátedra
 - `TUP_PIV_FE_TEO_U1_ARQUITECTURA_DESPLIEGUE.pdf` — teórico de Front End, Unidad 1: arquitectura y
   despliegue. Sincronizado en [15](docs/15-sincronizacion-arquitectura-y-despliegue.md)
