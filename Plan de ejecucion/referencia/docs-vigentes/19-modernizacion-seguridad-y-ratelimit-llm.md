@@ -71,6 +71,11 @@ flowchart TD
 
 ## 4. Ejemplos de Implementación de Mejoras
 
+> **Sobre el cliente de LLM:** los ejemplos usan la sintaxis de la demo de Lara (`ChatClient` de
+> Spring AI). En el servicio real el cliente es **langchain4j** ([ADR-016](08-decisiones-y-pendientes.md)):
+> los conceptos —roles `system`/`user`/`assistant` separados, streaming, circuit breaker, salida
+> estructurada— son los mismos, cambia el nombre de la API.
+
 ### A. Rate Limiting con Bucket4j en Spring Boot
 
 ```java

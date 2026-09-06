@@ -70,12 +70,13 @@ y agrega un tipo de columna. **No es un componente más que operar.**
 
 **Un trabajo perdido es un score que nunca llega**, y un curso que no se puede cerrar (RF-IA-34).
 
-Redis en memoria pura pierde la cola al reiniciar. **Hay que activar persistencia (AOF)**, o usar
-RabbitMQ si la plataforma ya lo tiene para el bus de eventos.
+Redis en memoria pura pierde la cola al reiniciar. **Hay que activar persistencia (AOF)**, o —lo más
+simple a esta escala— usar **Postgres con `SKIP LOCKED`** para la cola.
 
-> Si el bus de eventos de la plataforma es RabbitMQ, **evaluá usarlo también para la cola interna** —
-> un componente menos que operar. Pero ojo: son cosas distintas (§ [02](02-arquitectura-y-stack.md)),
-> y no hay que mezclar los canales.
+> El bus de eventos de la plataforma es **Kafka** (lo pone el Tema 11) y **no** se reusa para la
+> cola interna: Kafka no tiene prioridades por mensaje ni *dead letter queue* nativa, y las dos
+> hacen falta ([06](06-operacion-e-ingenieria.md) Parte 1). Son canales distintos y no se mezclan
+> (§ [02](02-arquitectura-y-stack.md)).
 
 ## 4. MinIO — tu idea, y cuándo se justifica
 

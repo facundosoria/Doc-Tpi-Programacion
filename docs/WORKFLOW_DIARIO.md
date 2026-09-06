@@ -1,6 +1,6 @@
 # Workflow diario de `llm-service`
 
-Esta rutina aplica a las cinco parejas efectivas. Las dos sincronizaciones semanales duran 45 minutos; Planning, refinamientos, Review y Retro consumen la capacidad definida en el plan.
+Esta rutina aplica a los 12 integrantes (cinco parejas + referente de producto y facilitador). Las dos sincronizaciones semanales duran 45 minutos e incluyen la coordinación de dependencias; Planning, refinamientos, Review y Retro consumen la capacidad definida en el plan ([23 · §2](23-plan-construccion-producto-llm.md)).
 
 ## Inicio
 
@@ -56,9 +56,8 @@ Usar Conventional Commits: `feat`, `fix`, `test`, `docs`, `refactor`, `chore`, `
 | Ceremonia | Salida |
 |---|---|
 | Planning, 120 min | Objetivo, tareas, capacidad, gates y demo. |
-| Sincronización ×2/semana, 45 min | Avance, próximo paso y bloqueo. |
+| Sincronización ×2/semana, 45 min | Avance, próximo paso, bloqueo y coordinación de dependencias (compromisos con servicios consumidores). |
 | Refinamiento ×2, 30 min | Historias futuras listas y dependencias. |
-| Coordinación ×2, 30 min | Compromisos con servicios consumidores. |
 | Review/demo, 90 min | Incremento funcional y evidencia. |
 | Retro, 60 min | Mejora accionable con dueño. |
 

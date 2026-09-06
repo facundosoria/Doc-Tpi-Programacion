@@ -40,9 +40,10 @@ Para comenzar a trabajar, leer en este orden:
 1. **[00 · Fuentes de verdad y convenciones](docs/00-fuentes-de-verdad-y-convenciones.md)** y
    **[01 · Problema y alcance](docs/01-problema-y-alcance.md)** — reglas vigentes y límites del servicio.
 2. **[23 · Plan de construcción del producto LLM](docs/23-plan-construccion-producto-llm.md)** —
-   planificación vigente: **10 integrantes, 3 fases, 19 sprints de dos semanas y un entregable
-   funcional por sprint**. De 350 horas-persona nominales se descuentan 90 de reuniones y 52 de
-   reserva: quedan **208 horas para entregables**. RAG se entrega por primera vez en S14.
+   planificación vigente: **12 integrantes, 3 fases, 19 sprints de dos semanas y un entregable
+   funcional por sprint**. Del nominal del sprint (816 horas-persona) se descuentan 102 de
+   reuniones y 143 de reserva: **~571 horas de capacidad**; el trabajo estimado de las recetas
+   es ~208 h/sprint (piso, no tope). RAG se entrega por primera vez en S14.
 3. **[Plan de ejecución](<Plan de ejecucion/README.md>)** — guía de incorporación desde cero:
    tecnologías, paso a paso de las tres fases, Docker, pruebas, Git y Pull Requests.
 4. **[21 · Matriz de trazabilidad](docs/21-matriz-trazabilidad-llm.md)** y
@@ -81,15 +82,25 @@ la verificación de disponibilidad y calibración del modelo que se implemente.
 | 20 | [Backlog general y plan de sprints](docs/20-backlog-y-sprints.md) | Antecedente: 12 épicas, 100 historias, 12 personas y siete sprints; no usar sus estimaciones sin revisar alcance y contratos. Plan vigente en 23. |
 | 21 | [Matriz de trazabilidad LLM](docs/21-matriz-trazabilidad-llm.md) | Requisitos, fase, contratos, dependencias y pruebas para desarrollo. |
 | 22 | [Informe comparativo de alineación](docs/22-informe-comparativo-alineacion-llm.md) | Diferencias entre la documentación anterior y la vigente. |
-| 23 | [Plan de construcción del producto LLM](docs/23-plan-construccion-producto-llm.md) | Plan vigente desde cero hasta el producto completo: 3 fases, 19 sprints, capacidad con reuniones, dependencias, entregables y aceptación. |
-| — | [Plan de ejecución](<Plan de ejecucion/README.md>) | Guía práctica de incorporación, tecnologías, fases, Docker, pruebas y flujo Git. |
+| 23 | [Plan de construcción del producto LLM](docs/23-plan-construccion-producto-llm.md) | Plan vigente desde cero hasta el producto completo: 3 fases, 19 sprints, capacidad con reuniones (§2), dependencias, entregables, DoR/DoD (§9.2) y aceptación. |
+| 24 | [Convención de cobertura](docs/24-convenciones-cobertura.md) | Cobertura mínima 95% back/front, alcance de la medición y pruebas de infraestructura por fase; requisito de cada PR y Review. |
+| 25 | [Matriz de pruebas de infraestructura](docs/25-matriz-pruebas-infraestructura.md) | Suites que verifican integraciones reales (Postgres, Compose, Gateway, Eureka, Kafka), su estado en S1 y el comando/evidencia de cada una. |
+| 26 | [Herramientas y librerías](docs/26-herramientas-y-librerias.md) | Índice único del stack: qué es cada herramienta, de qué librería/binario/servicio viene, para qué, cómo y dónde se decidió. |
+| 27 | [Guía de la Wiki de Taiga](docs/27-guia-wiki-taiga.md) | Regla de la cátedra para documentar en la Wiki: nombrado `GXX - TEMA`, apartados obligatorios (a–h), **checklists de cada diagrama** y secuencia DER → BPMN → Clases → Estados → Secuencias → Microservicios, guías y templates oficiales. |
+| 28 | [Normativa de la cátedra para la Plataforma](docs/28-normativa-catedra-plataforma.md) | Estándares mínimos de la cátedra (MySQL, Java 21 + Spring Boot, Angular 21, Git, seguridad) y **las 9 divergencias con las decisiones vigentes de Tema 07** a resolver en integración. |
+| 29 | [Guía de cátedra: Historias de Usuario (MSII, U1)](docs/29-guia-catedra-historias-de-usuario.md) | Referencia de **cómo se redactan y estiman las HU**: 3C, formato COMO/QUIERO/PARA, criterios de aceptación BDD, INVEST, épica/historia/tarea, Planning Poker y armado del backlog, con los ejemplos resueltos de la guía. |
+| 30 | [Arranque ágil: Sprint 0, DoD, capacidad, épicas e HU](docs/30-arranque-agil-y-sprint-0.md) | **Vista de entrega** que reúne las cinco piezas del arranque (Sprint 0, DoR/DoD, cálculo de capacidad, primeras épicas, historias de S1) con el formato de la guía de cátedra. No es fuente de verdad: apunta a 23 §2/§9.2 y al backlog ejecutable. |
+| — | [Plan de ejecución](<Plan de ejecucion/README.md>) | Guía práctica de incorporación, tecnologías, fases, Docker, pruebas y flujo Git; incluye épicas, Sprint 0 y backlog ejecutable S1–S19. |
 | — | [Plantilla de sprint LLM](docs/plantillas/sprint-llm.md) | Registro de Planning, disponibilidad individual, reuniones, historias, dependencias, Review/demo y retro. |
+| — | [Plantilla de página de Wiki por grupo](docs/plantillas/pagina-wiki-grupo.md) | Estructura lista para copiar a la Wiki de Taiga: `GXX - TEMA`, descripción, HU, diagramas, Draw.io, explicación, notas técnicas y documentación de endpoints. |
+| — | [Plantilla de Historia de Usuario (Taiga)](docs/plantillas/historia-de-usuario-taiga.md) | Template oficial de HU para el backlog de Taiga: COMO/QUIERO/PARA, notas, criterios de aceptación, BDD (≥3 escenarios), prototipo, estimación y dependencias. Cómo se completan: [29](docs/29-guia-catedra-historias-de-usuario.md). |
+| — | [Plantilla de Épica (Taiga)](docs/plantillas/epica-taiga.md) | Template oficial de épica para el backlog de Taiga: objetivo, suposiciones y restricciones, criterios de aceptación a nivel épico y dependencias/impactos. |
 | — | [Contratos v1](docs/contracts/) | OpenAPI de HTTP y AsyncAPI de eventos Kafka. |
 | — | [Suite API Gateway y Service Discovery](docs/gateway-y-discovery/README.md) | 🚪 **Borde y ruteo (Tema 01)**: Guía de 7 documentos sobre arquitectura de red, Eureka, M2M con tokens técnicos, filtros WebFlux RS256 y resiliencia |
 
-> **El 16 no está y el número queda reservado.** Documenta el pipeline de calidad, que
-> vive en la rama `feat/qa-gate` y no se publica acá. Renumerar el 17, el 18 y el 19
-> haría que el mismo número signifique cosas distintas según la rama.
+> **El número 16 queda reservado y el índice salta del 15 al 17 a propósito.** Renumerar
+> el 17, el 18 y el 19 para tapar el hueco haría que el mismo número signifique documentos
+> distintos en el historial.
 
 ## Lo demás que hay en el repositorio
 
@@ -124,8 +135,10 @@ la verificación de disponibilidad y calibración del modelo que se implemente.
 
 - **Para entender antes que implementar** → [09 · Preguntas y respuestas](docs/09-preguntas-y-respuestas.md).
   Es el razonamiento en lenguaje llano y el mejor material para la defensa.
-- **Para empezar a trabajar** → [23 · Plan vigente](docs/23-plan-construccion-producto-llm.md),
-  [Plan de ejecución](<Plan de ejecucion/README.md>), [plantilla de sprint](docs/plantillas/sprint-llm.md) y [11 · Glosario y metadata](docs/11-glosario-y-metadata.md).
+- **Para empezar a trabajar** → [23 · Plan vigente](docs/23-plan-construccion-producto-llm.md)
+  (capacidad en §2, DoR/DoD en §9.2), [backlog ejecutable](<Plan de ejecucion/07-backlog-ejecutable-sprints.md>)
+  (épicas, Sprint 0 e historias S1), [Plan de ejecución](<Plan de ejecucion/README.md>),
+  [plantilla de sprint](docs/plantillas/sprint-llm.md) y [11 · Glosario y metadata](docs/11-glosario-y-metadata.md).
 - **Para la sesión de integración** → [08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md), parte B.
 - **Para decidir modelos** → [03 · Modelos y costos](docs/03-modelos-costos-y-contexto.md).
 
@@ -192,6 +205,8 @@ Detalle y recomendación de cada uno en [08 · Decisiones y pendientes](docs/08-
 | **Un microservicio, no cinco** | Las cinco funciones comparten gateway, guardarraíles, cuotas y log. Separarlas multiplica la maquinaria transversal |
 | **Sin orquestador basado en LLM** | La ruta la sabe la UI. Un router agrega latencia, costo, un punto de falla y una superficie de injection |
 | **Sincrónico solo para tutor y moderador** | El resto va por cola: Batch al 50%, RF-IA-27 implementado por construcción, y el pico absorbido |
+| **langchain4j en los adapters de LLM** | API uniforme por proveedor y salida estructurada, sin atar el servicio a un SDK. La capa de agentes de la librería no se usa ([ADR-016](docs/08-decisiones-y-pendientes.md)) |
+| **Bus de eventos del Tema 11: Kafka** | La cola interna es aparte (Postgres/Redis): Kafka no tiene prioridades por mensaje ni DLQ, y las dos hacen falta |
 | **La solución de referencia nunca entra al contexto del tutor** | No se puede filtrar lo que no se tiene |
 | **El perímetro temático lo hace cumplir el retrieval, no el prompt** | Una instrucción se sortea hablando; un filtro en el servidor no |
 

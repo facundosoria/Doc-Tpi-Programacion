@@ -17,6 +17,12 @@ desktop.ini
 .idea/
 *.iml
 
+# Obsidian (vault local, no se sube)
+.obsidian/
+
+# Borradores de trabajo, no se suben
+mañana*.html
+
 # Configuracion con secretos. docker compose levanta el .env que este al lado del
 # compose file sin que nadie se lo pida, y el README de la demo muestra las lineas a
 # pegar ahi --incluida GROQ_API_KEY--. Sin esta regla, el que las pegue commitea la

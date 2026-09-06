@@ -80,13 +80,13 @@ flowchart TB
         MS["ms-evaluacion-llm<br/>Java Spring Boot"]
         W["worker<br/>misma imagen"]
         DB[("BD PROPIA<br/>Postgres + pgvector")]
-        Q[("Cola interna<br/>Redis")]
+        Q[("Cola interna<br/>Postgres SKIP LOCKED / Redis")]
         MS --- W
         MS --- DB
         MS --- Q
     end
 
-    BUS["BUS DE EVENTOS<br/>lo asincronico NO pasa por el gateway"]
+    BUS["BUS DE EVENTOS — Kafka<br/>lo asincronico NO pasa por el gateway"]
 
     FE --> NX
     NX --> GW
@@ -106,11 +106,16 @@ flowchart TB
 |---|---|---|
 | Alcance | Dentro de nuestro servicio | Entre microservicios |
 | Dueño | Nosotros | Plataforma (contrato del Tema 11) |
+| Tecnología | Postgres (`SKIP LOCKED`) o Redis — **decisión nuestra** | **Kafka** — lo pone el Tema 11 |
 | Para qué | Que los workers procesen evaluaciones y generaciones | Avisar que un score quedó listo |
 | ¿La regla lo prohíbe? | **No.** Es diseño interno | — |
 
-**Los dos existen y no compiten.** Redis con workers es cómo resolvemos internamente el trabajo
-diferido; el bus es cómo le contamos al mundo que terminamos.
+> **Kafka no se reusa para la cola interna.** No tiene prioridades por mensaje ni *dead letter
+> queue* nativa, y la cola de [06](06-operacion-e-ingenieria.md) necesita las dos. Son canales
+> distintos y con garantías distintas.
+
+**Los dos existen y no compiten.** La cola con workers (Postgres o Redis) es cómo resolvemos
+internamente el trabajo diferido; el bus (Kafka) es cómo le contamos al mundo que terminamos.
 
 ### Tres cosas se llaman «gateway» — no confundirlas
 
@@ -200,7 +205,9 @@ proyecto. Con la tabla, se cambia una fila; sin ella, es un deploy de urgencia e
 cuatrimestre.
 
 **El adapter normaliza en las dos direcciones:** hacia afuera el prompt, el system prompt y el pedido
-de salida estructurada; hacia adentro el texto, los tokens, el motivo de corte y los errores.
+de salida estructurada; hacia adentro el texto, los tokens, el motivo de corte y los errores. Esa
+traducción se apoya en **langchain4j** (un módulo por proveedor, ADR-016): el adapter solo agrega lo
+que la librería no cubre y lo envuelve en nuestra interfaz `LlmAdapter`.
 
 ### Las ocho responsabilidades
 
@@ -210,7 +217,7 @@ de salida estructurada; hacia adentro el texto, los tokens, el motivo de corte y
 | 2 | Contador por usuario/día y por usuario/desafío. Rechaza antes de gastar | RF-IA-22 |
 | 3 | Injection, perímetro temático, lenguaje ofensivo | RF-IA-05/06/07/10 |
 | 4 | Artefactos versionados (`rubric_version`, `prompt_version`). **Un solo criterio para todos los modelos** — RF-IA-29 prohíbe variantes | RF-IA-13/21/29 |
-| 5 | Un adapter por proveedor. Es lo que hace real a RF-IA-11 | RF-IA-11/26 |
+| 5 | Un adapter por proveedor, sobre langchain4j (ADR-016). Es lo que hace real a RF-IA-11 | RF-IA-11/26 |
 | 6 | Salida estructurada obligatoria en evaluador, corrector y generador | RF-IA-13/16 |
 | 7 | Similitud contra la solución esperada. Bloquea y regenera | RF-IA-20 |
 | 8 | `model_id`, `model_version`, `prompt_version`, `rubric_version`, tokens, costo, latencia, incidentes | RF-IA-02/25/33 |
@@ -325,8 +332,10 @@ externa al equipo."** Confirma con las mismas palabras el riesgo de calendario q
 |---|---|---|---|
 | `ms-evaluacion-llm` | Java Spring Boot | 1-2 | Sin puerto publicado, ni siquiera detrás de nginx |
 | `worker` | Java Spring Boot | 2-6 | **Misma imagen, distinto comando** |
-| `postgres` | Postgres + pgvector | 1 | **Base propia y exclusiva** |
-| `redis` | Redis persistente | 1 | Cola + contadores de cuota |
+| `postgres` | Postgres + pgvector | 1 | **Base propia y exclusiva** — y la cola de trabajos (`SKIP LOCKED`) |
+| `redis` | Redis persistente | 0-1 | Contadores de cuota y caché. Opcional: a 120 usuarios Postgres alcanza |
+
+El **bus de eventos (Kafka)** lo provee el Tema 11: no es un contenedor nuestro.
 
 Escalar el pico es `docker compose up --scale worker=6`. No hay código nuevo.
 
@@ -443,11 +452,12 @@ no el lenguaje.
 | Persistencia | **Spring Data JPA** · **JdbcTemplate** | 🟢 |
 | Migraciones | **Flyway** · **Liquibase** | 🟢 |
 | pgvector | **pgvector-java**, o el tipo vector por JDBC | 🟡 Funciona, menos pulido |
-| Cola | **Spring AMQP** (RabbitMQ) · **Spring Data Redis** · **Spring Kafka** | 🟢 |
+| Cola interna | **Spring Data JPA** (Postgres + `SKIP LOCKED`) · **Spring Data Redis** | 🟢 |
+| Bus de eventos (Tema 11) | **Spring for Apache Kafka** (`spring-kafka`) | 🟢 |
 | PDF | **Apache PDFBox** · **Apache Tika** | 🟢 Muy buenos |
 | **AST** | **JavaParser** · **Eclipse JDT** | 🟢 **Para Java, lo mejor que hay** |
 | Embeddings | **DJL** (Deep Java Library) · ONNX Runtime | 🟡 **Funciona, incómodo** |
-| LLM | SDK oficial del proveedor · `RestClient` directo | 🟡 Menos ejemplos |
+| LLM | **langchain4j** — un módulo por proveedor detrás de nuestra interfaz | 🟢 API uniforme, salida estructurada, agnóstico de proveedor (ADR-016) |
 | Observabilidad | **Micrometer** · **Spring Boot Actuator** | 🟢 **Nativo** |
 | Tests | **JUnit 5** · **Mockito** · **AssertJ** · **Testcontainers** · **WireMock** | 🟢 Excelente |
 
@@ -467,7 +477,7 @@ no el lenguaje.
 | **Ecosistema de ML pobre** | 🟡 Medio. Solo afecta embeddings locales |
 | **Ciclo de iteración lento** | 🟡 Medio. Se mitiga con los prompts en archivos, no compilados |
 | **Verboso** | 🟢 Bajo. Spring Boot moderno recortó mucho |
-| **SDKs de LLM con menos ejemplos** | 🟡 Medio. Menos código de referencia para copiar |
+| **Cliente de LLM** | 🟢 Bajo. langchain4j da una API uniforme por proveedor con salida estructurada (ADR-016) |
 | **AST fuera de Java** | 🟡 Medio, **pero irrelevante si los desafíos son en Java** |
 
 ### Problemas a futuro
@@ -562,16 +572,16 @@ Esa última fila es la más cara y no aparece en ninguna comparación técnica.
 | AST **de Java** | JavaParser, nativo | tree-sitter | 🟢 **Java** |
 | API REST | Spring Web | FastAPI | 🟡 Empate |
 | Validación de schema | Bean Validation | **Pydantic** | 🟡 Python, leve |
-| Cola y workers | Spring AMQP | Celery | 🟡 Empate |
+| Cola y workers | Postgres/Redis + Spring | Celery | 🟡 Empate |
 | pgvector | Funciona | Mejor soportado | 🟡 Python, leve |
 | PDF y documentos | PDFBox, Tika | Más opciones | 🟡 Empate |
 | OCR | Limitado | Mejor | 🟢 Python |
-| SDK de LLM | Menos ejemplos | Primera línea | 🟢 Python |
+| Cliente de LLM | langchain4j, API uniforme | SDK del proveedor | 🟡 Empate |
 | AST multi-lenguaje | Solo Java | **tree-sitter** | 🟢 **Python** |
 | **Embeddings locales** | DJL, incómodo | **3 líneas** | 🟢 **Python, por lejos** |
 | Iterar prompts | Compilación en el medio | Inmediato | 🟢 Python |
 
-**Resultado: 7 capas para Java, 5 para Python, 5 empatadas.** Pero no se cuentan: **las dos primeras
+**Resultado: 7 capas para Java, 4 para Python, 6 empatadas.** Pero no se cuentan: **las dos primeras
 filas son las que la cátedra hizo obligatorias.**
 
 ---
@@ -595,9 +605,9 @@ filas son las que la cátedra hizo obligatorias.**
 
 - Iterar prompts va a ser más lento. Se mitiga poniendo los prompts en archivos, no en código.
 - Los embeddings locales van a ser incómodos si algún día los quieren.
-- Va a haber menos código de ejemplo para copiar.
 
-**Ninguna de las tres bloquea nada.**
+**Ninguna de las dos bloquea nada.** (El cliente de LLM dejó de ser una desventaja: langchain4j
+cubre los cuatro proveedores con una API uniforme — ADR-016.)
 
 ### El plan de contingencia: construir la frontera, no el componente
 

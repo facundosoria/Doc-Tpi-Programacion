@@ -25,8 +25,8 @@ Las reglas completas están en [convenciones](../docs/00-fuentes-de-verdad-y-con
 | Ruta | Qué contiene | Cuándo se usa |
 |---|---|---|
 | `01-fase-1...` a `03-fase-3...` | Objetivo y salida de cada fase | Para entender el producto completo. |
-| `06-playbook-de-construccion.md` | Arquitectura, secuencia, DoR/DoD, seguridad y pruebas comunes | Antes de implementar cualquier historia. |
-| `07-backlog-ejecutable-sprints.md` | Receta atómica S1–S19, horas, gates y aceptación | Durante la Planning y ejecución. |
+| `06-playbook-de-construccion.md` | Arquitectura, secuencia, seguridad y pruebas comunes (DoR/DoD: fuente en `docs/23 §9.2`) | Antes de implementar cualquier historia. |
+| `07-backlog-ejecutable-sprints.md` | Épicas, Sprint 0 y receta atómica S1–S19 con horas, gates y aceptación | Durante la Planning y ejecución. |
 | `04-docker-y-pruebas.md` | Arranque, perfiles, comandos y diagnóstico | Antes de tocar código y en cada demo. |
 | `05-flujo-diario-y-git.md` | Rutina Scrum, ramas, PR y evidencias | Durante el trabajo diario. |
 | `referencia/docs-vigentes/` | Copia de las fuentes normativas del producto | Resolver requisitos y decisiones. |
@@ -100,12 +100,12 @@ La primera entrega crea el servicio definitivo y su entorno. No copies rutas his
 
 ## Cómo construir desde cero
 
-1. Crear una rama `feature/s1-bootstrap` según el flujo Git.
-2. Completar la primera Planning con la plantilla de [plantillas/sprint-llm.md](plantillas/sprint-llm.md): disponibilidad real, reuniones (90 h iniciales), reserva y dependencias.
-3. Leer S1 en `07-backlog-ejecutable-sprints.md`; comprobar su “No iniciar sin”.
+1. Completar el **Sprint 0** de [`07-backlog-ejecutable-sprints.md`](07-backlog-ejecutable-sprints.md): épicas revisadas, capacidad de S1 calculada en una copia de [la plantilla de sprint](../docs/plantillas/sprint-llm.md), historia canónica elegida, DoR/DoD aceptadas y dependencias D01–D04 con responsable.
+2. Crear y proteger `main` y `develop` en el remoto `tpi-llm` según [GITFLOW](../docs/GITFLOW.md). Las ramas `feature/sNN/llm-sNN-hNN-<slug>` nacen de `develop` recién al arrancar cada historia de S1.
+3. Leer S1 en `07-backlog-ejecutable-sprints.md` (paquetes e historias `LLM-S01-Hxx`); comprobar su “No iniciar sin”.
 4. Implementar los paquetes en el orden numerado: contrato/amenaza → dominio/migración → caso de uso → adaptadores → seguridad/resiliencia → observabilidad → pruebas → demo.
 5. Crear la aplicación definitiva, Dockerfile, Compose, `.env.example`, Flyway y healthchecks durante S1. Hasta entonces, solo la demo histórica es ejecutable.
-6. Ejecutar la DoD del [playbook](06-playbook-de-construccion.md), abrir PR y registrar evidencia de CI y Docker.
+6. Ejecutar la DoD ([docs/23 §9.2](../docs/23-plan-construccion-producto-llm.md)), abrir PR y registrar evidencia de CI y Docker.
 7. Hacer Review con la demo funcional. Solo si el gate pasa, iniciar el siguiente sprint.
 8. Repetir para S2–S10, cerrar la salida de F1 y recién entonces habilitar S11; repetir gates para F2 y F3.
 
@@ -124,7 +124,7 @@ por una implementación ficticia.
 
 ## Cómo usar el plan
 
-Cada sprint dura dos semanas y termina en un recorrido funcional. La capacidad inicial es 350 horas-persona nominales, menos 90 horas de reuniones y 52 de reserva: **208 horas para entregables**.
+Cada sprint dura dos semanas y termina en un recorrido funcional. Con la disponibilidad real declarada (12 integrantes, 408 h-persona/semana), el nominal del sprint es 816 h; menos 102 de reuniones y 143 de reserva quedan **~571 horas de capacidad**. El trabajo estimado de las recetas es ~208 h/sprint (piso, no tope); la diferencia es margen. Detalle en [docs/23 §2](../docs/23-plan-construccion-producto-llm.md).
 
 Antes de cada Sprint Planning, completar una copia de la [plantilla de sprint](../docs/plantillas/sprint-llm.md). Allí se registran disponibilidad, reuniones, historias, dependencias, Review con demo y retro.
 
@@ -135,8 +135,8 @@ Antes de cada Sprint Planning, completar una copia de la [plantilla de sprint](.
 | [03 — Fase 3](03-fase-3-rag-y-personalizacion.md) | S14–S19: RAG, personalización y agentes. |
 | [04 — Docker y pruebas](04-docker-y-pruebas.md) | Levantar, verificar, depurar y detener entornos. |
 | [05 — Flujo diario y Git](05-flujo-diario-y-git.md) | Trabajo cotidiano, ramas y Pull Requests. |
-| [06 — Playbook de construcción](06-playbook-de-construccion.md) | Reglas obligatorias para agentes: arquitectura, contratos, seguridad, DoR/DoD y evidencia. |
-| [07 — Backlog ejecutable](07-backlog-ejecutable-sprints.md) | Receta detallada de construcción para los 19 sprints. |
+| [06 — Playbook de construcción](06-playbook-de-construccion.md) | Reglas obligatorias para agentes: arquitectura, contratos, seguridad y evidencia (DoR/DoD: [docs/23 §9.2](../docs/23-plan-construccion-producto-llm.md)). |
+| [07 — Backlog ejecutable](07-backlog-ejecutable-sprints.md) | Épicas, Sprint 0 y receta detallada de construcción para los 19 sprints. |
 | [08 — Instructivos APB de entorno y Docker](08-instructivos-apb-docker-env.md) | `.env`, credenciales sin hardcodear, Dockerfile, redes, perfiles y diagnóstico. |
 
 Si una decisión contradice el PRD, las convenciones o los contratos, detené el cambio y registrá la discrepancia. El orden de precedencia está en [00](../docs/00-fuentes-de-verdad-y-convenciones.md).

@@ -10,19 +10,7 @@
 | [`guia-golden-set.html`](guia-golden-set.html) | El golden set explicado entero: qué es, cómo se opera, DDL, runner y Q&A de cátedra | Documento largo con índice lateral. **No es una presentación** | ✅ Sí |
 | [`informe-gestion-modelos.html`](informe-gestion-modelos.html) | Proveedores, costos, seguridad y local contra cloud, con calculadora de 5 intensidades | Documento con índice y botón de imprimir a PDF | ✅ Sí |
 
-Todos son archivos HTML autónomos: no necesitan servidor ni compilación obligatoria, se abren directamente con doble clic.
-
-**Las seis abren sin internet.** Cargan sus librerías desde [`vendor/`](vendor/), que
-está versionado acá al lado, y usan tipografías del sistema. Con esa carpeta al lado no
-salen a la red ni una vez.
-
-**Y las seis abren también solas.** Si el `.html` viaja sin `vendor/` —lo mandás por
-chat, o el otro se baja un archivo suelto desde GitHub— cada uno se da cuenta de que la
-librería local no cargó y la baja de un CDN, en la misma versión que está versionada.
-Antes, en ese caso, la página se veía sin estilo.
-
-El único caso que queda sin estilo es archivo suelto **y** sin internet: para proyectar
-en el aula, llevate `presentaciones/` entera.
+Los archivos son páginas HTML autocontenidas: no necesitan servidor ni compilación, se abren directamente con doble clic y cargan sus estilos e íconos desde CDN (Tailwind, Lucide, FontAwesome).
 
 ## Las tres nuevas venían de otra rama, y ya están alineadas
 
