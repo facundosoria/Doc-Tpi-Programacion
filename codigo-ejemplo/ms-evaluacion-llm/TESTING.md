@@ -1,5 +1,9 @@
 ﻿# Política de tests — ms-evaluacion-llm
 
+> **Alineación vigente:** al migrar el esqueleto a `llm-service`, los tests de contrato deberán
+> partir de `docs/contracts/`, verificar el path `/api/llm/**` y propagar
+> `traceparent` + `X-Request-Id`. Los nombres históricos de este documento no se extienden.
+
 ## Regla fundamental
 
 > **Los tests que corren en CI nunca llaman a la API del modelo.**

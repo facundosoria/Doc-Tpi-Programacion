@@ -1,5 +1,14 @@
 # Estructura de carpetas — ms-evaluacion-llm
 
+> ## Migración pendiente de implementación
+>
+> Este documento describe el árbol previo a la alineación. Para nuevas clases, contratos y tests
+> mandan [`docs/00`](../../docs/00-fuentes-de-verdad-y-convenciones.md) y
+> [`docs/contracts/`](../../docs/contracts/): el destino es `llm-service`, con base path
+> `/api/llm`, headers `traceparent`/`X-Request-Id`, API por recursos y Kafka para eventos.
+> Las rutas `/ai/*`, `/api/conversaciones` y el campo `trace_id` que aparecen abajo son legado;
+> no deben extenderse.
+
 > Organización **por capas** del microservicio Java Spring Boot (Tema 07).
 >
 > Referencia de arquitectura: [02-arquitectura-y-stack.md](../../docs/02-arquitectura-y-stack.md)
@@ -20,9 +29,17 @@ construyan. Cada carpeta lleva su estado y su dueño:
 | 🟡 | Existe **parcialmente** — hay clases, faltan otras de la tabla |
 | ⬜ | **Destino.** La carpeta se crea cuando arranca ese módulo, no antes |
 
-**Dueño** es la persona del reparto de [10](../../docs/10-entregables-y-plan.md) Parte 2 (P1–P6).
-No es burocracia: es la respuesta a *«¿a quién le pregunto por esta carpeta?»* y a *«¿quién resuelve
-este conflicto de merge?»*.
+**Dueño** responde a *«¿a quién le pregunto por esta carpeta?»* y a *«¿quién resuelve este
+conflicto de merge?»*. No es burocracia.
+
+> **Las marcas `P1`–`P6` de este árbol son del reparto histórico de seis personas de
+> [10](../../docs/10-entregables-y-plan.md) Parte 2 y quedaron superadas.** El reparto vigente es
+> de **5 parejas P1–P5** ([23 · §3](../../docs/23-plan-construccion-producto-llm.md)) y **no
+> coincide** con el mapeo de abajo: p. ej. el AI Gateway es **P2**, no P1; el tutor y los
+> guardarraíles son **P3**, no P5/P6; el golden set es **P5**, no P4. Para "¿de quién es esta
+> carpeta?" manda la tabla de [23 · §3](../../docs/23-plan-construccion-producto-llm.md) y las
+> parejas líderes de cada épica en el
+> [backlog ejecutable](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>).
 
 > **No crees paquetes Java vacíos «para que estén».** Git no versiona directorios vacíos —harían
 > falta `.gitkeep` en cada uno—, y un paquete sin clases ensucia los reportes de JaCoCo
@@ -112,7 +129,7 @@ src/
 │   │   │
 │   │   ├── entity/                      CAPA 4 · JPA          🟡     compartida
 │   │   │
-│   │   ├── queue/                       CAPA 5 · Cola Redis   ⬜     P6
+│   │   ├── queue/                       CAPA 5 · Cola interna ⬜     P6
 │   │   │   ├── producer/                  encola trabajos     ⬜     P6
 │   │   │   └── worker/                    drena la cola       ⬜     P6
 │   │   │
@@ -310,14 +327,15 @@ Todo service que necesite un LLM llama a `LlmGateway` y no al proveedor directam
 | Clase | Qué hace |
 |---|---|
 | `LlmAdapter` | La interfaz que implementan todos. Recibe `LlmRequest`, devuelve `LlmResponse` |
-| `AnthropicAdapter` | Traduce al formato de Anthropic y la respuesta al formato interno |
-| `OpenAiAdapter` | Ídem para OpenAI |
-| `GroqAdapter` | Ídem para Groq |
-| `GoogleAdapter` | Ídem para Google Gemini |
+| `AnthropicAdapter` | Envuelve el `ChatModel` de `langchain4j-anthropic`; adapta `LlmRequest`/`LlmResponse` ↔ el modelo de langchain4j |
+| `OpenAiAdapter` | Ídem con `langchain4j-open-ai` |
+| `GroqAdapter` | Ídem — Groq por la API compatible con OpenAI de `langchain4j-open-ai` |
+| `GoogleAdapter` | Ídem con `langchain4j-google-ai-gemini` |
 
-> **Un adapter traduce y nada más.** No reintenta, no elige modelo, no cuenta cuota, no registra.
-> Todo eso es del gateway. Es lo que hace que sumar un proveedor sea una clase nueva y cero cambios
-> en el resto.
+> **Un adapter traduce y nada más.** No reintenta la lógica de negocio, no elige modelo, no cuenta
+> cuota, no registra. Todo eso es del gateway. langchain4j ([ADR-016](../../docs/08-decisiones-y-pendientes.md))
+> resuelve el transporte y el formato de mensajes por proveedor; el adapter solo lo envuelve en
+> `LlmAdapter`. **No** se usan los `AiServices` ni la memoria de langchain4j.
 
 **`service/gateway/quota/`** — Contadores (RF-IA-22)
 
@@ -518,17 +536,19 @@ siempre devuelve DTOs, nunca entidades.
 
 ---
 
-### `queue/` — Cola interna Redis (M8)
+### `queue/` — Cola interna (M8)
 
-**Por qué Redis y no el bus de la cátedra:** La cola interna es **diseño nuestro** y no viola
-ninguna regla. El bus de la cátedra es para comunicación entre microservicios; la cola Redis es
-para que los workers procesen trabajos largos sin bloquear el HTTP handler.
+**Por qué una cola propia y no el bus del Tema 11:** la cola interna es **diseño nuestro** y no
+viola ninguna regla. El bus del Tema 11 (Kafka) es para comunicación entre microservicios; la cola
+interna es para que los workers procesen trabajos largos sin bloquear el HTTP handler. **Kafka no
+se reusa acá:** no tiene prioridades por mensaje ni *dead letter queue* nativa, y las dos hacen
+falta. La cola va en **Postgres con `SKIP LOCKED`** (o Redis) — ver [06 "Con qué tecnología"](../../docs/06-operacion-e-ingenieria.md).
 
 **`queue/producer/`** — Encola trabajos
 
 | Clase | Qué hace |
 |---|---|
-| `JobProducer` | Serializa un `JobPayload` y lo empuja a la cola Redis correcta (una por tipo: `evaluacion`, `ingesta`, `calibracion`, `generacion`, `correccion`) |
+| `JobProducer` | Inserta un `JobPayload` en la tabla `jobs` con su prioridad y tipo (`evaluacion`, `ingesta`, `calibracion`, `generacion`, `correccion`) |
 | `JobPayload` | Clase sellada con los datos mínimos para que el worker retome el trabajo |
 
 **`queue/worker/`** — Consume la cola
@@ -548,7 +568,9 @@ para que los workers procesen trabajos largos sin bloquear el HTTP handler.
 
 ### `event/` — Bus de eventos (M8)
 
-**Comunicación con el exterior.** Todo lo asíncrono que cruza fronteras de microservicio.
+**Comunicación con el exterior.** Todo lo asíncrono que cruza fronteras de microservicio, sobre el
+bus **Kafka** del Tema 11 (`spring-kafka`), con el contrato de eventos de
+[18](../../docs/18-contratos-inter-equipos.md).
 
 **`event/publisher/`** — Lo que publicamos al bus
 
@@ -577,7 +599,8 @@ No tienen lógica de negocio.
 | Clase | Qué configura |
 |---|---|
 | `DataSourceConfig` | Datasource, JPA, pool de conexiones (HikariCP) |
-| `RedisConfig` | `RedisTemplate`, serialización, TTL de las colas |
+| `RedisConfig` | `RedisTemplate`, serialización, TTL — solo si se usa Redis para cola/cuota/caché |
+| `KafkaConfig` | `KafkaTemplate` y listeners para el bus del Tema 11 (`event/`) |
 | `EurekaConfig` | Registro dinámico en Service Discovery de la cátedra |
 | `Resilience4jConfig` | Circuit breaker + retry para los adapters del LLM (RF-IA-27) |
 | `LlmProperties` | Bindea la sección `llm:` de `application.yml` (endpoints, timeouts, api-keys como env vars) |

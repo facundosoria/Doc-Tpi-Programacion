@@ -1,0 +1,28 @@
+server:
+  port: ${SERVER_PORT:8080}
+spring:
+  application:
+    name: llm-service
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/llm}
+    username: ${SPRING_DATASOURCE_USERNAME:llm}
+    password: ${SPRING_DATASOURCE_PASSWORD:llm}
+  flyway:
+    schemas: llm
+    default-schema: llm
+    create-schemas: true
+  jackson:
+    default-property-inclusion: non_null
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+llm:
+  gateway:
+    trusted-service: admin-service
+    required-scope: llm.golden-set.manage

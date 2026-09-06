@@ -78,3 +78,26 @@ tienen registro de decisiones (ADR) en `docs/08`. Lo de acá es material de
 profundización y defensa. Antes de la entrega conviene una pasada de conciliación,
 igual que la que quedó registrada en
 [`docs/14`](../14-sincronizacion-guia-didactica.md) para el otro set.
+
+---
+
+## 🟡 4. El bus de eventos: estos documentos dicen RabbitMQ, la decisión es Kafka
+
+`especificacion-tecnica/` (ADR, arquitectura híbrida, glosario) especifica el bus de
+eventos del Tema 11 como **RabbitMQ / AMQP**: `:5672`, `@RabbitListener`,
+`RabbitTemplate`, "Workers Celery & Listener AMQP". La decisión vigente del equipo es
+que **el bus del Tema 11 corre sobre Kafka**, y los `docs/` de trabajo ya lo reflejan
+([`02`](../02-arquitectura-y-stack.md), [`06`](../06-operacion-e-ingenieria.md),
+[`08` ADR-016 / revisión 9](../08-decisiones-y-pendientes.md),
+[`12`](../12-almacenamiento-e-ingesta.md), [`14`](../14-sincronizacion-guia-didactica.md),
+[`26`](../26-herramientas-y-librerias.md)).
+
+**Corrección, para quien sea dueño del texto:** cambiar RabbitMQ → Kafka y AMQP →
+protocolo de Kafka donde aparezca, y aclarar que Kafka **no** se reusa para la cola
+interna de trabajo diferido (no tiene prioridades por mensaje ni *dead letter queue*
+nativa; esa cola va en Postgres con `SKIP LOCKED`, o Redis). Los archivos no se
+tocaron: la corrección se anota, no se aplica.
+
+Lo mismo aplica a `especificacion-tecnica/07_REGISTRO_DE_DECISIONES_ADR.md`, que
+además propone un motor interno en **Python (FastAPI)** — descartado por
+[ADR-005](../08-decisiones-y-pendientes.md), el servicio es Java Spring Boot.
