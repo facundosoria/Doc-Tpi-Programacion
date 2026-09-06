@@ -2,12 +2,12 @@ import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { GoldenSetApiService } from './golden-set-api.service';
+import { createIdempotencyKey, GoldenSetApiService } from './golden-set-api.service';
 
 describe('GoldenSetApiService', () => {
   let api: GoldenSetApiService;
   let http: HttpTestingController;
-  const baseUrl = 'http://localhost:8080/api/llm/golden-sets';
+  const baseUrl = '/api/llm/golden-sets';
 
   beforeEach(() => {
     TestBed.configureTestingModule({ providers: [provideHttpClient(), provideHttpClientTesting()] });
@@ -17,7 +17,12 @@ describe('GoldenSetApiService', () => {
 
   afterEach(() => http.verify());
 
-  it('lists and loads golden sets from the S1 API', () => {
+  it('uses getRandomValues when randomUUID is unavailable', () => {
+    const cryptoWithoutRandomUuid = { getRandomValues: (bytes: Uint8Array) => { bytes.fill(0); return bytes; } } as unknown as Crypto;
+    expect(createIdempotencyKey(cryptoWithoutRandomUuid)).toBe('00000000-0000-4000-8000-000000000000');
+  });
+
+  it('uses the same-origin S1 API path for list and detail requests', () => {
     let listed: unknown; let loaded: unknown;
     api.list().subscribe(value => listed = value);
     api.get('set-1').subscribe(value => loaded = value);

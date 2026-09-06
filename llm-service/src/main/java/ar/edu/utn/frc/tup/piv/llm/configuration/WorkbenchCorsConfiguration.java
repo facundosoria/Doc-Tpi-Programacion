@@ -11,7 +11,7 @@ public class WorkbenchCorsConfiguration implements WebMvcConfigurer {
   @Override
   public void addCorsMappings(CorsRegistry registry) {
     registry.addMapping("/api/llm/**")
-        .allowedOrigins("http://localhost:4200")
+        .allowedOrigins("http://localhost:4200", "http://192.168.0.250:4200", "http://100.68.49.115:4200")
         .allowedMethods("GET", "POST")
         .allowedHeaders("Content-Type", "Idempotency-Key", "X-Request-Id");
   }

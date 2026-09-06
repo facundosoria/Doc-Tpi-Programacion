@@ -18,5 +18,14 @@ export class WorkbenchComponent {
   createSet() { this.saving.set(true); this.error.set(null); this.api.create().subscribe({next:set=>this.router.navigate(['/golden-sets',set.id]),error:error=>this.fail(error),complete:()=>this.saving.set(false)}); }
   loadSample() { this.entryForm.patchValue({transcript:JSON.stringify([{role:'learner',text:'Intenté resolver el ejercicio y encontré un error al recorrer una lista vacía.'}],null,2)}); }
   addEntry() { const current=this.selected(); if(!current||!this.canSave())return; let transcript:unknown[]; try{transcript=JSON.parse(this.entryForm.controls.transcript.value);if(!Array.isArray(transcript)||transcript.length===0)throw new Error();}catch{this.error.set('La transcripción debe ser un arreglo JSON con al menos un mensaje.');return;} this.saving.set(true);this.error.set(null);const values=this.entryForm.getRawValue();const scores=Object.fromEntries(this.scoreFields.map(field=>[field.key,values[field.key as keyof typeof values] as number]));this.api.addEntry(current.id,transcript,scores).subscribe({next:()=>this.loadSet(current.id),error:error=>this.fail(error),complete:()=>this.saving.set(false)}); }
-  private fail(error:any){this.loading.set(false);this.saving.set(false);this.error.set(error?.error?.detail??'No se pudo contactar al backend. Iniciá llm-service con el perfil workbench.');}
+  private fail(error: any) {
+    this.loading.set(false);
+    this.saving.set(false);
+    const detail = error?.error?.detail;
+    if (typeof detail === "string" && detail.trim()) { this.error.set(detail); return; }
+    if (error?.status === 0) { this.error.set("No se pudo conectar con el backend. Verificá que el workbench esté levantado y recargá la página."); return; }
+    if (error?.status === 403) { this.error.set("No tenés permiso para administrar golden sets."); return; }
+    if (error?.status) { this.error.set(`No se pudo completar la operación (HTTP ). Revisá los logs del backend.`); return; }
+    this.error.set("No se pudo completar la operación. Recargá la página e intentá de nuevo.");
+  }
 }
