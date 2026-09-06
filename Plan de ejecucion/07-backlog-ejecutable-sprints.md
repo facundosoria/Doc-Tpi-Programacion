@@ -13,19 +13,19 @@ Diez épicas cubren el alcance de las tres fases. Cada historia `LLM-Sxx-Hyy` pe
 | Épica | Nombre | Resultado que habilita | Pareja líder | Sprints | Requisitos (orientativo) |
 |---|---|---|---|---|---|
 | **EP-01** | Plataforma, contratos e integración | El servicio arranca reproducible, expone `/api/llm/**` por Gateway, versiona su esquema y publica contratos que los demás equipos consumen | P1 | S1, S3, S6, S10, S19 | RF-NFR-01/03/04/09/10; contratos v1 |
-| **EP-02** | AI Gateway, modelos y resiliencia | Toda llamada a un modelo pasa por un punto único con timeout, presupuesto, validación de salida y cambio de modelo por configuración | P2 | S3, S8, S9 | RF-IA-22/23/24/35; RF-IA-27 |
+| **EP-02** | AI Gateway, modelos y resiliencia | Toda llamada a un modelo pasa por un punto único con timeout, presupuesto, validación de salida y cambio de modelo por configuración | P2 | S3, S8, S9 | RF-IA-22/23/24/35 |
 | **EP-03** | Golden set y referencia humana | Un docente autorizado construye, puntúa y versiona el set de referencia que habilita calibrar | P5 + P4 | S1, S2 | RF-IA-29/30 a 36 |
 | **EP-04** | Calibración y gobernanza del modelo | No se activa un curso sin calibración dentro de tolerancia; el cambio de modelo se audita y dispara recalibración | P4 | S3, S4, S8 | RF-IA-30 a 36; PAR-14 |
 | **EP-05** | Tutor seguro y guardarraíles | El alumno recibe ayuda socrática dentro del desafío; jailbreak y fuga de solución se bloquean antes de mostrarse | P3 + P2 | S5 | RF-IA-01/02/04/19/20 |
 | **EP-06** | Evaluación, score y auditoría académica | Cerrar un intento produce un score desglosado, explicable y apelable; una caída difiere el cálculo sin perderlo | P4 + P1 | S6, S7 | RF-IA-12 a 18/25; RF-IA-27/34 |
-| **EP-07** | Operación, cuotas y observabilidad | El operador ve costo, cuotas y trabajos, recupera lo recuperable y sostiene la carga objetivo | P2 + P1 | S9, S10 | RF-IA-22/25/33; RF-NFR-03/04 |
+| **EP-07** | Operación, cuotas y observabilidad | El operador ve costo, cuotas y trabajos, recupera lo recuperable y sostiene la carga objetivo | P2 + P1 | S9, S10 | RF-IA-22/25; RF-NFR-01/03/04 |
 | **EP-08** | Moderación integrada (F2) | Los mensajes del chat real se permiten o bloquean antes de entregarse, con revisión humana y retención acordada | P3 + P2 + P1 | S11–S13 | RF-CHT-09 a 14 |
 | **EP-09** | RAG y consulta de material (F3) | El material docente autorizado es consultable con fuente y página; sin respaldo el asistente se abstiene | P5 + P3 | S14–S16 | RF-IA-06/07/08 |
 | **EP-10** | Personalización y agente (F3) | El alumno resuelve desafíos personalizados y menciona a `@agente`, con efectos idempotentes y salida moderada | P5 + P4 + P3 | S17–S18 | RF-DES-05; RF-CHT-05/08 |
 
 > Los números de RF son orientativos. La traza fina historia → requisito se mantiene en [21 · matriz de trazabilidad](../docs/21-matriz-trazabilidad-llm.md). Las parejas P1–P5 se definen en [23 · §3](../docs/23-plan-construccion-producto-llm.md).
 
-> **Cómo se pasa cada épica al template de Taiga.** La columna *Resultado que habilita* de esta tabla es el **Objetivo** del [template de Épica](../docs/plantillas/epica-taiga.md); *Sprints* y *Pareja líder* son contexto de planificación; los apartados *Suposiciones y Restricciones*, *Criterios de Aceptación a nivel Épico* y *Dependencias / Impactos* se completan en la ficha (las dependencias arrancan de [23 · §8](../docs/23-plan-construccion-producto-llm.md)). El template de épica **no** usa Como / Quiero / Para ni BDD —a diferencia de lo que sugiere [29 · §4](../docs/29-guia-catedra-historias-de-usuario.md) para épicas en general—: para la entrega manda el template oficial.
+> **Cómo se pasa cada épica al template de Taiga.** La columna *Resultado que habilita* de esta tabla es el **Objetivo** del [template de Épica](../docs/plantillas/epica-taiga.md); *Sprints* y *Pareja líder* son contexto de planificación; los apartados *Suposiciones y Restricciones*, *Criterios de Aceptación a nivel Épico* y *Dependencias / Impactos* se completan en la ficha (las dependencias arrancan de [23 · §8](../docs/23-plan-construccion-producto-llm.md)). El template de épica **no** usa Como / Quiero / Para ni BDD —a diferencia de lo que sugiere [29 · §4](../docs/29-guia-catedra-historias-de-usuario.md) para épicas en general—: para la entrega manda el template oficial. Las diez fichas ya redactadas, una por archivo, están en [`docs/epicas/`](../docs/epicas/README.md).
 
 > **Publicación en Taiga.** Este documento es la versión de trabajo. Las épicas y las HU se cargan además en el backlog de Taiga con los *Templates de Épica y de Historia de Usuario* de la Wiki, y se referencian desde las páginas de la Wiki por su **enlace permanente** (ver [27 · Guía de la Wiki](../docs/27-guia-wiki-taiga.md)). El método para redactarlas y estimarlas es [29 · Guía de cátedra: Historias de Usuario](../docs/29-guia-catedra-historias-de-usuario.md).
 
@@ -33,7 +33,7 @@ Diez épicas cubren el alcance de las tres fases. Cada historia `LLM-Sxx-Hyy` pe
 
 ## Sprint 0 — Arranque del proyecto
 
-Sprint 0 **no produce incremento de software** ni consume la capacidad de entregables: es la primera Planning ampliada, con acuerdos y preparación de ambiente. Ocurre **antes de S1** y deja cumplida la DoR de todas las historias de S1.
+Sprint 0 **no produce incremento de software** ni consume la capacidad de entregables: es la primera Planning ampliada, con acuerdos y preparación de ambiente. Ocurre **antes de S1** y deja cumplida la DoR de todas las historias de S1. No se compromete ninguna historia ni se asignan puntos, salvo estimar la historia canónica. El **acta para completar** el día del Sprint 0 está en [`docs/sprints/sprint-0.md`](../docs/sprints/sprint-0.md).
 
 ### Qué deja cerrado (checklist de salida)
 
@@ -94,7 +94,9 @@ S1 es un sprint de arranque: **casi todo es habilitador técnico**. Sólo H05–
 - **H05, H06, H07** se cargan como **HU** con el [template oficial](../docs/plantillas/historia-de-usuario-taiga.md): Como/Quiero/Para con rol real (docente), BDD de camino feliz + 2 negativos, puntos Fibonacci.
 - **H01–H04, H08, H09** se cargan como **tareas** bajo EP-01 (o bajo una HU habilitadora «Base operable del servicio»), sin exigirles formato COMO/QUIERO/PARA ni puntos de valor.
 
-La columna **h** es la referencia de planificación del plan. Los **puntos Fibonacci** de las HU se asignan en el Sprint 0 con Planning Poker contra la historia canónica (candidata: **H06**); no se pre-cargan acá para no inventar estimaciones. La columna *Aceptación* es la forma comprimida de trabajo; el BDD completo (≥ 3 escenarios) vive en la ficha de Taiga.
+> Las nueve historias ya están redactadas en el **formato largo del template de Taiga** (Como/Quiero/Para, Notas, CA con negativos, ≥ 3 escenarios BDD, Prototipo, Estimación y Dependencias) en [`docs/historias/s01.md`](../docs/historias/s01.md); las diez épicas (EP-01…EP-10), una por archivo en formato Taiga, en [`docs/epicas/`](../docs/epicas/README.md) (las activas en S1 son EP-01 y EP-03). Esta tabla sigue siendo la fuente de ID, épica, pareja, dependencias y horas.
+
+La columna **h** es la referencia de planificación del plan. Los **puntos Fibonacci** de las HU se asignan en el Sprint 0 con Planning Poker contra la historia canónica (candidata: **H06**); no se pre-cargan acá para no inventar estimaciones. La columna *Aceptación* es la forma comprimida de trabajo; el BDD completo (≥ 3 escenarios) vive en [`docs/historias/s01.md`](../docs/historias/s01.md) y en la ficha de Taiga.
 
 | ID | Como… / quiero… / para… | Aceptación (incluye negativa) | Épica | Pareja | Dep. | h |
 |---|---|---|---|---|---|---:|
