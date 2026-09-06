@@ -188,8 +188,9 @@ Cuatro propiedades a no perder:
 - **Reintento con backoff y tope.** Después de N intentos, el trabajo va a una *dead letter queue* y
   se alerta. Nunca reintentar infinito contra un proveedor caído: eso convierte una caída en una
   factura.
-- **Persistencia.** Redis con AOF, o RabbitMQ. Un trabajo perdido es un score que nunca llega y un
-  curso que no se puede cerrar (RF-IA-34).
+- **Persistencia.** Postgres con `SKIP LOCKED`, o Redis con AOF. Un trabajo perdido es un score que
+  nunca llega y un curso que no se puede cerrar (RF-IA-34). El bus del Tema 11 (Kafka) **no** se usa
+  como cola: no tiene prioridades por mensaje ni *dead letter queue* nativa.
 
 ## 6. Resumen de la decisión
 
@@ -515,7 +516,7 @@ Ordenado por probabilidad × impacto:
 | 4 | **Deriva silenciosa del modelo** (RF-IA-32) | **Alta** | Alto | Recalibración mensual (PAR-15) y ante cambio de versión. El PRD lo dice: *"los proveedores actualizan modelos sin cambiar su nombre"* |
 | 5 | **Retirada de un modelo** | **Alta** — hay dos con fecha anunciada | Medio | Modelo en tabla de ADMIN, no en código. Ver [03](03-modelos-costos-y-contexto.md) §2 |
 | 6 | **Caché de prompts que se rompe en silencio** | Alta | Bajo (costo) | Métrica de aciertos de caché en el tablero |
-| 7 | **Cola perdida por reinicio** | Baja | Alto | Cola persistente (Redis con AOF o RabbitMQ), nunca en memoria |
+| 7 | **Cola perdida por reinicio** | Baja | Alto | Cola persistente (Postgres, o Redis con AOF), nunca en memoria |
 | 8 | **Efecto avalancha de reintentos** | Media | Alto | Backoff exponencial + jitter + circuit breaker + tope de reintentos + dead letter queue |
 
 ## 7. Qué monitorear
@@ -1086,8 +1087,9 @@ nada.
 | Opción | A favor | En contra | Cuándo |
 |---|---|---|---|
 | **Postgres** con `FOR UPDATE SKIP LOCKED` | **Cero componentes nuevos.** Transaccional con los datos: el trabajo y su resultado en la misma transacción. Backup único | Requiere polling cada 1-2 s. No escala a millones | ✅ **A esta escala** |
-| **RabbitMQ** | Prioridades y DLQ nativas. Robusto | Un componente más — **salvo que la plataforma ya lo tenga para el bus** | ✅ Si ya está |
+| **RabbitMQ** | Prioridades y DLQ nativas. Robusto | Un componente más. El bus del Tema 11 es Kafka, así que no hay un broker "gratis" que reusar | 🟡 Solo si Postgres se queda corto |
 | **Redis** con AOF | Rápido, simple | Un componente más. Persistencia hay que activarla a propósito | 🟡 Si ya está por otra cosa |
+| **Kafka** (el bus del Tema 11) | Ya está desplegado | ❌ Sin prioridades por mensaje ni DLQ nativa — las dos hacen falta acá | ❌ **No** |
 
 ### 🔄 Revisión: quizás no necesiten Redis en absoluto
 
@@ -1106,10 +1108,10 @@ volumen real, a 120 usuarios probablemente no haga falta:**
 **Qué se pierde:** la caché en memoria no sobrevive un reinicio ni se comparte entre réplicas (con
 1-2 réplicas, es menor), y la cola necesita polling en vez de push.
 
-> **Recomendación revisada:** si la plataforma ya corre RabbitMQ para el bus de eventos, **usalo
-> también para la cola**. Si no, **Postgres para todo y caché en memoria del proceso** — y agregá
-> Redis solo el día que los contadores se pongan calientes o necesites caché compartida entre
-> réplicas.
+> **Recomendación revisada:** el bus del Tema 11 es **Kafka**, y no sirve para la cola interna —sin
+> prioridades por mensaje ni DLQ nativa, y las dos hacen falta (ver más abajo)—. Así que **Postgres
+> para la cola y los contadores, con caché en memoria del proceso**; agregá Redis solo el día que
+> los contadores se pongan calientes o necesites caché compartida entre réplicas.
 >
 > **A 120 usuarios, ese día probablemente no llegue.**
 
@@ -1197,7 +1199,7 @@ Actuator da el endpoint gratis; lo que hay que decidir es **qué mira**.
 | Dependencia | ¿Entra en el readiness? | Por qué |
 |---|---|---|
 | **Postgres** | ✅ Sí | Sin base no se puede aceptar ni registrar trabajo |
-| **Redis / la cola** | ✅ Sí | Sin cola no se puede encolar, que es lo que el servicio promete cuando no hay modelo |
+| **La cola** (Postgres, o Redis si se usa) | ✅ Sí | Sin cola no se puede encolar, que es lo que el servicio promete cuando no hay modelo |
 | **Proveedor de LLM** | 🔴 **No** | ADR-014 |
 
 > ### 🔴 Por qué el proveedor queda afuera

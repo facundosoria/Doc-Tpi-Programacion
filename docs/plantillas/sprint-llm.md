@@ -20,8 +20,9 @@ horas reales ni funcionalidades terminadas. No marcar una casilla sin su evidenc
 
 ## 2. Capacidad individual
 
-Las horas disponibles incluyen reuniones. No multiplicar por diez la disponibilidad efectiva
-de cinco personas. La suma nominal inicial del equipo es 350 h por ciclo, no 700 h.
+Las horas disponibles se toman de la planilla de disponibilidad del equipo (12 integrantes) e
+incluyen reuniones. La suma nominal de referencia del sprint es **816 h** (408 h-persona/semana
+declaradas × 2 semanas).
 
 | Integrante | Pareja / suplente | Disponibilidad declarada (h) | Reuniones (h) | Soporte conocido (h) | Base restante (h) | Reserva 20% (h) | Entregables (h) |
 |---|---|---:|---:|---:|---:|---:|---:|
@@ -35,12 +36,15 @@ de cinco personas. La suma nominal inicial del equipo es 350 h por ciclo, no 700
 | 8 | | | | | | | |
 | 9 | | | | | | | |
 | 10 | | | | | | | |
+| 11 | | | | | | | |
+| 12 | | | | | | | |
 | **Total real planificado** | | | | | | | |
 
 ```text
 Base = disponibilidad − reuniones − soporte conocido
 Entregables = máximo(0, Base × 0,80)
-Referencia sin soporte conocido: (350 − 90) × 0,80 = 208 h
+Referencia sin soporte conocido: (816 − 102) × 0,80 ≈ 571 h de capacidad
+Trabajo estimado por las recetas S1–S19: ~208 h/sprint (piso, no tope)
 ```
 
 Revisar bases individuales negativas; no trasladarlas silenciosamente a otra persona.
@@ -48,17 +52,17 @@ Revisar bases individuales negativas; no trasladarlas silenciosamente a otra per
 ## 3. Reuniones del ciclo
 
 La Planning se carga a este sprint aunque ocurra el día anterior al comienzo operativo.
-La demo pertenece a la Review. Los cinco asistentes a coordinación son representantes internos.
+La demo pertenece a la Review. La coordinación de dependencias no es reunión aparte: va dentro
+de la sincronización, con un representante por pareja cuando hay cruces.
 
 | Reunión | Cantidad | Minutos por sesión | Asistentes internos | Referencia horas-persona | Fecha(s) | Horas-persona reales |
 |---|---:|---:|---:|---:|---|---:|
-| Planning | 1 | 120 | 10 | 20 | | |
-| Daily / sincronización | 4 | 45 | 10 | 30 | | |
-| Review con demo | 1 | 90 | 10 | 15 | | |
-| Retrospectiva | 1 | 60 | 10 | 10 | | |
-| Refinamiento | 2 | 30 | 10 | 10 | | |
-| Dependencias | 2 | 30 | 5 | 5 | | |
-| **Total programado** | | | | **90** | | |
+| Planning | 1 | 120 | 12 | 24 | | |
+| Daily / sincronización (incl. dependencias) | 4 | 45 | 12 | 36 | | |
+| Review con demo | 1 | 90 | 12 | 18 | | |
+| Retrospectiva | 1 | 60 | 12 | 12 | | |
+| Refinamiento | 2 | 30 | 12 | 12 | | |
+| **Total programado** | | | | **102** | | |
 
 Reuniones extraordinarias, preparación, actas y coordinación asincrónica se registran en la
 reserva. Si una reunión planificada se extiende, la diferencia consume reserva; no se vuelve a

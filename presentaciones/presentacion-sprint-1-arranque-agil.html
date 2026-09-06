@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Sprint 1 — Arranque ágil</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" />
+<style>
+  :root{
+    --ground:#0a0f1f;
+    --stage:#0d1426;
+    --surface:#141d33;
+    --surface-2:#1b2647;
+    --border:#2f3d63;
+    --border-soft:#25324f;
+    --ink:#eef1fa;
+    --muted:#9aa6c8;
+    --faint:#6c7aa0;
+    --peri:#8aa4ff;
+    --peri-deep:#5f7fe6;
+    --amber:#f2b366;
+    --teal:#5ecfb8;
+    --green:#54d6a0;
+    --rose:#fb7a92;
+    --s:1;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    background:var(--ground);
+    color:var(--ink);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    color-scheme:dark;
+    display:flex;align-items:center;justify-content:center;
+    overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  .stage{
+    width:1280px;height:720px;
+    transform:scale(var(--s));
+    transform-origin:center center;
+    background:
+      radial-gradient(90% 70% at 100% 110%, rgba(94,207,184,.10) 0%, transparent 50%),
+      var(--stage);
+    background-color:var(--stage);
+    display:flex;flex-direction:column;
+    position:relative;overflow:hidden;
+    border:1px solid var(--border-soft);
+  }
+  .stage::before{
+    content:"";position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(90% 60% at 15% 0%, rgba(138,164,255,.12) 0%, transparent 55%);
+  }
+
+  /* chrome */
+  header.bar{
+    height:56px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+    padding:0 34px;border-bottom:1px solid var(--border-soft);
+    position:relative;z-index:3;background:rgba(10,15,31,.35);
+  }
+  .brand{display:flex;align-items:center;gap:12px;min-width:0}
+  .brand .mk{
+    width:26px;height:26px;border-radius:7px;flex:0 0 auto;
+    background:linear-gradient(135deg,var(--peri),var(--peri-deep));
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;font-weight:700;font-size:13px;color:#0a0f1f;
+  }
+  .brand b{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:13.5px;letter-spacing:.01em}
+  .brand span{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--peri);
+    border:1px solid var(--border);border-radius:5px;padding:2px 7px;white-space:nowrap;
+  }
+  .nav{display:flex;align-items:center;gap:10px}
+  .counter{
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;color:var(--muted);
+    background:var(--surface);border:1px solid var(--border);border-radius:999px;padding:4px 12px;
+    font-variant-numeric:tabular-nums;
+  }
+  .nav button{
+    width:30px;height:30px;border-radius:8px;border:1px solid var(--border);
+    background:var(--surface);color:var(--muted);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;transition:.15s;
+  }
+  .nav button:hover{background:var(--surface-2);color:var(--ink);border-color:var(--peri-deep)}
+  .nav button:focus-visible{outline:2px solid var(--peri);outline-offset:2px}
+  .nav svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2.2}
+
+  .deck{position:relative;flex:1 1 auto;overflow:hidden;z-index:2}
+  .slide{
+    position:absolute;inset:0;padding:34px 56px 16px;
+    display:flex;flex-direction:column;
+    opacity:0;visibility:hidden;transition:opacity .28s ease;
+  }
+  .slide.active{opacity:1;visibility:visible}
+  @media (prefers-reduced-motion:reduce){.slide{transition:none}}
+
+  footer.hint{
+    height:34px;flex:0 0 auto;display:flex;align-items:center;justify-content:space-between;
+    padding:0 34px;border-top:1px solid var(--border-soft);
+    font-size:10.5px;color:var(--faint);position:relative;z-index:3;background:rgba(10,15,31,.35);
+  }
+  footer.hint kbd{
+    font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--muted);
+    border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;padding:1px 5px;margin:0 2px;
+  }
+  footer.hint .ist{font-family:'JetBrains Mono',monospace}
+
+  /* typography helpers */
+  .eyebrow{
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.16em;
+    text-transform:uppercase;color:var(--peri);display:flex;align-items:center;gap:9px;
+  }
+  .eyebrow::before{content:"";width:22px;height:1px;background:var(--peri-deep)}
+  h1.title{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:30px;line-height:1.12;
+    letter-spacing:-.015em;text-wrap:balance;margin-top:12px;
+  }
+  h1.title.big{font-size:56px;line-height:1.03}
+  .lede{font-size:15.5px;line-height:1.5;color:var(--muted);max-width:62ch;margin-top:14px}
+  .src{
+    position:absolute;top:34px;right:56px;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--faint);
+    border:1px solid var(--border-soft);border-radius:5px;padding:3px 8px;
+  }
+  .body-area{flex:1 1 auto;display:flex;flex-direction:column;justify-content:center;min-height:0;margin-top:6px}
+  .note{
+    margin-top:auto;padding-top:12px;font-size:12px;color:var(--faint);line-height:1.45;
+    display:flex;gap:9px;align-items:flex-start;
+  }
+  .note b{color:var(--muted);font-weight:600}
+  .mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums}
+  code{font-family:'JetBrains Mono',monospace;font-size:.9em;color:var(--peri);background:rgba(138,164,255,.09);padding:1px 4px;border-radius:4px}
+
+  /* cards / grids */
+  .grid{display:grid;gap:14px}
+  .g2{grid-template-columns:1fr 1fr}
+  .g3{grid-template-columns:repeat(3,1fr)}
+  .card{
+    background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;
+    padding:16px 18px;display:flex;flex-direction:column;gap:6px;
+  }
+  .card h3{
+    font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:14.5px;letter-spacing:-.005em;
+    display:flex;align-items:center;gap:8px;
+  }
+  .card p{font-size:12.5px;line-height:1.45;color:var(--muted)}
+  .kicker{
+    font-family:'JetBrains Mono',monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--faint);
+  }
+  .tag{
+    font-family:'JetBrains Mono',monospace;font-size:10px;font-weight:500;
+    border-radius:5px;padding:2px 7px;white-space:nowrap;
+  }
+  .tag.hu{color:var(--green);border:1px solid rgba(84,214,160,.35);background:rgba(84,214,160,.08)}
+  .tag.tk{color:var(--muted);border:1px solid var(--border);background:var(--surface-2)}
+
+  /* numbered list (agenda) */
+  .steps{display:flex;flex-direction:column;gap:11px}
+  .step{
+    display:grid;grid-template-columns:44px 1fr auto;gap:16px;align-items:center;
+    background:var(--surface);border:1px solid var(--border-soft);border-radius:11px;padding:13px 18px;
+  }
+  .step .n{
+    font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;color:var(--peri);
+    font-variant-numeric:tabular-nums;
+  }
+  .step h4{font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:15px;margin-bottom:2px}
+  .step p{font-size:12px;color:var(--muted);line-height:1.4}
+  .step .where{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--faint);text-align:right;white-space:nowrap}
+
+  /* compare table */
+  .cmp{width:100%;border-collapse:separate;border-spacing:0;font-size:13px}
+  .cmp th,.cmp td{text-align:left;padding:13px 16px;vertical-align:top;line-height:1.42}
+  .cmp thead th{
+    font-family:'Space Grotesk',sans-serif;font-size:14px;font-weight:600;
+    border-bottom:1px solid var(--border);
+  }
+  .cmp thead th:first-child{width:120px;color:var(--faint);font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase}
+  .cmp tbody th{
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;color:var(--faint);
+    letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;
+  }
+  .cmp td:nth-child(2){color:var(--ink)}
+  .cmp td:nth-child(3){color:var(--muted)}
+  .cmp tbody tr+tr th,.cmp tbody tr+tr td{border-top:1px solid var(--border-soft)}
+  .cmp .dor{color:var(--peri)}
+  .cmp .dod{color:var(--green)}
+
+  /* two-column checklists */
+  .checks{display:grid;grid-template-columns:1fr 1fr;gap:10px 26px}
+  .checks.solo{grid-template-columns:1fr 1fr;gap:9px 26px}
+  .chk{display:grid;grid-template-columns:16px 1fr;gap:10px;font-size:12px;line-height:1.4;color:var(--muted)}
+  .chk .mk{
+    width:16px;height:16px;border-radius:5px;margin-top:1px;flex:0 0 auto;
+    background:rgba(138,164,255,.12);border:1px solid rgba(138,164,255,.3);
+    display:flex;align-items:center;justify-content:center;
+  }
+  .chk .mk svg{width:9px;height:9px;stroke:var(--peri);fill:none;stroke-width:3}
+  .chk b{color:var(--ink);font-weight:600}
+  .col-h{
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:500;letter-spacing:.1em;
+    text-transform:uppercase;color:var(--faint);margin-bottom:9px;
+  }
+  .dodwrap{display:grid;grid-template-columns:1fr 1fr;gap:28px}
+  .dodwrap ul{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .dodwrap li{position:relative;padding-left:15px;font-size:12px;line-height:1.4;color:var(--muted)}
+  .dodwrap li::before{content:"";position:absolute;left:0;top:7px;width:5px;height:5px;border-radius:50%;background:var(--peri-deep)}
+  .dodwrap .c2 li::before{background:var(--teal)}
+
+  /* capacity flow */
+  .flow{display:flex;align-items:stretch;justify-content:space-between;gap:8px}
+  .flow .blk{
+    flex:1 1 0;background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;
+    padding:16px 12px;text-align:center;display:flex;flex-direction:column;gap:5px;justify-content:center;
+  }
+  .flow .blk.final{border-color:var(--peri-deep);background:linear-gradient(180deg,rgba(138,164,255,.12),var(--surface))}
+  .flow .num{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:27px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+  .flow .final .num{color:var(--peri)}
+  .flow .lbl{font-size:10.5px;color:var(--muted);line-height:1.3}
+  .flow .op{display:flex;align-items:center;font-family:'Space Grotesk',sans-serif;font-weight:600;font-size:17px;color:var(--faint)}
+  .split{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:14px}
+  .split .tile{
+    background:var(--surface);border:1px solid var(--border-soft);border-radius:12px;padding:14px 18px;
+    display:flex;gap:14px;align-items:baseline;
+  }
+  .split .tile .big{font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:22px;color:var(--amber);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .split .tile.margin .big{color:var(--teal)}
+  .split .tile p{font-size:11.5px;color:var(--muted);line-height:1.4}
+
+  /* data table */
+  table.data{width:100%;border-collapse:separate;border-spacing:0;font-size:11.5px}
+  table.data th,table.data td{padding:7.5px 10px;text-align:left;vertical-align:top;line-height:1.35}
+  table.data thead th{
+    font-family:'JetBrains Mono',monospace;font-size:9.5px;font-weight:500;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--faint);border-bottom:1px solid var(--border);
+  }
+  table.data tbody td{border-bottom:1px solid var(--border-soft);color:var(--muted)}
+  table.data tbody td.id{font-family:'JetBrains Mono',monospace;color:var(--peri);font-weight:500;white-space:nowrap}
+  table.data tbody td.nm{color:var(--ink)}
+  table.data tbody td.h{font-family:'JetBrains Mono',monospace;text-align:right;font-variant-numeric:tabular-nums;color:var(--ink)}
+  table.data tbody td.sp{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--faint);white-space:nowrap}
+  table.data tbody td.pr{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--muted);white-space:nowrap}
+  table.data tfoot td{padding:8px 10px;font-family:'JetBrains Mono',monospace;font-weight:700;color:var(--ink);text-align:right}
+  table.data tfoot td.lead{text-align:left;color:var(--faint);font-weight:500;letter-spacing:.06em;text-transform:uppercase;font-size:9.5px}
+  .pill{font-family:'JetBrains Mono',monospace;font-size:9.5px;padding:1.5px 6px;border-radius:4px}
+  .pill.hu{color:var(--green);background:rgba(84,214,160,.1);border:1px solid rgba(84,214,160,.3)}
+  .pill.tk{color:var(--muted);background:var(--surface-2);border:1px solid var(--border)}
+
+  /* demo slide */
+  .quote{
+    font-family:'Space Grotesk',sans-serif;font-weight:500;font-size:26px;line-height:1.32;
+    letter-spacing:-.01em;text-wrap:balance;border-left:2px solid var(--peri-deep);padding-left:22px;
+    color:var(--ink);
+  }
+  .chips{display:flex;gap:10px;margin-top:22px;flex-wrap:wrap}
+  .chips .c{
+    font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--muted);
+    background:var(--surface);border:1px solid var(--border-soft);border-radius:8px;padding:8px 13px;
+    display:flex;align-items:center;gap:8px;
+  }
+  .chips .c b{color:var(--peri);font-weight:700}
+  .demo-notes{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:22px}
+  .demo-notes div{font-size:12px;color:var(--muted);line-height:1.45;background:var(--surface);border:1px solid var(--border-soft);border-radius:10px;padding:13px 16px}
+  .demo-notes b{color:var(--ink);font-weight:600}
+
+  .lift{color:var(--ink);font-weight:600}
+</style>
+</head>
+<body>
+<div class="stage" id="stage">
+
+  <header class="bar">
+    <div class="brand">
+      <span class="mk" aria-hidden="true">λ</span>
+      <b>Sprint 1 &mdash; Arranque ágil</b>
+      <span>servicio de evaluación LLM</span>
+    </div>
+    <div class="nav">
+      <span class="counter" id="counter">01 / 14</span>
+      <button id="prev" aria-label="Anterior"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></button>
+      <button id="next" aria-label="Siguiente"><svg viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"/></svg></button>
+      <button id="fs" aria-label="Pantalla completa"><svg viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+    </div>
+  </header>
+
+  <div class="deck" id="deck">
+
+    <!-- 1 · PORTADA -->
+    <section class="slide" data-i="1">
+      <div class="body-area" style="justify-content:center">
+        <div class="eyebrow">TP integrador &middot; UTN FRC &middot; Metodología de Sistemas II</div>
+        <h1 class="title big">Sprint&nbsp;1<br />Arranque ágil</h1>
+        <p class="lede">Cómo dejamos el proyecto listo para construir: <span class="lift">Sprint&nbsp;0</span>, la <span class="lift">Definition of Done</span> del equipo, el <span class="lift">cálculo de capacidad</span>, las <span class="lift">primeras épicas</span> y las <span class="lift">primeras historias de usuario</span>.</p>
+        <div class="chips" style="margin-top:26px">
+          <span class="c mono">Equipo <b>12</b></span>
+          <span class="c mono">Sprint <b>2 semanas</b></span>
+          <span class="c mono">5 parejas P1&ndash;P5 + PO + facilitador</span>
+          <span class="c mono">Capacidad <b>≈ 571 h</b></span>
+          <span class="c mono">S1 estimado <b>≈ 208 h</b></span>
+        </div>
+      </div>
+      <div class="note"><span>Vista de entrega consolidada: <b>doc&nbsp;30</b>. Fuentes vivas: <b>doc&nbsp;23 §2 / §9.2</b> y el <b>backlog ejecutable (Plan de ejecución 07)</b>.</span></div>
+    </section>
+
+    <!-- 2 · AGENDA -->
+    <section class="slide" data-i="2">
+      <div class="eyebrow">Agenda</div>
+      <h1 class="title">Las cinco piezas del arranque</h1>
+      <div class="body-area">
+        <div class="steps">
+          <div class="step"><span class="n">01</span><div><h4>Sprint 0</h4><p>Iteración de preparación, sin compromiso de incremento.</p></div><span class="where">Plan 07 · «Sprint 0»</span></div>
+          <div class="step"><span class="n">02</span><div><h4>Definition of Done del equipo</h4><p>Con la DoR como compuerta de entrada.</p></div><span class="where">doc 23 · §9.2</span></div>
+          <div class="step"><span class="n">03</span><div><h4>Cálculo de capacidad del sprint</h4><p>Sobre las horas reales declaradas por los 12 integrantes.</p></div><span class="where">doc 23 · §2</span></div>
+          <div class="step"><span class="n">04</span><div><h4>Primeras épicas</h4><p>EP-01…EP-10: el «para qué» de cada historia en el producto.</p></div><span class="where">Plan 07 · «Épicas»</span></div>
+          <div class="step"><span class="n">05</span><div><h4>Primeras historias de usuario</h4><p>Sprint 1: un golden set que sobrevive al reinicio.</p></div><span class="where">Plan 07 · «S1»</span></div>
+        </div>
+      </div>
+      <div class="note"><span>Si un número de esta presentación no coincide con su fuente, <b>manda la fuente</b>.</span></div>
+    </section>
+
+    <!-- 3 · SPRINT 0 QUÉ ES -->
+    <section class="slide" data-i="3">
+      <span class="src">Plan de ejecución 07 · «Sprint 0»</span>
+      <div class="eyebrow">01 · Sprint 0</div>
+      <h1 class="title">Preparar, no producir</h1>
+      <div class="body-area">
+        <div class="grid g2">
+          <div class="card"><span class="kicker">Sin incremento</span><h3>No produce software</h3><p>No consume capacidad de entregables. Es la primera Planning ampliada.</p></div>
+          <div class="card"><span class="kicker">Cuándo</span><h3>Antes de S1</h3><p>El equipo cierra acuerdos y deja el ambiente reproducible.</p></div>
+          <div class="card"><span class="kicker">Objetivo único</span><h3>DoR de todas las historias de S1</h3><p>Sprint 0 termina cuando cada historia de S1 puede comprometerse sin bloqueos.</p></div>
+          <div class="card"><span class="kicker">Relación con Scrum</span><h3>Scrum no define un «Sprint 0»</h3><p>Acá es una iteración de preparación sin compromiso. La primera Planning formal (24 h-persona) se carga a S1.</p></div>
+        </div>
+      </div>
+      <div class="note"><span>El detalle completo &mdash;14 ítems de salida&mdash; vive en la sección «Sprint 0» del backlog ejecutable.</span></div>
+    </section>
+
+    <!-- 4 · SPRINT 0 CHECKLIST -->
+    <section class="slide" data-i="4">
+      <span class="src">14 ítems en Plan 07 · agrupados</span>
+      <div class="eyebrow">01 · Sprint 0</div>
+      <h1 class="title">Qué deja cerrado</h1>
+      <div class="body-area">
+        <div class="grid g3">
+          <div class="card"><h3>Equipo y capacidad</h3><p>Fecha de inicio y disponibilidad individual declarada. P1&ndash;P5 (10), referente de producto y facilitador, suplencias. Capacidad de S1 calculada y registrada en la plantilla de sprint.</p></div>
+          <div class="card"><h3>Acuerdos del equipo</h3><p>DoR y DoD leídas y aceptadas. Historia canónica elegida y estimada &mdash; candidata <span class="mono">LLM-S01-H06</span>.</p></div>
+          <div class="card"><h3>Backlog en Taiga</h3><p>Épicas revisadas; cada HU de S1 asignada a una épica. Épicas e historias cargadas con los templates oficiales; permalinks anotados.</p></div>
+          <div class="card"><h3>Dependencias</h3><p>D01 (identidad, Gateway, Eureka, frontend) y D02 (docentes, set base, 5 dimensiones) con responsable y estado. D03/D04 solicitadas con fecha.</p></div>
+          <div class="card"><h3>Ambiente y repos</h3><p><span class="mono">git</span>, <span class="mono">docker</span>, <span class="mono">docker compose</span> y Java 21 verificados. Remoto <span class="mono">tpi-llm</span> con <span class="mono">main</span> y <span class="mono">develop</span> protegidas: PR obligatorio, CI en verde, sin push directo.</p></div>
+          <div class="card"><h3>Evidencia y demo</h3><p>Carpeta de evidencia acordada. La estimación de S1 incluye esqueleto, migraciones, contrato, pruebas e integración. Criterio de demo acordado.</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 · DoR vs DoD -->
+    <section class="slide" data-i="5">
+      <span class="src">doc 23 · §9.2</span>
+      <div class="eyebrow">02 · Definition of Done</div>
+      <h1 class="title">Dos compuertas, no una</h1>
+      <div class="body-area">
+        <table class="cmp">
+          <thead><tr><th></th><th class="dor">DoR &mdash; Definition of Ready</th><th class="dod">DoD &mdash; Definition of Done</th></tr></thead>
+          <tbody>
+            <tr><th>Qué es</th><td>La historia está entendida y sin bloqueos para empezar.</td><td>La historia está realmente terminada: el usuario la usa y hay evidencia.</td></tr>
+            <tr><th>Cuándo</th><td>En Refinamiento y Planning, <b>antes</b> de comprometerla.</td><td>En la Review, <b>antes</b> de aceptarla.</td></tr>
+            <tr><th>Si no se cumple</th><td>No entra al sprint: se refina o se divide.</td><td>Vuelve a «en progreso»: no se presenta como terminada.</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note"><span>Los <b>criterios de aceptación</b> son propios de cada historia (escenarios BDD). La <b>DoD</b> es común a todas.</span></div>
+    </section>
+
+    <!-- 6 · DoR -->
+    <section class="slide" data-i="6">
+      <span class="src">doc 23 · §9.2 · alineada a doc 29</span>
+      <div class="eyebrow">02 · Definition of Ready</div>
+      <h1 class="title">Una historia se compromete solo si tiene</h1>
+      <div class="body-area">
+        <div class="checks">
+          <div class="chk"><span class="mk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><b>Rol real y resultado observable</b> &mdash; el <em>Como</em> nombra a un docente, alumno, ADMIN u operador; un habilitador técnico puro es tarea.</span></div>
+          <div class="chk"><span class="mk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><b>Criterios en BDD</b> &mdash; ≥ 1 camino feliz y ≥ 2 negativos (no autorizado, entrada inválida, duplicado, dependencia caída).</span></div>
+          <div class="chk"><span class="mk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><b>Requisito trazable</b> (<span class="mono">RF-*</span> / <span class="mono">PAR-*</span>) y referente de producto nombrado.</span></div>
+          <div class="chk"><span class="mk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><b>Contrato definido</b> si cruza servicios &mdash; esquema, autenticación, correlación, idempotencia.</span></div>
+          <div class="chk"><span class="mk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><b>Responsable y suplente</b> asignados.</span></div>
+          <div class="chk"><span class="mk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><b>Datos de prueba</b> autorizados o fixture sintético etiquetado.</span></div>
+          <div class="chk"><span class="mk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><b>Dependencias externas</b> con dueño, fecha y alternativa.</span></div>
+          <div class="chk"><span class="mk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><b>Estimación en equipo, después de los CA</b> &mdash; puntos Fibonacci en Taiga, horas en el plan; &gt; ~40 h o 13 puntos se divide.</span></div>
+          <div class="chk"><span class="mk"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7"/></svg></span><span><b>Historia sana según INVEST</b> &mdash; falla la <b>V</b> → suele ser tarea; falla la <b>S</b> → es épica.</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 7 · DoD -->
+    <section class="slide" data-i="7">
+      <span class="src">doc 23 · §9.2</span>
+      <div class="eyebrow">02 · Definition of Done</div>
+      <h1 class="title">Terminado = usado, con evidencia</h1>
+      <div class="body-area">
+        <div class="dodwrap">
+          <div class="c1">
+            <div class="col-h">Por cada historia</div>
+            <ul>
+              <li>PR revisado, sin secretos; migración versionada si cambia persistencia.</li>
+              <li>Autorización por audiencia, scope/rol y ownership; se valida el recurso, no los IDs del body.</li>
+              <li>Bean Validation y respuesta RFC 7807 con <span class="mono">X-Request-Id</span> propagado.</li>
+              <li>Idempotencia: misma <span class="mono">Idempotency-Key</span> / <span class="mono">eventId</span> no duplica efectos.</li>
+              <li>Trazas <span class="mono">traceparent</span> en HTTP, jobs y eventos; logs sin datos sensibles.</li>
+              <li>Pruebas unitarias, de persistencia/migración, de contrato y de autorización; BDD de aceptación con evidencia.</li>
+              <li>Métrica, health/readiness y runbook si hay trabajo asíncrono, proveedor u operación manual.</li>
+            </ul>
+          </div>
+          <div class="c2">
+            <div class="col-h">Por cada incremento de sprint</div>
+            <ul>
+              <li>El usuario completa el recorrido con interfaz, persistencia y permisos reales.</li>
+              <li>Los servicios consumidores del compromiso participan de verdad.</li>
+              <li>Pruebas de contrato, fallas, idempotencia, seguridad y regresión pasan.</li>
+              <li>Las comprobaciones de calidad de modelo / RAG / moderación tienen evidencia.</li>
+              <li>Código, migraciones y contratos coinciden con lo desplegado.</li>
+              <li>Versión identificable, evidencia de demo y procedimiento de recuperación.</li>
+              <li>Documentación y backlog al día; página del componente en la Wiki de Taiga (doc 27).</li>
+              <li>La demo pasa en un ambiente integrado, no en una máquina local aislada.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <div class="note"><span><b>Nunca</b> se rebajan seguridad, pruebas ni controles académicos para cumplir una fecha. Una funcionalidad parcial no se presenta como terminada.</span></div>
+    </section>
+
+    <!-- 8 · CAPACIDAD CÁLCULO -->
+    <section class="slide" data-i="8">
+      <span class="src">doc 23 · §2</span>
+      <div class="eyebrow">03 · Capacidad</div>
+      <h1 class="title">De 816 h nominales a 571 comprometibles</h1>
+      <div class="body-area">
+        <div class="flow">
+          <div class="blk"><span class="num">816</span><span class="lbl">Disponibilidad nominal<br />408 h/sem × 2 sem</span></div>
+          <div class="op">&minus;</div>
+          <div class="blk"><span class="num">102</span><span class="lbl">Reuniones programadas<br />12 participantes</span></div>
+          <div class="op">=</div>
+          <div class="blk"><span class="num">714</span><span class="lbl">Base</span></div>
+          <div class="op">&minus;</div>
+          <div class="blk"><span class="num">143</span><span class="lbl">Reserva 20 %<br />cursada, exámenes, bajas</span></div>
+          <div class="op">=</div>
+          <div class="blk final"><span class="num">571</span><span class="lbl">Capacidad comprometible<br />en entregables</span></div>
+        </div>
+        <div class="split">
+          <div class="tile"><span class="big">≈ 208 h</span><p>Trabajo estimado de las recetas S1&ndash;S19. Estimación gruesa anterior a los contratos &mdash; <b>un piso, no un tope</b>.</p></div>
+          <div class="tile margin"><span class="big">≈ 363 h</span><p>Margen explícito por sprint: re-estimar en Planning, absorber imprevistos y cubrir el overhead de coordinar 12 personas.</p></div>
+        </div>
+      </div>
+      <div class="note"><span>12 integrantes &middot; sprint de 2 semanas &middot; referencia por pareja <b>≈ 114 h</b> (571 ÷ 5), no 571 para cada una.</span></div>
+    </section>
+
+    <!-- 9 · CAPACIDAD DETALLE -->
+    <section class="slide" data-i="9">
+      <span class="src">doc 23 · §2.2 – §2.5</span>
+      <div class="eyebrow">03 · Capacidad</div>
+      <h1 class="title">El detalle y la regla</h1>
+      <div class="body-area">
+        <div class="grid g2" style="gap:22px;align-items:start">
+          <div>
+            <div class="col-h">Reuniones programadas &mdash; 102 h-persona</div>
+            <table class="data">
+              <thead><tr><th>Reunión</th><th>Cant.</th><th>Dur.</th><th>Pers.</th><th style="text-align:right">h-p</th></tr></thead>
+              <tbody>
+                <tr><td class="nm">Sprint Planning</td><td>1</td><td>120′</td><td>12</td><td class="h">24</td></tr>
+                <tr><td class="nm">Daily / sincronización</td><td>4</td><td>45′</td><td>12</td><td class="h">36</td></tr>
+                <tr><td class="nm">Sprint Review + demo</td><td>1</td><td>90′</td><td>12</td><td class="h">18</td></tr>
+                <tr><td class="nm">Retrospectiva</td><td>1</td><td>60′</td><td>12</td><td class="h">12</td></tr>
+                <tr><td class="nm">Refinamiento del backlog</td><td>2</td><td>30′</td><td>12</td><td class="h">12</td></tr>
+              </tbody>
+              <tfoot><tr><td class="lead">Total</td><td></td><td></td><td></td><td>102</td></tr></tfoot>
+            </table>
+          </div>
+          <div style="display:flex;flex-direction:column;gap:12px">
+            <div class="card"><h3>Recalcular en cada Planning</h3><p><span class="mono">Base = disponibilidad − reuniones − soporte conocido</span><br /><span class="mono">Capacidad = máx(0, Base × 0,80)</span></p></div>
+            <div class="card"><h3>Coordinación de dependencias</h3><p>Punto fijo de la agenda de las sincronizaciones, con un representante por pareja cuando hay cruces. No es una reunión aparte.</p></div>
+            <div class="card"><h3>Puntos ≠ horas</h3><p>Los puntos Fibonacci son esfuerzo relativo a la historia canónica; <b>no se convierten</b> en horas. Sirven para planificar por velocidad tras 2&ndash;3 sprints cerrados.</p></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 10 · ÉPICAS -->
+    <section class="slide" data-i="10">
+      <span class="src">Plan de ejecución 07 · «Épicas»</span>
+      <div class="eyebrow">04 · Épicas</div>
+      <h1 class="title">EP-01 … EP-10 &mdash; el producto completo</h1>
+      <div class="body-area">
+        <table class="data">
+          <thead><tr><th>Épica</th><th>Nombre</th><th>Resultado que habilita</th><th>Parejas</th><th>Sprints</th></tr></thead>
+          <tbody>
+            <tr><td class="id">EP-01</td><td class="nm">Plataforma, contratos e integración</td><td>Arranca reproducible y publica <span class="mono">/api/llm/**</span> y contratos</td><td class="pr">P1</td><td class="sp">S1·S3·S6·S10·S19</td></tr>
+            <tr><td class="id">EP-02</td><td class="nm">AI Gateway, modelos y resiliencia</td><td>Un único punto con timeout, presupuesto y validación de salida</td><td class="pr">P2</td><td class="sp">S3·S8·S9</td></tr>
+            <tr><td class="id">EP-03</td><td class="nm">Golden set y referencia humana</td><td>El docente construye, puntúa y versiona la referencia</td><td class="pr">P5+P4</td><td class="sp">S1·S2</td></tr>
+            <tr><td class="id">EP-04</td><td class="nm">Calibración y gobernanza del modelo</td><td>Sin calibración dentro de tolerancia no se activa el curso</td><td class="pr">P4</td><td class="sp">S3·S4·S8</td></tr>
+            <tr><td class="id">EP-05</td><td class="nm">Tutor seguro y guardarraíles</td><td>Ayuda socrática; se bloquea jailbreak y fuga de solución</td><td class="pr">P3+P2</td><td class="sp">S5</td></tr>
+            <tr><td class="id">EP-06</td><td class="nm">Evaluación, score y auditoría</td><td>Score desglosado, explicable y apelable al cerrar el intento</td><td class="pr">P4+P1</td><td class="sp">S6·S7</td></tr>
+            <tr><td class="id">EP-07</td><td class="nm">Operación, cuotas y observabilidad</td><td>El operador ve costo y cuotas y recupera lo recuperable</td><td class="pr">P2+P1</td><td class="sp">S9·S10</td></tr>
+            <tr><td class="id">EP-08</td><td class="nm">Moderación integrada (F2)</td><td>Mensajes permitidos o bloqueados antes de entregarse</td><td class="pr">P3+P2+P1</td><td class="sp">S11–S13</td></tr>
+            <tr><td class="id">EP-09</td><td class="nm">RAG y consulta de material (F3)</td><td>Consultable con fuente y página; sin respaldo, se abstiene</td><td class="pr">P5+P3</td><td class="sp">S14–S16</td></tr>
+            <tr><td class="id">EP-10</td><td class="nm">Personalización y agente (F3)</td><td>Desafíos personalizados y menciones a <span class="mono">@agente</span>, con salida moderada</td><td class="pr">P5+P4+P3</td><td class="sp">S17–S18</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note"><span>El <b>sprint</b> dice cuándo se construye; la <b>épica</b>, para qué sirve en el producto. Las épicas no se estiman ni se comprometen: cierran cuando todas sus historias pasan la DoD.</span></div>
+    </section>
+
+    <!-- 11 · HISTORIAS S1 — HU vs TAREAS -->
+    <section class="slide" data-i="11">
+      <span class="src">Plan de ejecución 07 · «S1»</span>
+      <div class="eyebrow">05 · Historias · Sprint 1</div>
+      <h1 class="title">Objetivo de S1: un golden set que sobrevive al reinicio</h1>
+      <div class="body-area">
+        <p class="lede" style="margin-top:4px;max-width:78ch">Un docente autorizado carga y consulta casos de referencia (golden set) y los datos sobreviven al reinicio del servicio. <span class="lift">Trabajo estimado ≈ 208 h</span> sobre 571 h de capacidad.</p>
+        <div class="grid g2" style="margin-top:16px">
+          <div class="card"><h3><span class="tag hu">HU de valor</span> H05 · H06 · H07</h3><p>Un docente percibe el resultado. Se cargan en Taiga con el <b>template oficial</b>: Como / Quiero / Para con rol real, BDD de camino feliz + 2 negativos, puntos Fibonacci.</p></div>
+          <div class="card"><h3><span class="tag tk">Tareas de sprint</span> H01–H04 · H08 · H09</h3><p>Habilitadores técnicos: fallan la <b>V</b> de INVEST. Se cargan como <b>tareas bajo EP-01</b>, sin Como / Quiero / Para ni puntos de valor.</p></div>
+        </div>
+      </div>
+      <div class="note"><span>Los puntos Fibonacci se asignan en el <b>Sprint 0</b> con Planning Poker contra la historia canónica &mdash; candidata <span class="mono">LLM-S01-H06</span>.</span></div>
+    </section>
+
+    <!-- 12 · TABLA H01–H09 -->
+    <section class="slide" data-i="12">
+      <span class="src">Plan de ejecución 07 · receta S1</span>
+      <div class="eyebrow">05 · Historias · Sprint 1</div>
+      <h1 class="title">Las nueve del Sprint 1</h1>
+      <div class="body-area">
+        <table class="data">
+          <thead><tr><th>ID</th><th>Historia / tarea</th><th>Tipo</th><th>Épica</th><th>Pareja</th><th style="text-align:right">h</th></tr></thead>
+          <tbody>
+            <tr><td class="id">H01</td><td class="nm">ADR: árbol de módulos y convenciones técnicas</td><td><span class="pill tk">Tarea</span></td><td class="pr">EP-01</td><td class="pr">P1</td><td class="h">16</td></tr>
+            <tr><td class="id">H02</td><td class="nm">Levantar todo el entorno con un comando</td><td><span class="pill tk">Tarea</span></td><td class="pr">EP-01</td><td class="pr">P1</td><td class="h">30</td></tr>
+            <tr><td class="id">H03</td><td class="nm">Esqueleto transversal del servicio (Eureka, <span class="mono">/api/llm/**</span>, M2M)</td><td><span class="pill tk">Tarea</span></td><td class="pr">EP-01</td><td class="pr">P1</td><td class="h">34</td></tr>
+            <tr><td class="id">H04</td><td class="nm">Esquema inicial versionado con Flyway (append-only)</td><td><span class="pill tk">Tarea</span></td><td class="pr">EP-01</td><td class="pr">P1</td><td class="h">38</td></tr>
+            <tr><td class="id">H05</td><td class="nm">Alta de golden set y carga de entradas vía Gateway</td><td><span class="pill hu">HU</span></td><td class="pr">EP-03</td><td class="pr">P5</td><td class="h">24</td></tr>
+            <tr><td class="id">H06</td><td class="nm">Consultar el golden set aunque el servicio se reinicie <span style="color:var(--faint)">· canónica</span></td><td><span class="pill hu">HU</span></td><td class="pr">EP-03</td><td class="pr">P5</td><td class="h">14</td></tr>
+            <tr><td class="id">H07</td><td class="nm">Pantalla mínima de alta, carga y consulta</td><td><span class="pill hu">HU</span></td><td class="pr">EP-03</td><td class="pr">P5</td><td class="h">24</td></tr>
+            <tr><td class="id">H08</td><td class="nm">Contrato OpenAPI y mock del golden set publicados</td><td><span class="pill tk">Tarea</span></td><td class="pr">EP-01</td><td class="pr">P1</td><td class="h">10</td></tr>
+            <tr><td class="id">H09</td><td class="nm">Suite de pruebas y guía de demo de S1</td><td><span class="pill tk">Tarea</span></td><td class="pr">EP-01</td><td class="pr">todos</td><td class="h">18</td></tr>
+          </tbody>
+          <tfoot><tr><td class="lead" colspan="5">Total estimado</td><td>208</td></tr></tfoot>
+        </table>
+      </div>
+      <div class="note"><span>La columna <em>Aceptación</em> del backlog es la forma comprimida; el BDD completo (≥ 3 escenarios) vive en la ficha de Taiga.</span></div>
+    </section>
+
+    <!-- 13 · DEMO -->
+    <section class="slide" data-i="13">
+      <span class="src">doc 30 · §5 · criterio de demo</span>
+      <div class="eyebrow">05 · Historias · Sprint 1</div>
+      <h1 class="title">Cómo se demuestra S1</h1>
+      <div class="body-area">
+        <p class="quote">Un docente autorizado crea un golden set, carga una entrada y la consulta después de reiniciar el servicio.</p>
+        <div class="chips">
+          <span class="c"><b>01</b> acceso autorizado</span>
+          <span class="c"><b>02</b> carga y consulta</span>
+          <span class="c"><b>03</b> recuperación tras <span class="mono">docker compose restart</span></span>
+        </div>
+        <div class="demo-notes">
+          <div><b>Historia canónica candidata:</b> <span class="mono">LLM-S01-H06</span> (14 h). Pequeña y ya estimada &mdash; referencia del Planning Poker del equipo.</div>
+          <div><b>Dónde:</b> la demo del sprint pasa en un <b>ambiente integrado</b>, con interfaz, persistencia y permisos reales, no en una máquina local aislada.</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 14 · CIERRE -->
+    <section class="slide" data-i="14">
+      <div class="eyebrow">Cierre</div>
+      <h1 class="title">Manda la fuente</h1>
+      <div class="body-area">
+        <table class="cmp">
+          <thead><tr><th>Pieza</th><th>Fuente única que se mantiene</th></tr></thead>
+          <tbody>
+            <tr><th style="text-transform:none;letter-spacing:0;font-family:'Inter';font-size:13px;color:var(--ink)">Sprint 0 y su checklist</th><td class="mono">Plan de ejecución 07 · sección «Sprint 0»</td></tr>
+            <tr><th style="text-transform:none;letter-spacing:0;font-family:'Inter';font-size:13px;color:var(--ink)">DoR / DoD</th><td class="mono">doc 23 · §9.2</td></tr>
+            <tr><th style="text-transform:none;letter-spacing:0;font-family:'Inter';font-size:13px;color:var(--ink)">Cálculo de capacidad</th><td class="mono">doc 23 · §2</td></tr>
+            <tr><th style="text-transform:none;letter-spacing:0;font-family:'Inter';font-size:13px;color:var(--ink)">Épicas e historias de S1</th><td class="mono">Plan de ejecución 07 · «Épicas» / «S1»</td></tr>
+            <tr><th style="text-transform:none;letter-spacing:0;font-family:'Inter';font-size:13px;color:var(--ink)">Método para redactar y estimar HU</th><td class="mono">doc 29 + templates de Taiga (HU / épica)</td></tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="note"><span><b>doc 30</b> reúne estas cinco piezas para la entrega de cátedra &mdash; es la vista de entrega, no la fuente de verdad. Si un número no coincide, manda la fuente.</span></div>
+    </section>
+
+  </div>
+
+  <footer class="hint">
+    <div><kbd>←</kbd><kbd>→</kbd> navegar &nbsp;·&nbsp; <kbd>F</kbd> pantalla completa &nbsp;·&nbsp; <kbd>Home</kbd> / <kbd>End</kbd></div>
+    <div class="ist">UTN FRC · Tecnicatura Universitaria en Programación · Metodología de Sistemas II</div>
+  </footer>
+
+</div>
+
+<script>
+  (function () {
+    var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+    var total = slides.length;
+    var counter = document.getElementById('counter');
+    var cur = 1;
+
+    function pad(n){ return (n < 10 ? '0' : '') + n; }
+
+    function show(n) {
+      cur = Math.max(1, Math.min(total, n));
+      slides.forEach(function (s) {
+        s.classList.toggle('active', parseInt(s.dataset.i, 10) === cur);
+      });
+      counter.textContent = pad(cur) + ' / ' + pad(total);
+      if (('#' + cur) !== location.hash) history.replaceState(null, '', '#' + cur);
+    }
+    function next(){ show(cur + 1); }
+    function prev(){ show(cur - 1); }
+
+    function fs() {
+      if (!document.fullscreenElement) {
+        var el = document.documentElement;
+        (el.requestFullscreen && el.requestFullscreen().catch(function(){}));
+      } else {
+        document.exitFullscreen && document.exitFullscreen();
+      }
+    }
+
+    document.getElementById('next').addEventListener('click', next);
+    document.getElementById('prev').addEventListener('click', prev);
+    document.getElementById('fs').addEventListener('click', fs);
+
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'ArrowRight' || e.key === 'PageDown' || e.key === ' ') { e.preventDefault(); next(); }
+      else if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); prev(); }
+      else if (e.key === 'Home') { e.preventDefault(); show(1); }
+      else if (e.key === 'End') { e.preventDefault(); show(total); }
+      else if (e.key === 'f' || e.key === 'F') { e.preventDefault(); fs(); }
+    });
+
+    // touch swipe
+    var x0 = null;
+    document.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; }, { passive: true });
+    document.addEventListener('touchend', function (e) {
+      if (x0 === null) return;
+      var dx = e.changedTouches[0].clientX - x0;
+      if (Math.abs(dx) > 50) { dx < 0 ? next() : prev(); }
+      x0 = null;
+    }, { passive: true });
+
+    function fit() {
+      var s = Math.min(window.innerWidth / 1280, window.innerHeight / 720);
+      document.documentElement.style.setProperty('--s', s);
+    }
+    window.addEventListener('resize', fit);
+    window.addEventListener('hashchange', function () {
+      var h = parseInt(location.hash.replace('#', ''), 10);
+      if (h && h !== cur) show(h);
+    });
+
+    fit();
+    var start = parseInt(location.hash.replace('#', ''), 10);
+    show(start && start >= 1 && start <= total ? start : 1);
+  })();
+</script>
+</body>
+</html>

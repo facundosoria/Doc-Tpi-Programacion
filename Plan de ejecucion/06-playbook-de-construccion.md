@@ -30,33 +30,23 @@ Kafka <-> consumer/outbox publisher <-------------+
 
 La estructura de paquetes se decide en S1, pero debe conservar estas fronteras: `api`, `application`, `domain`, `infrastructure/persistence`, `infrastructure/messaging`, `infrastructure/ai`, `security` y `configuration`. Los nombres físicos pueden variar; las dependencias no: `api` no conoce JPA, y `domain` no conoce Spring, Kafka ni proveedores.
 
-## 3. Definition of Ready (DoR)
+## 3. Definition of Ready (DoR) y Definition of Done (DoD)
 
-Una historia puede entrar al sprint solo si tiene:
+**Fuente única: [23 · §9.2](../docs/23-plan-construccion-producto-llm.md).** Este playbook no
+define DoR ni DoD propias; ahí está la explicación de qué es cada una, la DoR completa y la DoD
+en sus dos niveles (por historia y por incremento).
 
-- Usuario, resultado observable y criterios de aceptación negativos además de los felices.
-- Requisito(s) trazables (`RF-*` o `PAR-*`) y dueño de producto.
-- Consumidor/productor, esquema, autenticación, correlación e idempotencia definidos si cruza servicios.
-- Datos de prueba autorizados o un fixture sintético claramente etiquetado.
-- Dueño externo, fecha de disponibilidad y alternativa explícita si existe una dependencia.
-- Estimación dentro de la capacidad del sprint; si supera unas 40 h, se divide verticalmente.
+Al tomar una tarea de este servicio, verificá que la historia cumple la DoR antes de empezar y la
+DoD antes de cerrarla. Recordatorios que se olvidan seguido:
 
-Un mock puede destrabar desarrollo interno, pero no cierra un entregable cuya demo exige integración real.
+- Un mock destraba desarrollo interno pero **no** cierra un entregable cuya demo exige integración real.
+- La solución esperada nunca entra al prompt ni a los logs (ver §5, «IA y seguridad»).
+- `Idempotency-Key` / `eventId` repetido no duplica efectos: el reintento devuelve o recupera el resultado.
+- Cobertura de código según [24 · convención de cobertura](../docs/24-convenciones-cobertura.md).
+- No se cierra una tarea por compilar: el incremento se cierra solo si la demo del sprint pasa en
+  un ambiente integrado, con evidencia enlazada en la ficha del sprint.
 
-## 4. Definition of Done (DoD) para cada historia
-
-- Implementación revisada mediante PR, sin secretos, con migración versionada si cambia persistencia.
-- Autorización por audiencia, scope/rol y ownership; validar el recurso referenciado, no confiar en IDs del body.
-- Validación Bean Validation y respuesta RFC 7807 con `X-Request-Id` propagado.
-- Idempotencia: la misma `Idempotency-Key` o `eventId` no duplica efectos; el reintento devuelve/recupera el resultado correspondiente.
-- Trazas `traceparent` y `X-Request-Id` en HTTP, jobs y eventos. Logs estructurados sin prompt, solución, token ni dato sensible innecesario.
-- Pruebas unitarias de reglas; integración de persistencia/migración; contrato con WireMock o consumer pactado; prueba de autorización y de fallo relevante.
-- Métrica, health/readiness razonable y runbook si introduce trabajo asíncrono, proveedor, dato retenido u operación manual.
-- Demo reproducible desde Docker y evidencia enlazada en la ficha del sprint.
-
-No se cierra una tarea por compilar. El incremento se cierra únicamente si el recorrido de demo del sprint pasa en un ambiente integrado.
-
-## 5. Secuencia obligatoria para una capacidad nueva
+## 4. Secuencia obligatoria para una capacidad nueva
 
 1. **Contrato y amenaza.** Identificar entrada, actor, ownership, datos retenidos, clasificación de riesgo, productor/consumidor y fallas.
 2. **Dominio y migración.** Definir estados, invariantes, historial append-only y claves únicas de idempotencia antes del controller/worker.
@@ -67,7 +57,7 @@ No se cierra una tarea por compilar. El incremento se cierra únicamente si el r
 7. **Prueba de extremo a extremo.** Ejecutar caso feliz, duplicado, no autorizado, dependencia caída y recuperación.
 8. **Demo y evidencia.** Actualizar contrato/runbook/changelog de sprint y mostrar la capacidad desde la interfaz o consumidor real.
 
-## 6. Patrones que no se negocian
+## 5. Patrones que no se negocian
 
 ### HTTP y errores
 
@@ -85,7 +75,7 @@ La solución esperada se entrega exclusivamente al guardia de salida, jamás al 
 
 Toda entidad académica conserva versión, autor, instante y relación con rúbrica/modelo/prompt cuando corresponda. Overrides y puntuaciones no sobrescriben el original. Documentos binarios viven en el dueño/MinIO; LLM conserva referencias, hashes y metadatos. La purga del chat no elimina evidencia académica o de incidente que tenga retención aprobada.
 
-## 7. Pruebas mínimas por tipo
+## 6. Pruebas mínimas por tipo
 
 | Tipo | Debe demostrar |
 |---|---|
@@ -96,10 +86,10 @@ Toda entidad académica conserva versión, autor, instante y relación con rúbr
 | Resiliencia | Timeout, 429, proveedor caído, mensaje duplicado, reinicio en ejecución y recuperación. |
 | E2E/demo | Usuario real completa el recorrido y el operador puede observar el estado. |
 
-## 8. Gestión de bloqueos
+## 7. Gestión de bloqueos
 
 Registrar el bloqueo el mismo día con: sprint, historia, dueño externo, contrato/requisito afectado, evidencia, fecha prometida y decisión necesaria. P1 lo lleva a coordinación semanal. Si no se resuelve antes de la mitad del sprint, se conserva el objetivo con una rebanada vertical que no falsee la integración; si no existe, se renegocia el objetivo en vez de declarar terminado un mock.
 
-## 9. Evidencia por sprint
+## 8. Evidencia por sprint
 
 En la carpeta de evidencia acordada por el equipo, registrar: enlace al PR, resultado de CI, versión de migración, contrato/modificación aprobada, comandos Docker ejecutados, capturas o video de demo, resultados de carga/seguridad si aplican, y decisiones/bloqueos abiertos. La Review valida evidencia, no solo una presentación.

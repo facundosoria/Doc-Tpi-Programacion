@@ -189,7 +189,7 @@ Core API como gateway y la comunicación es directa.
 | API Gateway como única puerta | 🟡 Parcial — usa el Core API |
 | **Registro dinámico en Service Discovery** | ❌ **No** |
 | Sin comunicación directa entre microservicios | ❌ No |
-| Bus de eventos con contrato compartido (Tema 11) | 🟡 Usa RabbitMQ, pero sin el contrato común |
+| Bus de eventos con contrato compartido (Tema 11) | ❌ Usa RabbitMQ; el bus del Tema 11 es **Kafka**, y además sin el contrato común |
 
 **Resolución: prevalece la cátedra.** Son reglas declaradas no negociables
 ([02](02-arquitectura-y-stack.md), Parte 1).

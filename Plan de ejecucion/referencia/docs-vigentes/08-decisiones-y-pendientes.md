@@ -339,9 +339,33 @@ tráfico que el gateway no pueda absorber y haya que balancear antes.
 
 ---
 
+### ADR-016 — langchain4j como cliente de LLM y capa de salida estructurada
+
+**Decisión:** los adapters de `service/gateway/adapter/` se implementan sobre **langchain4j**
+(`dev.langchain4j`): un módulo por proveedor (`langchain4j-anthropic`, `langchain4j-open-ai`,
+`langchain4j-google-ai-gemini`) detrás de la interfaz `LlmAdapter` nuestra. Se usan su `ChatModel`
+y su soporte de **salida estructurada / JSON Schema**. **No** se usan sus `AiServices`, tools,
+memoria ni orquestación de agentes — eso sigue prohibido por ADR-002.
+
+**Por qué:** langchain4j ya resuelve lo que cada adapter tendría que escribir a mano por proveedor
+—autenticación, formato de mensajes `system`/`user`/`assistant`, reintentos de transporte, parseo de
+la respuesta, tokens y motivo de corte, salida estructurada validada— con una API uniforme.
+[02](02-arquitectura-y-stack.md) marcaba "SDK oficial · `RestClient` directo" como 🟡 *menos
+ejemplos*; langchain4j quita ese costo sin atar el servicio a un proveedor (RF-IA-11). El gateway
+sigue siendo dueño de cuota, guardarraíles, tabla función→modelo, log y degradación: langchain4j
+vive **dentro** del adapter, nunca lo llama un service directamente.
+
+**Se revisa si:** langchain4j no cubre un proveedor que necesitemos, o su salida estructurada se
+queda corta para el evaluador. En ese caso ese adapter puntual cae a `RestClient` directo detrás de
+la misma interfaz.
+
+📄 [02](02-arquitectura-y-stack.md), [26](26-herramientas-y-librerias.md)
+
+---
+
 ## ⚠️ Decisiones que se revisaron durante el diseño
 
-**Leé esto antes de reabrir una discusión.** Siete decisiones cambiaron mientras se armaba la
+**Leé esto antes de reabrir una discusión.** Nueve decisiones cambiaron mientras se armaba la
 documentación, y los documentos ya reflejan la versión final — pero si encontrás una afirmación que
 parece contradecir a otra, probablemente sea una de estas.
 
@@ -354,6 +378,8 @@ parece contradecir a otra, probablemente sea una de estas.
 | 5 | Redis obligatorio | **Probablemente innecesario** | A 120 usuarios, Postgres alcanza |
 | 6 | El corrector no usa el RAG | **Sí lo usa**, por el chunk trazado | La pregunta nació de un fragmento; ese fragmento sirve al corregir |
 | 7 | ~USD 125 por cuatrimestre | **USD 5 a 22** | Al optimizar el contexto del tutor |
+| 8 | LLM por SDK del proveedor / `RestClient` a mano | **langchain4j** en los adapters | Quita el costo de escribir cada cliente a mano, sin atar a un proveedor (ADR-016) |
+| 9 | Bus del Tema 11 asumido como RabbitMQ (y quizás reusado para la cola) | **Bus del Tema 11 en Kafka**; cola interna en Postgres/Redis, aparte | Kafka no sirve para la cola interna (sin prioridades ni DLQ por mensaje); son dos canales distintos |
 
 > **La #4 vino de afuera:** existe otro set de documentación (la *guía didáctica*) que en ese punto
 > tenía mejor solución que la nuestra. La comparación completa está en
@@ -615,8 +641,8 @@ No urgentes, pero anotadas para no redescubrirlas:
 | **N-1** | ¿Cómo consumen el componente Angular? | 🟢 **El front es un monolito compartido.** Es una carpeta más del repo, sin librería npm |
 | **B-2** | ¿Quién guarda la transcripción? | 🟢 **Nosotros**, porque el tutor es nuestro. Y capturamos la metadata de tiempos nosotros mismos |
 | — | ¿Quiénes son los "docentes" del golden set? | 🟢 **Personas físicas, nunca un modelo.** En el TP pueden ser 2 del equipo actuando como docentes |
-| — | Tamaño del equipo | 🟢 **6 personas.** Reparto en [10](10-entregables-y-plan.md) |
-| — | ¿Producto o demo? | 🟢 **Tiene que funcionar, pero primero demo local.** Plan de 4 semanas en [10](10-entregables-y-plan.md) |
+| — | Tamaño del equipo | 🟢 **12 integrantes** (5 parejas P1–P5 + referente de producto + facilitador). El "6 personas / P1–P6" de [10](10-entregables-y-plan.md) quedó superado; reparto vigente en [23 · §3](23-plan-construccion-producto-llm.md) |
+| — | ¿Producto o demo? | 🟢 **Tiene que funcionar, pero primero demo local.** El "plan de 4 semanas" de [10](10-entregables-y-plan.md) fue reemplazado por los 19 sprints de [23](23-plan-construccion-producto-llm.md) |
 
 **Lo que sigue abierto es lo de abajo.** Los ítems tachados quedan por trazabilidad.
 
@@ -669,7 +695,7 @@ RF-IA-08 lo exige y no está asignado a ningún tema. Lo necesitan el tutor, el 
 
 ### 🟡 A-4 — ¿Quién provee el API Gateway, el Service Discovery y el bus de eventos?
 
-El API Gateway figura como **extra asignado al Tema 01** (columna «podría ser»). El contrato de eventos lo define el **Tema 11**. El Service Discovery no aparece asignado a nadie.
+El API Gateway figura como **extra asignado al Tema 01** (columna «podría ser»). El contrato de eventos lo define el **Tema 11**, y el bus corre sobre **Kafka**. El Service Discovery no aparece asignado a nadie.
 
 **Por qué importa para vos:** son tres dependencias de infraestructura que tu servicio necesita para arrancar y que no controlás.
 

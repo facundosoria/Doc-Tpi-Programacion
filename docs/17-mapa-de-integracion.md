@@ -634,7 +634,7 @@ acá.
 | **I-10** | Streaming: la decisión cambió a Buffer Interceptor y seis documentos siguen diciendo «sin streaming» | Nosotros — propagar o revertir | P5 y P6 construyen dos productos distintos |
 | **I-11** | Los timeouts por rol (tutor 45 s, evaluador 120 s) nunca llegaron a ningún documento técnico | P1 | Un timeout de 45 s contra un objetivo de 2 s necesita una relación escrita |
 | **I-12** | La regla de redondeo y el tipo de `score_agregado` | Nosotros | El número entra en PAR-05 y en una apelación auditable meses después |
-| **I-13** | La tecnología de la cola: Redis, RabbitMQ o Postgres con `SKIP LOCKED` | Nosotros | El Paso 1 del plan levanta Redis y el `pom.xml` no declara ninguna |
+| **I-13** | La tecnología de la **cola interna**: Redis o Postgres con `SKIP LOCKED` (el bus del Tema 11 es Kafka y no se reusa acá) | Nosotros | El Paso 1 del plan levanta Redis y el `pom.xml` no declara ninguna |
 | **I-14** | La autenticación entre servicios: «token interno» sin formato, header ni emisor. El único OpenAPI no declara `security` | Sesión de integración | Ningún endpoint dice hoy qué rol puede llamarlo |
 | **I-15** | Quién construye la pantalla del golden set: cuatro documentos le dan cuatro dueños | 🔴 Product Owner | Es la que destraba el ítem de plazo más largo, y **no es ninguno de los 14 pasos del plan** |
 | **I-16** | El costo cero del moderador se apoya en un free tier que quizá no pueda tocar datos de alumnos | Consulta legal | Es la única función que por diseño manda texto libre de alumnos a un tercero |

@@ -2,8 +2,9 @@
 
 > **Planificación anterior, conservada como antecedente.** Para calendario, capacidad,
 > responsables y ceremonias usar [23 · Plan de construcción del producto LLM](23-plan-construccion-producto-llm.md)
-> y su [plantilla de sprint](plantillas/sprint-llm.md): 10 integrantes, tres fases y 19 sprints.
-> Cada sprint presupone 350 h nominales, 90 h de reuniones, 52 h de reserva y 208 h de entregables.
+> y su [plantilla de sprint](plantillas/sprint-llm.md): 12 integrantes, tres fases y 19 sprints.
+> Con la disponibilidad real declarada, cada sprint presupone 816 h nominales, 102 h de reuniones
+> y 143 h de reserva: **~571 h de capacidad** (trabajo estimado de las recetas: ~208 h/sprint).
 > Los IDs de historias de este documento se conservan; no se heredan automáticamente sus
 > estimaciones, fechas o alcance. La restricción F2/F3 indicada abajo corresponde al antiguo
 > recorte de MVP, no excluye esas fases del nuevo plan de producto completo.
@@ -42,7 +43,7 @@ ID queda muerto. Es lo que hace que un ID escrito en un commit siga significando
 
 | SP | Equivale a | Ejemplo |
 |---|---|---|
-| **1** | Una tarde sin sorpresas | Rotar una API key, sumar un chequeo al pipeline de calidad |
+| **1** | Una tarde sin sorpresas | Rotar una API key, sumar un test unitario a una clase que ya existe |
 | **2** | Un día de una persona | Un endpoint que devuelve un mock con los campos del contrato |
 | **3** | Dos días de una persona | Un adapter de proveedor sobre una interfaz que ya existe |
 | **5** | Una semana de una persona, o dos días de a dos | El registro `función → modelo` con su tabla y su ABM |
@@ -246,7 +247,7 @@ defendible.
 | E05-06 | Flujo de apelación, lado backend | El alumno apela, queda registrado con su motivo, y la resolución entra como override auditable (RF-IA-18) | 5 | E05-04 | 🟡 |
 | E05-07 | Trazabilidad de versiones en cada evaluación | Cada evaluación guarda `rubric_version`, `prompt_version`, `model_id` y `model_version`. Sin esto, la deriva no se puede explicar | 3 | E05-03 | 🔴 |
 | E05-08 | Publicar `score_de_ia_calculado` y `score_pendiente_diferido` | Con el schema de [18](18-contratos-inter-equipos.md) §2.1 y §2.2. El segundo se emite cuando el proveedor está caído | 3 | E01-08 · E05-05 | 🔴 |
-| E05-09 | Pruebas de algo no determinístico | Snapshots con tolerancia por dimensión, según [06](06-operacion-e-ingenieria.md). Cambiar un prompt sin correr esto queda prohibido por el pipeline de calidad | 5 | E05-03 | 🟡 |
+| E05-09 | Pruebas de algo no determinístico | Snapshots con tolerancia por dimensión, según [06](06-operacion-e-ingenieria.md). Cambiar un prompt sin correr esto queda prohibido — es regla del equipo | 5 | E05-03 | 🟡 |
 
 ---
 
@@ -339,18 +340,18 @@ son nuestras porque nadie más entiende para qué existen.
 
 ## E11 · Calidad, CI/CD y observabilidad
 
-**Célula C1.** El pipeline de calidad ya existe —vive en la rama `feat/qa-gate` y no se publica
-acá—; esta épica es hacerlo cumplir sobre el código nuevo y sumarle lo que hoy no mira.
+**Célula C1.** Esta épica pone controles automáticos sobre el código del micro —formato, análisis
+estático, cobertura y tests en cada PR— y la observabilidad de producción.
 
 | ID | Historia | Criterio de aceptación | SP | Dep. | Prio |
 |---|---|---|---|---|---|
-| E11-01 | El pipeline en verde sobre el micro, en cada PR | El pipeline de calidad pasa sobre `ms-evaluacion-llm` y ningún PR mergea en rojo | 3 | — | 🔴 |
-| E11-02 | Umbral de cobertura por módulo | Cada paquete de `service/` tiene su mínimo y el CI lo hace cumplir. Un módulo nuevo entra con su umbral declarado | 3 | E11-01 | 🟡 |
-| E11-03 | Las corridas visibles en el panel del CI | El panel del CI muestra las corridas del micro, no solo las de documentación | 3 | E11-01 | 🟢 |
-| E11-04 | Tests de contrato contra el OpenAPI | Un cambio de respuesta que rompe el contrato publicado falla en el CI, no en la integración | 5 | E03-01 | 🟡 |
+| E11-01 | Controles automáticos en verde sobre el micro, en cada PR | Formato, análisis estático y tests pasan sobre `ms-evaluacion-llm` y ningún PR mergea en rojo | 3 | — | 🔴 |
+| E11-02 | Umbral de cobertura por módulo | Cada paquete de `service/` tiene su mínimo y se verifica en cada PR. Un módulo nuevo entra con su umbral declarado | 3 | E11-01 | 🟡 |
+| E11-03 | Resultados visibles en el PR | El estado de cada control aparece en el PR; no hay que abrir logs para saber qué falló | 3 | E11-01 | 🟢 |
+| E11-04 | Tests de contrato contra el OpenAPI | Un cambio de respuesta que rompe el contrato publicado falla antes de la integración | 5 | E03-01 | 🟡 |
 | E11-05 | Escenario de carga: 120 sesiones concurrentes | La escala objetivo del PRD se sostiene, y el pico se absorbe por cola sin perder trabajos | 5 | E01-06 | 🟡 |
 | E11-06 | Despliegue *rolling update* verificado | Un despliegue no corta sesiones de tutor en curso (ADR-013), apoyado en la sonda de E01-10 | 3 | E01-10 | 🟡 |
-| E11-07 | Ninguna credencial en el repositorio, verificado | Gitleaks corre en el CI y falla ante una key. El caso conocido lo cierra E08-06 | 2 | — | 🔴 |
+| E11-07 | Ninguna credencial en el repositorio, verificado | Un escaneo de secretos corre en cada PR y falla ante una key. El caso conocido lo cierra E08-06 | 2 | — | 🔴 |
 
 ---
 
@@ -500,7 +501,7 @@ nombrado y una fecha, porque una decisión sin dueño no se toma.
 - La pantalla de carga y puntuación del golden set existe y se le puede pasar a un docente. **A
   partir de acá, E06-07 puede arrancar.**
 - Cero fugas sobre el corpus de 20 pedidos de solución.
-- El pipeline de calidad corre sobre el micro en cada PR.
+- Los controles automáticos (formato, análisis estático, cobertura, tests) corren sobre el micro en cada PR.
 
 > **Es el sprint de la rotación de roles dentro de cada célula.** Quien llevaba el backend toma la
 > pantalla y las pruebas, y al revés.
@@ -627,6 +628,12 @@ Vale tanto como el plan: es lo que nadie debería asumir que va a estar en dicie
 
 ## Las dos definiciones
 
+> **Superadas.** Esta DoR/DoD es la primera versión del equipo. La **fuente única vigente** es
+> [23 · §9.2](23-plan-construccion-producto-llm.md) (DoR de 9 puntos con BDD, DoD por historia y
+> por incremento); el [playbook 06](<../Plan de ejecucion/06-playbook-de-construccion.md>) y
+> [30 · §2](30-arranque-agil-y-sprint-0.md) remiten a esa misma fuente. Lo de abajo se conserva
+> solo como antecedente.
+
 ### Definition of Ready — una historia puede entrar a un sprint si…
 
 1. Tiene criterio de aceptación **verificable por alguien que no la escribió**.
@@ -638,8 +645,8 @@ Vale tanto como el plan: es lo que nadie debería asumir que va a estar en dicie
 
 ### Definition of Done — una historia está terminada si…
 
-1. **El pipeline de calidad pasa en verde**: formato, cobertura, PMD, enlaces, ortografía y
-   secretos.
+1. **Los controles automáticos pasan en verde**: formato, cobertura, análisis estático (PMD) y
+   tests.
 2. Tiene prueba automatizada. Si es no determinística, snapshot con tolerancia (E05-09).
 3. La revisó el par de la célula, y si toca `repository/` o `entity/`, también la célula dueña de
    esa tabla.
@@ -648,6 +655,14 @@ Vale tanto como el plan: es lo que nadie debería asumir que va a estar en dicie
 6. Se puede demostrar en la review **sin explicar nada antes de mostrarlo**.
 
 ## Ceremonias
+
+> **Tabla superada.** Estas duraciones, cadencia y participantes corresponden al modelo anterior
+> de 6 células. El plan vigente es [23 · §2.2](23-plan-construccion-producto-llm.md): 12
+> integrantes, Planning 120 min, sincronización 45 min ×2 por semana, Review 90 min, Retro 60 min
+> y Refinamiento 30 min ×2 — total **102 h-persona por sprint**. La **coordinación de
+> dependencias** no es reunión aparte en el plan vigente: es un punto de agenda de las
+> sincronizaciones (martes y jueves), con un representante por pareja cuando hay cruces. Se
+> conserva esta tabla solo como antecedente.
 
 | Ceremonia | Cuándo | Duración | Quiénes |
 |---|---|---|---|

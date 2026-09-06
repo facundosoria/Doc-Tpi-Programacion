@@ -29,8 +29,8 @@ Si estás desarrollando o integrando un nuevo microservicio al proyecto, sigue e
 
 `llm-service` aplica el contrato como `tpi-llm` → `llm-service` → `/api/llm/**`, con
 `/api/llm/public/**` reservado y `aud=llm-service` para M2M. Sus contratos concretos están en
-[`../contracts/`](../contracts/) y su guía normativa en
-[`../00-fuentes-de-verdad-y-convenciones.md`](../00-fuentes-de-verdad-y-convenciones.md).
+[`../contratos/`](../contratos/) y su guía normativa en
+[`../docs-vigentes/00-fuentes-de-verdad-y-convenciones.md`](../docs-vigentes/00-fuentes-de-verdad-y-convenciones.md).
 
 ### 1. Convención de Nombres
 

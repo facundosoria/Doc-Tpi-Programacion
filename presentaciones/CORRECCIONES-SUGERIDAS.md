@@ -127,34 +127,9 @@ el botón *«Ver en GitHub»* apuntaba a `doc-tpi-unificada`.
 **Aplicado:** los 93 `repoPath` apuntan a rutas que existen en `main`, y el botón
 también. Se verificó archivo por archivo que los 25 destinos distintos existen.
 
-## 8 · Abren sin internet — y ya no sólo estas tres
+## 8 · Carga directa desde CDN
 
-Los tres bajaban Tailwind y tipografías de un CDN; el informe además bajaba `marked`
-—sin el cual quedaba **la página en blanco**, porque todo su texto vive en una variable
-de JavaScript—, el mapa `lucide` y la guía Font Awesome.
-
-**Aplicado:** las librerías viven en [`vendor/`](vendor/) y se cargan por ruta relativa.
-Las tipografías pasaron a un stack del sistema en vez de bajarse de Google Fonts.
-**Se extendió a las seis presentaciones**, no sólo a estas tres: el deck de defensa, la
-presentación de integración y el PRD-wiki tenían el mismo problema.
-
-| Archivo | Quién lo usa |
-|---|---|
-| `vendor/tailwind-play-3.4.16.js` | las seis |
-| `vendor/lucide.min.js` (0.469.0) | las cinco que tienen íconos |
-| `vendor/marked.min.js` (12.0.2) | el informe |
-| `vendor/font-awesome/` (6.5.1, CSS y woff2) | la guía |
-
-> **Cada archivo tiene respaldo por CDN.** Vendorizar por ruta relativa arregló el aula
-> y rompió otro caso: el `.html` que viaja solo, sin `vendor/` al lado, se veía sin
-> estilo —antes del cambio, esos tres se lo bajaban del CDN y funcionaban—. Ahora cada
-> tag local va seguido de un respaldo que sólo actúa si la librería no quedó definida
-> (`window.tailwind`, `window.lucide`, `window.marked`; Font Awesome, por `onerror` del
-> `<link>`). Con `vendor/` presente el respaldo no dispara y no sale un pedido a la red.
-
-> **Mermaid se sacó del todo.** Tres archivos lo cargaban —3,3 MB— y **ninguno de los
-> seis dibuja un solo diagrama**: sólo llamaban a `mermaid.initialize()` sobre una
-> página sin diagramas. Se fue la librería y se fueron las llamadas.
+Todas las presentaciones cargan sus estilos, scripts e íconos directamente desde sus respectivos CDN oficiales (Tailwind, Lucide, Marked, FontAwesome).
 
 ---
 
@@ -170,13 +145,3 @@ render de las tarjetas ni los íconos.
 presentaciones a este repositorio, junto con los cambios de endpoints, Java y ADR. No se
 notaba sin abrir la consola del navegador. Corregido y verificado: los 36
 requerimientos, los 15 ADR y los seis glosarios cargan.
-
----
-
-## Antes de proyectar
-
-1. **Abrilas igual una vez en la máquina del aula.** Ya no necesitan red, pero un doble
-   clic de prueba cuesta treinta segundos.
-2. El informe tiene su propio botón de imprimir a PDF, por si preferís llevarlo así.
-3. Si el archivo viaja sin `vendor/`, el estilo sale del CDN y hace falta red. Para
-   proyectar sin internet, llevate `presentaciones/` completa, no un `.html` suelto.

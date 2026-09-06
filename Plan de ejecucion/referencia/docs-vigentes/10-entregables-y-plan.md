@@ -2,8 +2,14 @@
 
 > **Calendario histórico.** El reparto y la secuencia de este documento se conservan como
 > antecedente. El plan vigente es [23 · Construcción del producto LLM](23-plan-construccion-producto-llm.md):
-> 10 integrantes, tres fases, 19 sprints quincenales y 208 horas-persona iniciales para entregables
-> por sprint, después de reuniones y reserva. Las funciones de F2/F3 entran únicamente en sus fases.
+> 12 integrantes, tres fases, 19 sprints quincenales y ~571 horas-persona de capacidad por sprint
+> (después de reuniones y reserva; ~208 h de trabajo estimado). Las funciones de F2/F3 entran únicamente en sus fases.
+>
+> Donde el cuerpo de este documento diga **«las cuatro semanas»**, **«la demo»**, **«seis
+> personas»**, **«P1–P6»** o **«el plan de 14 pasos»**, se refiere al recorte de demo histórico.
+> Su equivalente vigente es: fases y calendario en [23 · §1 y §5](23-plan-construccion-producto-llm.md),
+> reparto en **5 parejas P1–P5** en [23 · §3](23-plan-construccion-producto-llm.md), y la
+> secuencia de construcción en el [backlog ejecutable S1–S19](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>).
 
 > **Punto de partida actualizado.** Antes de estimar o repartir pasos, usar la matriz [21](21-matriz-trazabilidad-llm.md) y los contratos v1. Esta planificación previa mantiene información de contexto, pero no habilita trabajo de Fase 2/Fase 3 ni endpoints `/ai/*`.
 
