@@ -158,19 +158,19 @@ La columna **h** es la referencia de planificación del plan. Los **puntos Fibon
 
 ## S5 — Tutor seguro (~208 h estimadas)
 
-**No iniciar sin:** contexto validado y canal separado de solución desde `practice-service`, corpus mínimo de ataque y política de cuota. **Demo:** alumno recibe ayuda socrática; fuga/jailbreak bloquean; caída no impide continuar.
+**No iniciar sin:** contexto validado y canal separado de solución desde `practice-service`, corpus mínimo de ataque, política de cuota y decisión **I-10** cerrada (streaming: Buffer Interceptor o revertir). **Demo:** alumno recibe ayuda socrática, con la prosa apareciendo en vivo; fuga/jailbreak bloquean; caída no impide continuar.
 
 | Orden | Paquete verificable | h | Salida / prueba |
 |---:|---|---:|---|
-| 1 | Adenda con práctica | 22 | Contexto, riesgo, ownership, idempotencia, evidencia de indisponibilidad y solución solo para guardia. |
+| 1 | Adenda con práctica | 22 | Contexto, riesgo, ownership, idempotencia, evidencia de indisponibilidad y solución solo para guardia; variante SSE del tutor (`llm-service-v1-tutor-sse-adenda.md`). |
 | 2 | Dominio/interacción/cuota | 34 | Estados `completed/blocked/unavailable`, metadata, límite por alumno y auditoría. |
 | 3 | Guardia de entrada | 28 | Filtros deterministas, separación de datos, clasificador de intención y respuesta segura. |
 | 4 | Orquestación tutor | 36 | Prompt con contexto mínimo, AI Gateway, timeout/circuito y respuesta socrática. |
-| 5 | Guardia de salida | 36 | AST/similitud contra solución fuera de prompt; bloquear/regenerar y registrar incidente. |
+| 5 | Guardia de salida y streaming | 36 | AST/similitud contra solución fuera de prompt; bloquear/regenerar y registrar incidente; **Buffer Interceptor** (máquina `OUTSIDE_CODE`/`INSIDE_CODE`): prosa token a token, bloques de código retenidos hasta validar, endpoint SSE. |
 | 6 | UI práctica y degradación | 20 | Estados claros, no explica evasión, permite continuar sin tutor. |
 | 7 | Seguridad/pruebas/demo | 32 | Corpus jailbreak, fuga simulada, cuota 429, ownership, timeout y trazabilidad. |
 
-**Aceptación negativa:** solución nunca llega al prompt/log; alto riesgo no devuelve streaming plaintext; respuesta bloqueada no llega al navegador.
+**Aceptación negativa:** solución nunca llega al prompt/log; en riesgo alto/medio ningún bloque de código sale del Buffer Interceptor sin validar; respuesta bloqueada no llega al navegador.
 
 ## S6 — Evaluación asíncrona y diferida (~208 h estimadas)
 
