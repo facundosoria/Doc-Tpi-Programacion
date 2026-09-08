@@ -5,8 +5,12 @@
 importó en [`docs/importado/`](../docs/importado/)—, no sobre [`docs/`](../docs/). Eso
 las dejó desalineadas en ocho puntos.
 
-**Los ocho están corregidos.** Este documento es el registro de qué se cambió y por
-qué, para que nadie tenga que reconstruirlo desde el historial.
+**Los ocho originales están corregidos.** El 2026-09-06 se abrió una revisión adicional de Golden
+Set y calibración. Esa revisión retiró el corrector LLM del alcance, corrigió PAR-14 y registró dos
+adendas: rúbricas editables/versionadas por curso (ADR-017) y selección de modelo por curso con doble
+calibración (ADR-018). El seguimiento vigente está en
+[`docs/31`](../docs/31-plan-revision-golden-set-calibracion.md) y la especificación funcional en
+[`docs/32`](../docs/32-especificacion-funcional-golden-set-calibracion.md).
 
 > **Cuál manda cuando difieren:** `docs/`, por la misma razón de siempre — es la
 > documentación de trabajo y tiene el registro de decisiones en
