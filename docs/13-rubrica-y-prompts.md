@@ -122,15 +122,19 @@ que deduce "menos mensajes = más puntaje" deja de preguntar cosas legítimas.*
 
 ## 4. Cómo se calibran estas anclas
 
-**No las den por buenas.** El proceso del paso 6:
+**No las den por buenas.** El docente responsable debe puntuar un piloto de 10 transcripciones
+usando estas anclas y registrar brevemente los casos dudosos.
 
-1. Dos docentes puntúan 10 transcripciones **por separado**, usando estas anclas.
-2. Se comparan. Donde difieran más de ±10 en una dimensión → **el ancla está mal escrita**.
-3. Se reescribe el ancla, no el puntaje.
-4. Se repite.
+1. Puntúa cada caso sin consultar la salida del modelo.
+2. Revisa si la misma evidencia conduce a decisiones coherentes entre casos comparables.
+3. Si una ancla no permite justificar la puntuación con claridad, reescribe el ancla y repite el
+   piloto.
+4. Publica la versión solo cuando puede asignar las cinco puntuaciones de referencia de forma
+   consistente.
 
-**Cada desacuerdo entre docentes es una mejora gratis de la rúbrica.** Si estaba ambigua para un
-humano, para el modelo lo estaba mucho más.
+Una segunda revisión docente puede aportar contraste, pero no es un requisito para crear ni publicar
+un Golden Set. Cuando exista discrepancia, se usa para mejorar la rúbrica, no para modificar de forma
+opaca la evidencia del caso.
 
 ---
 
@@ -143,7 +147,7 @@ humano, para el modelo lo estaba mucho más.
 | 1 | **El texto del usuario nunca se concatena dentro de la instrucción** | Va en un bloque separado, marcado como dato. Es la defensa estructural contra injection |
 | 2 | **Lo estable primero, lo volátil al final** | Es lo que hace funcionar el prompt caching |
 | 3 | **Nada de timestamps ni ids variables en el prefijo** | Rompen el caché **en silencio** |
-| 4 | **Salida estructurada siempre**, en evaluador, corrector y generador | Validable contra schema |
+| 4 | **Salida estructurada siempre**, en evaluador y generador | Validable contra schema |
 | 5 | **Instrucciones positivas antes que negativas** | "Respondé con una pista" funciona mejor que "no respondas con la solución". Ambas, en ese orden |
 | 6 | **El tope de salida va en el parámetro Y en el prompt** | Solo en el parámetro, la respuesta se corta a mitad de frase |
 | 7 | **La rúbrica se renderiza desde el YAML** | Un solo criterio, versionado aparte del prompt |
@@ -316,7 +320,7 @@ salida, **fuera del contexto del modelo**.
 
 > **`rubrica_correccion` se genera junto con la pregunta**, en el mismo acto. Es mucho más coherente
 > que inventar el criterio después, cuando ya nadie se acuerda qué se quería evaluar. Y es lo que
-> después usa el corrector.
+> después puede usar el motor académico o la revisión docente; no existe un corrector LLM vigente.
 
 ## 9. El moderador no tiene prompt
 

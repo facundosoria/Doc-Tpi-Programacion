@@ -47,7 +47,7 @@
 ---
 
 <a name="q-01"></a>
-## Q-01 — ¿Usar un orquestador de IA que divida las tareas de generador, corrector y asistente?
+## Q-01 — ¿Usar un orquestador de IA que divida las tareas de generador, evaluador y asistente?
 
 **Respuesta:** No un orquestador basado en LLM. Sí un **gateway determinístico**.
 
@@ -286,7 +286,7 @@ Y ahí está la clave:
 
 > **Un pico solo es un problema si alguien está esperando.**
 
-- **Funciones asincrónicas** (evaluador, generador, corrector): si se acaba la cuota, la cola
+- **Funciones asincrónicas** (evaluador y generador): si se acaba la cuota, la cola
   **espera**. No hay desborde, no hay costo, no hay cambio de modelo. Son 47 llamadas por día entre
   las tres.
 - **Funciones sincrónicas** (tutor, moderador): el alumno está esperando, así que ahí sí desbordás a

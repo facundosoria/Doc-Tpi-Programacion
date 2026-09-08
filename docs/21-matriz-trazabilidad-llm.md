@@ -10,14 +10,18 @@
 |---|---|---|---|---|
 | RF-IA-01/02/04/06/07/19/20 — tutor seguro y registro | MVP | OpenAPI: `POST /tutor/interactions`; [00](00-fuentes-de-verdad-y-convenciones.md) | `practice-service` aporta contexto validado y solución esperada para anti-fuga | No entrega solución; bloquea/regenera salida similar; registra interacción. |
 | RF-IA-12 a 18/25 — evaluador, detalle y apelación | MVP | OpenAPI: evaluaciones, apelaciones y overrides | `challenges-service` publica `intento_cerrado.v1` | Cinco dimensiones, confianza, justificación, auditoría append-only y nunca XP. |
-| RF-IA-30 a 36 — golden set y calibración | MVP | OpenAPI: golden sets y calibrations; AsyncAPI | Docentes, `courses-service`, `admin-service` | Curso sin calibración aprobada no pasa de draft a activo; sin override. |
+| RF-IA-30 a 36 — Golden Set y calibración | MVP | [32](32-especificacion-funcional-golden-set-calibracion.md); OpenAPI: golden sets y calibrations; AsyncAPI | Docentes, `courses-service`, `admin-service` | Versiones publicadas inmutables; solo una calibración aprobada activa por curso; PAR-14 valida MAE final ≤ 5 y máximo caso/dimensión ≤ 10. |
+| ADR-017 — rúbrica por curso | MVP | [08](08-decisiones-y-pendientes.md#adr-017--rúbricas-editables-y-versionadas-por-curso) | Docente, `courses-service` | Cinco dimensiones obligatorias; borrador editable; pesos suman 100 %; publicación inmutable. |
+| ADR-018 — modelo por curso | MVP | [08](08-decisiones-y-pendientes.md#adr-018--selección-de-modelo-por-curso-sujeta-a-doble-calibración) | ADMIN y docente | El docente solo elige modelos habilitados que aprobaron calibración base y del curso. |
+| Asociación desafío-calibración | MVP | [32 §11](32-especificacion-funcional-golden-set-calibracion.md#11-activación-y-asociación-con-desafíos) | `challenges-service`, `courses-service` | Primer intento bloquea la versión; una activación solo migra desafíos con cero intentos y confirmación docente. |
+| Validación académica del desafío | MVP, fuera de Tema 07 | [00 §5](00-fuentes-de-verdad-y-convenciones.md#5-alcance-de-ia-por-fase) | Motor de desafíos o docente | No usa Golden Set ni score de uso de IA para decidir si la respuesta es correcta. |
 | RF-IA-27/34 — cálculo diferido | MVP | AsyncAPI y consulta de pendientes | `challenges-service`, `courses-service` | Entrega aceptada ante caída; evento diferido; cierre bloqueado mientras existan pendientes. |
 | RF-IA-22/23/24/35 — cuota y modelos | MVP | OpenAPI: model assignments | `admin-service` | 429 con `Retry-After`; cambio de modelo auditado sin cambio de código. |
 | RF-NFR-01/09/10 — retención y auditoría | MVP | [07](07-datos-y-terminos.md) y contratos v1 | T&C y política de plataforma | Sin hard delete académico; auditoría y retención verificables. |
 | RF-NFR-03/04 — 120 sesiones y fallas | MVP | [06](06-operacion-e-ingenieria.md) | Gateway, Kafka y proveedores | Carga concurrente y degradación sin bloquear entregas. |
 | RF-CHT-09 a 14 — moderación | Fase 2 | Contrato reservado en roadmap | `chat-service` | Se planifica al incorporar chat; no es requisito de release MVP. |
 | RF-IA-08 y RF-DES-05 — RAG e IA personalizada | Fase 3 | [04](04-funciones-de-ia.md), roadmap | Cursos y docentes | No se implementa ni expone endpoint durante MVP. |
-| Corrector / parciales generados | Fuera de MVP | ADR pendiente | Product Owner | Requiere RF y owner antes de entrar al backlog. |
+| Corrector LLM / parciales generados | Fuera del alcance vigente | Decisión P-01 y [00](00-fuentes-de-verdad-y-convenciones.md) | Product Owner | No existen endpoints, historias ni calibraciones de corrector; incorporarlos exige cambio de alcance y requisitos aprobados. |
 
 ## Orden de preparación
 

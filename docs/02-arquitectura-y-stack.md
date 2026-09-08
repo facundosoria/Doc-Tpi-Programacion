@@ -145,7 +145,7 @@ No son ocho microservicios: son **ocho carpetas con una interfaz explícita cada
 | **M4 · Calibración** | Golden set, runner, comparación con PAR-14, deriva | M1 + M3 |
 | **M5 · Guardarraíles y moderación** | Filtro de entrada, salvaguarda anti-fuga con AST, moderador de chat (capa clásica + clasificador, ADR-012) | M1 |
 | **M6 · Tutor** | Servicio + componente Angular | M1 + M2 + M5 |
-| **M7 · Generador y corrector** | Blueprint, generación por slot, validación, corrección | M1 + M2 |
+| **M7 · Generador** | Blueprint, generación por slot y validación humana; Fase 3 | M1 + M2 |
 | **M8 · Plataforma** | Docker, API, contratos, cola, base, eventos | — |
 
 ## 4. El AI Gateway: la pieza central
@@ -218,7 +218,7 @@ que la librería no cubre y lo envuelve en nuestra interfaz `LlmAdapter`.
 | 3 | Injection, perímetro temático, lenguaje ofensivo | RF-IA-05/06/07/10 |
 | 4 | Artefactos versionados (`rubric_version`, `prompt_version`). **Un solo criterio para todos los modelos** — RF-IA-29 prohíbe variantes | RF-IA-13/21/29 |
 | 5 | Un adapter por proveedor, sobre langchain4j (ADR-016). Es lo que hace real a RF-IA-11 | RF-IA-11/26 |
-| 6 | Salida estructurada obligatoria en evaluador, corrector y generador | RF-IA-13/16 |
+| 6 | Salida estructurada obligatoria en evaluador y generador | RF-IA-13/16 |
 | 7 | Similitud contra la solución esperada. Bloquea y regenera | RF-IA-20 |
 | 8 | `model_id`, `model_version`, `prompt_version`, `rubric_version`, tokens, costo, latencia, incidentes | RF-IA-02/25/33 |
 
@@ -234,7 +234,6 @@ vuelven imposibles sin refactor.
 | **Moderador** | < 300 ms ⚠️ | Muy alto | Medio | Sincrónico | Sí |
 | **Evaluador** | Minutos | Bajo | **Alto — modifica XP, el XP define promoción** | Asincrónico | **NO (RF-IA-25)** |
 | **Generador** | Minutos | Muy bajo | Bajo — hay revisión humana | Asincrónico | Sí |
-| **Corrector** | Minutos | Medio | Alto — es una nota | Asincrónico | Sí |
 
 > ⚠️ **Los 300 ms del moderador son dos presupuestos distintos, no uno.** La capa clásica resuelve en
 > **< 1 ms** —es un match en memoria—, pero el clasificador externo se lleva un roundtrip HTTP que
@@ -688,7 +687,7 @@ ustedes construyen, y los dos avanzan en paralelo desde el día uno.
 
 ### 1 · Pedir una función de IA
 
-`POST /ai/{funcion}` — funcion: `tutor` | `evaluador` | `moderador` | `generador` | `corrector`
+`POST /ai/{funcion}` — función: `tutor` | `evaluador` | `moderador` | `generador`
 
 ```
 Request

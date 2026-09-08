@@ -22,10 +22,10 @@ Al cerrar S10, el alumno usa tutoría segura, cierra un intento y obtiene una ev
 
 ## S2 — Puntuación docente y versión
 
-**Demo:** dos docentes puntúan por separado, resuelven una diferencia y publican una versión recuperable.
+**Demo:** un docente responsable puntúa con anclas visibles, revisa los casos dudosos y publica una versión recuperable.
 
-1. Guardar puntuaciones separadas, autor, fecha, rúbrica y versión.
-2. Implementar comparación de discrepancias y resolución documentada.
+1. Guardar puntuaciones, autor, fecha, rúbrica y versión.
+2. Documentar la evidencia y los ajustes de anclas antes de publicar.
 3. Garantizar append-only: una puntuación histórica nunca se pisa.
 4. Exportar y recuperar la versión publicada.
 

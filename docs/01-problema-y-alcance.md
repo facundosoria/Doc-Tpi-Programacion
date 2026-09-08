@@ -66,7 +66,6 @@ flowchart TB
 | 1 | **Tutor en desafío** | RF-IA-01/04/06/07/19/20 | El más difícil. Sincrónico |
 | 2 | **Generador de evaluaciones** | RF-DES-05 | Asincrónico, con gate humano |
 | 3 | **Evaluador de uso de IA** | RF-IA-12 a 18, 25, 28 a 36 | **Emite los números.** No asigna XP. Ver §2c |
-| 4 | **Corrector de respuestas** | (no especificado — ver P-01) | Asincrónico |
 | 5 | **Moderador de chat** | RF-CHT-09 a 14 | Es función de IA aunque el chat sea de otro equipo. Ver [04](04-funciones-de-ia.md) Parte 4 |
 | 6 | **Agente `@mención` en canales de curso** | RF-CHT-05 | 🟡 **Fase 3 en el PRD.** Se diseña, no se construye este cuatrimestre |
 
@@ -210,7 +209,7 @@ Las 11 preguntas abiertas de [08](08-decisiones-y-pendientes.md). Las tres que m
 |---|---|---|
 | **P-04** | ¿Quién produce el golden set y para cuándo? | 🔴 Sin fecha, el MVP no sale |
 | **P-06** | ¿El free tier puede tocar datos de alumnos? | Define todo tu modelo de costos |
-| **P-01** | ¿El corrector lleva calibración como el evaluador? | Cambia el diseño del corrector |
+| **P-01** | ¿El corrector lleva calibración como el evaluador? | ✅ Resuelto: el corrector LLM queda fuera del alcance vigente |
 
 ## 4. Las cosas que van a caer en el medio
 
@@ -249,7 +248,7 @@ nadie más tenga nada listo.**
 |---|---|---|
 | D1 | Ingesta de un PDF → chunks → búsqueda que devuelve el fragmento correcto | Front, backend, auth |
 | D2 | Generación de parcial por API, con parámetros | Ídem |
-| D3 | Corrección de respuestas con rúbrica y desglose | Ídem |
+| D3 | Evaluación de uso de IA con conversación completa y desglose 5D | Ídem |
 | D4 | Tutor con RAG y guardarraíles | Ídem |
 
 Una UI mínima propia — dos páginas feas, sin diseño — **solo para poder mostrarlo**. No es la UI del

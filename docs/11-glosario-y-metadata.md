@@ -49,7 +49,7 @@ No es formalismo: es lo único de DDD que urge.
 | Término | Definición |
 |---|---|
 | **Score de uso de IA** | Puntaje 0-100 sobre **cómo** el alumno usó al tutor. Se calcula al cerrar cada intento. Modifica el XP ±20% (PAR-05). **No es una nota de contenido** |
-| **Corrección** | Decidir si una respuesta está bien. Solo las **respuestas abiertas** necesitan un modelo |
+| **Corrección académica** | Determinar si una respuesta o entrega resuelve el desafío. La implementan reglas determinísticas del dominio o una revisión docente; queda fuera del evaluador y de su Golden Set |
 | **XP** | Experiencia. La calcula el Tema 10, no nosotros. Nosotros damos el score; ellos aplican el modificador |
 | **Override** | Un profesor sobrescribe un puntaje. **Se agrega, nunca pisa el original** (RF-IA-18) |
 | **Apelación** | El alumno pide revisión humana de su score |
@@ -59,14 +59,16 @@ No es formalismo: es lo único de DDD que urge.
 
 | Término | Definición |
 |---|---|
-| **Rúbrica** | Artefacto **declarativo** versionado: 5 dimensiones, sus pesos y sus anclas. **No es un prompt.** Un docente tiene que poder leerla |
+| **Rúbrica** | Artefacto declarativo y versionado con 5 dimensiones obligatorias, criterios, anclas, prompts y pesos. El docente puede editarla en borrador; una versión publicada es inmutable (ADR-017) |
 | **Dimensión** | Cada uno de los 5 criterios. Se puntúan 0-100 por separado |
 | **Ancla** | Ejemplo de qué es "bajo", "medio" y "alto" en una dimensión. Es lo que reduce la varianza entre personas |
-| **Peso** | Cuánto aporta cada dimensión al total. Fijos a nivel plataforma: 30/25/20/15/10 |
-| **Golden set** | Conjunto de transcripciones puntuadas **por personas**, usado como vara para medir al modelo. **Nunca puntuado por un modelo** |
-| **Calibración** | Verificar que un modelo puntúa parecido a los docentes sobre el golden set |
-| **Desviación** | La diferencia entre lo que puso el modelo y lo que pusieron los docentes |
-| **Tolerancia (PAR-14)** | ±5 de desviación promedio y ±10 en cualquier dimensión. Fuera de eso, el modelo no se habilita |
+| **Peso** | Aporte de una dimensión al puntaje final. El docente puede modificar los cinco pesos por versión; en conjunto deben sumar 100 % |
+| **Golden Set** | Conjunto versionado de conversaciones completas, contexto, metadata y cinco puntuaciones humanas de referencia. Calibra el evaluador del uso de IA, no un corrector académico |
+| **Caso de Golden Set** | Una conversación completa con contexto del desafío, metadata, procedencia, autor y cinco puntuaciones humanas enteras de 0 a 100 |
+| **Calibración** | Comparación reproducible entre las salidas del evaluador y una versión publicada del Golden Set. No entrena ni ajusta el modelo |
+| **Calibración activa** | Ejecución que superó PAR-14 y se asigna a nuevos desafíos del curso. Solo puede existir una activa por curso |
+| **Desviación** | Error absoluto entre una puntuación producida por el evaluador y su referencia humana |
+| **Tolerancia (PAR-14)** | Error absoluto medio del puntaje final ponderado ≤ 5 y ningún error individual por caso/dimensión > 10. Si falla una condición, el modelo no se habilita |
 | **Deriva** | Que el criterio del modelo se corra solo, porque el proveedor lo actualizó sin avisar (RF-IA-32) |
 
 ### Conversación
@@ -106,9 +108,9 @@ No es formalismo: es lo único de DDD que urge.
 
 | Término | Definición |
 |---|---|
-| **Función de IA** | Una de las cinco: tutor, evaluador, moderador, generador, corrector |
+| **Función de IA** | Una de las funciones vigentes del PRD: tutor, evaluador del uso de IA, moderador, generador o RAG. La corrección académica no es una función LLM vigente |
 | **Proveedor** | La empresa: Anthropic, Google, OpenAI |
-| **Modelo** | El modelo concreto. **Se asigna por función, y vive en una tabla editable por ADMIN** |
+| **Modelo** | Modelo concreto expuesto por un adaptador configurado por ADMIN. El docente puede seleccionarlo por curso si superó la calibración base y la del curso (ADR-018) |
 | **Adapter** | El código que traduce nuestro formato interno al de cada proveedor. Es un patrón GoF: por eso sumar un proveedor no toca ninguna función. Se implementa sobre **langchain4j** (un módulo por proveedor, ADR-016) |
 | **Batch** | Modo asincrónico del proveedor, 50% más barato |
 | **Prompt caching** | Cobrar más barato el prefijo estable que se repite entre llamadas |

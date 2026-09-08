@@ -115,12 +115,12 @@ La columna **h** es la referencia de planificación del plan. Los **puntos Fibon
 
 ## S2 — Referencia humana versionada (~208 h estimadas)
 
-**No iniciar sin:** S1 integrado y protocolo docente de doble puntuación. **Demo:** dos docentes puntúan, resuelven diferencia y recuperan/exportan versión publicada.
+**No iniciar sin:** S1 integrado y protocolo de revisión de referencias y anclas. **Demo:** un docente responsable puntúa, documenta la evidencia y recupera/exporta una versión publicada.
 
 | Orden | Paquete verificable | h | Salida / prueba |
 |---:|---|---:|---|
 | 1 | Modelo append-only | 34 | Puntuación individual, resolución, publicación y snapshot con autor/fecha/rúbrica; prohibir update destructivo. |
-| 2 | Casos de uso y reglas | 38 | Dos puntuaciones independientes; detectar diferencias por dimensión; solo rol autorizado resuelve. |
+| 2 | Casos de uso y reglas | 38 | Puntuación de referencia con evidencia y anclas visibles; registrar revisión opcional; solo rol autorizado publica. |
 | 3 | API/contrato acordado | 30 | Completar adenda necesaria con admin; mocks y pruebas de compatibilidad. |
 | 4 | Interfaz de doble ciego | 40 | Docente no ve puntuación ajena hasta enviar; comparador y motivo de resolución. |
 | 5 | Exportación/recuperación | 24 | Exporta versión inmutable y restaura lectura, nunca pisa referencias publicadas. |

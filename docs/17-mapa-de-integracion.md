@@ -27,7 +27,8 @@ viven en [`contracts/llm-service-v1.asyncapi.yaml`](contracts/llm-service-v1.asy
 | Calibración y golden set | `admin-service` | Recursos `/api/llm/golden-sets` y `/api/llm/calibrations` por Gateway. |
 | Activación y cierre | `courses-service` | Lecturas de calibración y pendientes bajo `/api/llm/course-cohorts/...`. |
 
-RAG, ingesta, moderación, corrector y generador no son rutas MVP. La cola interna no determina el
+RAG, ingesta, moderación y generador no son rutas MVP. El corrector LLM queda fuera del alcance
+vigente. La cola interna no determina el
 contrato externo y Kafka es el único bus de integración acordado.
 
 ---
@@ -107,7 +108,7 @@ son consultas de estado, y **esos dos son los que bloquean a otros equipos si no
 ```mermaid
 flowchart LR
     subgraph post["POST · piden trabajo"]
-        P1["POST /ai/{funcion}<br/>tutor · evaluador · moderador<br/>generador · corrector"]
+        P1["POST /ai/{funcion}<br/>tutor · evaluador · moderador · generador"]
         P2["POST /ai/ingesta<br/>indexar material de un curso"]
         P3["POST /ai/calibracion<br/>correr una calibracion"]
     end
@@ -394,7 +395,6 @@ flowchart TB
 
     subgraph asin["2 · ASINCRONICO — por cola, con Batch al 50%"]
         EV["EVALUADOR<br/>Claude Haiku 4.5 + Batch<br/>8.000 tok entrada · 800 salida<br/>USD 0,006 por evaluacion<br/>minutos · volumen BAJO<br/>SIN FALLBACK — RF-IA-25"]
-        CO["CORRECTOR<br/>Haiku 4.5 o Flash-Lite? — I-07<br/>2.000 tok entrada · 400 salida<br/>USD 0,002 la correccion<br/>minutos · volumen MEDIO"]
         GE["GENERADOR<br/>Gemini 3.5 Flash-Lite + Batch<br/>6.000 tok POR PREGUNTA · 600 salida<br/>USD 0,00083 la pregunta<br/>un parcial de 15: 1,2 centavos"]
     end
 
@@ -510,7 +510,7 @@ históricos**.
 
 > **El score agregado no lo calcula el modelo.** Pedirle la suma ponderada a un LLM es delegarle
 > aritmética. Y las dimensiones determinísticas **también tienen que pasar el golden set**: si tu
-> fórmula de eficiencia da 70 y los dos docentes pusieron 45, la que está mal es la fórmula.
+> fórmula de eficiencia da 70 y la referencia humana es 45, la fórmula necesita revisión.
 
 ### 7.2 Los estados de un trabajo
 
@@ -628,7 +628,7 @@ acá.
 | **I-04** | **Cómo llega el resultado asincrónico al motor de desafíos.** Cuatro mecanismos escritos, ninguno con payload | 🔴 **Sesión de integración** | El Tema 03 no puede empezar su lado |
 | **I-05** | Qué enum viaja en el campo `estado` del contrato de eventos | 🔴 Sesión de integración, con el Tema 11 | Se cierra el contrato con un campo ambiguo |
 | **I-06** | El techo de RF-IA-22: la decisión dice 15, el inventario dice 10, el presupuesto calcula con 8 | Product Owner / ADMIN | **El presupuesto del cuatrimestre depende de cuál es** |
-| **I-07** | El modelo del corrector: Haiku 4.5 en la tabla de decisión, Flash-Lite en los dos escenarios de costo | Nosotros | No existe el costo del corrector con Haiku |
+| **I-07** | Modelo del corrector | ✅ Cerrado: el corrector LLM queda fuera del alcance vigente | Sin costo ni asignación de modelo |
 | **I-08** | El esquema de la tabla `mensaje`, escrito de tres formas incompatibles | P5, **esta semana** | Es lo único que se pierde para siempre si se posterga |
 | **I-09** | `curso_id` / `curso_cohorte_id` / `curso_template_id`: de qué cuelga el chunk del RAG | Sesión de integración | *Si un equipo modela sin esa clave, después no hay forma de acotarlas sin migrar datos* |
 | **I-10** | Streaming: la decisión cambió a Buffer Interceptor y seis documentos siguen diciendo «sin streaming» | Nosotros — propagar o revertir | P5 y P6 construyen dos productos distintos |

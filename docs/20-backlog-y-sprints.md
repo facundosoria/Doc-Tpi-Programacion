@@ -78,7 +78,7 @@ de calidad.
 | **C1 · Plataforma y contratos** | M8 | E01, E03 (parcial), E10-07, E11 | P6 (mitad) |
 | **C2 · AI Gateway** | M1 | E02, E03-07, E03-09, E11-05 | P1 |
 | **C3 · RAG y generador** | M2, M7 (generación) | E04, E09-01…04, E10-06 | P2 |
-| **C4 · Evaluador y corrector** | M3, M7 (corrección) | E05, E09-05, E10-04 | P3 |
+| **C4 · Evaluador** | M3 | E05, E10-04 | P3 |
 | **C5 · Calibración y gobernanza** | M4 | E06, E10-02, E10-03, E10-05 | P4 |
 | **C6 · Guardarraíles y tutor** | M5, M6 | E07, E08, E10-01 | P5 + P6 (mitad) |
 
@@ -146,7 +146,7 @@ Son las de [10](10-entregables-y-plan.md) Parte 2 §7, con la corrección que im
 | **E06** | Calibración y golden set (M4) | C5 | 8 | 40 |
 | **E07** | Guardarraíles y moderación (M5) | C6 | 8 | 39 |
 | **E08** | Tutor y captura de metadata (M6) | C6 | 6 | 28 |
-| **E09** | Generador y corrector (M7) | C3 · C4 | 6 | 32 |
+| **E09** | Generador (M7, Fase 3) | C3 | 4 | 21 |
 | **E10** | Las pantallas del monolito Angular | cada dueña | 8 | 44 |
 | **E11** | Calidad, CI/CD y observabilidad | C1 | 7 | 24 |
 | **E12** | Coordinación, decisiones y documentación | transversal | 10 | 32 |
@@ -259,12 +259,12 @@ camino crítico no es técnico: depende de horas docentes que no controlamos.
 | ID | Historia | Criterio de aceptación | SP | Dep. | Prio |
 |---|---|---|---|---|---|
 | E06-01 | 10 transcripciones sintéticas | Cubren los tres perfiles: quien no intentó, quien intentó y preguntó bien, y quien pidió la solución. Datos sintéticos, sin objeción legal | 3 | — | 🔴 |
-| E06-02 | Doble puntuación humana y sesión de discrepancias | Dos personas puntúan por separado y **se discute cada diferencia mayor a ±10**. De ahí sale una corrección a la rúbrica, no un promedio | 5 | E06-01 · E05-01 | 🔴 |
+| E06-02 | Revisión humana de referencias y anclas | Un docente responsable puntúa con las anclas visibles, documenta dudas y corrige la rúbrica antes de publicar; una segunda revisión es opcional | 5 | E06-01 · E05-01 | 🔴 |
 | E06-03 | Runner de calibración a ciegas | El modelo puntúa las 10 sin ver la nota humana, y sale la desviación por dimensión contra PAR-14 | 8 | E06-02 · E02-01 | 🔴 |
 | E06-04 | Comparar los tres modelos candidatos en una pasada | La corrida dice cuál es el **más barato que pasa**, con su costo por evaluación al lado | 3 | E06-03 | 🟡 |
 | E06-05 | Estado de calibración persistido y bloqueo `draft → activo` | Una cohorte sin calibración aprobada **no pasa a activo, ni con ADMIN**. El endpoint E03-03 deja de ser mock | 5 | E06-03 · E03-03 | 🔴 |
 | E06-06 | Detección de deriva y recalibración mensual | Se recalibra por calendario y ante cambio de versión de modelo o de rúbrica (RF-IA-32). Fuera de tolerancia dispara evento | 5 | E06-05 | 🟡 |
-| E06-07 | Golden set completo de 40 casos puntuados por docentes | Las 40 transcripciones puntuadas **por personas de la cátedra**. Son ~26 h docentes, o ~4 h en la versión reducida | 8 | E10-02 · E12-04 | 🔴 |
+| E06-07 | Golden set completo de 40 casos puntuados por docentes | Las 40 transcripciones se puntúan por un docente responsable. Son ~17 h docentes, o ~2 h en la versión reducida | 8 | E10-02 · E12-04 | 🔴 |
 | E06-08 | Eventos `calibracion_aprobada` y `calibracion_fuera_de_tolerancia` | Con el schema de [18](18-contratos-inter-equipos.md) §2.3, consumidos por el Tema 02 y el Tema 12 | 3 | E01-08 · E06-05 | 🟡 |
 
 ---
@@ -303,11 +303,10 @@ evaluador se queda sin insumo.**
 
 ---
 
-## E09 · Generador y corrector
+## E09 · Generador
 
-**Células C3 (generación) y C4 (corrección).** Módulo M7. Ambas piezas reusan lo que ya construyó su
-célula: el generador es el mayor consumidor del RAG, y el corrector es el mismo patrón de juez del
-evaluador con otra rúbrica.
+**Célula C3.** Módulo M7, planificado para Fase 3. El generador es el mayor consumidor del RAG y
+mantiene revisión humana antes de publicar. El corrector LLM fue retirado del alcance.
 
 | ID | Historia | Criterio de aceptación | SP | Dep. | Prio |
 |---|---|---|---|---|---|
@@ -315,8 +314,6 @@ evaluador con otra rúbrica.
 | E09-02 | Retrieval por cobertura y una llamada por pregunta | Cada pregunta sale de un fragmento distinto: el parcial cubre el temario en vez de repetir el mismo tema cinco veces | 8 | E09-01 · E04-04 | 🟡 |
 | E09-03 | Cinco preguntas validadas, con su fragmento fuente | JSON validado con las 5 preguntas y, junto a cada una, el fragmento del apunte del que salió. Es la pantalla que hace entender la demo | 5 | E09-02 · E02-05 | 🟡 |
 | E09-04 | 20 preguntas generadas y revisadas | Más del 70% usables según revisión humana. Debajo de eso, el generador no se entrega | 3 | E09-03 | 🟢 |
-| E09-05 | Corrector de respuestas abiertas | **Solo abiertas.** Multiple choice, verdadero o falso, ordenar, emparejar y tests se corrigen con código, no con un modelo | 8 | E05-03 | 🟡 |
-| E09-06 | 30 respuestas corregidas a mano como vara | La coincidencia con el corrector se mide igual que la calibración del evaluador | 3 | E09-05 | 🟢 |
 
 ---
 
@@ -367,7 +364,7 @@ nombrado y una fecha, porque una decisión sin dueño no se toma.
 | E12-03 | Cerrar B-3: nuestros campos en el contrato de eventos del Tema 11 | Los campos entran **antes de que cierren el contrato**. Después es renegociar con cinco equipos | 3 | 🔴 |
 | E12-04 | Cerrar C-1: golden set con responsable y fecha | El Product Owner nombra una persona y pone una fecha. Es el plazo más largo del proyecto | 2 | 🔴 |
 | E12-05 | Cerrar C-2: consulta legal del free tier | Respuesta escrita sobre si el free tier puede tocar datos de alumnos. Define el modelo de costos y los T&C | 2 | 🔴 |
-| E12-06 | Cerrar A-1 y A-3: alcance de RAG, generador y corrector | Confirmado por escrito qué construimos. Hoy se inclina al alcance amplio, pero nadie lo dijo formalmente | 3 | 🔴 |
+| E12-06 | Cerrar A-1 y A-3: alcance de RAG y generador | Confirmado por escrito qué se construye en Fase 3; el corrector LLM queda excluido | 3 | 🔴 |
 | E12-07 | Anexo A de los T&C con los proveedores en uso | La lista de proveedores de LLM entregada a quien redacta los T&C (RF-NFR-09). **Solo nosotros la sabemos** | 2 | 🟡 |
 | E12-08 | Sesión de integración con la agenda de ocho ítems | Los ocho ítems de [18](18-contratos-inter-equipos.md) §6 tratados, con acuerdo escrito por cada uno | 3 | 🔴 |
 | E12-09 | Los 31 ítems de contenido de ejemplo pasan a definitivos | El inventario de [08](08-decisiones-y-pendientes.md) Parte C queda sin marcas de *ejemplo*: cada célula define los suyos | 8 | 🟡 |
@@ -386,7 +383,7 @@ nombrado y una fecha, porque una decisión sin dueño no se toma.
 | **S3** | 05/10 – 16/10 | **El RAG cita la página** y la salvaguarda anti-fuga bloquea |
 | **S4** | 19/10 – 30/10 | **Una evaluación punta a punta**, asíncrona y con eventos |
 | **S5** | 02/11 – 13/11 | **El tutor conversa** y el alumno ve su score |
-| **S6** | 16/11 – 27/11 | **Generador y corrector**, deriva y el componente Angular |
+| **S6** | 16/11 – 27/11 | **Generador**, deriva y el componente Angular |
 | **S7** | 30/11 – 11/12 | **Integración, cierre y defensa** |
 | — | 14/12 – 18/12 | Semana de defensa. **No se planifica trabajo** |
 
@@ -533,7 +530,7 @@ nombrado y una fecha, porque una decisión sin dueño no se toma.
 
 ---
 
-## Sprint 6 · «Generador, corrector y el componente»
+## Sprint 6 · «Generador, deriva y el componente»
 
 > **Objetivo:** cerrar las funciones que faltan y entregarle al front el componente de chat que los
 > otros equipos esperan.
@@ -543,7 +540,6 @@ nombrado y una fecha, porque una decisión sin dueño no se toma.
 | **C1 · Plataforma** | E01-09 (5) · E11-04 (5) | 10 |
 | **C2 · Gateway** | E02-11 (5) · E02-09 (3) | 8 |
 | **C3 · Generador** | E09-02 (8) · E04-08 (3) | 11 |
-| **C4 · Corrector** | E09-05 (8) | 8 |
 | **C5 · Calibración** | E06-06 (5) · E10-03 (5) | 10 |
 | **C6 · Tutor** | E08-03 (5) · E08-05 (5) | 10 |
 | **Transversal** | E12-09 (8) | 8 |
@@ -553,7 +549,7 @@ nombrado y una fecha, porque una decisión sin dueño no se toma.
 
 - El evento `intento_cerrado` del Tema 03 dispara una evaluación, y reprocesarlo no la duplica.
 - El generador arma un parcial que cubre el temario en vez de repetir el mismo tema.
-- El corrector puntúa respuestas abiertas reusando el patrón de juez del evaluador.
+- La validación académica permanece fuera de `llm-service`; no existe una historia de corrector LLM.
 - La deriva se detecta y dispara recalibración.
 - **Ningún documento del repositorio dice ya «de ejemplo»** sobre un valor que se usa de verdad.
 
@@ -594,7 +590,7 @@ nombrado y una fecha, porque una decisión sin dueño no se toma.
 | **C1 · Plataforma** | 10 | 10 | 11 | 11 | 9 | 10 | 10 | **71** |
 | **C2 · Gateway** | 8 | 10 | 10 | 11 | 10 | 8 | 10 | **67** |
 | **C3 · RAG y generador** | 8 | 10 | 10 | 8 | 8 | 11 | 13 | **68** |
-| **C4 · Evaluador y corrector** | 10 | 8 | 8 | 11 | 8 | 8 | 10 | **63** |
+| **C4 · Evaluador** | 10 | 8 | 8 | 11 | 8 | — | 10 | **55** |
 | **C5 · Calibración** | 8 | 9 | 8 | 8 | 8 | 10 | 8 | **59** |
 | **C6 · Guardarraíles y tutor** | 7 | 13 | 8 | 8 | 11 | 10 | 11 | **68** |
 | **Transversal** | 13 | 6 | — | — | 2 | 8 | 3 | **32** |

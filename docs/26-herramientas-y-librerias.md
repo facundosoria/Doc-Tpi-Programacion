@@ -78,9 +78,9 @@ Este es un **índice**, no la fuente de verdad de ninguna de las dos cosas que m
 | Herramienta | De dónde viene | Para qué | Cómo la usamos | Estado | Decidido en |
 |---|---|---|---|---|---|
 | **langchain4j** | `dev.langchain4j:langchain4j` + un módulo por proveedor (`langchain4j-anthropic`, `langchain4j-open-ai`, `langchain4j-google-ai-gemini`) | Cliente de LLM: `ChatModel`, formato de mensajes, reintentos de transporte, tokens y motivo de corte | Vive **dentro** de cada adapter de `service/gateway/adapter/`, detrás de nuestra interfaz `LlmAdapter`. **No** se usan sus `AiServices`, tools ni memoria | 📋 | [ADR-016](08-decisiones-y-pendientes.md) · [02 Parte 2 §3](02-arquitectura-y-stack.md) |
-| **Salida estructurada / JSON Schema** | langchain4j (`response format` / JSON Schema) + validación propia con Jackson | Que evaluador, corrector y generador devuelvan un objeto validable, no texto libre | El gateway valida la respuesta del modelo contra el schema antes de devolverla (paso 6 de 8) | 📋 | [02 Parte 1 §4](02-arquitectura-y-stack.md) · [ADR-016](08-decisiones-y-pendientes.md) |
+| **Salida estructurada / JSON Schema** | langchain4j (`response format` / JSON Schema) + validación propia con Jackson | Que evaluador y generador devuelvan un objeto validable, no texto libre | El gateway valida la respuesta del modelo contra el schema antes de devolverla (paso 6 de 8) | 📋 | [02 Parte 1 §4](02-arquitectura-y-stack.md) · [ADR-016](08-decisiones-y-pendientes.md) |
 | **Prompts en archivos** | `.txt` en `resources/prompts/<funcion>/` | Un solo criterio para todos los modelos (RF-IA-29) y evitar recompilar para ajustar un prompt | `system-v1.txt` + `user-v1.txt` por versión; la `prompt_version` se guarda con cada llamada | 📋 | [06 Parte 4 §2](06-operacion-e-ingenieria.md) |
-| **Batch API** (del proveedor) | Anthropic / Google / OpenAI | −50 % de costo en las funciones asíncronas | Evaluador, corrector y generador encolan en modo Batch. Si langchain4j no expone el endpoint Batch de un proveedor, ese adapter usa `RestClient` directo (cláusula de revisión de ADR-016) | 📋 | [ADR-003](08-decisiones-y-pendientes.md) · [03 §1](03-modelos-costos-y-contexto.md) |
+| **Batch API** (del proveedor) | Anthropic / Google / OpenAI | −50 % de costo en las funciones asíncronas | Evaluador y generador encolan en modo Batch. Si langchain4j no expone el endpoint Batch de un proveedor, ese adapter usa `RestClient` directo (cláusula de revisión de ADR-016) | 📋 | [ADR-003](08-decisiones-y-pendientes.md) · [03 §1](03-modelos-costos-y-contexto.md) |
 | **Prompt caching** (del proveedor) | Anthropic / Google / OpenAI | Cobrar barato el prefijo estable que se repite entre alumnos de una cohorte | Prefijo fijo (system prompt + rúbrica + contexto de curso) primero en el payload | 📋 | [03 §5](03-modelos-costos-y-contexto.md) |
 
 > **El código nunca nombra un modelo.** Nombra una función (`evaluador`, `tutor`…), y una tabla en la
@@ -92,7 +92,7 @@ Este es un **índice**, no la fuente de verdad de ninguna de las dos cosas que m
 | Proveedor | Modelo hoy (recomendación) | Para qué función | Decidido en |
 |---|---|---|---|
 | **Google Gemini** | 3.5 Flash-Lite | Tutor · Generador · descripción de imágenes en la ingesta | [03 §1](03-modelos-costos-y-contexto.md) |
-| **Anthropic** | Claude Haiku 4.5 (+ Batch) | Evaluador · Corrector | [03 §1](03-modelos-costos-y-contexto.md) · [ADR-010](08-decisiones-y-pendientes.md) |
+| **Anthropic** | Claude Haiku 4.5 (+ Batch) | Evaluador | [03 §1](03-modelos-costos-y-contexto.md) · [ADR-010](08-decisiones-y-pendientes.md) |
 | **OpenAI** | `omni-moderation-latest` (gratis) | Residuo del moderador que la capa clásica no resuelve | [ADR-012](08-decisiones-y-pendientes.md) |
 | **Groq** | `llama-3.3-70b-versatile` | Solo en las demos (API compatible con OpenAI) | [codigo-ejemplo/README](../codigo-ejemplo/README.md) |
 
