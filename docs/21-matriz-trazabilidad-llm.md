@@ -25,8 +25,9 @@
 1. Publicar y acordar los contratos v1 con los cuatro pares.
 2. Entregar mocks de estado de calibración y pendientes.
 3. Instrumentar la metadata de interacción antes de habilitar tutoría.
-4. Entregar golden set y calibración antes del inicio académico.
-5. Convertir esta matriz en historias con criterio de aceptación y prueba enlazada.
+4. Correr el spike `LLM-S03-SPIKE-01` (S3) y cerrar **I-10** antes de S5: define si el tutor va con Buffer Interceptor y si la adenda SSE se fusiona al `openapi.yaml`.
+5. Entregar golden set y calibración antes del inicio académico.
+6. Convertir esta matriz en historias con criterio de aceptación y prueba enlazada.
 
 ## Correspondencia con el plan de producto completo
 
