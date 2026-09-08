@@ -141,6 +141,20 @@ La columna **h** es la referencia de planificación del plan. Los **puntos Fibon
 | 5 | API, permisos y reporte | 28 | `POST /calibrations`, `GET /jobs`; ADMIN autorizado; reporte explicable. |
 | 6 | Pruebas y demo | 36 | Aprobado, rechazado, provider timeout, job duplicado/reiniciado y costo registrado. |
 
+> **Spike `LLM-S03-SPIKE-01` (EP-02) — viabilidad del streaming del tutor · timebox 16 h.**
+> Enabler, no HU: falla la **V** de INVEST, se carga en Taiga como tarea de spike bajo EP-02 sin
+> formato Como/Quiero/Para ni puntos de valor. Se toma de la holgura de capacidad del sprint (ver
+> nota de S1), no desplaza los paquetes 1–6.
+>
+> **Pregunta:** ¿el **Buffer Interceptor** (prosa en vivo; cada bloque de código retenido hasta
+> parsear el AST y comparar contra la solución esperada) cabe en el presupuesto de latencia del
+> tutor, y `langchain4j` soporta el streaming que necesita? **Salida:** prueba de concepto medida
+> —primer token, respuesta completa, costo de la regeneración cuando bloquea— y recomendación
+> **propagar o revertir** que cierra [I-10](../docs/17-mapa-de-integracion.md) y decide si la adenda
+> [`docs/contracts/llm-service-v1-tutor-sse-adenda.md`](../docs/contracts/llm-service-v1-tutor-sse-adenda.md)
+> se fusiona al `openapi.yaml`. Solapa con I-03 (latencia real del tutor) e I-11 (timeouts por rol).
+> **Dep.:** paquete 1 de S3 (puerto AI Gateway + cliente de proveedor).
+
 **Aceptación negativa:** no hay fallback automático de modelo; fallo no habilita; prompt no interpreta transcript como instrucción.
 
 ## S4 — Calibración por curso y bloqueo real (~208 h estimadas)
@@ -158,7 +172,7 @@ La columna **h** es la referencia de planificación del plan. Los **puntos Fibon
 
 ## S5 — Tutor seguro (~208 h estimadas)
 
-**No iniciar sin:** contexto validado y canal separado de solución desde `practice-service`, corpus mínimo de ataque, política de cuota y decisión **I-10** cerrada (streaming: Buffer Interceptor o revertir). **Demo:** alumno recibe ayuda socrática, con la prosa apareciendo en vivo; fuga/jailbreak bloquean; caída no impide continuar.
+**No iniciar sin:** contexto validado y canal separado de solución desde `practice-service`, corpus mínimo de ataque, política de cuota y decisión **I-10** cerrada (streaming: Buffer Interceptor o revertir — salida del spike `LLM-S03-SPIKE-01`). **Demo:** alumno recibe ayuda socrática, con la prosa apareciendo en vivo; fuga/jailbreak bloquean; caída no impide continuar.
 
 | Orden | Paquete verificable | h | Salida / prueba |
 |---:|---|---:|---|

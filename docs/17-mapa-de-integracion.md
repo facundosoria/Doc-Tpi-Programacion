@@ -644,10 +644,10 @@ acá.
 > fusionar— está en
 > [`contracts/llm-service-v1-tutor-sse-adenda.md`](contracts/llm-service-v1-tutor-sse-adenda.md).
 > **No se fusiona al `openapi.yaml`** hasta cerrar I-10 y que Tema 05 acuerde consumir SSE.
-> Conviene cerrarla con un **spike de viabilidad** antes de S5: ¿la comparación de AST a mitad de
-> stream y la regeneración caben en el presupuesto de latencia? ¿langchain4j soporta el streaming
-> que el interceptor necesita? El spike solapa con I-03 (latencia real del tutor) e I-11 (timeouts
-> por rol) y su salida es lo que decide «propagar o revertir».
+> La cierra el spike **`LLM-S03-SPIKE-01`** (EP-02, timebox 16 h — [Plan de ejecución 07 · S3](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>)):
+> ¿la comparación de AST a mitad de stream y la regeneración caben en el presupuesto de latencia?
+> ¿langchain4j soporta el streaming que el interceptor necesita? Solapa con I-03 (latencia real del
+> tutor) e I-11 (timeouts por rol) y su salida decide «propagar o revertir».
 
 ### Los cuatro que van primero a la sesión de integración
 
