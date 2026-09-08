@@ -23,7 +23,7 @@ histórico, **no participa de la jerarquía y no se modifica** (las correcciones
 `.md` aparte).
 
 `docs/00` también fija la **identidad canónica** del servicio (repo, `spring.application.name`,
-prefijo `/api/<n>/**`, `aud`), que después usan `generar-contratos-servicio` y las demás.
+prefijo `/api/<n>/**`, `aud`), que después usan `contratos-api-gateway` y las demás.
 
 ## 2. Fuente única (un dato, un lugar)
 
@@ -153,7 +153,7 @@ docs/00 + contratos + ADR → resto de docs/.
 
 1. `scaffold-planificacion-agil` → estructura + docs/00 + material fijo
 2. `generar-vision-y-alcance` → docs/vision/
-3. `generar-contratos-servicio` → docs/contracts/
+3. `contratos-api-gateway` → docs/contracts/
 4. `generar-backlog-y-recetas` → docs/plan/ y docs/backlog/
 5. `generar-epicas` → docs/epicas/
 6. `generar-historias-usuario` → docs/historias/

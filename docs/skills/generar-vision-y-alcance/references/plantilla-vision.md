@@ -32,7 +32,7 @@
 |---|---|---|---|---|---|
 | 1 | [·] | [·] | sync / async / — | [RF-*] | [·] |
 
-> Estas filas alimentan `generar-contratos-servicio` (endpoints/eventos) y el catálogo de
+> Estas filas alimentan `contratos-api-gateway` (endpoints/eventos) y el catálogo de
 > épicas de `generar-backlog-y-recetas`.
 
 ## 4. Fronteras

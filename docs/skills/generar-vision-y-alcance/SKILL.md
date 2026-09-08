@@ -5,7 +5,7 @@ description: >-
   docs/vision/: el problema, el alcance dentro/fuera por fase, las funciones o
   capacidades, los objetivos medibles, los roles, las fronteras (qué construimos
   / qué se negocia / qué depende de otros) y los riesgos del recorte de alcance.
-  Es la capa 1 del pipeline: su salida alimenta a generar-contratos-servicio y a
+  Es la capa 1 del pipeline: su salida alimenta a contratos-api-gateway y a
   generar-backlog-y-recetas. Úsalo cuando pidan "el alcance", "la visión", "qué
   entra y qué no", "las funciones del servicio" o "el documento de arranque".
 ---
@@ -17,7 +17,7 @@ y alcance** (`docs/vision/vision-y-alcance.md`). Es la **capa 1** (ver
 `docs/00-fuentes-de-verdad-y-convenciones.md`): lo que decide alcance funcional, fases y
 reglas. El skill es **autónomo**.
 
-Se **encadena** hacia abajo: `generar-contratos-servicio` toma las **funciones** y las
+Se **encadena** hacia abajo: `contratos-api-gateway` toma las **funciones** y las
 **fronteras**; `generar-backlog-y-recetas` toma las **fases** y los **objetivos** para
 armar el catálogo de épicas y las recetas.
 
@@ -51,7 +51,7 @@ fronteras: lo que no esté va como `*(a definir con el PO)*`.
    afuera» evita que alguien lo asuma incluido.
 3. **Funciones / capacidades.** Una fila por función: nombre, qué hace, sync/async si
    aplica, requisitos que cubre, nota. Estas filas son la entrada de
-   `generar-contratos-servicio` y del catálogo de épicas.
+   `contratos-api-gateway` y del catálogo de épicas.
 4. **Fronteras.** Tres columnas: **lo que construimos y decidimos** · **zona de
    negociación** (decidir con otro equipo: contrato, dueño de la cola, quién persiste,
    quién hace las pantallas) · **lo que depende de otros**. Es lo que más se malinterpreta
