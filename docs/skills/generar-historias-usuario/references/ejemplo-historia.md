@@ -1,176 +1,178 @@
-# Ejemplo resuelto — Historia de Usuario en formato Taiga
+# Ejemplo resuelto — Historia de Usuario
+
+> El contenido es **ilustración**, no algo a copiar. El skill genera la misma
+> **estructura** para cualquier proyecto a partir de las entradas del equipo.
+> Estilo por defecto: **lenguaje simple**.
 
 ## Contexto de entrada que aportó el equipo (resumido)
 
-- **Objetivo del sprint (S1):** un docente autorizado carga y consulta casos de
-  referencia (*golden set*) y **los datos sobreviven al reinicio** del servicio.
-- **Paquete de la receta:** «API golden set v1 — implementar solo operaciones existentes
-  del OpenAPI; validar actor/ownership/idempotencia. Persistencia en PostgreSQL con
-  volumen que sobrevive a `docker compose restart`.»
-- **Rol real:** docente autorizado de una cohorte.
-- **Contrato (adenda S1):** `GET /api/llm/golden-sets?rubricVersion={v}&page={n}&size={s}`
-  y `GET /api/llm/golden-sets/{goldenSetId}`. Todo pasa por el Gateway (`/api/llm/**`),
-  auth M2M + usuario delegado, errores como *Problem Details* (RFC 7807).
-- **Historia canónica:** aún sin fijar — esta historia es **candidata a canónica**
-  (pequeña, entendida por todos, recorrido completo).
-- **Épica:** EP-03 · Golden set y referencia humana.
-- **Prefijo de ID:** `LLM-S01-Hyy`. Referencia de plan: 14 h.
+- **Objetivo del sprint (S1):** un profesor autorizado carga y consulta casos de
+  referencia (la «colección de referencia» / *golden set*) y **los datos sobreviven al
+  reinicio** del servicio.
+- **Paquete de la receta:** «API golden set v1 — implementar solo operaciones existentes;
+  validar identidad, dueño del curso y antiduplicado; persistencia que sobrevive a apagar
+  y prender».
+- **Rol real:** profesor autorizado de un curso.
+- **Historia patrón (canónica):** esta misma, H06.
+- **Grupo / pareja:** EP-03 / P5. Referencia de plan: 14 h.
 
-Del barrido salieron varias historias del paquete (alta + carga → H05; consulta → H06;
-pantalla → H07). Acá se muestra **H06**.
+Del barrido salieron varias historias del paquete (crear + cargar → H05; consultar →
+H06; pantalla → H07). Acá se muestra **H06**.
 
 ---
 
-## Ficha generada
+## Salida — estilo por defecto (lenguaje simple)
 
-# LLM-S01-H06 — Consulta del golden set que sobrevive al reinicio
+# LLM-S01-H06 — Consultar la colección aunque el sistema se reinicie
 
-> Título en Taiga: `G07 — Consulta del golden set que sobrevive al reinicio`.
+> Título en Taiga: `G07 — Consultar la colección aunque el sistema se reinicie`.
 
 | | |
 |---|---|
-| **Épica** | EP-03 · Golden set y referencia humana |
-| **Pareja / responsable** | P5 · *(suplente a nombrar)* |
-| **Dependencias** | H04 |
-| **Estimación (plan)** | 14 h |
-| **Tipo** | Historia de usuario (HU de valor) · **candidata a historia canónica** |
-| **Requisito** | RF-IA-30 a 36 |
-| **Referente de producto** | *(a nombrar en Sprint 0)* |
+| **Grupo de trabajo** | Colección de referencia y calibración humana (EP-03) |
+| **Pareja a cargo** | P5 |
+| **Depende de** | H04 |
+| **Trabajo estimado** | 14 horas |
+| **Tipo** | Historia de valor · **historia patrón** (la vara para medir las demás) |
+| **Responsable del producto** | Se nombra en el Sprint 0 |
 
 ## Descripción (Como / Quiero / Para)
 
-- **Como:** docente autorizado de una cohorte
-- **Quiero:** consultar mi golden set y sus entradas aunque el servicio se reinicie
-- **Para:** confiar en que el dato de referencia que cargué persiste y puedo calibrar
-  sobre él
+- **Como:** profesor autorizado de un curso.
+- **Quiero:** consultar mi colección y sus ejemplos **aunque el sistema se haya
+  reiniciado**.
+- **Para:** confiar en que lo que cargué no se pierde y puedo seguir trabajando sobre
+  eso.
 
 ## Notas / Observaciones
 
-- **Reglas de negocio:** la consulta se hace por el Gateway con la misma autorización
-  que la escritura. El listado es paginado (`page` desde 0, `size` entre 1 y 100) y
-  ordenado por fecha de creación descendente. El detalle incluye las entradas. Una
-  cohorte ajena **no aparece** en la respuesta.
-- **Validaciones:** un `goldenSetId` inexistente devuelve `404` (no `500`); un `size`
-  fuera de 1–100 devuelve `400`.
-- **Datos obligatorios:** ninguno en el cuerpo (es `GET`); parámetros `rubricVersion`
-  (opcional), `page`, `size`.
-- **Performance:** los datos se leen de PostgreSQL con volumen persistente; tras
-  `docker compose restart` la lectura devuelve exactamente lo cargado antes.
-- **Seguridad:** sin scope `llm.golden-set.manage` y usuario delegado → `403`; el filtro
-  por cohorte se aplica siempre, no es un parámetro opcional.
-- **Accesibilidad:** no aplica en esta historia (la pantalla es otra historia).
-- **Endpoints:**
-  - `GET /api/llm/golden-sets?rubricVersion={v}&page={n}&size={s}` → lista de
-    `{ id, version, rubricVersion, language, createdAt }`.
-  - `GET /api/llm/golden-sets/{goldenSetId}` → lo anterior +
-    `entries[] { id, transcript, referenceScores, createdAt }`.
+- **Reglas de trabajo:** la consulta se hace por la recepción central, con el mismo
+  permiso que la carga. El listado viene **de a páginas** y ordenado del más nuevo al más
+  viejo. El detalle incluye los ejemplos de la colección. La colección de **otro** curso
+  **no aparece** nunca.
+- **Cómo se controla:** pedir una colección que no existe devuelve «no encontrado» (no un
+  error de servidor). Pedir una página con un tamaño imposible devuelve «pedido
+  inválido».
+- **Qué tiene que incluir sí o sí:** nada en el cuerpo (es una consulta); como opciones,
+  la versión de la plantilla, el número de página y el tamaño de página.
+- **Tiempos / volumen:** los datos se leen del «cajón» persistente de la base; después de
+  apagar y prender, la lectura devuelve exactamente lo que se había cargado.
+- **Seguridad:** sin el permiso necesario y sin identificación de la persona →
+  «prohibido». El filtro por curso se aplica siempre, no es opcional.
+- **Accesibilidad:** no aplica en esta historia (la pantalla es H07).
+- **Otros:** es la **historia patrón**: chiquita, la entienden todos y tiene el recorrido
+  completo (permiso + lectura + que los datos sobrevivan). Su tamaño en puntos se fija
+  primero en el Sprint 0 y queda como referencia de las demás.
+- **Operaciones nuevas:** «listar mis colecciones» y «ver el detalle de una colección con
+  sus ejemplos».
 
 ## Criterios de Aceptación (CA)
 
-- **CA1:** un golden set creado y con una entrada se puede consultar y devuelve esa
-  entrada.
-- **CA2:** después de `docker compose restart`, la misma consulta devuelve los mismos
-  datos.
-- **CA3:** el listado respeta `page`/`size` y el orden por creación descendente.
-- **CA4 (negativo):** el golden set de otra cohorte no aparece en el listado y su
-  detalle responde `404`.
-- **CA5 (negativo):** `goldenSetId` con formato UUID pero inexistente → `404` *Problem
-  Details*, nunca `500`.
-- **CA6 (negativo):** `size=500` → `400`.
+- **CA1:** una colección creada y con un ejemplo se puede consultar y devuelve ese
+  ejemplo.
+- **CA2:** después de apagar y volver a prender, la misma consulta devuelve **lo mismo**.
+- **CA3:** el listado respeta el número y el tamaño de página, y el orden del más nuevo
+  al más viejo.
+- **CA4 (caso que debe fallar):** la colección de otro curso no aparece en el listado y
+  pedir su detalle responde «no encontrado».
+- **CA5 (caso que debe fallar):** pedir una colección con un identificador bien formado
+  pero inexistente → «no encontrado», nunca un error de servidor.
+- **CA6 (caso que debe fallar):** pedir una página de tamaño 500 → «pedido inválido».
 
-## BDD (mínimo 3 escenarios — 1 camino feliz + ≥ 2 negativos)
+## BDD (mínimo 3 escenarios)
 
-**Característica:** lectura del golden set con persistencia garantizada.
+**Qué se prueba:** la lectura de la colección con datos que sobreviven.
 
-### Escenario 1 — La consulta sobrevive al reinicio (camino feliz)
+### Escenario 1 — La consulta sobrevive al reinicio (camino esperado)
 
-- **Dado:** un docente que creó un golden set y le cargó una entrada
-- **Cuando:** se ejecuta `docker compose restart` del servicio y su base
-- **Y:** el docente vuelve a consultar el golden set por el Gateway
-- **Entonces:** la respuesta `200` contiene el golden set y la entrada tal como se
-  cargaron
+- **Dado:** un profesor que creó una colección y le cargó un ejemplo.
+- **Cuando:** se apaga y se vuelve a prender el servicio y su base.
+- **Y:** el profesor vuelve a consultar la colección por la recepción central.
+- **Entonces:** la respuesta contiene la colección y el ejemplo tal como se cargaron.
 
-### Escenario 2 — Aislamiento entre cohortes
+### Escenario 2 — Cada profesor ve solo lo suyo
 
-- **Dado:** dos golden sets, uno de la cohorte del docente y otro de una cohorte ajena
-- **Cuando:** el docente pide el listado
-- **Entonces:** solo aparece el golden set de su cohorte
-- **Y:** pedir el detalle del ajeno responde `404`
+- **Dado:** dos colecciones, una del curso del profesor y otra de un curso ajeno.
+- **Cuando:** el profesor pide el listado.
+- **Entonces:** solo aparece la colección de su curso.
+- **Y:** pedir el detalle de la ajena responde «no encontrado».
 
-### Escenario 3 — Golden set inexistente
+### Escenario 3 — Colección inexistente
 
-- **Dado:** un `goldenSetId` con formato válido que no corresponde a ningún golden set
-- **Cuando:** el docente consulta su detalle
-- **Entonces:** el sistema responde `404` con *Problem Details*, no `500`
+- **Dado:** un identificador bien formado que no corresponde a ninguna colección.
+- **Cuando:** el profesor consulta su detalle.
+- **Entonces:** el servicio responde «no encontrado», no un error de servidor.
 
-### Escenario 4 — Paginación fuera de rango
+### Escenario 4 — Página de tamaño fuera de rango
 
-- **Dado:** el endpoint de listado con `size` limitado a 1–100
-- **Cuando:** el cliente pide `size=500`
-- **Entonces:** el sistema responde `400` y no devuelve datos
+- **Dado:** el listado, cuyo tamaño de página va de 1 a 100.
+- **Cuando:** se pide una página de tamaño 500.
+- **Entonces:** el servicio responde «pedido inválido» y no devuelve datos.
 
 ## Prototipo
 
-- **Capturas:** boceto del listado de golden sets (versión, rúbrica, idioma, fecha) y
-  del detalle con las entradas y sus cinco puntajes.
-- **Mock API / Swagger:** adenda S1 del golden set (endpoints de arriba).
+- **Capturas / bocetos:** boceto del listado de colecciones (versión, plantilla, idioma,
+  fecha) y del detalle con los ejemplos y sus cinco puntajes.
+- **Maqueta / documentación:** el agregado de este tramo al acuerdo con el otro equipo.
 
 ## Estimación / Prioridad
 
-| Puntos (Fibonacci) | Prioridad (MoSCoW) |
-|---|---|
-| *(historia canónica — se estima primera en Sprint 0; su valor fija la referencia del backlog)* | Must |
-
-> Referencia de planificación en horas del plan: **14 h** — dato separado, no se
-> convierte a puntos.
+- **Puntos de esfuerzo:** es la **historia patrón**, se estima primera en el Sprint 0.
+- **Prioridad:** imprescindible.
 
 ## Dependencias / Impactos
 
-- **Servicios involucrados:** Gateway, PostgreSQL, `courses-service` (filtro por
-  cohorte).
-- **Módulos afectados:** `api`, `application`, `infrastructure`, `security`.
-- **Otros equipos / aprobaciones:** contrato de lectura acordado con `admin-service`
-  (adenda S1).
-- **Impacto en datos / migraciones:** solo lectura; exige que el volumen de PostgreSQL
-  persista entre reinicios.
-- **Riesgos y mitigación:** si el volumen no persiste, la demo falla; se verifica con la
-  prueba automatizada de reinicio.
+- **Partes involucradas:** la recepción central, la base de datos y el servicio de cursos
+  (para el filtro por curso).
+- **Otros equipos / aprobaciones:** el contrato de lectura acordado con el servicio de
+  administración.
+- **Impacto en los datos:** solo lectura; exige que el «cajón» de la base sobreviva a los
+  reinicios.
+- **Riesgos:** si el «cajón» no sobrevive, la demo falla; se verifica con la prueba de
+  reinicio de H09.
 
-## Tareas
+## Tareas (los pasos técnicos)
 
-> Pasos técnicos del equipo (P5). Se cargan en Taiga como tareas hijas de la HU. Horas
-> orientativas.
+| # | Tarea | h |
+|---|---|--:|
+| T1 | «Listar mis colecciones»: de a páginas, de la más nueva a la más vieja, siempre filtrado por curso | 4 |
+| T2 | «Ver el detalle» con sus ejemplos; colección ajena o inexistente → «no encontrado», nunca error de servidor | 4 |
+| T3 | Permiso de consulta igual al de carga; pedir una página de tamaño imposible → «pedido inválido» | 3 |
+| T4 | Prueba de apagar y prender que confirma que la consulta devuelve exactamente lo mismo | 3 |
+| | **Total** | **14** |
 
-| # | Tarea | Paso | h |
-|---|---|---|--:|
-| T1 | Caso de uso «listar»: paginado (`page` desde 0, `size` 1–100), orden por creación desc., filtro por cohorte siempre aplicado | Caso de uso | 4 |
-| T2 | Caso de uso «detalle»: golden set + `entries[]`; cohorte ajena → `404`; `goldenSetId` inexistente → `404`, nunca `500` | Caso de uso | 4 |
-| T3 | Autorización de lectura (mismo scope y usuario delegado que la escritura); `size=500` → `400` | Seguridad y resiliencia | 3 |
-| T4 | Prueba de integración de persistencia: `docker compose restart` y la consulta devuelve exactamente lo cargado | Prueba E2E | 3 |
-| | **Total** | | **14** |
+---
+
+## La misma historia en estilo técnico (bajo pedido)
+
+Aplicando [`referencia-estilo-tecnico.md`](referencia-estilo-tecnico.md), la misma ficha
+queda como `docs/historias/s01.md` H06: metadatos con «Épica / Requisito», Notas con
+«Reglas de negocio / Validaciones / Endpoints» (`GET /api/llm/golden-sets?page&size`,
+`GET /api/llm/golden-sets/{goldenSetId}`), CA «(negativo)», BDD «Característica:»,
+Estimación como tabla Fibonacci + MoSCoW, «Servicios involucrados: Gateway, PostgreSQL,
+courses-service». Mismos 4 escenarios, mismas 4 tareas, mismas 14 h.
 
 ---
 
 ## Por qué queda así
 
-- **COMO = docente autorizado**, un rol real que percibe el resultado → es **HU de
-  valor**, no tarea. (Comparar con H01 «Como equipo, quiero un ADR…»: esa falla la V y
-  va como tarea.)
-- **Un rol, una acción, un resultado observable**: «consultar mi golden set aunque el
-  servicio se reinicie». El título no necesita «y/o».
-- **BDD = 1 feliz + 3 negativos.** El camino feliz es *la* razón de ser de la historia
-  (sobrevive al reinicio). Los negativos salen de recorrer el contrato: aislamiento de
-  cohortes, id inexistente (`404` vs `500`), paginación fuera de rango.
-- Cada **Entonces es observable**: «la respuesta `200` contiene…», «responde `404`»,
-  «solo aparece el golden set de su cohorte». Nada de «el sistema verifica…».
-- El **Y hereda**: en el escenario 1, el `Y` después de `Cuando` suma otra acción
-  (volver a consultar); en el escenario 2, el `Y` después de `Entonces` suma otro
-  resultado (el detalle ajeno da `404`).
-- Las **Notas** dicen qué debe cumplirse (rangos de paginación, filtro por cohorte
-  siempre aplicado, persistencia) sin decir cómo se implementa el repositorio.
-- **Sin puntos asignados**: se deja para Planning Poker en Sprint 0. Como es la
-  candidata a canónica, se estima **primera** y su valor ancla el resto del backlog.
-- **Prioridad Must**: no por su valor aislado, sino porque la demo del sprint depende de
-  ella y es condición para la pantalla (H07).
+- **COMO = profesor autorizado**, un rol real que percibe el resultado → **Historia de
+  valor**, no tarea. (Comparar con H01 «Como equipo…»: esa es «Tarea interna».)
+- **Un rol, una acción, un resultado observable**: «consultar mi colección aunque el
+  sistema se reinicie». El título no necesita «y/o».
+- **BDD = 1 camino esperado + 3 que deben fallar.** El camino esperado es *la* razón de
+  ser de la historia (sobrevive al reinicio). Los que fallan salen de recorrer la
+  operación: aislamiento entre cursos, id inexistente («no encontrado» vs «error de
+  servidor»), página fuera de rango.
+- Cada **Entonces es observable**: «la respuesta contiene la colección…», «responde no
+  encontrado», «solo aparece la colección de su curso». Nada de «el sistema verifica…».
+- El **Y hereda**: escenario 1, el `Y` tras `Cuando` suma otra acción (volver a
+  consultar); escenario 2, el `Y` tras `Entonces` suma otro resultado.
+- Las **Notas** dicen qué debe cumplirse (rangos de página, filtro por curso siempre,
+  persistencia) sin decir cómo se implementa.
+- **Sin puntos asignados**: se deja para el Sprint 0. Como es la historia patrón, se
+  estima primera y su valor ancla el resto.
+- **Prioridad imprescindible**: no por su valor aislado, sino porque la demo del sprint
+  depende de ella y es condición para la pantalla (H07).
 - **Tareas sin Como/Quiero/Para**, en orden de construcción, cada una ≤ 1 jornada,
-  sumando las 14 h de referencia.
+  sumando las 14 h.

@@ -77,12 +77,14 @@ dependencias.
 5. **Dependencias / Impactos.** Servicios/APIs, módulos afectados, otros equipos,
    impacto en datos/migraciones, feature flags (sí/no + plan de retiro). Arrancá de la
    entrada 5; lo que no sepas va como `*(a confirmar)*`.
-6. **Un archivo por épica.** Nombre `ep-01.md`, `ep-02.md`, … Encabezado
-   `# [GXX] — EP-0X: <NOMBRE>`. Usá exactamente la estructura de
-   [`references/plantilla-epica.md`](references/plantilla-epica.md).
-7. **Índice / catálogo.** Generá además un `README.md` con la tabla resumen: Épica ·
-   Ficha · Nombre · Responsable · Sprints · Requisitos (orientativo). Dejá escrito que
-   **si un dato de la ficha no coincide con el catálogo/plan, manda el catálogo**.
+6. **Un archivo por épica**, bajo `docs/epicas/`. Nombre `docs/epicas/ep-01.md`,
+   `ep-02.md`, … Sigue exactamente [`references/plantilla-epica.md`](references/plantilla-epica.md)
+   (bloque de encabezado `| Campo | Valor |` + `# [GXX] — EP-0X: <NOMBRE>` + Objetivo +
+   Suposiciones y Restricciones + CA a nivel épico + Dependencias / Impactos).
+7. **Índice / catálogo.** Generá además `docs/epicas/README.md` con la tabla resumen:
+   Épica · Ficha · Nombre · Responsable · Sprints · Requisitos (orientativo). Dejá
+   escrito que **si un dato de la ficha no coincide con el catálogo/plan, manda el
+   catálogo** (`docs/backlog/backlog-ejecutable.md`).
 8. **Autocontrol** con la checklist de abajo antes de entregar.
 
 ## Reglas de oro

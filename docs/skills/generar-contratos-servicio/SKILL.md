@@ -24,15 +24,18 @@ Se **encadena**:
   *Prototipo / Mock API* y en *Dependencias*; `generar-backlog-y-recetas` marca en cada
   receta qué parte del contrato se implementa.
 
-## Qué produce
+## Qué produce (todo bajo `docs/`)
 
 ```
-contracts/
+docs/contracts/
 ├── <servicio>-v1.openapi.yaml          HTTP: recursos, seguridad, Problem Details
 ├── <servicio>-v1.asyncapi.yaml         eventos Kafka que publica y consume
-└── <servicio>-v1-sNN-<feature>-adenda.md   cambios acordados por sprint (se fusionan al aprobar)
-NN-contratos-inter-equipos.md           con quién hablamos, qué pedimos, qué damos, por dónde
+├── <servicio>-v1-sNN-<feature>-adenda.md   cambios acordados por sprint (se fusionan al aprobar)
+└── NN-contratos-inter-equipos.md       con quién hablamos, qué pedimos, qué damos, por dónde
 ```
+
+La identidad canónica del servicio (nombre, prefijo `/api/<n>/**`, `aud`) sale de
+`docs/00-fuentes-de-verdad-y-convenciones.md` si el scaffold ya corrió.
 
 Más, dentro del doc inter-equipos, el **contrato con el API Gateway** (§ «Cómo leemos los
 contratos» + § «Autenticación entre servicios»).

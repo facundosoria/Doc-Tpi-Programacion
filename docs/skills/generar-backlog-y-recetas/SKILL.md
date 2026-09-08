@@ -110,9 +110,12 @@ Una por sprint, con el formato de
 
 ### E. Ensamblado
 
-- `plan/plan-construccion.md`: capacidad (A) + modelo de equipos + esquema de IDs +
-  puntero a `dor-dod.md`.
-- `backlog/backlog-ejecutable.md`: catálogo de épicas (B) + Sprint 0 (C) + recetas (D).
+- `docs/plan/plan-construccion.md`: capacidad (A) + modelo de equipos + esquema de IDs +
+  puntero a `docs/dor-dod.md`.
+- `docs/backlog/backlog-ejecutable.md`: catálogo de épicas (B) + Sprint 0 (C) + recetas
+  (D).
+- Todo bajo `docs/`. Respetá la numeración si el proyecto la usa
+  (`docs/23-plan-construccion.md`).
 - Encabezado de cada uno: **este documento es la fuente** de tal cosa.
 - Autocontrol con la checklist.
 

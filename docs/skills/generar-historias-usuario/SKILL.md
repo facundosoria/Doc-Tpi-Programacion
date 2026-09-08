@@ -19,6 +19,12 @@ cátedra evalúa. El skill es **autónomo y reutilizable**: no depende de la doc
 de ningún proyecto. Todo el contexto lo aporta quien lo invoca (ver «Entradas que
 necesito»).
 
+**Estilo por defecto: lenguaje simple.** La ficha lleva la **estructura del template de
+Taiga** pero contada **sin jerga técnica** (para alguien que nunca programó): así queda
+como [`docs/historias/s01-test.md`](../../historias/s01-test.md) del proyecto de
+referencia. El estilo con jerga precisa (endpoints, códigos HTTP, nombres exactos) es una
+**variante bajo pedido** — ver [`references/referencia-estilo-tecnico.md`](references/referencia-estilo-tecnico.md).
+
 Lee primero, en este orden:
 
 1. [`references/guia-metodo.md`](references/guia-metodo.md) — el método de cátedra
@@ -26,9 +32,11 @@ Lee primero, en este orden:
 2. [`references/dor-dod.md`](references/dor-dod.md) — las dos compuertas: qué exige la
    DoR para comprometer una historia y qué exige la DoD para aceptarla.
 3. [`references/plantilla-historia-usuario.md`](references/plantilla-historia-usuario.md)
-   — el template en blanco que hay que rellenar.
-4. [`references/ejemplo-historia.md`](references/ejemplo-historia.md) — una historia
-   resuelta de punta a punta (ficha larga + tareas).
+   — el template en blanco (lenguaje simple) que hay que rellenar.
+4. [`references/referencia-estilo-tecnico.md`](references/referencia-estilo-tecnico.md)
+   — glosario de traducción y los cambios de rótulo para la variante técnica.
+5. [`references/ejemplo-historia.md`](references/ejemplo-historia.md) — una historia
+   resuelta de punta a punta en los dos estilos.
 
 ## Entradas que necesito (las pide el equipo al invocar)
 
@@ -72,29 +80,28 @@ estimaciones ni dependencias.
    parte entregable sin la otra, o más de 6–7 escenarios. Dejá junto si por separado
    nada entrega valor o los escenarios se repetirían. Regla: **un rol, una acción, un
    resultado observable**; si el título necesita «y/o/además», son dos historias.
-4. **Redactar cada apartado del template** (detalle en `guia-metodo.md`):
-   - **Título**: identifica la historia en el tablero sin leer el detalle.
-   - **Como / Quiero / Para**: rol real · acción del usuario (no solución técnica) ·
-     beneficio real (no repetir la acción).
-   - **Notas / Observaciones**: la *Conversación* — reglas de negocio, validaciones,
-     datos obligatorios, performance, seguridad, accesibilidad. Qué debe cumplirse,
-     nunca cómo se programa.
-   - **Criterios de Aceptación (CA)**: condiciones medibles; **incluí siempre los
-     negativos** (no autorizado, entrada inválida, duplicado, dependencia caída).
-   - **BDD (≥ 3 escenarios)**: **1 camino feliz + al menos 2 negativos**. Cada escenario
-     con Título, Dado, Cuando, Entonces (y opcional Y). El **Entonces es observable**
-     (pantalla, mensaje o dato guardado). El **Y hereda** el paso que lo precede.
-     Derivá los escenarios recorriendo el boceto/contrato elemento por elemento:
-     *¿qué pasa si lo usa bien? ¿y si lo usa mal?*
-   - **Prototipo**: boceto de baja fidelidad de las pantallas principales (o «no aplica»
-     con motivo si es borde técnico). Cada campo/botón del boceto debe aparecer en algún
-     escenario.
-   - **Estimación / Prioridad**: **no** asignes puntos Fibonacci vos — dejalos
-     `*(a asignar en Sprint 0 con Planning Poker contra la canónica)*`. Prioridad MoSCoW
-     sí (del valor/dependencias). Si el equipo planifica en horas, poné la referencia de
-     horas del plan como dato separado, sin convertirla a puntos.
-   - **Dependencias / Impactos**: servicios, módulos, otros equipos/aprobaciones,
-     impacto en datos/migraciones, riesgos y mitigación.
+4. **Redactar cada apartado del template en lenguaje simple** (detalle en
+   `guia-metodo.md`; plantilla y rótulos en `plantilla-historia-usuario.md`):
+   - **Título**: en palabras, identifica la historia sin leer el detalle.
+   - **Como / Quiero / Para**: rol real en palabras · acción del usuario (no solución
+     técnica) · beneficio real (no repetir la acción).
+   - **Notas / Observaciones**: la *Conversación* — «Reglas de trabajo», «Cómo se
+     controla», «Qué tiene que incluir sí o sí», tiempos, seguridad, accesibilidad.
+     Qué debe cumplirse, nunca cómo se programa. Traducí los términos técnicos
+     (`referencia-estilo-tecnico.md` trae el glosario).
+   - **Criterios de Aceptación (CA)**: condiciones concretas y verificables; **incluí
+     siempre ≥ 2 casos** rotulados **«(caso que debe fallar)»**.
+   - **BDD (≥ 3 escenarios)**: encabezá con **«Qué se prueba:»**. **1 camino esperado +
+     al menos 2 que deben fallar.** Cada escenario con Título, Dado, Cuando, Entonces (y
+     opcional Y). El **Entonces es observable** (pantalla, mensaje o dato guardado). El
+     **Y hereda** el paso que lo precede.
+   - **Prototipo**: boceto simple de las pantallas principales (o «no aplica» + motivo si
+     es una pieza interna). Cada campo/botón del boceto aparece en algún escenario.
+   - **Estimación / Prioridad**: en **bullets**, no tabla. «Puntos de esfuerzo: se
+     asignan en el Sprint 0…» (no los inventes). «Prioridad: imprescindible / deseable /
+     se puede posponer».
+   - **Dependencias / Impactos**: «Partes involucradas», «Otros equipos / aprobaciones»,
+     «Impacto en los datos», «Riesgos».
 5. **Mapear a épica** (si te dieron el catálogo). Cada historia = una épica.
 6. **Desglose en tareas.** Cerrá cada ficha con una tabla de **tareas técnicas** del
    equipo (sin Como/Quiero/Para), en el orden de construcción que use el equipo
@@ -102,70 +109,81 @@ estimaciones ni dependencias.
    seguridad y resiliencia → observabilidad → prueba E2E → demo). Cada tarea se parte en
    **una jornada efectiva o menos**. Las horas por tarea son orientativas y suman la
    referencia de la historia.
-7. **Índice.** Generá una tabla al inicio del documento: ID · Título · Tipo (HU/tarea) ·
-   Épica · Responsable · Dependencias · h. Y una línea con el **criterio de demo** del
-   sprint.
+7. **Encabezado + índice + contexto.** El documento abre con el bloque «Qué es / Qué NO
+   es», el glosario corto de términos repetidos, la sección «Antes de las fichas» (2–3
+   párrafos que ubican al lector + la demo en una frase), y el índice (# · Título · Tipo
+   · Grupo · Pareja · Depende de · Trabajo). Cierra con «En resumen».
 8. **Verificá DoR** de cada historia contra `references/dor-dod.md`. Lo que no se cumpla
    se marca como pendiente de Refinamiento/Sprint 0, no se maquilla.
 9. **Autocontrol** con la checklist de abajo.
 
 ## Salida
 
-Un documento `sXX.md` (p. ej. `s01.md`) con esta estructura exacta:
+Un documento `docs/historias/sXX.md` con esta estructura exacta (lenguaje simple por
+defecto):
 
 ```markdown
-# Historias de usuario — Sprint N (fichas largas)
+# Historias de usuario — Sprint N, explicadas en palabras simples
 
-> **Qué es este documento.** Las historias de SN con el template oficial de Historia de
-> Usuario de Taiga (Como/Quiero/Para, Notas, CA con negativos, BDD ≥ 3 escenarios,
-> Prototipo, Estimación y Dependencias).
+> **Qué es este documento.** Las historias de SN con la **misma estructura del template
+> de Taiga** (Como/Quiero/Para, Notas, Criterios de Aceptación, escenarios BDD,
+> Prototipo, Estimación y Dependencias), contadas **sin jerga técnica**.
 >
-> **Qué NO es.** No es fuente de verdad de planificación. Si un dato no coincide:
+> **Qué NO es.** No es fuente de verdad para planificar. Si un dato no coincide:
 >
-> | Dato | Fuente única |
+> | Dato | Dónde manda |
 > |---|---|
-> | ID, épica, pareja, dependencias, horas | `backlog/backlog-ejecutable.md` · «SN» |
-> | Tipo (HU de valor / habilitador) y demo | `backlog/backlog-ejecutable.md` |
-> | DoR / DoD | `dor-dod.md` |
-> | Método para redactar y estimar | `metodo/historias-de-usuario.md` |
-> | Contrato HTTP y adendas | `contracts/` |
+> | ID, grupo, pareja, dependencias, horas | `docs/backlog/backlog-ejecutable.md` · «SN» |
+> | Requisitos para empezar y para dar por terminada una historia | `docs/dor-dod.md` |
 >
-> **Título en Taiga.** Cada ficha se carga con `GXX — TÍTULO`. El ID interno `Sxx-Hyy`
-> es el del equipo.
+> **Sobre los códigos raros.** `EP-01`, `P1`, `Sxx-Hyy`, `RF-*` son etiquetas internas
+> del equipo para rastrear cada cosa. Se dejan porque son parte del formato de Taiga; no
+> hace falta entenderlas.
 >
-> **Estimación en puntos.** Ninguna ficha trae puntos Fibonacci: se asignan en el Sprint
-> 0 con Planning Poker contra la historia canónica. La columna *h* es la referencia del
-> plan y **no se convierte** a puntos.
+> **Palabras que se repiten:** [glosario corto de 3–5 términos del dominio traducidos —
+> «Sprint», «Demo», «Escenarios (BDD)», y el/los término(s) de plataforma que aparezcan,
+> p. ej. «Recepción central» = la puerta única por la que entran los pedidos].
+
+## Antes de las fichas: ¿de qué va todo esto?
+
+[2–3 párrafos que ubican al lector: qué producto es, qué se construye en este sprint, y
+la demo final en una frase.]
 
 ## Índice
 
-| ID | Título | Tipo | Épica | Pareja | Dep. | h |
+| # | Título | Tipo | Grupo | Pareja | Depende de | Trabajo |
 |---|---|---|---|---|---|--:|
-| [Sxx-H01](#sxx-h01--título) | … | Tarea / HU | EP-0X | P_ | — | N |
-| … | | | | | **Total** | **N** |
+| [H01](#sxx-h01--título) | … | Tarea interna / Historia de valor | EP-0X | P_ | — | N h |
+| … | | | | | **Total** | **N h** |
 
-**Demo de SN:** <una frase con el recorrido que acepta la Review>.
+**Tipo:** «historia de valor» = la protagoniza una persona real que nota el beneficio.
+«tarea interna» = un cimiento del que depende el resto, que ningún usuario final vive.
 
 ---
 
-# Sxx-H01 — <Título>
+# Sxx-H01 — <Título en palabras simples>
 <... ficha completa según plantilla-historia-usuario.md ...>
+
+---
+
+## En resumen
+
+[Lista de lo que queda funcionando al final del sprint, en una línea por historia.]
 ```
 
 - Cada `# Sxx-Hyy — Título` sigue [`references/plantilla-historia-usuario.md`](references/plantilla-historia-usuario.md)
-  (tabla de metadatos de 7 filas, Descripción, Notas, CA, BDD, Prototipo, Estimación,
+  (tabla de metadatos de 6 filas con rótulos simples, Descripción, Notas, CA con «(caso
+  que debe fallar)», BDD con «Qué se prueba», Prototipo, Estimación en bullets,
   Dependencias, Tareas). El índice usa anclas a cada sección.
 - Opcional: una fila por historia para la tabla compacta del backlog/plan.
 
-### Variante en lenguaje simple (opcional)
+### Variante técnica (bajo pedido)
 
-Si el equipo la pide, generá además `sXX-lenguaje-simple.md`: **las mismas historias, la
-misma estructura de secciones**, contadas **sin jerga técnica** (para alguien que nunca
-programó). Reglas: mismo contenido y mismos escenarios; se traducen los términos
-(«Gateway» → «recepción central», «golden set» → «colección de referencia», `403` → «no
-autorizado»); los CA negativos se rotulan «(caso que debe fallar)»; se agrega un glosario
-corto al inicio y un «En resumen» al final. No es fuente de verdad: encabezado igual que
-el principal.
+Si el equipo pide la versión con jerga precisa, generá `sXX-tecnico.md` aplicando los
+cambios de [`references/referencia-estilo-tecnico.md`](references/referencia-estilo-tecnico.md):
+rótulos técnicos (Reglas de negocio, Validaciones, Datos obligatorios, Característica),
+términos exactos (Gateway, `403`, `Idempotency-Key`, golden set), endpoints explícitos,
+Estimación como tabla Fibonacci + MoSCoW. Mismo contenido y mismos escenarios.
 
 Regla de encabezado: la ficha es **formato de presentación**, no fuente de verdad de
 planificación. Si un dato (ID, épica, horas, dependencias) no coincide con la
@@ -185,25 +203,27 @@ receta/plan del equipo, **manda la receta/plan**.
 
 ## Checklist antes de entregar
 
-- [ ] Documento con encabezado (qué es / qué no es / tabla de fuente única), índice con
-      anclas y línea «Demo de SN».
-- [ ] Cada ficha abre con la tabla de metadatos de 7 filas (Épica, Pareja, Dependencias,
-      Estimación (plan), Tipo, Requisito, Referente de producto).
+- [ ] Estilo **lenguaje simple** por defecto: sin jerga en la prosa; términos técnicos
+      traducidos; los códigos internos se dejan pero no hacen falta para seguir la ficha.
+- [ ] Documento con encabezado (qué es / qué no es), glosario corto, sección «Antes de
+      las fichas» con la demo en una frase, índice con anclas, y «En resumen» al final.
+- [ ] Cada ficha abre con la tabla de metadatos de 6 filas (Grupo de trabajo, Pareja a
+      cargo, Depende de, Trabajo estimado, Tipo, Responsable del producto).
 - [ ] Cada historia: un rol, una acción, un resultado observable (título sin «y/o»).
-- [ ] COMO = rol real (o marcada explícitamente como tarea/habilitador).
+- [ ] COMO = rol real en palabras (o marcada «Tarea interna» si es habilitador).
 - [ ] QUIERO = acción del usuario, no solución técnica. PARA = beneficio real.
-- [ ] Notas = reglas de negocio / datos / restricciones, sin diseño de pantallas ni
-      nombres de tablas.
-- [ ] CA medibles e incluyen los negativos.
-- [ ] BDD: ≥ 3 escenarios (1 feliz + ≥ 2 negativos); cada uno con Título/Dado/Cuando/
-      Entonces; cada Entonces observable; cada Y hereda su paso.
+- [ ] Notas con los rótulos simples («Reglas de trabajo», «Cómo se controla», «Qué tiene
+      que incluir sí o sí»…), sin nombres de tablas ni clases.
+- [ ] CA verificables; ≥ 2 rotulados «(caso que debe fallar)».
+- [ ] BDD: encabezado «Qué se prueba:»; ≥ 3 escenarios (1 esperado + ≥ 2 que fallan);
+      cada Entonces observable; cada Y hereda su paso.
 - [ ] Ningún escenario se repite casi igual en dos historias (INVEST · I).
 - [ ] Prototipo adjunto o justificado; campos del boceto cubiertos por escenarios.
-- [ ] Estimación en puntos = `*(a asignar en Sprint 0)*`; prioridad MoSCoW puesta.
-- [ ] Dependencias con dueño/fecha o marcadas `*(a confirmar)*`.
-- [ ] Cada historia mapeada a una épica (si hay catálogo).
-- [ ] Desglose en tareas técnicas (sin Como/Quiero/Para), tareas ≤ 1 jornada.
-- [ ] Índice + criterio de demo del sprint.
+- [ ] Estimación en **bullets** («Puntos de esfuerzo: se asignan en el Sprint 0»);
+      prioridad puesta.
+- [ ] Cada historia mapeada a una épica / grupo (si hay catálogo).
+- [ ] Desglose en «Tareas (los pasos técnicos)», tabla `# · Tarea · h`, tareas ≤ 1
+      jornada, suman el «Trabajo estimado».
 - [ ] DoR revisada historia por historia; huecos marcados, no ocultados.
 
 ## Archivos del skill
@@ -212,8 +232,9 @@ receta/plan del equipo, **manda la receta/plan**.
 |---|---|
 | [`references/guia-metodo.md`](references/guia-metodo.md) | Método de cátedra condensado: 3C, COMO/QUIERO/PARA, BDD (regla del camino feliz + fallos, escenario de 5 partes, 2 reglas), INVEST, épica/historia/tarea, historia canónica, Planning Poker, priorización. |
 | [`references/dor-dod.md`](references/dor-dod.md) | Definition of Ready y Definition of Done: las dos compuertas de cada historia y del incremento. |
-| [`references/plantilla-historia-usuario.md`](references/plantilla-historia-usuario.md) | Template oficial en blanco. Copiar y completar. |
-| [`references/ejemplo-historia.md`](references/ejemplo-historia.md) | Historia resuelta de punta a punta (ficha larga + tabla de tareas) con notas de por qué queda así. |
+| [`references/plantilla-historia-usuario.md`](references/plantilla-historia-usuario.md) | Template en blanco, lenguaje simple (estilo por defecto). Copiar y completar. |
+| [`references/referencia-estilo-tecnico.md`](references/referencia-estilo-tecnico.md) | Glosario de traducción simple↔técnico y los cambios de rótulo para la variante técnica. |
+| [`references/ejemplo-historia.md`](references/ejemplo-historia.md) | Una historia resuelta en los dos estilos, con notas de por qué queda así. |
 
 ## Relación con épicas
 

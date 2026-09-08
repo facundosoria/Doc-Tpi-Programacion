@@ -11,23 +11,28 @@ formato de la casa.
 fijo (templates de Taiga, métodos, convenciones) y declara en su `SKILL.md` qué entradas
 necesita y qué produce.
 
+**Todo lo que generan vive dentro de `docs/`.** El orden de precedencia (qué fuente
+decide qué) lo fija `docs/00-fuentes-de-verdad-y-convenciones.md`, que crea el scaffold.
+
 ## Pipeline
 
 ```
-generar-vision-y-alcance ─┐
-                          ├─→ generar-contratos-servicio ─┐
-                          └─→ generar-backlog-y-recetas ───┼─→ generar-epicas
-                                                           └─→ generar-historias-usuario
-scaffold-planificacion-agil  (transversal: deja el esqueleto donde todo lo anterior aterriza)
+scaffold-planificacion-agil   → docs/ (estructura + docs/00 + material fijo)
+        │
+generar-vision-y-alcance ─┐    → docs/vision/
+                          ├─→ generar-contratos-servicio ─┐  → docs/contracts/
+                          └─→ generar-backlog-y-recetas ───┼─→ generar-epicas          → docs/epicas/
+                                                           └─→ generar-historias-usuario → docs/historias/
 ```
 
 | # | Skill | Entrada | Salida (estructura, no contenido nuestro) |
 |---|---|---|---|
-| 0 | [`scaffold-planificacion-agil`](scaffold-planificacion-agil/SKILL.md) | raíz de docs + nombre del proyecto | árbol de carpetas, `README` índice con tabla de *fuente única*, convención de encabezado, copia del material fijo (templates, métodos, DoR/DoD starter, registro de sprint). Deja STUBs. |
-| 1 | [`generar-contratos-servicio`](generar-contratos-servicio/SKILL.md) | nombre del servicio + funciones/recursos + integraciones | OpenAPI v1 (recursos, no RPC), AsyncAPI v1 (eventos), contrato con el API Gateway, doc inter-equipos, plantilla de adenda por sprint |
-| 2 | [`generar-backlog-y-recetas`](generar-backlog-y-recetas/SKILL.md) | brief + requisitos + fases + datos del equipo | cálculo de capacidad, catálogo de épicas, Sprint 0, una receta por sprint |
-| 3 | [`generar-epicas`](generar-epicas/SKILL.md) | el catálogo de épicas (#2) | fichas de épica en formato Taiga, una por archivo |
-| 4 | [`generar-historias-usuario`](generar-historias-usuario/SKILL.md) | una receta de sprint (#2) | fichas de HU largas + desglose en tareas |
+| 0 | [`scaffold-planificacion-agil`](scaffold-planificacion-agil/SKILL.md) | nombre del proyecto + identidad del servicio | `docs/00` (capas + identidad canónica), árbol de `docs/`, `docs/README.md` con tabla de *fuente única*, convención de encabezado, material fijo copiado, STUBs |
+| 1 | [`generar-vision-y-alcance`](generar-vision-y-alcance/SKILL.md) *(hueco)* | brief + fases | `docs/vision/` — problema, alcance in/out, funciones, objetivos medibles, glosario |
+| 2 | [`generar-contratos-servicio`](generar-contratos-servicio/SKILL.md) | nombre del servicio + funciones/recursos + integraciones | `docs/contracts/` — OpenAPI v1 (recursos, no RPC), AsyncAPI v1, contrato con el API Gateway, doc inter-equipos, adenda por sprint |
+| 3 | [`generar-backlog-y-recetas`](generar-backlog-y-recetas/SKILL.md) | brief + requisitos + fases + datos del equipo | `docs/plan/` y `docs/backlog/` — capacidad, catálogo de épicas, Sprint 0, receta por sprint |
+| 4 | [`generar-epicas`](generar-epicas/SKILL.md) | el catálogo de épicas (#3) | `docs/epicas/` — fichas de épica en formato Taiga, una por archivo |
+| 5 | [`generar-historias-usuario`](generar-historias-usuario/SKILL.md) | una receta de sprint (#3) | `docs/historias/` — fichas de HU **en lenguaje simple** (estilo `s01-test.md`) + tareas; variante técnica bajo pedido |
 
 ## Anatomía de cada skill
 
@@ -45,7 +50,7 @@ Formato de frontmatter tomado del skill que ya teníamos en `.agents/skills/`.
 ## Huecos conocidos (próximos skills)
 
 - `generar-vision-y-alcance` — brief → problema, alcance in/out, funciones, objetivos
-  medibles, glosario. Aguas arriba de todo.
+  medibles, glosario. Aguas arriba de todo. **No hecho aún.**
 - `generar-doc-arquitectura` — stack, límites de módulos, ADR, diagramas de integración.
 - `generar-normas-de-trabajo` — cobertura, GitFlow, guía de Wiki, convenciones de PR.
 
