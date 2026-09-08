@@ -14,10 +14,19 @@
 
 ---
 
-# [GXX] — [TÍTULO DE LA HISTORIA DE USUARIO]
+# [ID interno Sxx-Hyy] — [TÍTULO DE LA HISTORIA DE USUARIO]
 
-> **ID interno:** `Sxx-Hyy` · **Tipo:** [HU de valor / Tarea de sprint (habilitador)] ·
-> **Épica:** [EP-0X] · **Responsable / suplente:** [·] · **Requisito:** [RF-* / PAR-*]
+> Título en Taiga: `GXX — TÍTULO`. `GXX` = número de grupo/equipo.
+
+| | |
+|---|---|
+| **Épica** | [EP-0X · nombre] |
+| **Pareja / responsable** | [P_ · suplente] |
+| **Dependencias** | [Hnn, … o —] |
+| **Estimación (plan)** | [N] h |
+| **Tipo** | [Historia de usuario (HU de valor) / Tarea de sprint (habilitador; falla la V de INVEST)] |
+| **Requisito** | [RF-* / PAR-* — orientativo] |
+| **Referente de producto** | *(a nombrar en Sprint 0)* |
 
 ## Descripción (Como / Quiero / Para)
 

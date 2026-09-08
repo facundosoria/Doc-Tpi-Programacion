@@ -23,11 +23,19 @@ pantalla → H07). Acá se muestra **H06**.
 
 ## Ficha generada
 
-# [G07] — Consulta del golden set que sobrevive al reinicio
+# LLM-S01-H06 — Consulta del golden set que sobrevive al reinicio
 
-> **ID interno:** `LLM-S01-H06` · **Tipo:** HU de valor · **candidata a historia
-> canónica** · **Épica:** EP-03 · **Responsable / suplente:** P5 / *(a nombrar)* ·
-> **Requisito:** RF-IA-30 a 36
+> Título en Taiga: `G07 — Consulta del golden set que sobrevive al reinicio`.
+
+| | |
+|---|---|
+| **Épica** | EP-03 · Golden set y referencia humana |
+| **Pareja / responsable** | P5 · *(suplente a nombrar)* |
+| **Dependencias** | H04 |
+| **Estimación (plan)** | 14 h |
+| **Tipo** | Historia de usuario (HU de valor) · **candidata a historia canónica** |
+| **Requisito** | RF-IA-30 a 36 |
+| **Referente de producto** | *(a nombrar en Sprint 0)* |
 
 ## Descripción (Como / Quiero / Para)
 

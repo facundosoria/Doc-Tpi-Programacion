@@ -111,10 +111,61 @@ estimaciones ni dependencias.
 
 ## Salida
 
-- Un documento `sXX.md` (p. ej. `s01.md`) con: nota de encabezado (qué es / qué no es /
-  fuente que manda), índice, y una sección `# <ID> — <Título>` por historia con todos
-  los apartados del template + tabla de tareas.
+Un documento `sXX.md` (p. ej. `s01.md`) con esta estructura exacta:
+
+```markdown
+# Historias de usuario — Sprint N (fichas largas)
+
+> **Qué es este documento.** Las historias de SN con el template oficial de Historia de
+> Usuario de Taiga (Como/Quiero/Para, Notas, CA con negativos, BDD ≥ 3 escenarios,
+> Prototipo, Estimación y Dependencias).
+>
+> **Qué NO es.** No es fuente de verdad de planificación. Si un dato no coincide:
+>
+> | Dato | Fuente única |
+> |---|---|
+> | ID, épica, pareja, dependencias, horas | `backlog/backlog-ejecutable.md` · «SN» |
+> | Tipo (HU de valor / habilitador) y demo | `backlog/backlog-ejecutable.md` |
+> | DoR / DoD | `dor-dod.md` |
+> | Método para redactar y estimar | `metodo/historias-de-usuario.md` |
+> | Contrato HTTP y adendas | `contracts/` |
+>
+> **Título en Taiga.** Cada ficha se carga con `GXX — TÍTULO`. El ID interno `Sxx-Hyy`
+> es el del equipo.
+>
+> **Estimación en puntos.** Ninguna ficha trae puntos Fibonacci: se asignan en el Sprint
+> 0 con Planning Poker contra la historia canónica. La columna *h* es la referencia del
+> plan y **no se convierte** a puntos.
+
+## Índice
+
+| ID | Título | Tipo | Épica | Pareja | Dep. | h |
+|---|---|---|---|---|---|--:|
+| [Sxx-H01](#sxx-h01--título) | … | Tarea / HU | EP-0X | P_ | — | N |
+| … | | | | | **Total** | **N** |
+
+**Demo de SN:** <una frase con el recorrido que acepta la Review>.
+
+---
+
+# Sxx-H01 — <Título>
+<... ficha completa según plantilla-historia-usuario.md ...>
+```
+
+- Cada `# Sxx-Hyy — Título` sigue [`references/plantilla-historia-usuario.md`](references/plantilla-historia-usuario.md)
+  (tabla de metadatos de 7 filas, Descripción, Notas, CA, BDD, Prototipo, Estimación,
+  Dependencias, Tareas). El índice usa anclas a cada sección.
 - Opcional: una fila por historia para la tabla compacta del backlog/plan.
+
+### Variante en lenguaje simple (opcional)
+
+Si el equipo la pide, generá además `sXX-lenguaje-simple.md`: **las mismas historias, la
+misma estructura de secciones**, contadas **sin jerga técnica** (para alguien que nunca
+programó). Reglas: mismo contenido y mismos escenarios; se traducen los términos
+(«Gateway» → «recepción central», «golden set» → «colección de referencia», `403` → «no
+autorizado»); los CA negativos se rotulan «(caso que debe fallar)»; se agrega un glosario
+corto al inicio y un «En resumen» al final. No es fuente de verdad: encabezado igual que
+el principal.
 
 Regla de encabezado: la ficha es **formato de presentación**, no fuente de verdad de
 planificación. Si un dato (ID, épica, horas, dependencias) no coincide con la
@@ -134,6 +185,10 @@ receta/plan del equipo, **manda la receta/plan**.
 
 ## Checklist antes de entregar
 
+- [ ] Documento con encabezado (qué es / qué no es / tabla de fuente única), índice con
+      anclas y línea «Demo de SN».
+- [ ] Cada ficha abre con la tabla de metadatos de 7 filas (Épica, Pareja, Dependencias,
+      Estimación (plan), Tipo, Requisito, Referente de producto).
 - [ ] Cada historia: un rol, una acción, un resultado observable (título sin «y/o»).
 - [ ] COMO = rol real (o marcada explícitamente como tarea/habilitador).
 - [ ] QUIERO = acción del usuario, no solución técnica. PARA = beneficio real.

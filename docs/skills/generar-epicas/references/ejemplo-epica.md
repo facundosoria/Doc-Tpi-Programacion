@@ -14,6 +14,22 @@ Ficha generada (`ep-01.md`):
 
 ---
 
+# Épica EP-01 — Plataforma, contratos e integración
+
+> Ficha en el formato del template oficial de Épica de la Wiki de Taiga. Copiar desde
+> `# [G07] — EP-01: …` al crear la épica en Taiga. Catálogo y fuente de verdad:
+> `backlog/backlog-ejecutable.md`.
+>
+> | Campo | Valor |
+> |---|---|
+> | Pareja / equipo líder | **P1 · Plataforma e integración** |
+> | Sprints donde aporta | **S1, S3, S6, S10, S19** |
+> | Requisitos (orientativo) | RF-NFR-01/03/04/09/10; contratos v1 |
+> | Historias iniciales | `LLM-S01-H01` a `H04`, `H08`, `H09` |
+> | Se cierra cuando | Todas sus historias cumplen la DoD; las épicas no se estiman ni se comprometen. |
+
+---
+
 # [G07] — EP-01: Plataforma, contratos e integración
 
 ## Objetivo

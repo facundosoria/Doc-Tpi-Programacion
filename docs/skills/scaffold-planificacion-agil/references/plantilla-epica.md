@@ -11,6 +11,22 @@
 
 ---
 
+# Épica EP-0X — [NOMBRE]
+
+> Ficha en el formato del template oficial de Épica de la Wiki de Taiga. Copiar desde
+> `# [GXX] — EP-0X: …` al crear la épica en el módulo **Epics** de Taiga; reemplazar
+> `GXX` por el número de grupo. Catálogo y fuente de verdad: `backlog/backlog-ejecutable.md`.
+>
+> | Campo | Valor |
+> |---|---|
+> | Pareja / equipo líder | **[P_ · nombre]** |
+> | Sprints donde aporta | **[S1, S3, …]** |
+> | Requisitos (orientativo) | [RF-* / PAR-*] |
+> | Historias iniciales | [`Sxx-H01` … o «a desglosar en el Refinamiento»] |
+> | Se cierra cuando | Todas sus historias cumplen la DoD; las épicas no se estiman ni se comprometen. |
+
+---
+
 # [GXX] — EP-0X: [TÍTULO DEL ÉPICO]
 
 ## Objetivo

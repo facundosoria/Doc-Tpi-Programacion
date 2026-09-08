@@ -130,6 +130,8 @@ exige integración real.
 
 - [ ] OpenAPI: rutas por recurso bajo el prefijo público; `serviceJwt`; `Idempotency-Key`
       en writes; una respuesta `Problem` reutilizada; identidad no viene del body.
+- [ ] El OpenAPI y el AsyncAPI generados **validan** contra su esquema (linter en CI);
+      los `<placeholders>` de las plantillas quedaron todos reemplazados.
 - [ ] AsyncAPI: un canal por evento con sufijo de versión; envelope común; correlación en
       headers.
 - [ ] Doc inter-equipos: Gateway única puerta, dos canales, tabla por par, eventos
