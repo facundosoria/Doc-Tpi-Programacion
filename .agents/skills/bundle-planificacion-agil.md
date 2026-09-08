@@ -6,12 +6,18 @@ nuestra documentación: el equipo aporta su contexto (brief, requisitos, funcion
 del equipo) y el skill produce los documentos en el formato de la casa, o le dice cómo
 producirlos.
 
-**Para qué sirve.** Subirlo al **skill hub** del equipo, o copiar la carpeta a otro repo.
-Cada skill es **autónomo**: trae su copia del material fijo y declara en su `SKILL.md`
-qué entradas necesita.
+**Dónde viven.** Estos 7 skills están en `.agents/skills/` — la ubicación estándar de
+Claude Code, donde se **auto-descubren e invocan** (igual que `ui-ux-design-guide` y
+`web-design-reviewer`). Cada uno es **autónomo**: trae su copia del material fijo y
+declara en su `SKILL.md` qué entradas necesita.
+
+**Para llevarlos a otro repo:** copiar las carpetas a `.agents/skills/` de ese repo. Para
+el **skill hub**: se suben las convenciones condensadas (`type: reference` / `convention`),
+no los bundles enteros — el hub hoy guarda un `.md` por entrada, no carpetas.
 
 **Todo lo generado vive dentro de `docs/`.** El orden de precedencia (qué fuente decide
-qué) lo fija `docs/00-fuentes-de-verdad-y-convenciones.md`, que crea el scaffold.
+qué) lo fija `docs/00-fuentes-de-verdad-y-convenciones.md`, que crea el scaffold. Este
+bundle **no** es parte del árbol `docs/`: es la herramienta que lo produce.
 
 ## Dos tipos
 
@@ -67,13 +73,13 @@ Formato de frontmatter tomado del skill `ui-ux-design-guide` que ya estaba en el
 ## De dónde sale el método
 
 Condensado de la documentación de este repo (que queda como fuente, no se distribuye):
-[`docs/29`](../29-guia-catedra-historias-de-usuario.md),
-[`docs/23` §9.2](../23-plan-construccion-producto-llm.md),
+[`docs/29`](../../docs/29-guia-catedra-historias-de-usuario.md),
+[`docs/23` §9.2](../../docs/23-plan-construccion-producto-llm.md),
 [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>),
-[`docs/18`](../18-contratos-inter-equipos.md),
-[`docs/contracts/`](../contracts/),
-[`docs/gateway-y-discovery/`](../gateway-y-discovery/) *(de otro equipo)*,
-[`docs/plantillas/`](../plantillas/).
+[`docs/18`](../../docs/18-contratos-inter-equipos.md),
+[`docs/contracts/`](../../docs/contracts/),
+[`docs/gateway-y-discovery/`](../../docs/gateway-y-discovery/) *(de otro equipo)*,
+[`docs/plantillas/`](../../docs/plantillas/).
 
 Si el método de cátedra o las convenciones de plataforma cambian, los skills se
 actualizan a mano.

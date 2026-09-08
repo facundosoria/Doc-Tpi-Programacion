@@ -21,7 +21,7 @@ necesito»).
 
 **Estilo por defecto: lenguaje simple.** La ficha lleva la **estructura del template de
 Taiga** pero contada **sin jerga técnica** (para alguien que nunca programó): así queda
-como [`docs/historias/s01-test.md`](../../historias/s01-test.md) del proyecto de
+como [`docs/historias/s01-test.md`](../../../docs/historias/s01-test.md) del proyecto de
 referencia. El estilo con jerga precisa (endpoints, códigos HTTP, nombres exactos) es una
 **variante bajo pedido** — ver [`references/referencia-estilo-tecnico.md`](references/referencia-estilo-tecnico.md).
 
