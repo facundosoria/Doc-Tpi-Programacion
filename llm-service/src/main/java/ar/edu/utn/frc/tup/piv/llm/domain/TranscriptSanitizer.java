@@ -1,0 +1,2 @@
+package ar.edu.utn.frc.tup.piv.llm.domain;
+public final class TranscriptSanitizer { private TranscriptSanitizer(){} public static String anonymize(String value){if(value==null)throw new IllegalArgumentException("Transcript is required"); return value.replaceAll("[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\\.[A-Za-z]{2,}","[REDACTED_EMAIL]").replaceAll("[0-9a-fA-F]{8}-[0-9a-fA-F-]{27,}","[REDACTED_ID]").replaceAll("(?<!\\d)(?:\\+?54\\s?)?9?\\d{8,12}(?!\\d)","[REDACTED_PHONE]");} }

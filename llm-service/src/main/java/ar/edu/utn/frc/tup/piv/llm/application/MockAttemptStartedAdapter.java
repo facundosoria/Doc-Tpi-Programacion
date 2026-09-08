@@ -1,0 +1,3 @@
+package ar.edu.utn.frc.tup.piv.llm.application;
+import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.ChallengeCalibrationAssignmentRepository; import java.util.UUID; import org.springframework.context.annotation.Profile; import org.springframework.stereotype.Component; import org.springframework.transaction.annotation.Transactional;
+@Component @Profile({"default","dev","test"}) public class MockAttemptStartedAdapter implements AttemptStartedPort {private final ChallengeCalibrationAssignmentRepository assignments;public MockAttemptStartedAdapter(ChallengeCalibrationAssignmentRepository a){assignments=a;}@Transactional public void firstAttemptStarted(UUID challenge,UUID attempt){assignments.lockOnFirstAttempt(challenge,attempt);}}
