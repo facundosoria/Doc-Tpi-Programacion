@@ -10,6 +10,7 @@ Cada dato de planificación vive en **exactamente un** documento. Todo lo demás
 
 | Dato | Fuente única |
 |---|---|
+| Problema, alcance in/out, funciones, objetivos medibles | `vision/vision-y-alcance.md` |
 | Cálculo de capacidad del sprint (fórmula y números) | `plan/plan-construccion.md` |
 | Catálogo de épicas (nombre, resultado, responsable, sprints, requisitos) | `backlog/backlog-ejecutable.md` |
 | Recetas de sprint (paquetes verificables, horas, gates) | `backlog/backlog-ejecutable.md` |
@@ -17,7 +18,8 @@ Cada dato de planificación vive en **exactamente un** documento. Todo lo demás
 | Definition of Ready / Definition of Done | `dor-dod.md` |
 | Método para redactar y estimar HU | `metodo/historias-de-usuario.md` |
 | Método para épicas | `metodo/epicas.md` |
-| Contratos HTTP / evento entre servicios | `contracts/` (o donde el proyecto los tenga) |
+| Contrato HTTP (OpenAPI) y de eventos (AsyncAPI) | `contracts/<servicio>-v1.openapi.yaml` / `.asyncapi.yaml` |
+| Contrato con el Gateway y con cada equipo | `contracts/NN-contratos-inter-equipos.md` |
 | Matriz de trazabilidad historia → requisito | `plan/` (matriz dedicada) |
 
 Si dos documentos dicen algo distinto sobre el mismo dato, **manda la fuente única** y el
@@ -65,11 +67,18 @@ puntos dice «*(a asignar en Sprint 0)*», no un número inventado.
 ```
 docs/
 ├── README.md                      índice + tabla de fuente única
+├── vision/
+│   └── vision-y-alcance.md         problema, alcance in/out, funciones, objetivos, glosario
 ├── plan/
 │   ├── plan-construccion.md        capacidad, parejas/equipos, esquema de IDs, DoR/DoD (o puntero)
 │   └── matriz-trazabilidad.md      historia → requisito
 ├── backlog/
 │   └── backlog-ejecutable.md       catálogo de épicas + Sprint 0 + recetas S1..SN
+├── contracts/
+│   ├── <servicio>-v1.openapi.yaml  HTTP por recursos
+│   ├── <servicio>-v1.asyncapi.yaml eventos Kafka
+│   ├── <servicio>-v1-sNN-*-adenda.md   cambios por sprint
+│   └── NN-contratos-inter-equipos.md   Gateway + qué pedimos/damos a cada equipo
 ├── epicas/
 │   ├── README.md                   catálogo (tabla) + estado por sprint
 │   └── ep-01.md … ep-NN.md         una ficha por épica (template Taiga)
@@ -86,8 +95,7 @@ docs/
 ├── metodo/
 │   ├── historias-de-usuario.md
 │   └── epicas.md
-├── dor-dod.md
-└── contracts/                      contratos entre servicios (si aplica)
+└── dor-dod.md
 ```
 
 Adaptá nombres a lo que ya use el proyecto. Lo que **no** cambia: la tabla de fuente
@@ -102,6 +110,8 @@ Adaptá nombres a lo que ya use el proyecto. Lo que **no** cambia: la tabla de f
 
 | Dato | Fuente única | Vistas derivadas |
 |---|---|---|
+| Visión y alcance | vision/vision-y-alcance.md | — |
+| Contratos | contracts/*.yaml, contracts/NN-contratos-inter-equipos.md | historias/sNN.md (Mock API) |
 | Capacidad del sprint | plan/plan-construccion.md | sprints/sNN-propuesto.md |
 | Catálogo de épicas | backlog/backlog-ejecutable.md | epicas/*.md |
 | Recetas de sprint | backlog/backlog-ejecutable.md | historias/sNN.md |
@@ -110,7 +120,9 @@ Adaptá nombres a lo que ya use el proyecto. Lo que **no** cambia: la tabla de f
 
 ## Cómo se llena
 
-1. `generar-backlog-y-recetas` → plan/ y backlog/
-2. `generar-epicas` → epicas/
-3. `generar-historias-usuario` → historias/
+1. `generar-vision-y-alcance` → vision/
+2. `generar-contratos-servicio` → contracts/
+3. `generar-backlog-y-recetas` → plan/ y backlog/
+4. `generar-epicas` → epicas/
+5. `generar-historias-usuario` → historias/
 ```

@@ -18,10 +18,12 @@ Deja el **esqueleto de documentación** sobre el que después se generan el back
 
 Se puede **encadenar** con:
 
-1. `generar-backlog-y-recetas` → llena `plan/` y `backlog/` (capacidad, catálogo de
+1. `generar-vision-y-alcance` → llena `vision/` (problema, alcance, funciones, objetivos).
+2. `generar-contratos-servicio` → llena `contracts/` y el doc inter-equipos.
+3. `generar-backlog-y-recetas` → llena `plan/` y `backlog/` (capacidad, catálogo de
    épicas, recetas de sprint).
-2. `generar-epicas` → llena `epicas/` a partir del catálogo.
-3. `generar-historias-usuario` → llena `historias/` a partir de cada receta de sprint.
+4. `generar-epicas` → llena `epicas/` a partir del catálogo.
+5. `generar-historias-usuario` → llena `historias/` a partir de cada receta de sprint.
 
 Cada uno funciona también por separado.
 
@@ -30,10 +32,15 @@ Cada uno funciona también por separado.
 ```
 docs/  (o la raíz de doc que use el proyecto)
 ├── README.md                      índice: qué documento es fuente de qué
+├── vision/
+│   └── vision-y-alcance.md        STUB → lo genera generar-vision-y-alcance
 ├── plan/
 │   └── plan-construccion.md       STUB → lo genera generar-backlog-y-recetas
 ├── backlog/
 │   └── backlog-ejecutable.md      STUB → catálogo de épicas + recetas S1..SN
+├── contracts/
+│   ├── README.md                  STUB → lo genera generar-contratos-servicio
+│   └── NN-contratos-inter-equipos.md   STUB
 ├── epicas/
 │   └── README.md                  STUB → catálogo; una ficha ep-01.md… por épica
 ├── historias/
@@ -71,9 +78,9 @@ Opcional:
    archivos con contenido: si un archivo ya existe, proponé merge, no overwrite.
 2. **Copiar el material fijo** desde `references/` de este skill a `plantillas/`,
    `metodo/` y `dor-dod.md`. Ajustá `GXX` en los templates de Taiga.
-3. **Escribir los STUB** de `plan/`, `backlog/`, `epicas/README.md`,
-   `historias/README.md` con: (a) una línea de qué va acá, (b) qué skill lo genera,
-   (c) el encabezado de convención (abajo). Sin inventar contenido de planificación.
+3. **Escribir los STUB** de `vision/`, `plan/`, `backlog/`, `contracts/`,
+   `epicas/README.md`, `historias/README.md` con: (a) una línea de qué va acá, (b) qué
+   skill lo genera, (c) el encabezado de convención (abajo). Sin inventar contenido.
 4. **Escribir el `README.md` índice** con la tabla de **fuente única**: para cada dato
    (capacidad, catálogo de épicas, IDs, DoR/DoD, método, contratos) una sola fila que
    diga **dónde vive**. Ver [`references/estructura-y-convenciones.md`](references/estructura-y-convenciones.md).
@@ -107,7 +114,7 @@ fuente** de tal cosa y que las vistas derivadas se les subordinan.
 
 - [ ] Árbol creado sin pisar archivos con contenido.
 - [ ] `plantillas/`, `metodo/` y `dor-dod.md` con el material fijo copiado; `GXX` puesto.
-- [ ] STUBs de plan/backlog/epicas/historias con «qué va acá + qué skill lo genera».
+- [ ] STUBs de vision/plan/backlog/contracts/epicas/historias con «qué va acá + qué skill lo genera».
 - [ ] `README.md` índice con la tabla de fuente única (una fila por dato).
 - [ ] Convención de encabezado escrita y con plantilla reutilizable.
 - [ ] Ningún STUB contiene planificación inventada (capacidad, épicas, recetas).

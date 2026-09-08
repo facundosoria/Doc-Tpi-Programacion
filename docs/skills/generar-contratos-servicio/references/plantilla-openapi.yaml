@@ -1,0 +1,78 @@
+# Esqueleto OpenAPI 3.1 — reemplazar <n> por el nombre del servicio y completar solo lo que exista.
+# Estilo: recursos (no RPC), rutas bajo /api/<n>, seguridad M2M, Problem Details, Idempotency-Key.
+openapi: 3.1.0
+info:
+  title: <N> Service API
+  version: 1.0.0
+  description: API privada de <n>-service. Toda llamada ingresa mediante API Gateway.
+servers:
+  - url: /api/<n>
+security:
+  - serviceJwt: []
+paths:
+  # --- Escritura: 201 + Location, Idempotency-Key obligatoria ---
+  /<recursos>:
+    post:
+      summary: Crea <recurso>
+      operationId: create<Recurso>
+      parameters: [ { $ref: '#/components/parameters/IdempotencyKey' } ]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/<Recurso>Request' }
+      responses:
+        '201': { description: <Recurso> creado, headers: { Location: { schema: { type: string } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+    get:
+      summary: Lista <recursos> de la tenancy (filtro de tenancy siempre aplicado)
+      operationId: list<Recursos>
+      parameters:
+        - { name: page, in: query, schema: { type: integer, minimum: 0, default: 0 } }
+        - { name: size, in: query, schema: { type: integer, minimum: 1, maximum: 100, default: 20 } }
+      responses:
+        '200': { description: Lista, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/<Recurso>' } } } } }
+        '400': { $ref: '#/components/responses/Problem' }
+  /<recursos>/{<recurso>Id}:
+    get:
+      summary: Detalle de <recurso>; tenancy ajena o inexistente -> 404 (nunca 500)
+      operationId: get<Recurso>
+      parameters: [ { $ref: '#/components/parameters/<Recurso>Id' } ]
+      responses:
+        '200': { description: <Recurso>, content: { application/json: { schema: { $ref: '#/components/schemas/<Recurso>' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+  # --- Async: 202 + Location a /jobs/{jobId} ---
+  /jobs/{jobId}:
+    get:
+      summary: Estado de un trabajo asíncrono
+      operationId: getJob
+      parameters: [ { $ref: '#/components/parameters/JobId' } ]
+      responses:
+        '200': { description: Estado, content: { application/json: { schema: { $ref: '#/components/schemas/Job' } } } }
+        '404': { $ref: '#/components/responses/Problem' }
+components:
+  securitySchemes:
+    serviceJwt: { type: http, scheme: bearer, bearerFormat: JWT }   # el servicio valida aud=<n>-service + scope
+  parameters:
+    IdempotencyKey: { name: Idempotency-Key, in: header, required: true, schema: { type: string, format: uuid } }
+    <Recurso>Id: { name: <recurso>Id, in: path, required: true, schema: { type: string, format: uuid } }
+    JobId: { name: jobId, in: path, required: true, schema: { type: string, format: uuid } }
+  responses:
+    Problem: { description: RFC 7807 Problem Details; requestId viaja en X-Request-Id y como extensión del body. }
+  schemas:
+    <Recurso>Request:
+      type: object
+      required: [ <campos obligatorios> ]
+      properties: {}   # identidad/tenancy NO va acá: se deriva del token
+    <Recurso>:
+      type: object
+      required: [ id ]
+      properties:
+        id: { type: string, format: uuid }
+    Job:
+      type: object
+      required: [ id, state ]
+      properties:
+        id: { type: string, format: uuid }
+        state: { type: string, enum: [queued, running, completed, failed] }
