@@ -24,7 +24,7 @@ antes de empezar: tiene las capas, el árbol completo y las plantillas de índic
 Se **encadena** con (cada uno también funciona solo):
 
 1. `generar-vision-y-alcance` → `docs/vision/`
-2. `contratos-api-gateway` → `docs/contracts/`
+2. `contratos-api-gateway` (HTTP) + `contratos-kafka` (eventos) → `docs/contracts/`
 3. `generar-backlog-y-recetas` → `docs/plan/` y `docs/backlog/`
 4. `generar-epicas` → `docs/epicas/`
 5. `generar-historias-usuario` → `docs/historias/`
@@ -57,7 +57,7 @@ docs/
 │   └── matriz-trazabilidad.md             STUB → historia → requisito
 ├── backlog/backlog-ejecutable.md          STUB → catálogo de épicas + Sprint 0 + recetas
 ├── contracts/
-│   ├── README.md                          STUB → contratos-api-gateway
+│   ├── README.md                          STUB → contratos-api-gateway + contratos-kafka
 │   └── NN-contratos-inter-equipos.md      STUB
 ├── epicas/README.md                       STUB → catálogo; una ep-01.md… por épica
 ├── historias/README.md                    STUB → una sXX.md por sprint (lenguaje simple)

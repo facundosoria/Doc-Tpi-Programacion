@@ -1,7 +1,12 @@
 # Convenciones de contrato (estilo de la casa)
 
-Material fijo. Reglas que aplican a **todo** contrato de servicio de la plataforma.
-Destiladas de los contratos v1 vigentes y de la guía de Gateway/Discovery.
+Material fijo. Reglas del **canal sincrónico (HTTP por el API Gateway)**. Destiladas de
+los contratos v1 vigentes y de la guía de Gateway/Discovery.
+
+> Para el **canal asíncrono** (eventos por Kafka) — nombre de topic, envelope, correlación
+> en headers de Kafka, at-least-once, outbox, versionado de eventos — ver el skill
+> **`contratos-kafka`**. Las secciones 5 (correlación), 6 (idempotencia) y 10 (los dos
+> canales) de acá tienen su contraparte allá.
 
 ---
 

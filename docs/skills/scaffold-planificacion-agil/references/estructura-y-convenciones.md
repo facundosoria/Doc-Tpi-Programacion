@@ -153,7 +153,7 @@ docs/00 + contratos + ADR → resto de docs/.
 
 1. `scaffold-planificacion-agil` → estructura + docs/00 + material fijo
 2. `generar-vision-y-alcance` → docs/vision/
-3. `contratos-api-gateway` → docs/contracts/
+3. `contratos-api-gateway` (HTTP) + `contratos-kafka` (eventos) → docs/contracts/
 4. `generar-backlog-y-recetas` → docs/plan/ y docs/backlog/
 5. `generar-epicas` → docs/epicas/
 6. `generar-historias-usuario` → docs/historias/

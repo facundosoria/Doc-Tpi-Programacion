@@ -18,7 +18,7 @@ qué) lo fija `docs/00-fuentes-de-verdad-y-convenciones.md`, que crea el scaffol
 | Tipo | Qué hace | Cuáles |
 |---|---|---|
 | **Arranque** | Crea el esqueleto de `docs/` una vez | `scaffold-planificacion-agil` |
-| **Referencia** | Reglas fijas a seguir + plantillas a rellenar. No transforma nada. | `contratos-api-gateway` |
+| **Referencia** | Reglas fijas a seguir + plantillas a rellenar. No transforma nada. | `contratos-api-gateway`, `contratos-kafka` |
 | **Generador** | Toma una entrada del equipo y produce un documento derivado | `generar-vision-y-alcance`, `generar-backlog-y-recetas`, `generar-epicas`, `generar-historias-usuario` |
 
 ## Pipeline
@@ -28,8 +28,9 @@ scaffold-planificacion-agil   → docs/ (estructura + docs/00 + material fijo)
         │
 generar-vision-y-alcance      → docs/vision/
         │
-        ├── contratos-api-gateway (referencia)  → docs/contracts/
-        └── generar-backlog-y-recetas           → docs/plan/ + docs/backlog/
+        ├── contratos-api-gateway (referencia, HTTP)   ─┐
+        ├── contratos-kafka       (referencia, eventos) ─┼→ docs/contracts/
+        └── generar-backlog-y-recetas                    → docs/plan/ + docs/backlog/
                     │
                     ├─→ generar-epicas          → docs/epicas/
                     └─→ generar-historias-usuario → docs/historias/
@@ -39,7 +40,8 @@ generar-vision-y-alcance      → docs/vision/
 |---|---|---|---|
 | [`scaffold-planificacion-agil`](scaffold-planificacion-agil/SKILL.md) | arranque | nombre del proyecto + identidad del servicio | `docs/00` (capas + identidad canónica), árbol de `docs/`, `docs/README.md` con tabla de *fuente única*, material fijo copiado, STUBs |
 | [`generar-vision-y-alcance`](generar-vision-y-alcance/SKILL.md) | generador | brief + fases | `docs/vision/` — problema, alcance in/out por fase, funciones, fronteras (3 columnas), objetivos, riesgos, glosario |
-| [`contratos-api-gateway`](contratos-api-gateway/SKILL.md) | **referencia** | — (se consulta) | reglas del Gateway (de plataforma) + estilo de la casa + esqueletos OpenAPI/AsyncAPI/inter-equipos/adenda para llenar `docs/contracts/` |
+| [`contratos-api-gateway`](contratos-api-gateway/SKILL.md) | **referencia** | — (se consulta) | reglas del Gateway (de plataforma) + estilo de la casa + esqueleto OpenAPI + plantillas inter-equipos/adenda → `docs/contracts/` (canal HTTP) |
+| [`contratos-kafka`](contratos-kafka/SKILL.md) | **referencia** | — (se consulta) | reglas del bus de eventos (de plataforma) + esqueleto AsyncAPI → `docs/contracts/` (canal asíncrono) |
 | [`generar-backlog-y-recetas`](generar-backlog-y-recetas/SKILL.md) | generador | brief + requisitos + fases + datos del equipo | `docs/plan/` y `docs/backlog/` — capacidad, catálogo de épicas, Sprint 0, receta por sprint |
 | [`generar-epicas`](generar-epicas/SKILL.md) | generador | el catálogo de épicas | `docs/epicas/` — fichas de épica en formato Taiga, una por archivo |
 | [`generar-historias-usuario`](generar-historias-usuario/SKILL.md) | generador | una receta de sprint | `docs/historias/` — fichas de HU **en lenguaje simple** (estilo `s01-test.md`) + tareas; variante técnica bajo pedido |
