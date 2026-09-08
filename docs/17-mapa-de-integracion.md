@@ -639,6 +639,16 @@ acá.
 | **I-15** | Quién construye la pantalla del golden set: cuatro documentos le dan cuatro dueños | 🔴 Product Owner | Es la que destraba el ítem de plazo más largo, y **no es ninguno de los 14 pasos del plan** |
 | **I-16** | El costo cero del moderador se apoya en un free tier que quizá no pueda tocar datos de alumnos | Consulta legal | Es la única función que por diseño manda texto libre de alumnos a un tercero |
 
+> **I-10 ya tiene una adenda de contrato escrita, esperando.** La variante SSE del tutor —endpoint
+> `POST /tutor/interactions/stream`, los eventos del Buffer Interceptor y el fragmento OpenAPI para
+> fusionar— está en
+> [`contracts/llm-service-v1-tutor-sse-adenda.md`](contracts/llm-service-v1-tutor-sse-adenda.md).
+> **No se fusiona al `openapi.yaml`** hasta cerrar I-10 y que Tema 05 acuerde consumir SSE.
+> Conviene cerrarla con un **spike de viabilidad** antes de S5: ¿la comparación de AST a mitad de
+> stream y la regeneración caben en el presupuesto de latencia? ¿langchain4j soporta el streaming
+> que el interceptor necesita? El spike solapa con I-03 (latencia real del tutor) e I-11 (timeouts
+> por rol) y su salida es lo que decide «propagar o revertir».
+
 ### Los cuatro que van primero a la sesión de integración
 
 **I-04** porque bloquea a otro equipo entero · **I-05** e **I-09** porque se cierran contratos que
