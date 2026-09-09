@@ -1,13 +1,13 @@
 ---
-slug: user-stories-in-plain-language-taiga-format
-title: User stories in plain-language Taiga format
+slug: generate-user-story
+title: Generate user story
 description: 'How this org writes user stories: Taiga template structure, plain language by default, one
   happy path plus two failing scenarios, points estimated in Sprint 0.'
 when_to_use: writing user stories, sprint backlog fiches, historias de usuario (HU), turning a sprint
   recipe into stories, BDD acceptance scenarios, splitting an epic into stories
 stack: shared
 type: convention
-owner_team: LLM
+owning_team: LLM
 version: 1
 tags:
 - agile
