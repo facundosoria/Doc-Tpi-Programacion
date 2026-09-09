@@ -3,8 +3,9 @@ package com.example.demo.rag;
 import com.example.demo.controller.RagController;
 import com.example.demo.rag.dto.RagChatRequest;
 import com.example.demo.rag.dto.RagChatResponse;
-import com.example.demo.rag.service.InMemoryRagVectorStore;
+import com.example.demo.rag.service.EmbeddingService;
 import com.example.demo.rag.service.PdfTextExtractorService;
+import com.example.demo.rag.service.PgVectorStoreService;
 import com.example.demo.rag.service.TextChunkerService;
 import com.example.demo.rag.service.TutorRagService;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -33,7 +34,8 @@ class RagControllerTest {
     private TutorRagService tutorRagService;
     private PdfTextExtractorService pdfExtractor;
     private TextChunkerService textChunker;
-    private InMemoryRagVectorStore vectorStore;
+    private PgVectorStoreService vectorStore;
+    private EmbeddingService embeddingService;
 
     @BeforeEach
     void setUp() {
@@ -41,9 +43,10 @@ class RagControllerTest {
         tutorRagService = Mockito.mock(TutorRagService.class);
         pdfExtractor = Mockito.mock(PdfTextExtractorService.class);
         textChunker = Mockito.mock(TextChunkerService.class);
-        vectorStore = Mockito.mock(InMemoryRagVectorStore.class);
+        vectorStore = Mockito.mock(PgVectorStoreService.class);
+        embeddingService = Mockito.mock(EmbeddingService.class);
 
-        RagController controller = new RagController(pdfExtractor, textChunker, vectorStore, tutorRagService);
+        RagController controller = new RagController(pdfExtractor, textChunker, vectorStore, embeddingService, tutorRagService);
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
     }
 

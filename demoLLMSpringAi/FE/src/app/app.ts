@@ -1,4 +1,4 @@
-import { Component, signal, computed, inject, ElementRef, ViewChild } from '@angular/core';
+import { Component, signal, computed, inject, ElementRef, ViewChild, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { marked } from 'marked';
@@ -31,12 +31,14 @@ export interface ToastItem {
   templateUrl: './app.html',
   styleUrl: './app.css'
 })
-export class App {
+export class App implements OnInit {
   private readonly ragService = inject(RagService);
 
   @ViewChild('messagesContainer') private messagesContainer!: ElementRef<HTMLDivElement>;
 
-  // Estado con Signals (Angular 21)
+  // Estado con Signals (Angular 21) - Multi-fuente NotebookLM
+  readonly sources = signal<RagDocumentInfo[]>([]);
+  readonly selectedSourceIds = signal<Set<string>>(new Set());
   readonly activeDocument = signal<RagDocumentInfo | null>(null);
   readonly conversacionId = signal<string | null>(null);
   readonly tokensSaved = signal<number>(0);
@@ -79,9 +81,105 @@ export class App {
   ]);
 
   // Computed signals
-  readonly hasDocument = computed(() => this.activeDocument() !== null);
+  readonly hasDocument = computed(() => this.sources().length > 0);
+  readonly selectedSourcesCount = computed(() => this.selectedSourceIds().size);
+  readonly isAllSelected = computed(() => this.sources().length > 0 && this.selectedSourceIds().size === this.sources().length);
   readonly charCount = computed(() => this.queryText.length);
   readonly isCharLimitWarn = computed(() => this.queryText.length > 550);
+
+  // ==========================================
+  // INICIALIZACIÓN Y GESTIÓN DE FUENTES
+  // ==========================================
+
+  ngOnInit(): void {
+    this.loadDocuments();
+  }
+
+  loadDocuments(): void {
+    this.ragService.getDocuments().subscribe({
+      next: (docs) => {
+        this.sources.set(docs);
+        if (docs.length > 0) {
+          // Por defecto, seleccionar todas las fuentes disponibles
+          this.selectedSourceIds.set(new Set(docs.map((d) => d.documentId)));
+          if (!this.activeDocument()) {
+            this.activeDocument.set(docs[0]);
+          }
+        }
+      },
+      error: (err) => {
+        console.warn('No se pudieron listar los documentos de la base de datos:', err);
+      }
+    });
+  }
+
+  toggleSource(documentId: string): void {
+    this.selectedSourceIds.update((set) => {
+      const next = new Set(set);
+      if (next.has(documentId)) {
+        next.delete(documentId);
+      } else {
+        next.add(documentId);
+      }
+      return next;
+    });
+  }
+
+  isSourceSelected(documentId: string): boolean {
+    return this.selectedSourceIds().has(documentId);
+  }
+
+  selectAllSources(): void {
+    this.selectedSourceIds.set(new Set(this.sources().map((s) => s.documentId)));
+  }
+
+  deselectAllSources(): void {
+    this.selectedSourceIds.set(new Set());
+  }
+
+  deleteSource(docId: string, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    this.ragService.deleteDocument(docId).subscribe({
+      next: () => {
+        this.sources.update((list) => list.filter((d) => d.documentId !== docId));
+        this.selectedSourceIds.update((set) => {
+          const next = new Set(set);
+          next.delete(docId);
+          return next;
+        });
+        if (this.activeDocument()?.documentId === docId) {
+          const remaining = this.sources();
+          this.activeDocument.set(remaining.length > 0 ? remaining[0] : null);
+          this.chunks.set([]);
+          this.showChunks.set(false);
+        }
+        this.showToast('Fuente eliminada de la base de datos', 'info');
+      },
+      error: (err) => {
+        this.showToast(err.error?.error || 'Error al eliminar la fuente', 'error');
+      }
+    });
+  }
+
+  inspectChunks(doc: RagDocumentInfo, event?: Event): void {
+    if (event) {
+      event.stopPropagation();
+    }
+    if (this.activeDocument()?.documentId === doc.documentId && this.showChunks()) {
+      this.showChunks.set(false);
+      return;
+    }
+    this.activeDocument.set(doc);
+    this.ragService.getDocumentChunks(doc.documentId).subscribe({
+      next: (chunks) => {
+        this.chunks.set(chunks);
+        this.showChunks.set(true);
+      },
+      error: () => this.showToast('No se pudieron obtener los fragmentos', 'warn')
+    });
+  }
 
   // ==========================================
   // DRAG & DROP Y CARGA DE PDF
@@ -105,14 +203,15 @@ export class App {
     this.isDragOver.set(false);
 
     if (e.dataTransfer?.files && e.dataTransfer.files.length > 0) {
-      this.processSelectedFile(e.dataTransfer.files[0]);
+      Array.from(e.dataTransfer.files).forEach((file) => this.processSelectedFile(file));
     }
   }
 
   onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
     if (input.files && input.files.length > 0) {
-      this.processSelectedFile(input.files[0]);
+      Array.from(input.files).forEach((file) => this.processSelectedFile(file));
+      input.value = '';
     }
   }
 
@@ -128,7 +227,7 @@ export class App {
     }
 
     this.isUploading.set(true);
-    this.uploadProgressText.set('Extrayendo texto y vectorizando en memoria (TF-IDF)...');
+    this.uploadProgressText.set(`Indexando "${file.name}" con PDFBox y pgvector...`);
 
     this.ragService.uploadPdf(file).subscribe({
       next: (doc) => {
@@ -138,20 +237,20 @@ export class App {
       },
       error: (err) => {
         this.isUploading.set(false);
-        this.showToast(err.error?.error || 'Error al procesar el archivo PDF', 'error');
+        this.showToast(err.error?.error || `Error al procesar ${file.name}`, 'error');
       }
     });
   }
 
   loadSamplePdf(): void {
     this.isUploading.set(true);
-    this.uploadProgressText.set('Cargando y vectorizando PDF de prueba...');
+    this.uploadProgressText.set('Cargando y vectorizando PDF de prueba con pgvector...');
 
     this.ragService.loadSamplePdf().subscribe({
       next: (doc) => {
         this.onDocumentReady(doc);
         this.isUploading.set(false);
-        this.showToast('PDF de prueba indexado correctamente en memoria', 'success');
+        this.showToast('PDF de prueba indexado correctamente en memoria/pgvector', 'success');
       },
       error: (err) => {
         this.isUploading.set(false);
@@ -163,6 +262,17 @@ export class App {
   private onDocumentReady(doc: RagDocumentInfo): void {
     this.activeDocument.set(doc);
 
+    // Actualizar lista de fuentes y seleccionarla
+    this.sources.update((prev) => {
+      const filtered = prev.filter((d) => d.documentId !== doc.documentId);
+      return [doc, ...filtered];
+    });
+    this.selectedSourceIds.update((set) => {
+      const next = new Set(set);
+      next.add(doc.documentId);
+      return next;
+    });
+
     // Cargar fragmentos indexados
     this.ragService.getDocumentChunks(doc.documentId).subscribe({
       next: (chunks) => this.chunks.set(chunks),
@@ -173,8 +283,8 @@ export class App {
     const welcomeTutorMsg: ChatMessage = {
       id: 'doc_ready_' + Date.now(),
       sender: 'tutor',
-      text: `He indexado ${doc.fileName} (${doc.pageCount} páginas, ${doc.chunkCount} fragmentos). Estoy listo para responder tus dudas de manera concisa y pedagógica.`,
-      htmlContent: `<p>He indexado el documento <strong>${doc.fileName}</strong> (${doc.pageCount} páginas, ${doc.chunkCount} fragmentos semánticos).</p><p>Estoy listo para responder tus dudas de manera <strong>concisa y pedagógica</strong>. ¿Qué punto del material te gustaría revisar?</p>`,
+      text: `He indexado "${doc.fileName}" (${doc.pageCount} páginas, ${doc.chunkCount} fragmentos semánticos). Añadido al panel de fuentes (${this.selectedSourceIds().size} activa${this.selectedSourceIds().size > 1 ? 's' : ''}).`,
+      htmlContent: `<p>He indexado la fuente <strong>${doc.fileName}</strong> (${doc.pageCount} páginas, ${doc.chunkCount} fragmentos semánticos con embeddings).</p><p>Está seleccionada y lista para consultas multi-fuente estilo NotebookLM.</p>`,
       rolTutor: 'Profesor Tutor Pedagógico',
       timestamp: new Date()
     };
@@ -186,7 +296,7 @@ export class App {
     this.activeDocument.set(null);
     this.chunks.set([]);
     this.showChunks.set(false);
-    this.showToast('Documento desvinculado de la sesión', 'info');
+    this.showToast('Vista de fragmentos cerrada', 'info');
   }
 
   toggleChunksView(): void {
@@ -215,17 +325,18 @@ export class App {
 
   sendQuery(): void {
     const query = this.queryText.trim();
+    const selectedIds = Array.from(this.selectedSourceIds());
 
-    // V1. Validación: Documento activo requerido
-    if (!this.activeDocument()) {
-      this.validationAlert.set('Debes arrastrar o cargar un documento PDF antes de formular preguntas.');
-      this.showToast('Carga un PDF en el panel izquierdo primero', 'warn');
+    // V1. Validación: Al menos una fuente seleccionada
+    if (selectedIds.length === 0) {
+      this.validationAlert.set('Debes seleccionar al menos una fuente en el panel de fuentes antes de formular preguntas.');
+      this.showToast('Selecciona al menos una fuente en el panel izquierdo', 'warn');
       return;
     }
 
     // V2. Validación: Vacío
     if (!query) {
-      this.validationAlert.set('Escribe una consulta válida sobre el documento.');
+      this.validationAlert.set('Escribe una consulta válida sobre las fuentes seleccionadas.');
       return;
     }
 
@@ -260,11 +371,12 @@ export class App {
     this.queryText = '';
     this.scrollToBottom();
 
-    // Iniciar llamada al Tutor
+    // Iniciar llamada al Tutor con multi-fuente
     this.isThinking.set(true);
 
     this.ragService.chatWithTutor({
-      documentId: this.activeDocument()!.documentId,
+      documentIds: selectedIds,
+      documentId: selectedIds[0],
       pregunta: query,
       conversacionId: this.conversacionId()
     }).subscribe({
@@ -279,7 +391,7 @@ export class App {
         }
 
         // Actualizar métrica de tokens ahorrados si fue bloqueado o provino de caché
-        if (resp.estado === 'BLOCKED_PROFANITY' || resp.estado === 'BLOCKED_INJECTION') {
+        if (resp.estado === 'BLOCKED_PROFANITY' || resp.estado === 'BLOCKED_INJECTION' || resp.estado === 'BLOCKED_NO_SOURCE') {
           this.tokensSaved.update((t) => t + 350);
         } else if (resp.cached) {
           this.tokensSaved.update((t) => t + 250);

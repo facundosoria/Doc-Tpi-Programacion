@@ -10,6 +10,8 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RagFuenteDto {
+    private String documentId;
+    private String documentName;
     private int pageNumber;
     private int chunkIndex;
     private double score;

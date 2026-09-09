@@ -238,6 +238,10 @@ public class InMemoryRagVectorStore {
         return documents.containsKey(docId);
     }
 
+    public List<RagDocumentInfo> getAllDocuments() {
+        return new ArrayList<>(documents.values());
+    }
+
     public void removeDocument(String docId) {
         documents.remove(docId);
         documentChunks.remove(docId);

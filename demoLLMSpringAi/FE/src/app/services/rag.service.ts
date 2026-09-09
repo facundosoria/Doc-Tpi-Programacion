@@ -23,6 +23,8 @@ export interface DocumentChunk {
 }
 
 export interface RagFuenteDto {
+  documentId?: string;
+  documentName?: string;
   pageNumber: number;
   chunkIndex: number;
   score: number;
@@ -30,14 +32,15 @@ export interface RagFuenteDto {
 }
 
 export interface RagChatRequest {
-  documentId: string;
+  documentId?: string;
+  documentIds?: string[];
   pregunta: string;
   conversacionId?: string | null;
 }
 
 export interface RagChatResponse {
   respuesta: string;
-  estado: string; // "OK", "BLOCKED_PROFANITY", "BLOCKED_INJECTION", "BLOCKED_VALIDATION", etc.
+  estado: string; // "OK", "BLOCKED_PROFANITY", "BLOCKED_INJECTION", "BLOCKED_VALIDATION", "BLOCKED_NO_SOURCE", etc.
   mensajeValidacion?: string;
   tokensGastados: number;
   cached: boolean;
@@ -51,8 +54,11 @@ export interface RagChatResponse {
 })
 export class RagService {
   private readonly http = inject(HttpClient);
-  // Conexión dinámica con el backend Spring Boot
   private readonly baseUrl = 'http://localhost:8080/api/rag';
+
+  getDocuments(): Observable<RagDocumentInfo[]> {
+    return this.http.get<RagDocumentInfo[]>(`${this.baseUrl}/documentos`);
+  }
 
   uploadPdf(file: File): Observable<RagDocumentInfo> {
     const formData = new FormData();
@@ -70,5 +76,9 @@ export class RagService {
 
   getDocumentChunks(documentId: string): Observable<DocumentChunk[]> {
     return this.http.get<DocumentChunk[]>(`${this.baseUrl}/documento/${documentId}/chunks`);
+  }
+
+  deleteDocument(documentId: string): Observable<{ message: string; documentId: string }> {
+    return this.http.delete<{ message: string; documentId: string }>(`${this.baseUrl}/documento/${documentId}`);
   }
 }
