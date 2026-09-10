@@ -250,7 +250,7 @@ Para que no se pierda al integrar:
 | B-5 | **Scoring híbrido determinístico** | Que el 45-60% de la rúbrica se puede calcular sin LLM |
 | B-6 | **Esquema de eventos de IDE** | Ediciones y ejecuciones **antes del primer mensaje** — la evidencia más limpia de autonomía |
 | B-7 | **Glosario y las 8 colisiones** | *"Evaluación"* significa cosas distintas en tres temas |
-| B-8 | **Proceso de calibración humana** | Dos docentes por separado, y **donde difieren se arregla el ancla, no el puntaje** |
+| B-8 | **Proceso de referencia humana** | Un docente puntúa las cinco dimensiones; revisa anclas y casos antes de publicar. La justificación es opcional |
 | B-9 | **Las anclas concretas de las 5 dimensiones** | La guía tiene la fórmula; nosotros el contenido |
 | B-10 | **Retrieval por cobertura** | Que para generar un parcial querés máxima **disimilitud**, no similitud |
 | B-11 | **Plan de trabajo para 6 personas** | |

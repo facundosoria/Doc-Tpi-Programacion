@@ -1163,7 +1163,7 @@
                         <li><strong class="text-white">Resultado</strong> se escribe en base &rarr; SonarQube audita</li>
                     </ol>
                     <div class="callout mt-2">
-                        <p class="text-[10px] text-slate-300"><strong class="text-amber-400">Ejemplo:</strong> Cierre de examen con 30 alumnos &rarr; evaluación batch asíncrona, 5 dimensiones con pesos fijos 30/25/20/15/10.</p>
+                        <p class="text-[10px] text-slate-300"><strong class="text-amber-400">Ejemplo:</strong> Cierre de 30 intentos &rarr; evaluación batch asíncrona del uso de IA, con 5 dimensiones obligatorias y pesos de la versión publicada.</p>
                     </div>
                 </div>
                 <div class="glass-card p-3 sm:p-4 rounded-xl border border-rose-500/30 bg-rose-950/10">
@@ -1189,13 +1189,13 @@
                     </div>
                     <ol class="text-[10px] text-slate-300 space-y-1 font-light leading-relaxed">
                         <li><strong class="text-white">ADMIN</strong> carga golden set (20 items)</li>
-                        <li><strong class="text-white">Evaluador</strong> ejecuta scoring contra respuestas esperadas</li>
-                        <li><strong class="text-white">DRIFT</strong> calcula desviaci&oacute;n porcentual</li>
-                        <li><strong class="text-white">PAR-14</strong> verifica tolerancia &plusmn;5%</li>
+                        <li><strong class="text-white">Evaluador</strong> puntúa conversaciones alumno–tutor en cinco dimensiones</li>
+                        <li><strong class="text-white">DRIFT</strong> calcula errores absolutos contra referencias humanas</li>
+                        <li><strong class="text-white">PAR-14</strong> exige MAE final &le; 5 y máximo individual &le; 10</li>
                         <li><strong class="text-white">Alerta</strong> a ADMIN si excede &rarr; recalibraci&oacute;n autom&aacute;tica</li>
                     </ol>
                     <div class="callout mt-2">
-                        <p class="text-[10px] text-slate-300"><strong class="text-emerald-400">Ejemplo:</strong> Golden set 20 items &rarr; 18 correctos (90%) &rarr; dentro de tolerancia. Si 15 correctos (75%) &rarr; alerta de deriva.</p>
+                        <p class="text-[10px] text-slate-300"><strong class="text-emerald-400">Ejemplo:</strong> MAE final 4,8 y máximo individual 10 &rarr; aprobado. MAE 3,2 con un error individual 11 &rarr; rechazado.</p>
                     </div>
                 </div>
             </div>
@@ -1950,7 +1950,7 @@ public class AntiFugaAdvisor implements CallAroundAdvisor {
                         Banco de <strong>50 transcripciones de interacción patrón</strong> curadas que cubren desde alumnos principiantes hasta intentos avanzados de jailbreak.
                     </p>
                     <div class="p-2 bg-slate-950 rounded border border-slate-800 text-[10px] text-slate-300">
-                        <strong>Calibración Doble Ciega:</strong> Dos docentes califican a mano de forma independiente hasta consensuar la nota patrón oficial (<code class="text-indigo-400">expected_score_docente</code>).
+                        <strong>Referencia humana:</strong> Un docente revisa cada conversación y asigna los cinco puntajes patrón. La justificación es opcional y la versión publicada queda inmutable.
                     </div>
                 </div>
 
@@ -2144,7 +2144,6 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                             <tr><td class="py-1 font-bold text-slate-100">Moderador</td><td class="py-1">Capa clásica + <span class="font-mono text-[10px]">omni-moderation</span></td><td class="py-1 text-right font-mono text-emerald-300 font-bold">0</td></tr>
                             <tr><td class="py-1 font-bold text-slate-100">Evaluador</td><td class="py-1">Claude Haiku 4.5 + Batch</td><td class="py-1 text-right font-mono text-cyan-300">0,006</td></tr>
                             <tr><td class="py-1 font-bold text-slate-100">Generador</td><td class="py-1">Flash-Lite + Batch</td><td class="py-1 text-right font-mono text-cyan-300">0,00083</td></tr>
-                            <tr><td class="py-1 font-bold text-slate-100">Corrector</td><td class="py-1">Claude Haiku 4.5 + Batch</td><td class="py-1 text-right font-mono text-cyan-300">0,002</td></tr>
                         </tbody>
                     </table>
                     <p class="text-[10px] text-slate-400 leading-relaxed mt-2"><strong class="text-slate-200">En el evaluador no se ahorra:</strong> es el que pone la nota y lo que se compra ahí es consistencia de criterio. El moderador cuesta cero porque <strong class="text-slate-200">no es un LLM</strong>: listas y heurísticas resuelven cuatro de seis categorías y el clasificador —gratuito— cubre el resto (ADR-012).</p>
@@ -2196,7 +2195,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                         <tr><td>RF-IA-12</td><td>Separación absoluta Tutor/Evaluador</td><td>Java: Dos servicios invocaciones separadas</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-13</td><td>Rúbrica fija con anclas Few-Shot</td><td>Java: JSON en BD + <code>BeanOutputConverter</code></td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-14</td><td>Anti-manipulación (prompt injection)</td><td>Java: XML delimitación + data-id randomizado</td><td><span ><span>Diseñado</span></td></tr>
-                        <tr><td>RF-IA-15</td><td>Pesos fijos y no configurables</td><td>Java: 30/25/20/15/10 — <code>BeanOutputConverter</code></td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-15 + ADR-017</td><td>Cinco dimensiones obligatorias; pesos versionados por curso</td><td>Java valida suma 100% e inmutabilidad al publicar</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-16</td><td>Transparencia hacia el alumno</td><td>Java: DTO <code>DesgloseScore</code></td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-17</td><td>Auditoría y supervisión humana</td><td>Java: <code>nivelConfianza</code> + muestreo PAR-10</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-19</td><td>Clasificación por riesgo de fuga</td><td>Java: Enum <code>NivelRiesgo</code> + system prompt</td><td><span ><span>Diseñado</span></td></tr>
@@ -2266,7 +2265,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                         <tr><td>RF-IA-12</td><td>Separación absoluta Tutor/Evaluador</td><td>Dos servicios independientes; Evaluador offline</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-13</td><td>Rúbrica fija con anclas Few-Shot</td><td>JSON en BD + <code>BeanOutputConverter</code></td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-14</td><td>Anti-manipulación (evaluación)</td><td>XML delimitación + data-id randomizado por invocación</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
-                        <tr><td>RF-IA-15</td><td>Pesos fijos y no configurables</td><td>30/25/20/15/10 — nueva versión = nueva rúbrica</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
+                        <tr><td>RF-IA-15 + ADR-017</td><td>Cinco dimensiones obligatorias; pesos editables en borrador</td><td>Suma 100% — nueva versión para cada publicación</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-16</td><td>Transparencia hacia el alumno</td><td>DTO <code>DesgloseScore</code> sin prompt interno</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-17</td><td>Auditoría y supervisión humana</td><td><code>nivelConfianza</code> + muestreo PAR-10 + P90</td><td>Java</td><td><span ><span>Diseñado</span></td></tr>
                         <tr><td>RF-IA-18</td><td>Apelación guiada por alumno</td><td>Override auditado en <code>override_log</code> (sin UPDATE)</td><td>Core</td><td><span ><span>Diseñado</span></td></tr>
@@ -2369,7 +2368,7 @@ FOR EACH ROW EXECUTE FUNCTION trg_prevent_score_mutation();</code></pre>
                                 <tr><td class="py-1">🔴 Free tier y datos de alumnos</td><td class="py-1 text-right text-[10px] text-slate-400">Consulta legal</td></tr>
                                 <tr><td class="py-1">🔴 Tema 05: cómo accedemos a la solución esperada</td><td class="py-1 text-right text-[10px] text-slate-400">Integración</td></tr>
                                 <tr><td class="py-1">🔴 Tema 11: nuestros campos en el contrato de eventos</td><td class="py-1 text-right text-[10px] text-slate-400">Integración</td></tr>
-                                <tr><td class="py-1">🟡 ¿RAG, tutor, generador y corrector son nuestros?</td><td class="py-1 text-right text-[10px] text-slate-400">Integración</td></tr>
+                                <tr><td class="py-1">✅ Corrector LLM fuera de alcance; RAG y generador permanecen en Fase 3</td><td class="py-1 text-right text-[10px] text-slate-400">PRD + P-01</td></tr>
                             </tbody>
                         </table>
                         <p class="text-[10px] text-slate-400 leading-relaxed mt-2">El de Tema 11 tiene fecha límite implícita: hay que entrar <strong class="text-rose-300">antes de que cierren el contrato</strong>, no después.</p>

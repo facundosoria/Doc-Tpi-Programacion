@@ -1,2 +1,143 @@
-@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Fraunces:opsz,wght@9..144,600;9..144,700&display=swap');
-:root{--ink:#17221b;--muted:#607065;--accent:#237447;--line:#cad4cb;--surface:#fbfdf9;--display:'Fraunces',Georgia,serif;--mono:'DM Mono',ui-monospace,monospace}*{box-sizing:border-box}body{margin:0;background:#f3f6f1;color:var(--ink);font:1rem/1.55 var(--mono)}button,input,textarea{font:inherit}button:focus-visible,a:focus-visible,input:focus-visible,textarea:focus-visible{outline:3px solid #f0b84b;outline-offset:3px}
+:root {
+  --ink: #163247;
+  --muted: #687b8d;
+  --accent: #0876c9;
+  --line: #dce5ee;
+  --surface: #f6f9fc;
+  --display: 'DM Sans', system-ui, sans-serif;
+  --body: 'DM Sans', system-ui, sans-serif;
+  --mono: 'DM Mono', ui-monospace, monospace;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  background: #f4f7fb;
+  color: var(--ink);
+  font: 1rem/1.55 var(--body);
+}
+
+/* Shared workbench surface: keeps every course tab in the same educator-console system. */
+:root body app-summary-page,
+:root body app-rubrics-page,
+:root body app-golden-set-page,
+:root body app-calibrations-page,
+:root body app-assignments-page,
+:root body app-evaluator-page {
+  color: var(--ink);
+  font-family: var(--body);
+}
+
+:root body app-summary-page header,
+:root body app-rubrics-page header,
+:root body app-golden-set-page header,
+:root body app-calibrations-page header,
+:root body app-assignments-page header,
+:root body app-evaluator-page header {
+  max-width: none;
+  padding: 1.25rem 1.35rem;
+  border: 1px solid var(--line);
+  border-radius: 0.8rem;
+  background: #fff;
+  box-shadow: 0 0.55rem 1.3rem rgb(19 55 84 / 0.06);
+}
+
+:root body app-summary-page .eyebrow,
+:root body app-rubrics-page .eyebrow,
+:root body app-golden-set-page .eyebrow,
+:root body app-calibrations-page .eyebrow,
+:root body app-assignments-page .eyebrow,
+:root body app-evaluator-page .eyebrow {
+  color: var(--accent);
+  font-family: var(--mono);
+  font-weight: 700;
+}
+
+:root body app-summary-page :is(.card, .alert-box),
+:root body app-rubrics-page :is(.table-wrap, .empty, .error, .editor, .saved-banner),
+:root body app-golden-set-page :is(.empty, .error, .set, .saved-banner, .eligible-card, .anonymized-panel),
+:root body app-calibrations-page :is(.card, .run-card),
+:root body app-assignments-page :is(.empty, .error, .pending, .audit),
+:root body app-evaluator-page .notice {
+  border-color: var(--line);
+  border-radius: 0.75rem;
+  background: #fff;
+  box-shadow: 0 0.45rem 1.15rem rgb(19 55 84 / 0.05);
+}
+
+:root body app-summary-page :is(.active-status-card, .preview-box),
+:root body app-golden-set-page .preview-msg,
+:root body app-calibrations-page .preview-box {
+  border-color: var(--accent);
+  background: #f0f7fd;
+}
+
+:root body app-summary-page :is(.state.published, .badge-running, .badge-active),
+:root body app-rubrics-page .state.published,
+:root body app-golden-set-page .state.published,
+:root body app-calibrations-page :is(.state.published, .badge-active),
+:root body app-assignments-page .state {
+  background: #e5f5ec;
+  color: #146b45;
+}
+
+:root body app-rubrics-page thead,
+:root body app-golden-set-page thead,
+:root body app-calibrations-page thead,
+:root body app-assignments-page thead {
+  background: #edf5fc;
+  color: #36516a;
+}
+
+:root body app-rubrics-page :is(th, td),
+:root body app-golden-set-page :is(th, td),
+:root body app-calibrations-page :is(th, td),
+:root body app-assignments-page :is(th, td) {
+  border-color: var(--line);
+}
+
+:root body app-rubrics-page :is(input, textarea),
+:root body app-golden-set-page :is(input, textarea, select),
+:root body app-calibrations-page :is(input, select) {
+  border-color: #b8c9d8;
+  border-radius: 0.45rem;
+  color: var(--ink);
+}
+
+:root body app-rubrics-page :is(.save, .edit, .secondary),
+:root body app-golden-set-page :is(.save, .save-button, .secondary, button),
+:root body app-calibrations-page :is(.save-button, button.secondary),
+:root body app-evaluator-page button {
+  border-color: var(--accent);
+  border-radius: 0.45rem;
+  color: var(--accent);
+}
+
+:root body app-rubrics-page .save,
+:root body app-golden-set-page :is(.save, .save-button),
+:root body app-calibrations-page .save-button {
+  background: var(--accent);
+  color: #fff;
+}
+
+:root body app-golden-set-page .field-help :is(summary, p) {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+:root body app-golden-set-page .field-help p {
+  background: #f0f7fd;
+}
+button,
+input,
+textarea {
+  font: inherit;
+}
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible {
+  outline: 3px solid #f3b426;
+  outline-offset: 3px;
+}

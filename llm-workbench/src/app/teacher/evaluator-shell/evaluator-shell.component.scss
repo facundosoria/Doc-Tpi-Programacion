@@ -1,0 +1,166 @@
+:host { display: block; color: #18334a; font: 15px / 1.55 var(--body); }
+
+.breadcrumbs ol {
+  display: flex;
+  gap: 0.5rem;
+  margin: 0 0 1.5rem;
+  padding: 0;
+  list-style: none;
+  font-size: .78rem;
+
+  li + li::before {
+    content: '/';
+    color: #6b7d78;
+    margin-right: 0.5rem;
+  }
+}
+
+a { color: #0876c9; }
+
+.breadcrumbs span {
+  color: #52666a;
+}
+
+.course-context {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  align-items: flex-start;
+  padding: 1.25rem 1.4rem;
+  border: 1px solid #dce5ee;
+  border-radius: .65rem;
+  background: #fff;
+  box-shadow: 0 4px 16px rgb(26 76 116 / 5%);
+}
+
+.eyebrow {
+  margin: 0 0 0.35rem;
+  color: #0876c9;
+  font: 500 0.7rem / 1.4 var(--mono);
+  letter-spacing: 0.1em;
+}
+
+.course-name {
+  margin: 0;
+  font: 700 1.65rem / 1.2 var(--body);
+}
+
+.course-subtitle,
+.calibration-status p,
+.queue-alert p {
+  margin: 0.35rem 0 0;
+  color: #6c7f91;
+  font-size: 0.86rem;
+}
+
+.calibration-status {
+  display: flex;
+  gap: 0.6rem;
+  max-width: 22rem;
+  border: 1px solid #ffe0a0;
+  background: #fff9eb;
+  border-radius: .45rem;
+  padding: 0.8rem 1rem;
+
+  &.ready {
+    border-color: #b8d8c5;
+    background: #edf8f1;
+
+    .status-dot {
+      background: #12a875;
+    }
+  }
+}
+
+.status-dot {
+  width: 0.65rem;
+  height: 0.65rem;
+  flex: 0 0 auto;
+  margin-top: 0.3rem;
+  border-radius: 50%;
+  background: #f1ad21;
+}
+
+.queue-alert {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 1rem;
+  padding: 1rem;
+  border: 1px solid #e5c97f;
+  background: #fff8e5;
+  border-radius: 0.5rem;
+
+  a {
+    font-weight: 700;
+    white-space: nowrap;
+  }
+}
+
+.course-layout {
+  display: grid;
+  grid-template-columns: 15rem minmax(0, 1fr);
+  gap: 1.4rem;
+  padding-top: 1.4rem;
+}
+
+.course-nav {
+  display: grid;
+  align-content: start;
+  gap: .22rem;
+  min-height: 34rem;
+  padding: 1rem .75rem;
+  border-radius: .65rem;
+  background: linear-gradient(175deg, #075797, #0879c8);
+  box-shadow: 0 12px 26px rgb(8 87 151 / 18%);
+
+  a {
+    border-radius: .42rem;
+    padding: .72rem .75rem;
+    color: rgb(255 255 255 / 86%);
+    font-weight: 600;
+    text-decoration: none;
+
+    &:hover,
+    &.current {
+      background: rgb(255 255 255 / 17%);
+      color: #fff;
+    }
+
+    &:focus-visible {
+      outline: 3px solid #f7c44d;
+      outline-offset: 2px;
+    }
+  }
+}
+.course-nav a span { display: inline-grid; width: 1.55rem; place-items: center; font-size: 1.08rem; }
+.nav-breadcrumb { margin: .15rem .75rem .35rem; color: rgb(255 255 255 / 74%); font-size: .72rem; line-height: 1.35; }
+.nav-breadcrumb span { color: #fff; font-weight: 700; }.nav-breadcrumb b { margin: 0 .35rem; }
+.nav-caption { margin: .2rem .75rem .55rem; color: rgb(255 255 255 / 60%); font: 700 .63rem var(--mono); letter-spacing: .1em; }
+.nav-footer { align-self: end; display: grid; grid-template-columns: auto 1fr; gap: .15rem .45rem; margin: auto .45rem .2rem; padding-top: 1rem; border-top: 1px solid rgb(255 255 255 / 20%); color: #fff; }
+.nav-footer small { color: rgb(255 255 255 / 68%); font-size: .7rem; }.nav-footer strong { grid-column: 2; font-size: .76rem; }.footer-dot { width: .55rem; height: .55rem; margin-top: .23rem; border-radius: 50%; background: #4de2b0; }
+.course-content { min-width: 0; }
+.mobile-section-picker { display: none; font-weight: 700; color: #18334a; }
+.mobile-section-picker select { display: block; width: 100%; margin-top: .35rem; padding: .65rem; border: 1px solid #9ab6c9; border-radius: .45rem; background: #fff; }
+
+@media (max-width: 720px) {
+  .course-context,
+  .course-layout {
+    display: block;
+  }
+
+  .calibration-status,
+  .queue-alert {
+    margin-top: 1rem;
+  }
+
+  .queue-alert {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .course-layout { display: grid; grid-template-columns: 1fr; }
+  .mobile-section-picker { display: block; margin-bottom: 1rem; }
+  .course-nav { display: none; }
+}

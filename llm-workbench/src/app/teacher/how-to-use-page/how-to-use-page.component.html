@@ -1,0 +1,93 @@
+<header>
+  <p class="eyebrow">GUÍA RÁPIDA</p>
+  <h1>Cómo usar TUP-Golde-Set</h1>
+  <p>
+    Configurá una evaluación pedagógica trazable en cuatro pasos. La plataforma analiza el uso del tutor de IA;
+    no reemplaza la calificación académica ni las pruebas determinísticas del curso.
+  </p>
+</header>
+
+<section class="start-card" aria-labelledby="start-heading">
+  <div class="start-icon" aria-hidden="true">↗</div>
+  <div>
+    <p class="eyebrow">ORDEN RECOMENDADO</p>
+    <h2 id="start-heading">Primero definí qué es una buena respuesta; después validá al evaluador.</h2>
+    <p>El flujo se guarda por versiones: publicar una nueva rúbrica o un Golden Set no modifica una calibración activa.</p>
+  </div>
+</section>
+
+<ol class="steps" aria-label="Pasos para configurar el evaluador">
+  <li>
+    <article class="step-card">
+      <span class="step-number" aria-hidden="true">01</span>
+      <div>
+        <p class="eyebrow">DEFINIR EL CRITERIO</p>
+        <h2>Creá y publicá una rúbrica</h2>
+        <p>
+          En cada dimensión indicá el criterio, el ancla JSON, el prompt y el peso. El ancla es el ejemplo
+          estructurado que le muestra al modelo cómo se expresa cada nivel de desempeño.
+        </p>
+        <a [routerLink]="['../rubricas']">Ir a Rúbricas</a>
+      </div>
+    </article>
+  </li>
+  <li>
+    <article class="step-card">
+      <span class="step-number" aria-hidden="true">02</span>
+      <div>
+        <p class="eyebrow">APORTAR REFERENCIAS</p>
+        <h2>Armá y publicá el Golden Set</h2>
+        <p>
+          Cargá casos representativos con la conversación, la autoría y los puntajes de referencia definidos por
+          una persona docente. Podés usar casos sintéticos o interacciones anonimizadas elegibles.
+        </p>
+        <a [routerLink]="['../golden-set']">Ir a Golden Set</a>
+      </div>
+    </article>
+  </li>
+  <li>
+    <article class="step-card">
+      <span class="step-number" aria-hidden="true">03</span>
+      <div>
+        <p class="eyebrow">VALIDAR EL MODELO</p>
+        <h2>Ejecutá una calibración</h2>
+        <p>
+          Elegí la rúbrica publicada, el Golden Set publicado y el modelo desplegado. La corrida compara sus
+          resultados con tus referencias y muestra métricas, errores y trazabilidad.
+        </p>
+        <a [routerLink]="['../calibraciones']">Ir a Calibraciones</a>
+      </div>
+    </article>
+  </li>
+  <li>
+    <article class="step-card final-step">
+      <span class="step-number" aria-hidden="true">04</span>
+      <div>
+        <p class="eyebrow">HABILITAR EL USO</p>
+        <h2>Activá la calibración aprobada</h2>
+        <p>
+          Al activarla, las nuevas evaluaciones quedan asociadas a esa versión. Revisá en Asignaciones los desafíos
+          vinculados y cualquier evaluación que haya quedado en cola mientras el servicio estaba suspendido.
+        </p>
+        <a [routerLink]="['../asignaciones']">Ver Asignaciones y cola</a>
+      </div>
+    </article>
+  </li>
+</ol>
+
+<section class="faq" aria-labelledby="faq-heading">
+  <p class="eyebrow">PUNTOS IMPORTANTES</p>
+  <h2 id="faq-heading">Preguntas frecuentes</h2>
+  <details>
+    <summary>¿Por qué veo “Sin calibración activa”?</summary>
+    <p>Es el estado esperado hasta que una corrida aprueba y se activa. Mientras tanto, las evaluaciones de IA se encolan de forma segura; no se pierde información.</p>
+  </details>
+  <details>
+    <summary>¿Una rúbrica o Golden Set publicado se usa automáticamente?</summary>
+    <p>No. Primero tenés que ejecutar una calibración con esas versiones y activar la corrida aprobada. Así cada evaluación conserva su contexto reproducible.</p>
+  </details>
+  <details>
+    <summary>¿Qué se evalúa?</summary>
+    <p>La interacción pedagógica con el tutor de IA, según la rúbrica de la cátedra. La nota académica se conserva fuera de este módulo.</p>
+  </details>
+</section>

@@ -92,7 +92,6 @@ es un error o diseño interno que no es parte del contrato público.
 | `tutor` | Asiste al alumno en el desafío | Sync (`< 2 s`) |
 | `moderador` | Modera un mensaje de chat | Sync (`< 300 ms`) |
 | `evaluador` | Evalúa un intento cerrado | Async (minutos) |
-| `corrector` | Corrige una entrega práctica | Async (minutos) |
 | `generador` | Genera preguntas de parcial | Async (minutos) |
 
 ### 1.3 Estructura del request (POST /ai/{funcion})
@@ -320,7 +319,6 @@ Hay cuatro mecanismos escritos para que el score llegue al motor de desafíos. N
 **Nos llaman para:**
 
 - `POST /ai/tutor` — asistencia
-- `POST /ai/corrector` — corrección
 
 **🔴 Nos tienen que dar (crítico):**
 

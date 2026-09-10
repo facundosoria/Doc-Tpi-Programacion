@@ -240,6 +240,7 @@ servicios o funcionalidades que tiene asignados, y documenta cómo se integran c
 
 - Template de Historia de Usuario (HU) → [`plantillas/historia-de-usuario-taiga.md`](plantillas/historia-de-usuario-taiga.md). Cómo se completa cada apartado: [29 · Guía de cátedra: Historias de Usuario](29-guia-catedra-historias-de-usuario.md).
 - Template de Épicas → [`plantillas/epica-taiga.md`](plantillas/epica-taiga.md).
+- Template de Tarea → [`plantillas/tarea-taiga.md`](plantillas/tarea-taiga.md). Método SMART para el desglose: [29 · §4](29-guia-catedra-historias-de-usuario.md) y [23 · §9.2](23-plan-construccion-producto-llm.md).
 - Template de Proyecto por Grupo → [`plantillas/pagina-wiki-grupo.md`](plantillas/pagina-wiki-grupo.md).
 
 **Cadena de coherencia** que se revisa de forma permanente:

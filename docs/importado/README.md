@@ -1,5 +1,12 @@
 # Documentación extendida
 
+> **ADVERTENCIA — MATERIAL HISTÓRICO, NO NORMATIVO.** Esta carpeta puede contener propuestas donde
+> un LLM corrige exámenes o entregas, pesos fijos, doble puntuación docente y otras decisiones que ya
+> no representan el producto. Para Golden Set y calibración rigen la
+> [fuente de verdad](../00-fuentes-de-verdad-y-convenciones.md), los ADR-017/018 y la
+> [especificación funcional vigente](../32-especificacion-funcional-golden-set-calibracion.md).
+> Ningún archivo debajo de `docs/importado/` debe usarse para definir contratos o comportamiento.
+
 Material que llegó desde la rama `doc-tpi-unificada` y que **no está cubierto** por
 los documentos de [`docs/`](../). Se conserva tal como fue escrito, con su
 estilo y su numeración propia.
@@ -22,7 +29,12 @@ git log --format='%an  %ad  %s' --date=short -- docs/importado/
 > [`CORRECCIONES-SUGERIDAS.md`](CORRECCIONES-SUGERIDAS.md), no aplicado sobre el
 > texto.
 
-## `especificacion-tecnica/`
+## Índice histórico
+
+Los enlaces siguientes sirven para consultar la procedencia del material. Su presencia en este
+índice no le concede vigencia.
+
+### `especificacion-tecnica/`
 
 Ocho documentos de especificación con diagramas Mermaid, pensados como material de
 defensa técnica.
@@ -38,13 +50,13 @@ defensa técnica.
 | 07 | [Registro de decisiones (ADR)](especificacion-tecnica/07_REGISTRO_DE_DECISIONES_ADR.md) |
 | 08 | [Glosario, metadata y contratos de cátedra](especificacion-tecnica/08_GLOSARIO_METADATA_Y_CONTRATOS_CATEDRA.md) |
 
-## `planes-de-ejecucion/`
+### `planes-de-ejecucion/`
 
 Nueve planes técnicos, uno por punto normativo de la Sección 15 del PRD. Cada uno
 baja un requerimiento a diseño concreto antes de tocar código.
 Empezá por el [índice maestro](planes-de-ejecucion/00_INDICE_MAESTRO.md).
 
-## `investigacion-jailbreak/`
+### `investigacion-jailbreak/`
 
 Compendio de investigación sobre inyección de prompts y jailbreak, a partir de tres
 informes de IBM. El último documento, [matriz de aplicación al sistema

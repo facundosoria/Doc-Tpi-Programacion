@@ -32,7 +32,6 @@ de modelo y varias además mejoran la calidad.**
 | **Moderador** | Capa clásica + `omni-moderation-latest` | **USD 0** | No es un LLM: listas y heurísticas resuelven 4 de 6 categorías, y el clasificador —que es gratuito— cubre el resto. Ver ADR-012 |
 | **Evaluador** | Claude Haiku 4.5 + Batch | USD 0,006 | Consistencia de criterio. **Acá no se ahorra** |
 | **Generador** | Gemini 3.5 Flash-Lite + Batch | USD 0,00083 | Hay revisión humana obligatoria |
-| **Corrector** | Claude Haiku 4.5 + Batch | USD 0,002 | Es una nota, sin gate de calibración |
 
 ### El supuesto que más mueve este número: cuántos tokens pesa un prompt
 
@@ -181,7 +180,6 @@ Cada barra es concreta y verificable. **Ninguna es una opinión.**
 | **Moderador** | Detecta las 6 categorías de RF-CHT-10 **sin comerse los falsos positivos rioplatenses** | 100 mensajes etiquetados a mano. >90% en severidad media/alta. **El set debe incluir *boludo* afectuoso y "cálculo"** | 🟡 Medible |
 | **Evaluador** | **Pasa PAR-14**: ±5 promedio, ±10 por dimensión | El golden set. **Es la prueba, literalmente** | 🔴 **Sí — sin esto el curso no arranca** |
 | **Generador** | El profesor usa las preguntas sin reescribirlas todas | 20 preguntas, un docente marca cuáles usaría. >70% | 🟢 Blanda — hay gate humano |
-| **Corrector** | Coincide con corrección humana | 30 respuestas corregidas a mano vs el modelo | 🟡 Medible |
 
 **Fijate la asimetría:** el evaluador tiene barra dura con número exacto y consecuencia catastrófica;
 el generador tiene barra blanda **porque un humano revisa todo antes de publicar**. Esa diferencia es
@@ -226,7 +224,7 @@ profesor las descarta. Es el lugar más seguro para probar lo barato.
 | 2 | Historial: completo → **ventana de 4** + resumen | −27% del input | No |
 | 3 | **Prompt caching** en tutor y evaluador | −60% del input efectivo | No |
 | 4 | Salida del tutor: 400 → **250 tokens** | −38% del costo de salida y **−40% de latencia** | **Mejora.** RF-IA-04 pide pistas, no ensayos |
-| 5 | **Batch** en evaluador, generador y corrector | −50% | No. Es la latencia que RF-IA-27 ya tolera |
+| 5 | **Batch** en evaluador y generador | −50% | No. Es la latencia que RF-IA-27 ya tolera |
 | 6 | **Capa clásica** antes del clasificador | −70% de las llamadas o más — se mide con `origen` | No. **Además es la red del fail-open** |
 
 ### El caching del evaluador es la más subestimada
@@ -369,7 +367,6 @@ alguien "optimice".
 | Moderador | 300 tok · solo el mensaje | 30 tok | Sin historial |
 | Evaluador | 8.000 tok · **transcripción completa** | 800 tok | 🔴 Nunca truncar |
 | Generador | 6.000 tok por pregunta | 600 tok | Incluir las ya generadas |
-| Corrector | 2.000 tok | 400 tok | Sin identidad del alumno |
 
 **Entrada del alumno:** ~500 palabras por mensaje · 8-15 mensajes por desafío (RF-IA-22) · 60 por día.
 
@@ -390,7 +387,7 @@ Compará a mano. Casi siempre gana 3.
 |---|---|---|
 | **Moderador** | < 300 ms — está en el camino de entrega del mensaje | 🔴 **Es lo único que importa** |
 | **Tutor** | < 2 s hasta la respuesta completa | 🔴 Sí |
-| Corrector, evaluador, generador | Minutos | 🟢 No |
+| Evaluador y generador | Minutos | 🟢 No |
 
 **Latencia medida:** Gemini Flash ~280 ms hasta el primer token (mejor relación velocidad/precio);
 Claude Haiku 4.5 ~597 ms. Los dos sirven para el tutor.
@@ -434,14 +431,14 @@ Lo que rompe el free tier no es el volumen, son dos cosas:
 
 Funciona, **y la clave es que un pico solo es problema si alguien está esperando**:
 
-- **Funciones asincrónicas** (evaluador, generador, corrector): si se acaba la cuota, la cola
+- **Funciones asincrónicas** (evaluador y generador): si se acaba la cuota, la cola
   **espera**. Sin desborde, sin costo, sin cambio de modelo. Son 47 llamadas por día entre las tres.
 - **Funciones sincrónicas** (tutor, moderador): ahí sí desbordás a pago, y **solo pagás el desborde**.
 
 > ⚠️ **El evaluador NO puede desbordar.** RF-IA-25: *"un único modelo activo, no admite pool ni
 > enrutamiento"*. Una cascada por cuota **es** enrutamiento. Pero no hace falta: son 21 llamadas por
 > día, la cola las drena a 15 RPM sin despeinarse. Marcalo con una bandera `admite_desborde: false`
-> para evaluador y corrector.
+> para el evaluador.
 
 **Costo de implementarlo: bajo.** Es prácticamente el mismo código que la escalera de degradación de
 RF-IA-27 que hay que construir igual — solo cambia el disparador: en vez de "el proveedor falló", es
@@ -467,7 +464,6 @@ modelo** — conviene verlo antes de preocuparse por cuotas.
 | 10 · Generador | 5 preguntas desde un PDF, con fuente | **Gemini free tier** | USD 0 |
 | 11 · Guardarraíles | AST, comparación, filtro de entrada | **Nada** — es análisis estático | USD 0 |
 | 11b · Tutor | Latencia, RF-IA-04, los tres niveles de RF-IA-19 | **Gemini free tier** | USD 0 |
-| 12 · Corrector | Nota + justificación sobre respuesta abierta | **Gemini free tier** | USD 0 |
 | 13 · Moderador | 100 mensajes etiquetados, acierto en media/alta | **Nada** — capa clásica sin modelo + Moderation API gratuita (ADR-012) | USD 0 |
 
 **Los cuatro pasos que sí llaman a un modelo son 1, 5, 10 y 12** — más el 7, que es el único donde
@@ -507,8 +503,7 @@ soporta que la credencial venga de una variable de entorno distinta por máquina
 | Moderador | Capa clásica + clasificador | **USD 0** |
 | Evaluador | Flash-Lite + Batch | USD 2,53 |
 | Generador | nano + Batch | USD 0,24 |
-| Corrector | Flash-Lite + Batch | USD 0,80 |
-| | **Total** | **≈ USD 7** |
+| | **Total** | **≈ USD 6** |
 
 ### ✅ Realista — con el evaluador en terreno seguro
 
@@ -518,8 +513,7 @@ soporta que la credencial venga de una variable de entorno distinta por máquina
 | Moderador | Capa clásica + clasificador | **USD 0** |
 | **Evaluador** | **Haiku 4.5 + Batch + caching** | **USD 10,70** |
 | Generador | Flash-Lite + Batch | USD 0,70 |
-| Corrector | Flash-Lite + Batch | USD 0,80 |
-| | **Total** | **≈ USD 22** |
+| | **Total** | **≈ USD 21** |
 
 ### Con el techo de 8 mensajes de RF-IA-22
 

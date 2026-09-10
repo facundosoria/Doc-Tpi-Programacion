@@ -41,7 +41,6 @@ no existe**:
 | Termina un desafío | Evaluador | No. Lo dispara el backend al cerrar el intento |
 | Manda un mensaje en el chat del curso | Moderador | No. Corre sobre **todo** mensaje (RF-CHT-09) |
 | El profesor aprieta "Generar parcial" | Generador | No. Es un botón |
-| El alumno entrega una respuesta abierta | Corrector | No. Lo dispara la entrega |
 
 **Las cinco rutas están determinadas por la pantalla desde la que se llama.** Pagar un LLM para
 deducir algo que ya sabés con certeza es gasto puro. Y no solo gasto:
@@ -99,7 +98,6 @@ flowchart TB
         direction TB
         A1["Evaluador de uso de IA"]
         A2["Generador de evaluaciones"]
-        A3["Corrector de respuestas"]
         A4["Calibracion RF-IA-31/36"]
         AN["Modelos de calidad<br/>Batch API -50%<br/>Timeout largo - Reintentos"]
     end
@@ -116,7 +114,7 @@ flowchart TB
 | Camino | Optimiza | Sacrifica | Modelos | Timeout |
 |---|---|---|---|---|
 | Sincrónico | Latencia percibida | Costo por token, calidad | Flash-Lite en el tutor; el moderador no usa LLM (ADR-012) | 10-20 s |
-| Asincrónico | Costo (-50%) y calidad | Latencia (minutos) | Haiku 4.5 en evaluador y corrector, Flash-Lite en generador — los tres con Batch | Minutos, con reintentos |
+| Asincrónico | Costo (-50%) y calidad | Latencia (minutos) | Evaluador y generador con Batch | Minutos, con reintentos |
 
 > **Sonnet 5 no es el modelo del camino asincrónico, es la escalada.** Solo se sube ahí si la
 > calibración contra PAR-14 falla con Haiku 4.5 — es la cláusula (b) de ADR-010. La asignación
@@ -128,7 +126,7 @@ Esto es lo que hace que la decisión valga tanto: **una sola línea de diseño r
 distintos del PRD**.
 
 **1. Costo.** Batch API es 50% menos en los tres proveedores grandes. Aplica a evaluador, generador
-y corrector — que es donde usás los modelos caros.
+y evaluador — donde la consistencia del criterio tiene mayor impacto.
 
 **2. Resiliencia (RF-IA-27), casi gratis.** El requerimiento dice textual:
 
@@ -719,7 +717,7 @@ Esa última es un test de seguridad y de calidad a la vez. Vale mucho.
 
 **Acá está la conexión que ordena todo:**
 
-> **El golden set no es solo el examen del modelo. Es el test de regresión del evaluador.**
+> **El Golden Set es la prueba de habilitación y regresión del evaluador.**
 
 Cada vez que cambies el prompt, la rúbrica o el modelo, corrés el golden set y mirás si la desviación
 contra PAR-14 empeoró. **Es exactamente el mismo mecanismo, usado como CI.**
@@ -732,7 +730,6 @@ Y lo mismo aplica a las otras funciones, cada una con su conjunto:
 | Tutor | 30 intentos de jailbreak + 20 pedidos de solución | Fugas | **0** |
 | Moderador | 100 mensajes etiquetados a mano | Aciertos en severidad media/alta | > 90% |
 | Generador | 20 preguntas revisadas por un docente | Usables | > 70% |
-| Corrector | 30 respuestas corregidas a mano | Coincidencia | A definir |
 | RAG | 30 preguntas con su chunk correcto conocido | recall@3 | > 85% |
 
 **Armar esos seis conjuntos es trabajo real y hay que presupuestarlo.** Pero son lo único que te
@@ -1021,7 +1018,6 @@ desarrollador al desplegar, va en configuración.
 | Consultas de estado (calibración, pendientes) | ❌ No | Son lecturas |
 | **Evaluador** | ✅ **Sí** | RF-IA-27 lo exige explícitamente: *"score pendiente de cálculo diferido"* |
 | **Generador** | ✅ **Sí** | 15 preguntas tardan minutos. **Un HTTP de 3 minutos se muere en el timeout de nginx o del navegador** |
-| **Corrector** | ✅ **Sí** | El pico son 120 entregas casi simultáneas |
 | **Calibración** | ✅ **Sí** | Puntúa 40 transcripciones: minutos |
 | **Ingesta de documentos** | ✅ **Sí** | 200 páginas con imágenes: minutos |
 
@@ -1031,7 +1027,7 @@ desarrollador al desplegar, va en configuración.
 
 | Ganancia | Cuánto |
 |---|---|
-| **Batch API** | **−50%** en evaluador, generador y corrector. Es el ahorro real, y **solo existe si tolerás latencia** |
+| **Batch API** | **−50%** en evaluador y generador. Es el ahorro real, y **solo existe si tolerás latencia** |
 | **RF-IA-27 sale por construcción** | El requerimiento pide que la entrega se acepte y el score quede diferido. **Eso *es* una cola.** Si arrancás con ella, el requisito ya está implementado antes de leerlo |
 | **El pico se absorbe solo** | 30 profesores generando a la vez se encolan en milisegundos. Sin cola, son 30 conexiones HTTP de 3 minutos |
 | **Se resuelve el timeout** | Ninguna operación larga vive dentro de una petición HTTP |

@@ -72,7 +72,7 @@ capacidad adicional para comprometer funcionalidades. El soporte conocido se des
 calcular la reserva.
 
 **Capacidad ≠ presupuesto de trabajo.** Las recetas S1–S19 del
-[backlog ejecutable](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) estiman el trabajo
+[backlog ejecutable](35-backlog-ejecutable.md) estiman el trabajo
 de cada sprint en **~208 h de paquetes** (una estimación gruesa anterior a los contratos, no un
 tope). La diferencia con las 571 h —**~363 h por sprint**— es **margen explícito** para
 re-estimar en Planning, absorber imprevistos y cubrir el overhead de coordinar 12 personas. El
@@ -247,9 +247,9 @@ capacidad de **571 h** (ver [§2.1](#21-cálculo-inicial)).
 | Sprint | Entregable funcional y demo de aceptación | Trabajo incluido | Liderazgo / dependencia |
 |---|---|---|---|
 | **S1** | Un docente autorizado carga y consulta casos de referencia; los datos sobreviven al reinicio. | Alinear esqueleto, arranque reproducible, Gateway/Eureka, base y migraciones, CI, contratos mínimos, rúbrica e interfaz de golden set. | P1 + P5; P4 prepara rúbrica. Identidad y frontend compartido disponibles en los primeros días. |
-| **S2** | Dos docentes puntúan independientemente, resuelven discrepancias y publican una versión trazable que pueden exportar y recuperar. | Puntuaciones independientes, consolidación, versiones y recuperación de golden set; referencias humanas. | P5 + P4; depende de S1 y docentes. |
+| **S2** | Un docente autorizado puntúa los casos y publica una versión trazable que puede exportar y recuperar. | Cinco referencias humanas por caso, revisión, versiones y recuperación de Golden Set; justificación opcional. | P5 + P4; depende de S1 y docente. |
 | **S3** | ADMIN calibra un modelo real y consulta el reporte; no puede habilitarlo si queda fuera de tolerancia. | AI Gateway, evaluador, schema de salida, trabajos persistentes, calibración base, habilitación y registro de costo/versiones. | P2 + P4; depende de S2 y disponibilidad del proveedor. |
-| **S4** | Un docente calibra su curso; cursos bloquea activación sin aprobación y emite los avisos acordados. | Set de curso, adaptación al dominio sin alterar pesos, runner reutilizado, consulta de estado e integración con cursos/notificaciones. | P4 + P5 + P1; depende de S3 y material docente del curso. |
+| **S4** | Un docente calibra su curso; cursos bloquea activación sin aprobación y emite los avisos acordados. | Set y rúbrica versionados por curso, pesos con suma 100%, runner reutilizado, consulta de estado e integración con cursos/notificaciones. | P4 + P5 + P1; depende de S3 y material docente del curso. |
 | **S5** | El alumno usa el tutor seguro dentro del desafío y puede continuar sin asistencia ante caída, con evidencia de esa condición. | Contexto, historial/metadata, interfaz, riesgo, cuotas, entrada y anti-fuga; canal separado para solución; tratamiento de indisponibilidad. | P3 + P2; contexto, solución y actividad del intento disponibles. |
 | **S6** | Cerrar un intento genera un score visible; con el evaluador caído se acepta la entrega y se completa después sin duplicados. | Kafka, workers, resultados/diferidos, recuperación, desglose, consulta de pendientes y bloqueo de cierre con cursos; efectos en negocio. | P4 + P1; depende de S3–S5 y desafíos/cursos. |
 | **S7** | El alumno apela y el docente resuelve viendo la evidencia; el original permanece y negocio recibe la revisión. | Apelación, override append-only, bandeja, baja confianza, muestreo y prioridad por impacto en umbrales informado por negocio. | P4 + P5; depende de S6. |
@@ -373,7 +373,7 @@ fecha.
 | **Quién la verifica** | El equipo con el referente de producto | El equipo con el referente de producto y los consumidores incluidos en el compromiso |
 | **Si no se cumple** | La historia **no entra** al sprint: se refina o se divide | La historia **vuelve a *en progreso***: no se presenta como terminada |
 
-El [playbook de construcción](<../Plan de ejecucion/06-playbook-de-construccion.md>) aplica estas
+El [playbook de construcción](36-playbook-de-construccion.md) aplica estas
 mismas dos definiciones al nivel de cada PR; **no define unas propias**. Esta sección es la fuente
 única.
 
@@ -418,7 +418,7 @@ interno `LLM-Sxx-Hyy` y el título del template son compatibles: el ID vive en l
 **historia canónica** contra la que se estiman todas se elige y se fija en el Sprint 0.
 
 El catálogo de épicas y las historias de S1 están en el
-[backlog ejecutable](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>).
+[backlog ejecutable](35-backlog-ejecutable.md).
 
 #### DoD — la historia y el incremento están terminados
 
@@ -477,12 +477,12 @@ arrastrado se reestima por lo que falta y consume capacidad; no se suma gratis a
 ## 10. Inicio operativo y plantilla
 
 Usar [la plantilla de sprint](plantillas/sprint-llm.md) para registrar el compromiso y el cierre.
-La guía para quienes se incorporan por primera vez —tecnologías, fases, Docker, pruebas y flujo Git—
-está en [Plan de ejecución](<../Plan de ejecucion/README.md>).
+La rutina diaria y el flujo Git están en [GITFLOW](GITFLOW.md) y
+[WORKFLOW_DIARIO](WORKFLOW_DIARIO.md).
 
 El arranque —lo que la primera Planning debe dejar cerrado antes de ejecutar S1, incluidas las
 épicas y las historias de S1— es el **Sprint 0** del
-[backlog ejecutable](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>). No se repite acá
+[backlog ejecutable](35-backlog-ejecutable.md). No se repite acá
 para que haya un solo checklist.
 
 Este documento fija planificación y criterios. Crear issues remotas, asignar personas, coordinar

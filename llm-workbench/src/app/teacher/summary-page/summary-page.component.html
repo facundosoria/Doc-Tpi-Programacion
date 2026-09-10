@@ -1,0 +1,165 @@
+<header>
+  <p class="eyebrow">RESUMEN</p>
+  <h1>Estado del evaluador</h1>
+  <p>
+    Monitoreo operativo de la calibración activa del curso, alertas de suspensión y accesos a borradores.
+    Este módulo evalúa la interacción pedagógica del tutor; la calificación académica se rige por pruebas determinísticas.
+  </p>
+</header>
+
+@if (nextAction(); as action) {
+  <section class="card active-status-card" aria-labelledby="next-action-title">
+    <p class="eyebrow">SIGUIENTE PASO</p><h2 id="next-action-title">{{ action.label }}</h2><p>{{ action.detail }}</p>
+    <a [routerLink]="[action.link]" class="action-link">{{ action.label }} →</a>
+  </section>
+}
+
+<!-- GS-0510: Estado de servicio y calibración activa -->
+<section class="card active-status-card" aria-labelledby="status-heading">
+  <div class="card-header">
+    <div>
+      <span class="eyebrow">ESTADO OPERATIVO</span>
+      <h2 id="status-heading">
+        {{ hasActiveCalibration() ? 'Evaluador calibrado y operativo' : 'Servicio suspendido (Requiere calibración)' }}
+      </h2>
+    </div>
+    <span class="state" [class.published]="hasActiveCalibration()" [class.state-failed]="!hasActiveCalibration()">
+      {{ hasActiveCalibration() ? 'ACTIVO' : 'SUSPENDIDO' }}
+    </span>
+  </div>
+
+  @if (activeCalibration.value(); as active) {
+    <div class="active-details">
+      <p>
+        <strong>Calibración activa vigente:</strong>
+        <code>{{ shortId(active.calibrationRunId) }}</code>
+      </p>
+      <p>
+        <strong>Fecha de activación:</strong>
+        {{ active.activatedAt | date:'medium' }}
+      </p>
+      <p>
+        <strong>Recalibración periódica:</strong>
+        Programada automáticamente cada 30 días o ante cambios de versión del modelo de lenguaje.
+      </p>
+    </div>
+  } @else if (!activeCalibration.isLoading()) {
+    <p class="warning-text">
+      El curso no cuenta con una calibración aprobada activa. Las evaluaciones automáticas del uso de IA en tutorías
+      están suspendidas y los intentos se encolarán de forma segura sin pérdida de datos.
+    </p>
+  }
+</section>
+
+<!-- GS-0511: Alertas accionables -->
+<section class="alerts-section" aria-labelledby="alerts-heading">
+  <h2 id="alerts-heading">Alertas accionables</h2>
+
+  @if (!hasActiveCalibration() && !activeCalibration.isLoading()) {
+    <div class="alert-box warning" role="alert">
+      <div>
+        <strong>Sin calibración activa para el curso</strong>
+        <p>Es necesario ejecutar una calibración aprobada (PAR-14) y activarla para habilitar las evaluaciones de tutoría.</p>
+      </div>
+      <a [routerLink]="['../calibraciones']" class="action-link">Ir a Calibraciones</a>
+    </div>
+  }
+
+  @if (pendingCount() > 0) {
+    <div class="alert-box alert" role="alert">
+      <div>
+        <strong>{{ pendingCount() }} evaluación(es) en cola</strong>
+        <p>Hay intentos de estudiantes aguardando la activación de una calibración válida para ser evaluados.</p>
+      </div>
+      <a [routerLink]="['../asignaciones']" class="action-link">Ver asignaciones</a>
+    </div>
+  }
+
+  @if (hasBaseProposal()) {
+    <div class="alert-box info" role="status">
+      <div>
+        <strong>Nueva versión de Golden Set base disponible</strong>
+        <p>La cátedra o plataforma publicó una actualización del conjunto de casos de referencia.</p>
+      </div>
+      <a [routerLink]="['../golden-set']" class="action-link">Revisar propuesta</a>
+    </div>
+  }
+
+  @if (hasRecentFailedCalibration()) {
+    <div class="alert-box error" role="alert">
+      <div>
+        <strong>Última calibración rechazada</strong>
+        <p>La corrida más reciente no alcanzó los umbrales de PAR-14 (MAE final ≤ 10 o error individual ≤ 10).</p>
+      </div>
+      <a [routerLink]="['../calibraciones']" class="action-link">Ver resultados</a>
+    </div>
+  }
+
+  @if (hasActiveCalibration() && pendingCount() === 0 && !hasBaseProposal() && !hasRecentFailedCalibration()) {
+    <div class="alert-box healthy" role="status">
+      <strong>Todo en orden:</strong> No hay alertas pendientes. El evaluador opera con normalidad.
+    </div>
+  }
+</section>
+
+<!-- GS-0512: Accesos a borradores y ejecuciones recientes -->
+<section class="dashboard-grid" aria-labelledby="quick-access-heading">
+  <div class="card">
+    <h3>Borradores de rúbrica</h3>
+    <p class="hint">Criterios pedagógicos, prompts y ponderaciones en elaboración.</p>
+    @if (draftRubrics().length) {
+      <ul class="quick-list">
+        @for (rub of draftRubrics(); track rub.id) {
+          <li>
+            <span>{{ rub.name }} (v{{ rub.version }})</span>
+            <span class="badge">Borrador</span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty-note">No hay borradores de rúbrica pendientes.</p>
+    }
+    <a [routerLink]="['../rubricas']" class="card-link">Gestionar rúbricas →</a>
+  </div>
+
+  <div class="card">
+    <h3>Borradores de Golden Set</h3>
+    <p class="hint">Conjuntos de casos con evaluaciones humanas de referencia.</p>
+    @if (draftGoldenSets().length) {
+      <ul class="quick-list">
+        @for (gs of draftGoldenSets(); track gs.id) {
+          <li>
+            <span>{{ gs.name }} (v{{ gs.version }})</span>
+            <span class="badge">{{ gs.cases.length }} casos</span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty-note">No hay borradores de Golden Set pendientes.</p>
+    }
+    <a [routerLink]="['../golden-set']" class="card-link">Gestionar Golden Set →</a>
+  </div>
+
+  <div class="card">
+    <h3>Calibraciones recientes</h3>
+    <p class="hint">Últimas ejecuciones de validación PAR-14.</p>
+    @if (recentCalibrations().length) {
+      <ul class="quick-list">
+        @for (run of recentCalibrations(); track run.id) {
+          <li>
+            <div>
+              <code>{{ shortId(run.id) }}</code>
+              <span class="run-date">{{ run.createdAt | date:'shortDate' }}</span>
+            </div>
+            <span class="state small" [class.published]="run.state === 'PASSED'" [class.state-failed]="run.state === 'FAILED'">
+              {{ run.state }}
+            </span>
+          </li>
+        }
+      </ul>
+    } @else {
+      <p class="empty-note">Aún no se han ejecutado calibraciones.</p>
+    }
+    <a [routerLink]="['../calibraciones']" class="card-link">Ver calibraciones →</a>
+  </div>
+</section>

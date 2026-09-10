@@ -97,7 +97,7 @@ trace_id
 
 ```
 evaluacion_id, intento_id, alumno_id, desafio_id, curso_id
-tipo: evaluador_uso_ia | corrector_respuesta
+tipo: evaluador_uso_ia
 
 -- Qué se evaluó
 entrada_ref            (referencia a la conversación o la respuesta)
@@ -341,7 +341,7 @@ MVP y que la limitación se declara en los T&C.
 
 | # | Hueco | Recomendación |
 |---|---|---|
-| 1 | **El corrector de respuestas no tiene transparencia especificada.** RF-IA-16 y RF-IA-18 hablan del evaluador | **Aplicarle lo mismo.** Es una nota igual que la otra. Es el mismo P-01 de [08](08-decisiones-y-pendientes.md) |
+| 1 | **Separación entre evaluación de uso y validación académica** | ✅ Resuelta: este registro documenta solo `evaluador_uso_ia`; la validación académica vive en el dominio de desafíos o en revisión docente |
 | 2 | ¿Se guarda el payload crudo enviado al proveedor, o solo el normalizado? | **Ambos**, al menos al principio: el normalizado para mostrar y apelar, el crudo para diagnosticar cuando algo salga raro. Es barato |
 | 3 | ¿Cuánto dura una apelación abierta? | Definir un plazo. Una apelación sin resolver bloquea el cierre del curso igual que un score pendiente (RF-IA-34) |
 | 4 | ¿El alumno ve las transcripciones de cursos ya cerrados? | Sí, mientras el dato exista. Es "elemento de juicio" sobre su propio trabajo |
@@ -642,7 +642,7 @@ Estos son los proveedores a los que se envían tus consultas y tu código:
 |---|---|---|
 | **¿Se usa free tier con datos de alumnos?** | Sección 5 y Anexo A. Si el proveedor puede entrenar con los datos, **hay que decirlo** | 🔴 C-2, sin resolver |
 | ¿Qué proveedores concretos? | Anexo A completo | Depende de la calibración del evaluador |
-| ¿El corrector de respuestas también se declara? | Sección 4.2 hoy habla del uso de IA; si el corrector es automático, corresponde declararlo | 🟡 P-01 |
+| ¿El corrector de respuestas también se declara? | No aplica: no existe corrector LLM en el alcance vigente | ✅ P-01 resuelta |
 
 ## Lo que este borrador no reemplaza
 

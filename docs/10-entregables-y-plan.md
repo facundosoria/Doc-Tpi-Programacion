@@ -9,7 +9,7 @@
 > personas»**, **«P1–P6»** o **«el plan de 14 pasos»**, se refiere al recorte de demo histórico.
 > Su equivalente vigente es: fases y calendario en [23 · §1 y §5](23-plan-construccion-producto-llm.md),
 > reparto en **5 parejas P1–P5** en [23 · §3](23-plan-construccion-producto-llm.md), y la
-> secuencia de construcción en el [backlog ejecutable S1–S19](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>).
+> secuencia de construcción en el [backlog ejecutable S1–S19](35-backlog-ejecutable.md).
 
 > **Punto de partida actualizado.** Antes de estimar o repartir pasos, usar la matriz [21](21-matriz-trazabilidad-llm.md) y los contratos v1. Esta planificación previa mantiene información de contexto, pero no habilita trabajo de Fase 2/Fase 3 ni endpoints `/ai/*`.
 
@@ -67,7 +67,7 @@ con él, del RAG y del resto de las funciones de IA.
 | **Tutor** | 🟢 De hecho nuestro | Hacemos el componente Angular |
 | **RAG** | 🟡 A confirmar | Nadie más lo tiene, y el tutor lo necesita |
 | **Generador de evaluaciones** | 🟡 A confirmar | Figura en Tema 04/03 como opcional |
-| **Corrector de respuestas abiertas** | 🟡 A confirmar | **Solo abiertas** — el resto se corrige con código |
+| **Corrector de respuestas abiertas** | ❌ Fuera de alcance | El PRD no lo define; no se incorpora al plan vigente |
 | **Moderador de chat** | 🟡 A confirmar | Figura en Tema 11. **El chat es Fase 2**: se diseña ahora, se construye cuando el chat exista |
 | **Agente `@mención`** | 🔵 Fase 3 | RF-CHT-05. Diseñado en [04](04-funciones-de-ia.md) Parte 4, fuera de este cuatrimestre |
 
@@ -108,7 +108,6 @@ cambiar prompts cincuenta veces.**
 | Mensajes etiquetados para el moderador | 100 | > 90% en severidad media/alta |
 | Preguntas etiquetadas del RAG | 30 | recall@3 > 85% |
 | Preguntas generadas revisadas | 20 | > 70% usables |
-| Respuestas corregidas a mano | 30 | Coincidencia con el corrector |
 
 > **El corpus de ataques tiene una fuente gratis:** cada incidente real detectado en producción
 > (RF-IA-10) es un caso de test. Conectalos desde el principio.
@@ -248,7 +247,7 @@ explícita**, no un microservicio.
 | **M4 · Calibración** | Golden set, runner, comparación con PAR-14, deriva | M1 + M3 |
 | **M5 · Guardarraíles y moderación** | Filtro de entrada, salvaguarda anti-fuga con AST, y el moderador de chat (capa clásica + clasificador, ADR-012) | M1 |
 | **M6 · Tutor** | Servicio del tutor + componente Angular | M1 + M2 + M5 |
-| **M7 · Generador y corrector** | Blueprint, generación por slot, validación, corrección | M1 + M2 |
+| **M7 · Generador** | Blueprint, generación por slot y validación humana; Fase 3 | M1 + M2 |
 | **M8 · Plataforma** | Docker, API, contratos, cola, base, eventos | No |
 
 > **El moderador de chat vive en M5 y no es un módulo aparte.** Es un clasificador de texto corto sin
@@ -264,7 +263,7 @@ explícita**, no un microservicio.
 |---|---|---|---|
 | **P1** | **M1 · Gateway** | Observabilidad: costo, latencia, aciertos de caché | Es la base de la que todos dependen. **Tiene que arrancar el día 1** |
 | **P2** | **M2 · RAG** | **M7 · Generador** | El generador es el mayor consumidor del RAG. Quien lo construyó sabe cómo consultarlo |
-| **P3** | **M3 · Evaluador** | **M7 · Corrector** | El corrector es el mismo patrón de juez con otra rúbrica. Se reusa el 80% |
+| **P3** | **M3 · Evaluador** | Calibración y pruebas PAR-14 | Conserva responsabilidad sobre la calidad del scoring 5D |
 | **P4** | **M4 · Calibración y golden set** | Perseguir a los docentes 😅 | Es el de **mayor riesgo de calendario**. Necesita a alguien dedicado y que empuje afuera del equipo |
 | **P5** | **M5 · Guardarraíles** | Comparación por AST multi-lenguaje, y el moderador de chat cuando el chat exista | Es la parte más técnica y la más aislada. Se puede probar sin el resto |
 | **P6** | **M8 · Plataforma** | **M6 · Tutor** + componente Angular | Arranca armando el esqueleto que todos usan, y sigue con lo que necesita Angular |
@@ -495,10 +494,10 @@ Blueprint determinístico → retrieval por cobertura → una llamada por pregun
 Filtro de entrada, salvaguarda anti-fuga por AST, y recién después el tutor —que es el más difícil
 porque junta latencia, RF-IA-04, los tres niveles de RF-IA-19 y el buffer de RF-IA-20.
 
-### Paso 12 — El corrector *(P3)*
+### Paso 12 — Retirado del plan
 
-**Solo para respuestas abiertas.** Multiple choice, V/F, ordenar, emparejar y tests se corrigen con
-código. Ver [04](04-funciones-de-ia.md) §1c.
+El corrector LLM no está especificado por el PRD y queda fuera del alcance vigente. La validación
+académica se implementa con reglas determinísticas del dominio o revisión docente.
 
 ### Paso 13 — El moderador *(P5, cuando exista el chat)*
 
