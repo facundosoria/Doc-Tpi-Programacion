@@ -6,7 +6,7 @@
 > capacidad salen de la planilla de disponibilidad en el **Sprint 0**
 > ([sprints/sprint-0.md · §4](../sprints/sprint-0.md)).
 >
-> **Fuentes:** receta de S1 en [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) ·
+> **Fuentes:** receta de S1 en [`35`](../35-backlog-ejecutable.md) ·
 > historias en [`historias/`](../historias/README.md) (índice del sprint en [`sprints/s1-historias.md`](../sprints/s1-historias.md)) · épicas [`ep-01.md`](../epicas/ep-01.md) /
 > [`ep-03.md`](../epicas/ep-03.md) · DoR/DoD [23 · §9.2](../23-plan-construccion-producto-llm.md).
 

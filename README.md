@@ -44,8 +44,10 @@ Para comenzar a trabajar, leer en este orden:
    funcional por sprint**. Del nominal del sprint (816 horas-persona) se descuentan 102 de
    reuniones y 143 de reserva: **~571 horas de capacidad**; el trabajo estimado de las recetas
    es ~208 h/sprint (piso, no tope). RAG se entrega por primera vez en S14.
-3. **[Plan de ejecución](<Plan de ejecucion/README.md>)** — guía de incorporación desde cero:
-   tecnologías, paso a paso de las tres fases, Docker, pruebas, Git y Pull Requests.
+3. **[35 · Backlog ejecutable](docs/35-backlog-ejecutable.md)** y
+   **[36 · Playbook de construcción](docs/36-playbook-de-construccion.md)** — el catálogo de las diez
+   épicas, el checklist de Sprint 0 y las recetas S1–S19, más las reglas de ejecución. Flujo Git y
+   rutina diaria: **[GITFLOW](docs/GITFLOW.md)** y **[WORKFLOW_DIARIO](docs/WORKFLOW_DIARIO.md)**.
 4. **[21 · Matriz de trazabilidad](docs/21-matriz-trazabilidad-llm.md)** y
    **[08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md)** — qué está decidido, qué
    bloquea, y las decisiones que ya se revisaron una vez — conviene mirarlas antes de reabrir una discusión.
@@ -90,12 +92,17 @@ la verificación de disponibilidad y calibración del modelo que se implemente.
 | 28 | [Normativa de la cátedra para la Plataforma](docs/28-normativa-catedra-plataforma.md) | Estándares mínimos de la cátedra (MySQL, Java 21 + Spring Boot, Angular 21, Git, seguridad) y **las 9 divergencias con las decisiones vigentes de Tema 07** a resolver en integración. |
 | 29 | [Guía de cátedra: Historias de Usuario (MSII, U1)](docs/29-guia-catedra-historias-de-usuario.md) | Referencia de **cómo se redactan y estiman las HU**: 3C, formato COMO/QUIERO/PARA, criterios de aceptación BDD, INVEST, épica/historia/tarea, Planning Poker y armado del backlog, con los ejemplos resueltos de la guía. |
 | 30 | [Arranque ágil: Sprint 0, DoD, capacidad, épicas e HU](docs/30-arranque-agil-y-sprint-0.md) | **Vista de entrega** que reúne las cinco piezas del arranque (Sprint 0, DoR/DoD, cálculo de capacidad, primeras épicas, historias de S1) con el formato de la guía de cátedra. No es fuente de verdad: apunta a 23 §2/§9.2 y al backlog ejecutable. |
-| — | [Épicas del `llm-service` (formato Taiga)](docs/epicas/README.md) | Las diez épicas (EP-01…EP-10), una por archivo, en el template oficial de épica: objetivo, suposiciones y restricciones, criterios de aceptación a nivel épico y dependencias. Fuente de verdad del catálogo: `Plan de ejecucion/07`. |
-| — | [Historias de usuario (formato Taiga), por épica](docs/historias/README.md) | Las HU en el template oficial, agrupadas por épica ([EP-01](docs/historias/ep-01.md), [EP-03](docs/historias/ep-03.md)): Como/Quiero/Para, notas, criterios de aceptación con negativos, BDD (≥3 escenarios), prototipo, estimación y dependencias. Versión detallada de la tabla de `Plan de ejecucion/07`. |
+| 31 | [Plan de revisión de Golden Set y calibración](docs/31-plan-revision-golden-set-calibracion.md) | Revisión y checklist de la calibración del golden set. |
+| 32 | [Especificación funcional de Golden Set y calibración](docs/32-especificacion-funcional-golden-set-calibracion.md) | Comportamiento funcional del golden set y de la calibración. |
+| 33 | [Modelo de dominio y transiciones — Golden Set](docs/33-modelo-dominio-y-transiciones-golden-set.md) | Entidades, estados y transiciones del golden set. |
+| 34 | [Plan de purga V1 y transición exclusiva a V2](docs/34-plan-purga-v1-transicion-v2.md) | Purga de la V1 y pase a V2 del golden set. |
+| 35 | [Backlog ejecutable S0–S19](docs/35-backlog-ejecutable.md) | Catálogo de las diez épicas (EP-01…EP-10), checklist de Sprint 0 y las recetas atómicas S1–S19 con horas, gates y aceptación. Fuente de ID, épica, pareja, dependencias y horas. Antes vivía en `Plan de ejecucion/07`. |
+| 36 | [Playbook de construcción](docs/36-playbook-de-construccion.md) | Reglas de ejecución: autoridad y precedencia, arquitectura y fronteras, secuencia obligatoria para una capacidad nueva (§4), patrones que no se negocian y pruebas mínimas. Antes vivía en `Plan de ejecucion/06`. |
+| — | [Épicas del `llm-service` (formato Taiga)](docs/epicas/README.md) | Las diez épicas (EP-01…EP-10), una por archivo, en el template oficial de épica: objetivo, suposiciones y restricciones, criterios de aceptación a nivel épico y dependencias. Fuente de verdad del catálogo: `docs/35`. |
+| — | [Historias de usuario (formato Taiga), por épica](docs/historias/README.md) | Las HU en el template oficial, agrupadas por épica ([EP-01](docs/historias/ep-01.md), [EP-03](docs/historias/ep-03.md)): Como/Quiero/Para, notas, criterios de aceptación con negativos, BDD (≥3 escenarios), prototipo, estimación y dependencias. Versión detallada de la tabla de `docs/35`. |
 | — | [Tareas SMART por historia](docs/tareas/README.md) | El desglose de cada historia en tareas técnicas ([EP-01](docs/tareas/ep-01.md), [EP-03](docs/tareas/ep-03.md)), método SMART, en el template de Tarea de Taiga: objetivo SMART, pasos, criterio de terminado, estimación y trazabilidad al CA/escenario. |
 | — | [Sprints — registro y vista de historias](docs/sprints/README.md) | Empieza en el **Sprint 0** ([acta](docs/sprints/sprint-0.md)): arranque sin incremento, capacidad de S1, historia canónica, dependencias y ambiente. Vista de S1: [índice y demo](docs/sprints/s1-historias.md) · [explicado sin jerga](docs/sprints/s1-explicado.md). S1+ se registran con la plantilla de sprint. |
 | — | [Wireframes de LLM-S01-H07](docs/prototipos/wireframes-h07-golden-set.md) | Bocetos de baja fidelidad de la pantalla docente del golden set, con trazabilidad a los escenarios BDD de H05–H07. |
-| — | [Plan de ejecución](<Plan de ejecucion/README.md>) | Guía práctica de incorporación, tecnologías, fases, Docker, pruebas y flujo Git; incluye épicas, Sprint 0 y backlog ejecutable S1–S19. |
 | — | [Plantilla de sprint LLM](docs/plantillas/sprint-llm.md) | Registro de Planning, disponibilidad individual, reuniones, historias, dependencias, Review/demo y retro. |
 | — | [Plantilla de página de Wiki por grupo](docs/plantillas/pagina-wiki-grupo.md) | Estructura lista para copiar a la Wiki de Taiga: `GXX - TEMA`, descripción, HU, diagramas, Draw.io, explicación, notas técnicas y documentación de endpoints. |
 | — | [Plantilla de Historia de Usuario (Taiga)](docs/plantillas/historia-de-usuario-taiga.md) | Template oficial de HU para el backlog de Taiga: COMO/QUIERO/PARA, notas, criterios de aceptación, BDD (≥3 escenarios), prototipo, estimación y dependencias. Cómo se completan: [29](docs/29-guia-catedra-historias-de-usuario.md). |
@@ -142,8 +149,8 @@ la verificación de disponibilidad y calibración del modelo que se implemente.
 - **Para entender antes que implementar** → [09 · Preguntas y respuestas](docs/09-preguntas-y-respuestas.md).
   Es el razonamiento en lenguaje llano y el mejor material para la defensa.
 - **Para empezar a trabajar** → [23 · Plan vigente](docs/23-plan-construccion-producto-llm.md)
-  (capacidad en §2, DoR/DoD en §9.2), [backlog ejecutable](<Plan de ejecucion/07-backlog-ejecutable-sprints.md>)
-  (épicas, Sprint 0 e historias S1), [Plan de ejecución](<Plan de ejecucion/README.md>),
+  (capacidad en §2, DoR/DoD en §9.2), [35 · backlog ejecutable](docs/35-backlog-ejecutable.md)
+  (épicas, Sprint 0 e historias S1), [36 · playbook de construcción](docs/36-playbook-de-construccion.md),
   [plantilla de sprint](docs/plantillas/sprint-llm.md) y [11 · Glosario y metadata](docs/11-glosario-y-metadata.md).
 - **Para la sesión de integración** → [08 · Decisiones y pendientes](docs/08-decisiones-y-pendientes.md), parte B.
 - **Para decidir modelos** → [03 · Modelos y costos](docs/03-modelos-costos-y-contexto.md).

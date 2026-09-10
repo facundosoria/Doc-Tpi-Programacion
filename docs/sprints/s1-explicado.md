@@ -13,7 +13,7 @@
 >
 > | Dato | Dónde manda |
 > |---|---|
-> | ID, grupo, pareja, dependencias, horas | [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) · «S1» |
+> | ID, grupo, pareja, dependencias, horas | [`35`](../35-backlog-ejecutable.md) · «S1» |
 > | Ficha técnica completa (con los códigos y términos exactos) | [`../historias/`](../historias/README.md) |
 > | Índice del sprint, tipo de cada historia y demo | [`s1-historias.md`](s1-historias.md) |
 > | Desglose en tareas | [`../tareas/`](../tareas/README.md) |

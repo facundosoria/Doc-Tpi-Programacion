@@ -9,7 +9,7 @@
 > personas»**, **«P1–P6»** o **«el plan de 14 pasos»**, se refiere al recorte de demo histórico.
 > Su equivalente vigente es: fases y calendario en [23 · §1 y §5](23-plan-construccion-producto-llm.md),
 > reparto en **5 parejas P1–P5** en [23 · §3](23-plan-construccion-producto-llm.md), y la
-> secuencia de construcción en el [backlog ejecutable S1–S19](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>).
+> secuencia de construcción en el [backlog ejecutable S1–S19](35-backlog-ejecutable.md).
 
 > **Punto de partida actualizado.** Antes de estimar o repartir pasos, usar la matriz [21](21-matriz-trazabilidad-llm.md) y los contratos v1. Esta planificación previa mantiene información de contexto, pero no habilita trabajo de Fase 2/Fase 3 ni endpoints `/ai/*`.
 

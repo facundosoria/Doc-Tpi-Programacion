@@ -12,7 +12,7 @@
 > Esta plantilla es el **formato de presentación**. El ID interno del equipo sigue el
 > esquema `LLM-Sxx-Hyy-Tzz`. Las horas de la tarea son **orientativas** y suman la
 > referencia de planificación de la historia padre; la fuente de esa referencia es
-> [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>).
+> [`35`](../35-backlog-ejecutable.md).
 >
 > Qué hace a una tarea correcta —**SMART**: Específica, Medible, Alcanzable, Relevante,
 > Acotada en el tiempo; partida en **una jornada efectiva o menos**; sin

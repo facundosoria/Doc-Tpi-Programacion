@@ -167,4 +167,4 @@ Configurar estas reglas en GitHub para `main` y `develop`:
 | Prohibir force-push | Sí | Sí |
 | Eliminar rama al mergear | N/A | Sí, para features |
 
-El detalle operativo está en [Plan de ejecución/05-flujo-diario-y-git.md](../Plan%20de%20ejecucion/05-flujo-diario-y-git.md), el [playbook](../Plan%20de%20ejecucion/06-playbook-de-construccion.md) y el [backlog](../Plan%20de%20ejecucion/07-backlog-ejecutable-sprints.md).
+El detalle operativo está en [WORKFLOW_DIARIO](WORKFLOW_DIARIO.md), el [playbook](36-playbook-de-construccion.md) y el [backlog](35-backlog-ejecutable.md).

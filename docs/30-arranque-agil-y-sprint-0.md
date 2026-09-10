@@ -14,11 +14,11 @@
 >
 > | Pieza | Fuente única |
 > |---|---|
-> | Sprint 0 y su checklist | [`Plan de ejecucion/07`](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) · sección «Sprint 0» |
+> | Sprint 0 y su checklist | [`35`](35-backlog-ejecutable.md) · sección «Sprint 0» |
 > | DoR / DoD | [23 · §9.2](23-plan-construccion-producto-llm.md) |
 > | Cálculo de capacidad | [23 · §2](23-plan-construccion-producto-llm.md) |
-> | Catálogo de épicas | [`Plan de ejecucion/07`](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) · sección «Épicas» |
-> | Historias de S1 (ID, épica, pareja, horas) | [`Plan de ejecucion/07`](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) · sección «S1» |
+> | Catálogo de épicas | [`35`](35-backlog-ejecutable.md) · sección «Épicas» |
+> | Historias de S1 (ID, épica, pareja, horas) | [`35`](35-backlog-ejecutable.md) · sección «S1» |
 > | Historias de S1 en formato largo (Taiga) | [`historias/`](historias/README.md) (por épica) · índice y demo en [`sprints/s1-historias.md`](sprints/s1-historias.md) |
 > | Tareas SMART por historia | [`tareas/`](tareas/README.md) |
 > | Épicas (EP-01…EP-10) en formato Taiga, una por archivo | [`epicas/`](epicas/README.md) |
@@ -260,7 +260,7 @@ escenarios) vive en la ficha de Taiga.
 después de reiniciar el servicio.
 
 > El detalle de paquetes (orden de construcción, gates, pruebas) está en la receta de S1 del
-> [backlog ejecutable](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>). Las nueve
+> [backlog ejecutable](35-backlog-ejecutable.md). Las nueve
 > historias en **formato largo del template de Taiga** (Como/Quiero/Para, Notas, CA con
 > negativos, ≥ 3 escenarios BDD, Prototipo, Estimación, Dependencias) están agrupadas por
 > épica en [`historias/ep-01.md`](historias/ep-01.md) y [`historias/ep-03.md`](historias/ep-03.md)

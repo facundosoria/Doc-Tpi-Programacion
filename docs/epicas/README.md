@@ -10,7 +10,7 @@
 >
 > **Fuente de verdad.** El catálogo maestro (resultado que habilita, pareja líder,
 > sprints, requisitos) vive en
-> [`Plan de ejecucion/07` · «Épicas»](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>)
+> [`35` · «Épicas»](../35-backlog-ejecutable.md)
 > y en [30 · §4](../30-arranque-agil-y-sprint-0.md). La tabla **Catálogo** de esta página
 > es su copia en el repo (con la columna **Fase**) y es lo que las fichas referencian:
 > pareja, sprints, fase y requisitos **no** se repiten en cada `ep-0X.md`. Si un dato de
@@ -71,5 +71,5 @@ no en la ficha. Si un dato de una ficha no coincide con esta tabla, **manda la t
 | **S3–S19** | ver catálogo | *(a desglosar sprint a sprint)* | — |
 
 Las historias de un sprint se derivan de la **receta** correspondiente en
-[`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) durante
+[`35`](../35-backlog-ejecutable.md) durante
 el Refinamiento, no se pre-cargan (evita inventar estimaciones sin contrato).

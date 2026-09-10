@@ -16,7 +16,7 @@
 >
 > | Dato | Fuente única |
 > |---|---|
-> | ID, épica, pareja, dependencias, horas | [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) |
+> | ID, épica, pareja, dependencias, horas | [`35`](../35-backlog-ejecutable.md) |
 > | Catálogo de épicas (pareja líder, fase, sprints) | [`../epicas/README.md`](../epicas/README.md) |
 > | Tipo (HU de valor / habilitador) y demo del sprint | [30 · §5](../30-arranque-agil-y-sprint-0.md) |
 > | DoR / DoD | [23 · §9.2](../23-plan-construccion-producto-llm.md) |

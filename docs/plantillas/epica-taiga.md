@@ -10,7 +10,7 @@
 >
 > El catálogo de épicas del equipo (EP-01…EP-10, con pareja líder, sprints donde aporta,
 > fase y requisitos que cubre) está en
-> [`Plan de ejecucion/07-backlog-ejecutable-sprints.md`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>)
+> [`35-backlog-ejecutable.md`](../35-backlog-ejecutable.md)
 > y en el índice [`epicas/README.md`](../epicas/README.md); esta plantilla es el
 > **formato de presentación** de cada una en Taiga y **no** repite esos datos (sin bloque
 > `| Campo | Valor |`).

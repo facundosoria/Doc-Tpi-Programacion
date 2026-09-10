@@ -97,7 +97,7 @@ Chequeo: un `diff` entre cada original y su copia no debe devolver nada.
 Condensado de la documentación de este repo (que queda como fuente, no se distribuye):
 [`docs/29`](../../docs/29-guia-catedra-historias-de-usuario.md),
 [`docs/23` §9.2](../../docs/23-plan-construccion-producto-llm.md),
-[`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>),
+[`docs/35`](../../docs/35-backlog-ejecutable.md),
 [`docs/18`](../../docs/18-contratos-inter-equipos.md),
 [`docs/contracts/`](../../docs/contracts/),
 [`docs/gateway-y-discovery/`](../../docs/gateway-y-discovery/) *(de otro equipo)*,

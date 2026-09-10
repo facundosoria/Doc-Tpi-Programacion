@@ -17,9 +17,9 @@
 >
 > | Dato | Dónde vive |
 > |---|---|
-> | Horas por historia y por sprint | [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) · «S1» |
+> | Horas por historia y por sprint | [`35`](../35-backlog-ejecutable.md) · «S1» |
 > | Criterios de aceptación y escenarios BDD (lo que cada tarea traza) | [`../historias/`](../historias/README.md) |
-> | Orden de construcción de las tareas | [playbook · §4](<../../Plan de ejecucion/06-playbook-de-construccion.md>) |
+> | Orden de construcción de las tareas | [playbook · §4](../36-playbook-de-construccion.md) |
 > | Vista del sprint (índice, demo) | [`../sprints/s1-historias.md`](../sprints/s1-historias.md) |
 >
 > Las horas por tarea son **orientativas** y suman la referencia de la historia. Si un

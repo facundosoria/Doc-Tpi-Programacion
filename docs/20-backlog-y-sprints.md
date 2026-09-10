@@ -626,7 +626,7 @@ Vale tanto como el plan: es lo que nadie debería asumir que va a estar en dicie
 
 > **Superadas.** Esta DoR/DoD es la primera versión del equipo. La **fuente única vigente** es
 > [23 · §9.2](23-plan-construccion-producto-llm.md) (DoR de 9 puntos con BDD, DoD por historia y
-> por incremento); el [playbook 06](<../Plan de ejecucion/06-playbook-de-construccion.md>) y
+> por incremento); el [playbook `36`](36-playbook-de-construccion.md) y
 > [30 · §2](30-arranque-agil-y-sprint-0.md) remiten a esa misma fuente. Lo de abajo se conserva
 > solo como antecedente.
 

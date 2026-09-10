@@ -13,13 +13,13 @@
 >
 > | Dato | Fuente única |
 > |---|---|
-> | ID, épica, pareja, dependencias, horas | [`Plan de ejecucion/07` · «S1»](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) |
+> | ID, épica, pareja, dependencias, horas | [`35` · «S1»](../35-backlog-ejecutable.md) |
 > | Tipo (HU de valor / habilitador) y demo | [30 · §5](../30-arranque-agil-y-sprint-0.md) |
 > | DoR / DoD | [23 · §9.2](../23-plan-construccion-producto-llm.md) |
 > | Fichas completas de HU | [`../historias/`](../historias/README.md) |
 > | Tareas | [`../tareas/`](../tareas/README.md) |
 > | Registro del sprint (capacidad, compromiso, cierre) | *(copia de [`../plantillas/sprint-llm.md`](../plantillas/sprint-llm.md) en la Planning de S1)* |
-> | Secuencia técnica de cada tarea | [playbook de construcción · §4](<../../Plan de ejecucion/06-playbook-de-construccion.md>) |
+> | Secuencia técnica de cada tarea | [playbook de construcción · §4](../36-playbook-de-construccion.md) |
 >
 > **Título en Taiga.** Cada ficha se carga con el título `GXX — TÍTULO` (`GXX` = número
 > de grupo, aún sin asignar). El ID interno `LLM-S01-Hyy` es el del equipo

@@ -10,10 +10,10 @@
 >
 > | Pieza | Dónde vive |
 > |---|---|
-> | Checklist de Sprint 0 | [`Plan de ejecucion/07` · «Sprint 0»](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) y [30 · §1](../30-arranque-agil-y-sprint-0.md) |
+> | Checklist de Sprint 0 | [`35` · «Sprint 0»](../35-backlog-ejecutable.md) y [30 · §1](../30-arranque-agil-y-sprint-0.md) |
 > | DoR / DoD | [23 · §9.2](../23-plan-construccion-producto-llm.md) |
 > | Cálculo de capacidad | [23 · §2](../23-plan-construccion-producto-llm.md) / [30 · §3](../30-arranque-agil-y-sprint-0.md) |
-> | Recetas de construcción S1–S19 | [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) |
+> | Recetas de construcción S1–S19 | [`35`](../35-backlog-ejecutable.md) |
 > | Épicas | [`../epicas/`](../epicas/README.md) |
 > | Fichas de historias (por épica) | [`../historias/`](../historias/README.md) |
 > | Tareas SMART por historia | [`../tareas/`](../tareas/README.md) |
@@ -26,7 +26,7 @@
 |---|---|---|---|---|
 | **0** | [`sprint-0.md`](sprint-0.md) | — | Por ejecutar | Arranque: acuerdos, capacidad de S1 y ambiente. **Sin incremento de software.** |
 | **1** | *(crear desde [plantilla](../plantillas/sprint-llm.md) en la Planning de S1)* | [`s1-historias.md`](s1-historias.md) · [`s1-explicado.md`](s1-explicado.md) | — | Un docente autorizado carga y consulta un golden set que sobrevive al reinicio. |
-| 2–19 | *(uno por sprint, al planificarlo)* | *(uno por sprint)* | — | Ver recetas en [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>). |
+| 2–19 | *(uno por sprint, al planificarlo)* | *(uno por sprint)* | — | Ver recetas en [`35`](../35-backlog-ejecutable.md). |
 
 ## Regla de nombrado
 

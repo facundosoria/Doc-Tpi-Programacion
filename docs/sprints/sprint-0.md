@@ -20,7 +20,7 @@
 >   [`s1-historias.md`](s1-historias.md)); el Sprint 0 las refina y las sube.
 >
 > **Fuente de verdad del checklist:**
-> [`Plan de ejecucion/07` · «Sprint 0»](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>).
+> [`35` · «Sprint 0»](../35-backlog-ejecutable.md).
 > Este archivo es el **acta**: se completa el día del Sprint 0 y se guarda como evidencia.
 
 ---
@@ -188,7 +188,7 @@ La historia de referencia contra la que se estiman **todas** las demás del back
 - [ ] Repo remoto `tpi-llm` creado.
 - [ ] Ramas `main` y `develop` creadas.
 - [ ] Protección en ambas: **PR obligatorio**, **CI en verde** para mergear, **sin push
-  directo**, **sin force-push** ([GITFLOW](../GITFLOW.md), [flujo diario y Git](<../../Plan de ejecucion/05-flujo-diario-y-git.md>)).
+  directo**, **sin force-push** ([GITFLOW](../GITFLOW.md), [flujo diario y Git](../WORKFLOW_DIARIO.md)).
 - [ ] Las ramas `feature/sNN/llm-sNN-hNN-<slug>` **no** se crean en Sprint 0: nacen de
   `develop` al arrancar cada historia de S1.
 
