@@ -13,19 +13,19 @@ Diez épicas cubren el alcance de las tres fases. Cada historia `LLM-Sxx-Hyy` pe
 | Épica | Nombre | Resultado que habilita | Pareja líder | Sprints | Requisitos (orientativo) |
 |---|---|---|---|---|---|
 | **EP-01** | Plataforma, contratos e integración | El servicio arranca reproducible, expone `/api/llm/**` por Gateway, versiona su esquema y publica contratos que los demás equipos consumen | P1 | S1, S3, S6, S10, S19 | RF-NFR-01/03/04/09/10; contratos v1 |
-| **EP-02** | AI Gateway, modelos y resiliencia | Toda llamada a un modelo pasa por un punto único con timeout, presupuesto, validación de salida y cambio de modelo por configuración | P2 | S3, S8, S9 | RF-IA-22/23/24/35; RF-IA-27 |
+| **EP-02** | AI Gateway, modelos y resiliencia | Toda llamada a un modelo pasa por un punto único con timeout, presupuesto, validación de salida y cambio de modelo por configuración | P2 | S3, S8, S9 | RF-IA-22/23/24/35 |
 | **EP-03** | Golden set y referencia humana | Un docente autorizado construye, puntúa y versiona el set de referencia que habilita calibrar | P5 + P4 | S1, S2 | RF-IA-29/30 a 36 |
 | **EP-04** | Calibración y gobernanza del modelo | No se activa un curso sin calibración dentro de tolerancia; el cambio de modelo se audita y dispara recalibración | P4 | S3, S4, S8 | RF-IA-30 a 36; PAR-14 |
 | **EP-05** | Tutor seguro y guardarraíles | El alumno recibe ayuda socrática dentro del desafío; jailbreak y fuga de solución se bloquean antes de mostrarse | P3 + P2 | S5 | RF-IA-01/02/04/19/20 |
 | **EP-06** | Evaluación, score y auditoría académica | Cerrar un intento produce un score desglosado, explicable y apelable; una caída difiere el cálculo sin perderlo | P4 + P1 | S6, S7 | RF-IA-12 a 18/25; RF-IA-27/34 |
-| **EP-07** | Operación, cuotas y observabilidad | El operador ve costo, cuotas y trabajos, recupera lo recuperable y sostiene la carga objetivo | P2 + P1 | S9, S10 | RF-IA-22/25/33; RF-NFR-03/04 |
+| **EP-07** | Operación, cuotas y observabilidad | El operador ve costo, cuotas y trabajos, recupera lo recuperable y sostiene la carga objetivo | P2 + P1 | S9, S10 | RF-IA-22/25; RF-NFR-01/03/04 |
 | **EP-08** | Moderación integrada (F2) | Los mensajes del chat real se permiten o bloquean antes de entregarse, con revisión humana y retención acordada | P3 + P2 + P1 | S11–S13 | RF-CHT-09 a 14 |
 | **EP-09** | RAG y consulta de material (F3) | El material docente autorizado es consultable con fuente y página; sin respaldo el asistente se abstiene | P5 + P3 | S14–S16 | RF-IA-06/07/08 |
 | **EP-10** | Personalización y agente (F3) | El alumno resuelve desafíos personalizados y menciona a `@agente`, con efectos idempotentes y salida moderada | P5 + P4 + P3 | S17–S18 | RF-DES-05; RF-CHT-05/08 |
 
 > Los números de RF son orientativos. La traza fina historia → requisito se mantiene en [21 · matriz de trazabilidad](../docs/21-matriz-trazabilidad-llm.md). Las parejas P1–P5 se definen en [23 · §3](../docs/23-plan-construccion-producto-llm.md).
 
-> **Cómo se pasa cada épica al template de Taiga.** La columna *Resultado que habilita* de esta tabla es el **Objetivo** del [template de Épica](../docs/plantillas/epica-taiga.md); *Sprints* y *Pareja líder* son contexto de planificación; los apartados *Suposiciones y Restricciones*, *Criterios de Aceptación a nivel Épico* y *Dependencias / Impactos* se completan en la ficha (las dependencias arrancan de [23 · §8](../docs/23-plan-construccion-producto-llm.md)). El template de épica **no** usa Como / Quiero / Para ni BDD —a diferencia de lo que sugiere [29 · §4](../docs/29-guia-catedra-historias-de-usuario.md) para épicas en general—: para la entrega manda el template oficial.
+> **Cómo se pasa cada épica al template de Taiga.** La columna *Resultado que habilita* de esta tabla es el **Objetivo** del [template de Épica](../docs/plantillas/epica-taiga.md); *Sprints* y *Pareja líder* son contexto de planificación; los apartados *Suposiciones y Restricciones*, *Criterios de Aceptación a nivel Épico* y *Dependencias / Impactos* se completan en la ficha (las dependencias arrancan de [23 · §8](../docs/23-plan-construccion-producto-llm.md)). El template de épica **no** usa Como / Quiero / Para ni BDD —a diferencia de lo que sugiere [29 · §4](../docs/29-guia-catedra-historias-de-usuario.md) para épicas en general—: para la entrega manda el template oficial. Las diez fichas ya redactadas, una por archivo, están en [`docs/epicas/`](../docs/epicas/README.md).
 
 > **Publicación en Taiga.** Este documento es la versión de trabajo. Las épicas y las HU se cargan además en el backlog de Taiga con los *Templates de Épica y de Historia de Usuario* de la Wiki, y se referencian desde las páginas de la Wiki por su **enlace permanente** (ver [27 · Guía de la Wiki](../docs/27-guia-wiki-taiga.md)). El método para redactarlas y estimarlas es [29 · Guía de cátedra: Historias de Usuario](../docs/29-guia-catedra-historias-de-usuario.md).
 
@@ -33,7 +33,7 @@ Diez épicas cubren el alcance de las tres fases. Cada historia `LLM-Sxx-Hyy` pe
 
 ## Sprint 0 — Arranque del proyecto
 
-Sprint 0 **no produce incremento de software** ni consume la capacidad de entregables: es la primera Planning ampliada, con acuerdos y preparación de ambiente. Ocurre **antes de S1** y deja cumplida la DoR de todas las historias de S1.
+Sprint 0 **no produce incremento de software** ni consume la capacidad de entregables: es la primera Planning ampliada, con acuerdos y preparación de ambiente. Ocurre **antes de S1** y deja cumplida la DoR de todas las historias de S1. No se compromete ninguna historia ni se asignan puntos, salvo estimar la historia canónica. El **acta para completar** el día del Sprint 0 está en [`docs/sprints/sprint-0.md`](../docs/sprints/sprint-0.md).
 
 ### Qué deja cerrado (checklist de salida)
 
@@ -94,7 +94,9 @@ S1 es un sprint de arranque: **casi todo es habilitador técnico**. Sólo H05–
 - **H05, H06, H07** se cargan como **HU** con el [template oficial](../docs/plantillas/historia-de-usuario-taiga.md): Como/Quiero/Para con rol real (docente), BDD de camino feliz + 2 negativos, puntos Fibonacci.
 - **H01–H04, H08, H09** se cargan como **tareas** bajo EP-01 (o bajo una HU habilitadora «Base operable del servicio»), sin exigirles formato COMO/QUIERO/PARA ni puntos de valor.
 
-La columna **h** es la referencia de planificación del plan. Los **puntos Fibonacci** de las HU se asignan en el Sprint 0 con Planning Poker contra la historia canónica (candidata: **H06**); no se pre-cargan acá para no inventar estimaciones. La columna *Aceptación* es la forma comprimida de trabajo; el BDD completo (≥ 3 escenarios) vive en la ficha de Taiga.
+> Las nueve historias ya están redactadas en el **formato largo del template de Taiga** (Como/Quiero/Para, Notas, CA con negativos, ≥ 3 escenarios BDD, Prototipo, Estimación y Dependencias) en [`docs/historias/s01.md`](../docs/historias/s01.md); las diez épicas (EP-01…EP-10), una por archivo en formato Taiga, en [`docs/epicas/`](../docs/epicas/README.md) (las activas en S1 son EP-01 y EP-03). Esta tabla sigue siendo la fuente de ID, épica, pareja, dependencias y horas.
+
+La columna **h** es la referencia de planificación del plan. Los **puntos Fibonacci** de las HU se asignan en el Sprint 0 con Planning Poker contra la historia canónica (candidata: **H06**); no se pre-cargan acá para no inventar estimaciones. La columna *Aceptación* es la forma comprimida de trabajo; el BDD completo (≥ 3 escenarios) vive en [`docs/historias/s01.md`](../docs/historias/s01.md) y en la ficha de Taiga.
 
 | ID | Como… / quiero… / para… | Aceptación (incluye negativa) | Épica | Pareja | Dep. | h |
 |---|---|---|---|---|---|---:|
@@ -139,6 +141,20 @@ La columna **h** es la referencia de planificación del plan. Los **puntos Fibon
 | 5 | API, permisos y reporte | 28 | `POST /calibrations`, `GET /jobs`; ADMIN autorizado; reporte explicable. |
 | 6 | Pruebas y demo | 36 | Aprobado, rechazado, provider timeout, job duplicado/reiniciado y costo registrado. |
 
+> **Spike `LLM-S03-SPIKE-01` (EP-02) — viabilidad del streaming del tutor · timebox 16 h.**
+> Enabler, no HU: falla la **V** de INVEST, se carga en Taiga como tarea de spike bajo EP-02 sin
+> formato Como/Quiero/Para ni puntos de valor. Se toma de la holgura de capacidad del sprint (ver
+> nota de S1), no desplaza los paquetes 1–6.
+>
+> **Pregunta:** ¿el **Buffer Interceptor** (prosa en vivo; cada bloque de código retenido hasta
+> parsear el AST y comparar contra la solución esperada) cabe en el presupuesto de latencia del
+> tutor, y `langchain4j` soporta el streaming que necesita? **Salida:** prueba de concepto medida
+> —primer token, respuesta completa, costo de la regeneración cuando bloquea— y recomendación
+> **propagar o revertir** que cierra [I-10](../docs/17-mapa-de-integracion.md) y decide si la adenda
+> [`docs/contracts/llm-service-v1-tutor-sse-adenda.md`](../docs/contracts/llm-service-v1-tutor-sse-adenda.md)
+> se fusiona al `openapi.yaml`. Solapa con I-03 (latencia real del tutor) e I-11 (timeouts por rol).
+> **Dep.:** paquete 1 de S3 (puerto AI Gateway + cliente de proveedor).
+
 **Aceptación negativa:** no hay fallback automático de modelo; fallo no habilita; prompt no interpreta transcript como instrucción.
 
 ## S4 — Calibración por curso y bloqueo real (~208 h estimadas)
@@ -156,19 +172,19 @@ La columna **h** es la referencia de planificación del plan. Los **puntos Fibon
 
 ## S5 — Tutor seguro (~208 h estimadas)
 
-**No iniciar sin:** contexto validado y canal separado de solución desde `practice-service`, corpus mínimo de ataque y política de cuota. **Demo:** alumno recibe ayuda socrática; fuga/jailbreak bloquean; caída no impide continuar.
+**No iniciar sin:** contexto validado y canal separado de solución desde `practice-service`, corpus mínimo de ataque, política de cuota y decisión **I-10** cerrada (streaming: Buffer Interceptor o revertir — salida del spike `LLM-S03-SPIKE-01`). **Demo:** alumno recibe ayuda socrática, con la prosa apareciendo en vivo; fuga/jailbreak bloquean; caída no impide continuar.
 
 | Orden | Paquete verificable | h | Salida / prueba |
 |---:|---|---:|---|
-| 1 | Adenda con práctica | 22 | Contexto, riesgo, ownership, idempotencia, evidencia de indisponibilidad y solución solo para guardia. |
+| 1 | Adenda con práctica | 22 | Contexto, riesgo, ownership, idempotencia, evidencia de indisponibilidad y solución solo para guardia; variante SSE del tutor (`llm-service-v1-tutor-sse-adenda.md`). |
 | 2 | Dominio/interacción/cuota | 34 | Estados `completed/blocked/unavailable`, metadata, límite por alumno y auditoría. |
 | 3 | Guardia de entrada | 28 | Filtros deterministas, separación de datos, clasificador de intención y respuesta segura. |
 | 4 | Orquestación tutor | 36 | Prompt con contexto mínimo, AI Gateway, timeout/circuito y respuesta socrática. |
-| 5 | Guardia de salida | 36 | AST/similitud contra solución fuera de prompt; bloquear/regenerar y registrar incidente. |
+| 5 | Guardia de salida y streaming | 36 | AST/similitud contra solución fuera de prompt; bloquear/regenerar y registrar incidente; **Buffer Interceptor** (máquina `OUTSIDE_CODE`/`INSIDE_CODE`): prosa token a token, bloques de código retenidos hasta validar, endpoint SSE. |
 | 6 | UI práctica y degradación | 20 | Estados claros, no explica evasión, permite continuar sin tutor. |
 | 7 | Seguridad/pruebas/demo | 32 | Corpus jailbreak, fuga simulada, cuota 429, ownership, timeout y trazabilidad. |
 
-**Aceptación negativa:** solución nunca llega al prompt/log; alto riesgo no devuelve streaming plaintext; respuesta bloqueada no llega al navegador.
+**Aceptación negativa:** solución nunca llega al prompt/log; en riesgo alto/medio ningún bloque de código sale del Buffer Interceptor sin validar; respuesta bloqueada no llega al navegador.
 
 ## S6 — Evaluación asíncrona y diferida (~208 h estimadas)
 

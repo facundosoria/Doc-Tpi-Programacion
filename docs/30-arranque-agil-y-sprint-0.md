@@ -18,7 +18,10 @@
 > | DoR / DoD | [23 · §9.2](23-plan-construccion-producto-llm.md) |
 > | Cálculo de capacidad | [23 · §2](23-plan-construccion-producto-llm.md) |
 > | Catálogo de épicas | [`Plan de ejecucion/07`](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) · sección «Épicas» |
-> | Historias de S1 | [`Plan de ejecucion/07`](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) · sección «S1» |
+> | Historias de S1 (ID, épica, pareja, horas) | [`Plan de ejecucion/07`](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) · sección «S1» |
+> | Historias de S1 en formato largo (Taiga) | [`historias/s01.md`](historias/s01.md) |
+> | Épicas (EP-01…EP-10) en formato Taiga, una por archivo | [`epicas/`](epicas/README.md) |
+> | Acta del Sprint 0 | [`sprints/sprint-0.md`](sprints/sprint-0.md) |
 > | Método para redactar/estimar HU | [29](29-guia-catedra-historias-de-usuario.md) |
 > | Templates de Taiga | [`plantillas/historia-de-usuario-taiga.md`](plantillas/historia-de-usuario-taiga.md) · [`plantillas/epica-taiga.md`](plantillas/epica-taiga.md) |
 >
@@ -251,7 +254,12 @@ escenarios) vive en la ficha de Taiga.
 después de reiniciar el servicio.
 
 > El detalle de paquetes (orden de construcción, gates, pruebas) está en la receta de S1 del
-> [backlog ejecutable](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>).
+> [backlog ejecutable](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>). Las nueve
+> historias en **formato largo del template de Taiga** (Como/Quiero/Para, Notas, CA con
+> negativos, ≥ 3 escenarios BDD, Prototipo, Estimación, Dependencias) están en
+> [`historias/s01.md`](historias/s01.md); las diez épicas (EP-01…EP-10), una por archivo, en
+> [`epicas/`](epicas/README.md) — las activas en S1 son EP-01 y EP-03. El arranque como acta
+> se registra en [`sprints/sprint-0.md`](sprints/sprint-0.md).
 
 ---
 
