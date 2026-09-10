@@ -1,0 +1,195 @@
+<header>
+  <p class="eyebrow">RÚBRICAS</p>
+  <h1>{{ editorRoute ? (creatingRoute ? 'Nueva rúbrica' : 'Editar rúbrica') : 'Rúbricas versionadas' }}</h1>
+  <p>Las cinco dimensiones obligatorias evalúan el uso pedagógico de IA. Las versiones publicadas son inmutables.</p>
+  @if (editorRoute) { <nav class="editor-breadcrumb" aria-label="Ubicación en Rúbricas"><a [href]="rubricsPath()">Rúbricas</a><span aria-hidden="true">›</span><strong>{{ creatingRoute ? 'Nueva rúbrica' : 'Editar borrador' }}</strong></nav> }
+</header>
+
+@if (publishSuccess()) {
+  <section class="saved-banner" role="status">
+    <strong>{{ publishSuccess() }}</strong>
+    <button type="button" class="small" (click)="publishSuccess.set('')">Descartar</button>
+  </section>
+}
+
+@if (publishError()) {
+  <section class="error" role="alert">
+    <strong>{{ publishError() }}</strong>
+    <button type="button" class="small" (click)="publishError.set('')">Descartar</button>
+  </section>
+}
+
+@if (editorRoute && !selected()) {
+  <section class="empty editor-route" aria-labelledby="rubric-route-title">
+    @if (creatingRoute) {
+      <h2 id="rubric-route-title">Crear borrador de rúbrica</h2>
+      <p>La versión se abrirá para editar sus cinco dimensiones antes de publicarla.</p>
+      <button type="button" (click)="createFirstDraft()" [disabled]="creating()">{{ creating() ? 'Creando borrador…' : 'Crear borrador' }}</button>
+    } @else {
+      <p id="rubric-route-title" role="status">Cargando el borrador de rúbrica…</p>
+    }
+  </section>
+}
+
+@if (!editorRoute && rubrics.isLoading()) {
+  <p role="status">Cargando rúbricas…</p>
+} @else if (!editorRoute && rubrics.error()) {
+  <section class="error" role="alert">
+    <strong>No se pudieron cargar las rúbricas.</strong>
+    <button type="button" (click)="rubrics.reload()">Reintentar</button>
+  </section>
+} @else if (!editorRoute && !rubrics.value().items.length) {
+  <section class="empty">
+    <h2>Aún no hay rúbricas</h2>
+    <p>Creá un borrador con las cinco dimensiones para preparar la primera calibración del curso.</p>
+    <button type="button" (click)="createFirstDraft()" [disabled]="creating()">{{ creating() ? 'Creando borrador…' : 'Crear rúbrica de práctica' }}</button>
+  </section>
+} @else if (!editorRoute) {
+  <section class="table-wrap">
+    <table>
+      <caption>Versiones de rúbrica del curso</caption>
+      <thead>
+        <tr>
+          <th scope="col">Rúbrica</th>
+          <th scope="col">Versión</th>
+          <th scope="col">Estado</th>
+          <th scope="col">Revisión</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        @for (rubric of rubrics.value().items; track rubric.id) {
+          <tr>
+            <th scope="row">{{ rubric.name }}</th>
+            <td>v{{ rubric.version }}</td>
+            <td>
+              <span class="state" [class.published]="rubric.state === 'PUBLISHED'" [class.superseded]="rubric.state === 'SUPERSEDED'">
+                {{ stateLabel(rubric.state) }}
+              </span>
+            </td>
+            <td>{{ rubric.revision }}</td>
+            <td>
+              @if (rubric.state === 'DRAFT') {
+                <button type="button" class="edit" (click)="openEditor(rubric)">Editar borrador</button>
+                <button type="button" class="save" style="margin-left: 0.4rem" (click)="openPublishComparison(rubric)">Publicar</button>
+              } @else if (rubric.state === 'PUBLISHED') {
+                <span class="immutable">Inmutable</span>
+                <button type="button" class="secondary" style="margin-left: 0.4rem" (click)="createNextVersion(rubric)">Nueva versión</button>
+              } @else {
+                <span class="immutable">Reemplazada</span>
+              }
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </section>
+}
+
+@if (comparingRubric(); as compRubric) {
+  <section class="editor" aria-labelledby="comparison-title">
+    <div class="editor-heading">
+      <div>
+        <p class="eyebrow">CONFIRMACIÓN DE PUBLICACIÓN</p>
+        <h2 id="comparison-title">Comparación y publicación · {{ compRubric.name }} (v{{ compRubric.version }})</h2>
+      </div>
+      <button type="button" class="secondary" (click)="closePublishComparison()">Cerrar</button>
+    </div>
+    <p class="notice">
+      <strong>Inmutabilidad garantizada:</strong> Al publicar esta versión, sus dimensiones, criterios, anclas y ponderaciones
+      no podrán volver a modificarse. Las modificaciones futuras requerirán clonar una nueva versión.
+    </p>
+    <div class="table-wrap">
+      <table>
+        <caption>Dimensiones de la versión a publicar</caption>
+        <thead>
+          <tr>
+            <th scope="col">Dimensión</th>
+            <th scope="col">Criterio pedagógico</th>
+            <th scope="col">Peso</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (dim of compRubric.dimensions; track dim.key) {
+            <tr>
+              <th scope="row">{{ dim.label || dim.key }}</th>
+              <td>{{ dim.criterion }}</td>
+              <td>{{ dim.weight }}%</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+    <div style="margin-top: 1.2rem; display: flex; gap: 0.8rem">
+      <button type="button" class="save" (click)="confirmPublish(compRubric)">Confirmar publicación inmutable</button>
+      <button type="button" class="secondary" (click)="closePublishComparison()">Cancelar</button>
+    </div>
+  </section>
+}
+
+@if (selected(); as rubric) {
+  <section class="editor" aria-labelledby="rubric-editor-title">
+    <div class="editor-heading">
+      <div>
+        <p class="eyebrow">BORRADOR v{{ rubric.version }}</p>
+        <h2 id="rubric-editor-title">Editar {{ rubric.name }}</h2>
+      </div>
+      <button type="button" class="secondary" (click)="closeEditor()">Cerrar editor</button>
+    </div>
+    <p class="hint">Los campos con * son obligatorios. Las dimensiones están fijadas para mantener una evaluación consistente.</p>
+    <form [formGroup]="form" (ngSubmit)="save()" novalidate>
+      <label>
+        Nombre de la rúbrica *
+        <input formControlName="name" required [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched" />
+      </label>
+      @if (form.controls.name.touched && form.controls.name.invalid) {
+        <p class="field-error">Ingresá un nombre para la rúbrica.</p>
+      }
+
+      <p class="weights" [class.invalid]="dimensions.invalid && dimensions.touched">Peso total: {{ totalWeight() }} %</p>
+      @if (dimensions.touched && dimensions.hasError('weightsTotal')) {
+        <p class="field-error">Los cinco pesos deben sumar exactamente 100 %.</p>
+      }
+
+      <div formArrayName="dimensions">
+        @for (dimension of dimensions.controls; track dimension.controls.key.value; let i = $index) {
+          <fieldset [formGroupName]="i">
+            <legend>{{ dimension.controls.label.value }}</legend>
+            <p class="dimension-key">Dimensión obligatoria: {{ dimension.controls.key.value }}</p>
+            <label>
+              Criterio *
+              <textarea formControlName="criterion" rows="3" required></textarea>
+            </label>
+            <label>
+              Anclas (JSON) *
+              <textarea formControlName="anchors" rows="4" required [attr.aria-invalid]="dimension.controls.anchors.invalid && dimension.controls.anchors.touched" [attr.aria-describedby]="'anchors-help-' + i"></textarea>
+              <span id="anchors-help-{{ i }}" class="hint">Incluí <code>low</code>, <code>medium</code> y <code>high</code> como textos.</span>
+            </label>
+            @if (dimension.controls.anchors.touched && dimension.controls.anchors.invalid) {
+              <p class="field-error">Las anclas deben ser un JSON con low, medium y high.</p>
+            }
+            <label>
+              Prompt del evaluador *
+              <textarea formControlName="evaluatorPrompt" rows="3" required></textarea>
+            </label>
+            <label>
+              Peso (%) *
+              <input formControlName="weight" type="number" min="0" max="100" step="0.01" required [attr.aria-invalid]="dimension.controls.weight.invalid && dimension.controls.weight.touched" />
+            </label>
+            @if (dimension.controls.weight.touched && dimension.controls.weight.invalid) {
+              <p class="field-error">El peso debe estar entre 0 y 100.</p>
+            }
+          </fieldset>
+        }
+      </div>
+
+      @if (saveError()) {
+        <p class="error save-error" role="alert">{{ saveError() }}</p>
+      }
+      @if (saved()) {
+        <p class="saved" role="status">Borrador guardado. Revisión {{ selected()!.revision }}.</p>
+      }
+      <button class="save" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar borrador' }}</button>
+    </form>
+  </section>
+}

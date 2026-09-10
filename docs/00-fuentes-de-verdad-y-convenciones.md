@@ -6,12 +6,19 @@
 
 | Prioridad | Fuente | Decide |
 |---|---|---|
-| 1 | `PRD-Plataforma-Gamificada-TP.pdf` | Alcance funcional, fases, reglas académicas y criterios de release. |
+| 1 | `PRD-Plataforma-Gamificada-TP.pdf` y adendas de producto expresamente aprobadas | Alcance funcional, fases, reglas académicas y criterios de release. Las adendas solo reemplazan los puntos que identifican de forma explícita. |
 | 2 | `idea.pptx.pdf` | Red, Gateway, Eureka, identidad, rutas, observabilidad y pruebas de integración. |
 | 3 | Este documento, contratos v1 y ADRs | Aplicación concreta de esas dos fuentes a Tema 07. |
 | 4 | Resto de `docs/` | Explicación y detalle; no puede contradecir las fuentes anteriores. |
 
 `docs/importado/` es material histórico y no participa de esta jerarquía. Tampoco se modifica.
+
+Las decisiones de producto que amplían el PRD para Golden Set y calibración son:
+
+- [ADR-017](08-decisiones-y-pendientes.md#adr-017--rúbricas-editables-y-versionadas-por-curso): el docente puede editar criterios, anclas, prompts y pesos; las cinco dimensiones siguen siendo obligatorias y los pesos deben sumar 100 %.
+- [ADR-018](08-decisiones-y-pendientes.md#adr-018--selección-de-modelo-por-curso-sujeta-a-doble-calibración): el docente puede elegir por curso entre modelos habilitados por ADMIN; cada candidato debe superar calibración base y del curso.
+
+Estos dos ADR funcionan como adendas limitadas. No cambian ningún otro requisito del PRD.
 
 ## 2. Identidad canónica de Tema 07
 
@@ -48,7 +55,26 @@ Los errores HTTP usan RFC 7807 Problem Details e incluyen `requestId` como exten
 | Fase 2 | Chat interno y moderador de chat. |
 | Fase 3 | RAG pedagógico, ingesta de material, desafíos personalizados por LLM y agentes `@mención`. |
 
-El tutor MVP recibe contexto pedagógico validado por `practice-service`; no requiere retrieval RAG. El corrector y la generación de parciales no entran hasta contar con un RF del PRD y dueño explícito.
+El tutor MVP recibe contexto pedagógico validado por `practice-service`; no requiere retrieval RAG. El corrector y la generación de parciales quedan fuera del alcance vigente.
+
+El evaluador analiza exclusivamente **cómo el alumno utilizó al tutor de IA**. Recibe la conversación completa, el contexto del desafío y la metadata del intento, y produce cinco puntuaciones según la rúbrica publicada. El Golden Set calibra esta función con conversaciones puntuadas por personas.
+
+La validación académica determina si la respuesta o entrega resuelve el desafío. Esa decisión corresponde a reglas determinísticas del dominio o a revisión docente. No usa el Golden Set, no forma parte de la calibración del evaluador y no debe inferirse a partir del score de uso de IA.
+
+## 5.1 Terminología obligatoria de Golden Set y calibración
+
+| Término | Uso canónico |
+|---|---|
+| Evaluador | Función LLM que puntúa el uso pedagógico del tutor de IA. |
+| Golden Set | Conjunto versionado de conversaciones con contexto, metadata y cinco puntuaciones humanas de referencia. |
+| Caso | Una conversación completa incorporada a una versión del Golden Set. |
+| Rúbrica | Cinco dimensiones obligatorias con criterios, anclas, prompts y pesos; una versión publicada es inmutable. |
+| Calibración | Comparación reproducible entre el evaluador y las referencias humanas. No entrena ni ajusta los pesos del modelo. |
+| Calibración activa | Ejecución aprobada que se asigna a nuevos desafíos de un curso. Solo puede existir una por curso. |
+| Evaluación | Resultado sobre el uso de IA de un intento real, ligado a la calibración que tenía asignada. |
+| Corrección académica | Validación del contenido de una respuesta o entrega. Queda fuera de este módulo. |
+
+No se usan “examen corregido”, “respuesta esperada”, “corrector LLM” ni “nota del examen” como nombres del Golden Set, sus casos o la evaluación del uso de IA.
 
 ## 6. Pares y comunicación
 

@@ -1,0 +1,3 @@
+package ar.edu.utn.frc.tup.piv.llm.application;
+import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.CalibrationRunRepository; import org.springframework.scheduling.annotation.Scheduled; import org.springframework.stereotype.Component; import org.springframework.transaction.annotation.Transactional;
+@Component public class CalibrationRunWorker {private final CalibrationRunRepository runs;private final CalibrationWorkflowService workflow;public CalibrationRunWorker(CalibrationRunRepository r,CalibrationWorkflowService w){runs=r;workflow=w;}@Scheduled(fixedDelayString="${llm.calibrations.dispatch-delay-ms:1000}")@Transactional public void dispatch(){runs.claimNextQueued().ifPresent(workflow::start);}}

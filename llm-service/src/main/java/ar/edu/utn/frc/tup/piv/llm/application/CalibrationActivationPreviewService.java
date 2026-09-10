@@ -1,0 +1,2 @@
+package ar.edu.utn.frc.tup.piv.llm.application; import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.ChallengeCalibrationAssignmentRepository; import java.util.UUID; import org.springframework.stereotype.Service;
+@Service public class CalibrationActivationPreviewService {private final ChallengeCalibrationAssignmentRepository r;public CalibrationActivationPreviewService(ChallengeCalibrationAssignmentRepository r){this.r=r;}public ChallengeCalibrationAssignmentRepository.Preview preview(UUID course,UUID next){return r.preview(course,next);}}

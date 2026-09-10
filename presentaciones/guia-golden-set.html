@@ -378,10 +378,10 @@
           <div class="p-4 rounded-xl bg-slate-950 border-l-4 border-rose-500 text-xs text-slate-300 space-y-2">
             <div class="text-rose-300 font-bold flex items-center gap-2">
               <i class="fa-solid fa-shield-halved"></i>
-              Texto Oficial del PRD (§15 / RF-IA-30b): "Qué se calibra y qué NO"
+              Regla vigente: PRD + adenda de producto ADR-017
             </div>
             <p class="text-slate-300 leading-relaxed italic">
-              "Lo que el docente ajusta por curso es el <strong>anclaje del evaluador al dominio temático de su materia</strong>, no la rúbrica. Las dimensiones y sus pesos siguen siendo <strong>fijos a nivel plataforma (30/25/20/15/10%, RF-IA-15)</strong> y la rúbrica sigue siendo un artefacto único y portable (RF-IA-29). <strong>Motivo: sin esta delimitación, la calibración por curso se convierte en la puerta trasera por la que cada docente evalúa con criterios propios, y se pierde la comparabilidad.</strong>"
+              El docente puede versionar y editar <strong>criterios, anclas, prompts y pesos</strong> para su curso. Las cinco dimensiones permanecen obligatorias, los pesos suman 100% y cada versión publicada es inmutable. Las evaluaciones conservan la versión exacta aplicada.
             </p>
           </div>
 
@@ -1103,7 +1103,7 @@ Unidad 2 (Acumulativa): Base de Datos con PostgreSQL y ORM. Se exige aplicar mod
               <strong>Cuándo:</strong> Cuando el docente configura su curso antes de habilitar las inscripciones.
             </p>
             <p class="text-xs text-slate-400 leading-relaxed">
-              El docente carga <strong>15 a 20 transcripciones temáticas</strong> de su materia. Dos docentes puntúan a ciegas, discuten desvíos mayores a 10 pts y congelan el Golden Set v1.0 para poder ejecutar la calibración bloqueante (RF-IA-36b).
+              El docente carga <strong>15 a 20 conversaciones temáticas</strong> de su materia, asigna los cinco puntajes humanos y publica el Golden Set v1.0 para ejecutar la calibración bloqueante (RF-IA-36b). La justificación de los puntajes es opcional.
             </p>
           </div>
         </div>
@@ -1168,7 +1168,7 @@ Unidad 2 (Acumulativa): Base de Datos con PostgreSQL y ORM. Se exige aplicar mod
             Aclaración de Claridad Operativa
           </h4>
           <p class="text-xs text-slate-300 leading-relaxed">
-            <strong>El Golden Set NO es un filtro en runtime que revisa cada corrección individual.</strong> Es el examen que habilita al modelo. En producción, el LLM corregirá de manera <strong>100% autónoma e inmediata</strong> para soportar cientos de estudiantes.
+            <strong>El Golden Set no corrige exámenes ni entregas.</strong> Habilita al modelo para evaluar cómo el alumno utilizó al tutor de IA. En producción, cada intento se evalúa con la calibración que tenía asignada al comenzar.
           </p>
           <p class="text-xs text-slate-300 leading-relaxed">
             La supervisión docente se focaliza quirúrgicamente mediante <strong>Human-in-the-Loop (RF-IA-17 y PAR-10)</strong> a través de 4 disparadores automáticos:
@@ -1397,7 +1397,7 @@ CREATE TABLE auditoria_parametros_log (
               Dos integrantes del grupo puntúan por separado a ciegas (Docente A y Docente B sin verse ni ver el LLM).
             </p>
             <div class="p-4 rounded-xl bg-amber-950/20 border border-amber-500/30 text-xs text-amber-200">
-              <strong>Regla Metodológica Clave:</strong> Si entre los dos docentes humanos difieren más de 10 puntos en una dimensión, <strong>el problema está en la redacción de las anclas de la rúbrica</strong>. Se reescribe la rúbrica YAML, no el número a la fuerza.
+              <strong>Regla metodológica:</strong> Un docente asigna las cinco referencias humanas y revisa que las anclas expliquen sus puntajes antes de publicar. El límite de 10 puntos pertenece a PAR-14 y compara al modelo contra esa referencia; no mide acuerdo entre docentes.
             </div>
           </div>
         </div>
@@ -1560,10 +1560,10 @@ public class CursoController {
           <div class="glass-panel p-5 rounded-2xl border-slate-800 space-y-2">
             <h4 class="text-sm font-bold text-emerald-300 flex items-center gap-2">
               <span class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-mono text-xs">Q-20</span>
-              ¿Por qué el profesor no aprueba cada corrección y cómo se supervisan las notas?
+              ¿Cómo se supervisan las evaluaciones del uso de IA?
             </h4>
             <p class="text-xs text-slate-300 leading-relaxed">
-              <strong>Respuesta:</strong> El modelo homologado corrige de forma autónoma para escalar a cientos de entregas. La supervisión humana se concentra quirúrgicamente en casos de baja certeza (&lt;0.70), muestreo aleatorio del 10% (PAR-10), notas determinantes de promoción directa (P90) o regularidad, y apelaciones estudiantiles (RF-IA-18).
+              <strong>Respuesta:</strong> El modelo calibrado puntúa el uso de IA. La revisión humana se concentra en baja confianza (&lt;0.70), muestreo aleatorio del 10% (PAR-10), resultados con impacto académico y apelaciones estudiantiles (RF-IA-18). La corrección del contenido pertenece al motor académico o al docente.
             </p>
           </div>
 
@@ -1614,7 +1614,7 @@ public class CursoController {
                 <strong>¿Qué es?</strong> Es la perilla que controla la <em>"creatividad"</em> o aleatoriedad del modelo. A mayor temperatura (ej. 0.8), el modelo se anima a elegir palabras raras o variadas. A menor temperatura (0.0), el modelo se vuelve 100% rígido y determinístico.
               </p>
               <div class="p-2.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 text-[11px]">
-                <strong>¿Por qué usamos T = 0.0?</strong> Para poner notas académicas no queremos que la IA "se inspire" ni cambie de opinión. Queremos que ante el mismo examen siempre elija la opción matemáticamente más certera.
+                <strong>¿Por qué usamos T = 0.0?</strong> Para reducir variación al puntuar el uso de IA. Ante la misma conversación y las mismas versiones, buscamos una salida tan reproducible como permita el proveedor.
               </div>
             </div>
 

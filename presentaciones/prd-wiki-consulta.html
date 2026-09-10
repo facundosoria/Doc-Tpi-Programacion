@@ -361,12 +361,15 @@
     <div class="rf-card" id="rf-ia-15">
       <div class="rf-header">
         <span class="rf-id">RF-IA-15</span>
-        <span class="rf-title">Pesos fijos y no configurables</span>
+        <span class="rf-title">Cinco dimensiones fijas; pesos versionados por curso (ADR-017)</span>
         <span class="status-badge status-verde" onclick="cycleStatus('rf-ia-15')">🟢 Claro</span>
       </div>
       <p class="rf-quote">"Las 5 dimensiones se combinan en un score (0-100) con pesos fijos a nivel plataforma (no configurables por profesor/curso)."</p>
       <div class="rf-body">
-        <p>Los pesos establecen qué valora la institución universitaria.
+        <p><strong>El texto citado corresponde al PRD original.</strong> ADR-017 lo amplía: el docente
+        puede editar los pesos en un borrador de rúbrica, siempre que conserve las cinco dimensiones,
+        la suma sea 100% y cada publicación cree una versión inmutable.</p>
+        <p>Los valores originales funcionan como configuración inicial de plataforma.
         <ul>
           <li><strong>Autonomía (30%):</strong> Mayor peso. Mide si el alumno razonó o simplemente copió lo sugerido.</li>
           <li><strong>Claridad (25%):</strong> Mide la competencia técnica de comunicación (Prompt Engineering).</li>
@@ -374,7 +377,8 @@
           <li><strong>Cumplimiento de límites (15%):</strong> Sistema punitivo integrado para disuadir ataques.</li>
           <li><strong>Eficiencia (10%):</strong> Menor peso. Un peso mayor haría que los alumnos teman preguntar para no perder puntos.</li>
         </ul></p>
-        <p>Prohibirle a un profesor cambiar los pesos garantiza equidad transversal: un estudiante gana la misma cantidad de XP en Álgebra que en Programación Web si su uso de IA fue idéntico.</p>
+        <p>La comparabilidad se sostiene registrando en cada calibración y evaluación la versión
+        exacta de rúbrica aplicada.</p>
       </div>
       <p class="notes-label">📝 Notas del equipo</p>
       <textarea class="notes-area" oninput="saveNote('rf-ia-15', this.value)"></textarea>

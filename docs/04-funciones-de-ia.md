@@ -1,6 +1,6 @@
 # 04 — Las funciones de IA: generar, corregir, evaluar y moderar
 
-> **Estado de fase.** Solo tutor seguro y evaluación académica forman parte del MVP. Moderación queda en Fase 2; RAG, ingesta, generación personalizada y agentes de chat quedan en Fase 3. Corrector y generación de parciales requieren RF y responsable antes de planificación. Ver [00](00-fuentes-de-verdad-y-convenciones.md).
+> **Estado de fase.** Solo tutor seguro y evaluación del uso de IA forman parte del MVP. Moderación queda en Fase 2; RAG, ingesta, generación personalizada y agentes de chat quedan en Fase 3. El corrector LLM y la generación de parciales quedan fuera del alcance vigente. Ver [00](00-fuentes-de-verdad-y-convenciones.md).
 
 > 🧪 **La transcripción de ejemplo del golden set y sus puntajes son inventados por nosotros**, para
 > ilustrar el formato. **Si un docente los toma como referencia, la calibración deja de medir nada**
@@ -181,16 +181,12 @@ Una llamada por pregunta, no una llamada por parcial. Suena más caro; en la pr�
 
 ```
 tipo, enunciado, opciones[], indice_correcta, respuesta_esperada,
-rubrica_correccion, dificultad_estimada, chunk_fuente_id, pagina, justificacion
+dificultad_estimada, chunk_fuente_id, pagina, justificacion
 ```
 
 Los dos campos que la gente olvida y son los más importantes:
 
 - **`chunk_fuente_id` + `pagina`** → trazabilidad para el profesor y verificación de anclaje.
-- **`rubrica_correccion`** → se genera **junto con** la pregunta y alimenta al corrector
-  ([04](04-funciones-de-ia.md)). Generar la pregunta y su criterio de corrección en el mismo
-  acto es mucho más coherente que inventar el criterio después, cuando ya nadie se acuerda qué se
-  quería evaluar.
 
 ### Paso 4: Validación automática
 
@@ -301,27 +297,22 @@ apunte del que salió, uno al lado del otro, entiende RAG en tres segundos y dej
 
 Esto es lo más importante del documento y es fácil de pasar por alto.
 
-| | **Evaluador de uso de IA** | **Corrector de respuestas** |
+| | **Evaluador de uso de IA** | **Validación académica** |
 |---|---|---|
 | Qué juzga | **Cómo el alumno usó al tutor** | **Si la respuesta está bien** |
-| Entrada | La transcripción completa de la conversación | La respuesta del alumno + la esperada |
-| Salida | Score 0-100 en 5 dimensiones | Nota / corrección con feedback |
-| Efecto | Modificador de XP: ±20% (PAR-05) | La nota del desafío |
-| ¿Está en el PRD? | **Sí, con enorme detalle** — RF-IA-12 a RF-IA-18, RF-IA-25, RF-IA-28 a RF-IA-36 | **No explícitamente.** Se deduce de "respuesta abierta" (8.2) |
+| Entrada | La transcripción completa de la conversación | Respuesta o entrega del alumno y reglas del desafío |
+| Salida | Score 0-100 en 5 dimensiones | Resultado académico |
+| Efecto | Modificador de XP: ±20% (PAR-05) | Resultado definido por el motor de desafíos |
+| Responsable | `llm-service`, calibrado con Golden Set | Reglas determinísticas del dominio o revisión docente; fuera del Golden Set |
 
-Vos me preguntaste por el **corrector**. El PRD desarrolla en profundidad el **evaluador**. Son
-funciones separadas (RF-IA-23 las lista como (b) y no menciona al corrector como función propia).
+El PRD desarrolla en profundidad el **evaluador** del uso de IA y no define un corrector LLM como
+función propia. La validación académica se mantiene separada.
 
 ### ⚠️ La consecuencia, y es importante
 
-El PRD construyó una maquinaria seria alrededor del evaluador: rúbrica versionada, golden set en dos
-niveles, calibración bloqueante, tolerancia numérica, detección de deriva, muestreo de auditoría,
-apelación. **El corrector de respuestas abiertas no tiene nada de eso escrito — y tiene el mismo
-problema: una IA poniendo una nota.**
-
-Mi recomendación: **aplicale al corrector el mismo aparato que el PRD le exige al evaluador.**
-No porque lo pida el documento, sino porque el argumento que lo justifica es idéntico. Está
-registrado como pregunta abierta para el Product Owner en [08](08-decisiones-y-pendientes.md).
+El PRD construye alrededor del evaluador una rúbrica versionada, Golden Set, calibración bloqueante,
+tolerancia numérica, deriva, auditoría y apelación. Esos mecanismos no se extienden por analogía a
+la corrección del contenido. La decisión P-01 de [08](08-decisiones-y-pendientes.md) cerró ese punto.
 
 ## 1b. ¿Hace falta una IA para esto? Buena parte, no
 
@@ -410,8 +401,8 @@ No todo se puede computar, y conviene ser honesto sobre qué no:
 
 Hay un punto delicado: **las dimensiones determinísticas también tienen que pasar el golden set.**
 
-Los docentes puntúan por juicio. Si tu fórmula de "eficiencia" da 70 y los dos docentes pusieron 45,
-la fórmula está mal — no los docentes.
+La referencia humana se asigna por juicio. Si tu fórmula de "eficiencia" da 70 y la referencia es
+45, la fórmula necesita revisión: debe representar la rúbrica publicada, no sustituirla.
 
 **Pero eso es una ventaja disfrazada:** una fórmula se puede *ajustar* contra el golden set hasta que
 coincida, y **una vez ajustada queda ajustada para siempre**. Un modelo, en cambio, hay que
@@ -447,14 +438,14 @@ los tipos de desafío teórico:
 | **Ordenar secuencias** | ❌ **No** | Comparar listas |
 | **Emparejar conceptos** | ❌ **No** | Comparar pares |
 | **Algoritmos con tests** | ❌ **No** | **Los tests deciden**, no un modelo |
-| **Respuesta abierta / desarrollo** | ✅ **Sí** | Rúbrica + respuesta esperada + chunk fuente |
-| **Conversación sobre el contenido** | ✅ Sí | Rúbrica |
+| **Respuesta abierta / desarrollo** | Revisión docente | Fuera del evaluador de uso de IA |
+| **Conversación alumno–tutor** | ✅ Evaluador de uso de IA | Conversación completa + contexto + metadata + rúbrica 5D |
 
 > **Usar un LLM para corregir un multiple choice no es caro: es un error.** Es más lento, más caro,
 > menos confiable y no reproducible, para resolver una comparación de enteros.
 
-**Consecuencia de alcance:** el corrector con LLM solo hace falta para **respuestas abiertas**. Eso
-achica bastante lo que hay que construir y lo que hay que calibrar.
+**Consecuencia de alcance:** los formatos objetivos se validan con código y las respuestas abiertas
+se derivan a revisión docente. Ninguno de esos flujos utiliza el Golden Set del evaluador.
 
 ## 2. El patrón común: "LLM como juez"
 
@@ -590,51 +581,11 @@ calibración aprobada.
   justificación y puede sobrescribir. Todo override queda auditado: quién, cuándo, score anterior y
   nuevo, motivo.
 
-## 4. Corrector de respuestas abiertas
+## 4. Validación académica fuera del evaluador
 
-No está especificado en el PRD, así que esto es propuesta.
-
-### Diseño
-
-Mismo patrón de juez, con dos diferencias que lo hacen más fácil:
-
-1. **La rúbrica viene con la pregunta.** El generador ([04](04-funciones-de-ia.md)) produce
-   `rubrica_correccion` junto con cada pregunta. No hay que inventar el criterio después.
-2. **Hay una respuesta esperada.** El juez compara contra algo concreto, no contra un ideal abstracto.
-
-**Salida sugerida:**
-
-```
-puntaje (0-100), es_correcta (bool), dimensiones[{nombre, puntaje, justificacion}],
-feedback_para_el_alumno (texto breve), confianza (0-1),
-conceptos_correctos[], conceptos_faltantes[], conceptos_erroneos[]
-```
-
-Los tres últimos campos son los que convierten una nota en algo pedagógicamente útil, y además le
-dan al profesor material agregable: "el 60% del curso no entendió punteros".
-
-### Reglas propias
-
-| Regla | Por qué |
-|---|---|
-| **Corregir a ciegas de la identidad** | No mandes nombre, legajo ni ranking del alumno. Elimina una fuente de sesgo y reduce PII enviada al proveedor (RF-NFR-09) |
-| **El multiple choice y V/F NO pasan por LLM** | Es una comparación de índices. Determinística, gratis, perfecta. **Usar un LLM ahí es un error puro** |
-| **Todo lo que baja de un umbral de confianza va a revisión** | Mismo criterio que RF-IA-17 |
-| **La corrección es sugerencia hasta que el profesor la confirma**, al menos en el MVP | Es una nota. Ver §7 |
-| **Guardar `model_id`, `model_version`, `prompt_version`** | Mismo criterio de trazabilidad que RF-IA-25 |
-
-### Cómo bajar la varianza (el problema real de los correctores automáticos)
-
-El mismo modelo puede darle 65 y 80 a la misma respuesta en dos corridas. Cuatro remedios, de mayor
-a menor efecto:
-
-1. **Rúbrica con anclas concretas**, no adjetivos. "Menciona los tres casos borde" en vez de
-   "respuesta completa".
-2. **Descomponer en dimensiones** y sumar con pesos fijos, en vez de pedir una nota global. Juzgar
-   cinco cosas chicas es mucho más estable que juzgar una grande.
-3. **Salida estructurada** con rangos acotados.
-4. **Doble corrección solo en la zona de frontera.** Si el puntaje cae cerca del umbral de aprobado,
-   corré una segunda vez y promediá o mandá a revisión. Cuesta poco porque son pocos casos.
+La plataforma puede corregir formatos objetivos mediante reglas determinísticas o derivar entregas
+a revisión docente. `llm-service` no expone un corrector de respuestas abiertas y el Golden Set no
+recibe soluciones esperadas. Incorporar esa capacidad exige un cambio de alcance independiente.
 
 ## 5. El punto que se rompe fácil: el evaluador no tiene plan B
 
@@ -646,7 +597,7 @@ simultáneo"*.
 
 ```mermaid
 flowchart TB
-    subgraph otras["Tutor, moderador, generador, corrector - RF-IA-26"]
+    subgraph otras["Tutor, moderador y generador - RF-IA-26"]
         O1["Modelo primario"] -->|falla| O2["Modelo secundario<br/>otro proveedor"]
         O2 -->|falla| O3["Modelo local"]
         O3 -->|falla| O4["Degradacion funcional"]
@@ -700,8 +651,8 @@ Registradas en [08](08-decisiones-y-pendientes.md):
 
 | # | Decisión | Recomendación |
 |---|---|---|
-| 1 | ¿El corrector de respuestas tiene golden set y calibración como el evaluador? | **Sí.** El argumento es idéntico: una IA poniendo una nota |
-| 2 | ¿La corrección es automática o sugerencia hasta que el profesor confirma? | **Sugerencia en el MVP**, automática cuando haya datos de precisión que lo respalden |
+| 1 | ¿El corrector de respuestas tiene Golden Set y calibración como el evaluador? | **Resuelto: no se implementa un corrector LLM; queda fuera del alcance vigente** |
+| 2 | ¿La corrección es automática o sugerida? | **Resuelto: este módulo no produce correcciones académicas** |
 | 3 | ¿Qué pasa si el moderador se cae? El PRD no lo dice | Ver [06](06-operacion-e-ingenieria.md) §5 |
 | 4 | ¿Quién produce el golden set base y cuándo? | Es un hito de calendario académico (RF-IA-36b), no de desarrollo. **Necesita fecha propia, ya** |
 
@@ -717,7 +668,7 @@ Registradas en [08](08-decisiones-y-pendientes.md):
 
 ## 1. Qué es, en una frase
 
-**El golden set es el examen de admisión del modelo evaluador: un conjunto fijo de transcripciones
+**El Golden Set es la prueba de habilitación del modelo evaluador: un conjunto versionado de conversaciones
 alumno-tutor ya puntuadas por docentes, contra el cual se mide si un modelo evalúa como evaluaría un
 humano.**
 
@@ -849,7 +800,7 @@ puntuaría un humano?** Sin un humano del otro lado, la pregunta no tiene sentid
 | Sí | No |
 |---|---|
 | Personas reales | Un modelo generando puntajes |
-| **Al menos dos**, puntuando por separado | Una sola persona (no podés medir el acuerdo) |
+| Un docente responsable que puntúe con las anclas visibles | Referencias generadas por un modelo |
 | Que conozcan la materia | Que conozcan la rúbrica de memoria |
 | Que puntúen **antes** de ver lo que puso el modelo | Que "ajusten" su puntaje al del modelo |
 
@@ -864,21 +815,20 @@ y demostrable:**
 | | Producción | **Versión TP / demo** |
 |---|---|---|
 | Transcripciones | 40 | **10** |
-| Quiénes puntúan | 2 docentes | **2 integrantes del equipo**, actuando como docentes |
-| Horas | ~26 | **~4** |
+| Quién puntúa | 1 docente responsable | **1 integrante del equipo**, actuando como docente |
+| Horas | ~13 | **~2** |
 | Sirve para | Habilitar el modelo en un curso real | **Demostrar que el mecanismo funciona** |
 
 **Es el mismo mecanismo a escala chica, y es perfectamente defendible en una entrega.** Lo que
-demostrás es: dos humanos puntuaron por separado, midieron su acuerdo, el modelo puntuó a ciegas, y
-se calculó la desviación contra PAR-14.
+demostrás es: una persona responsable puntuó casos con la rúbrica publicada, el modelo puntuó a
+ciegas, y se calculó la desviación contra PAR-14.
 
 > **Lo que NO se puede hacer, ni en la versión reducida:** generar los puntajes de referencia con un
 > modelo para "ahorrar tiempo". En el momento en que hacés eso, la calibración deja de medir algo y
 > pasa a ser un ritual vacío. Es la única regla del golden set que no admite atajo.
 
-**Y hacé la versión reducida temprano**, aunque sea con 10 transcripciones. Te va a mostrar el
-problema real de §5.2 —que los humanos no se ponen de acuerdo entre ellos— cuando todavía hay tiempo
-de arreglar la rúbrica.
+**Y hacé la versión reducida temprano**, aunque sea con 10 transcripciones. Va a mostrar si las
+anclas permiten sostener criterios coherentes cuando todavía hay tiempo de arreglar la rúbrica.
 
 ## 4c. Si el docente arma el golden set, ¿qué construimos nosotros?
 
@@ -886,7 +836,7 @@ de arreglar la rúbrica.
 
 | Quién | Qué |
 |---|---|
-| **Docente** | Lee las transcripciones · pone los puntajes por dimensión · discute los desacuerdos · acuerda el puntaje final |
+| **Docente responsable** | Lee las transcripciones · asigna los puntajes por dimensión · documenta dudas y ajusta las anclas si hace falta |
 | **Nosotros** | Modelo de datos · pantalla de carga y puntuación · runner de calibración · versionado · historial consultable |
 
 ### ⚠️ La consecuencia de orden que reordena el plan
@@ -905,23 +855,21 @@ intuitivo — el runner no le sirve a nadie hasta que haya algo que correr.
 ```mermaid
 flowchart TB
     P1["1 · Se cargan N transcripciones<br/>sinteticas o reales"]
-    P2["2 · Docente A puntua<br/>5 dimensiones, a solas"]
-    P3["3 · Docente B puntua<br/>SIN VER lo de A"]
-    P4{"4 · Difieren mas<br/>de +-10 en alguna<br/>dimension?"}
-    P5["5 · Discuten y arreglan<br/>LA RUBRICA, no el puntaje"]
-    P6["6 · Se acuerda el<br/>puntaje de referencia"]
-    P7["7 · Se congela como<br/>golden_set v1.0<br/>atado a rubric_version"]
-    P8["8 · Recien ahora<br/>el runner puede correr"]
+    P2["2 · Docente responsable puntua<br/>5 dimensiones con anclas visibles"]
+    P3{"3 · ¿La evidencia y las anclas<br/>permiten justificar el puntaje?"}
+    P4["4 · Ajusta LA RUBRICA<br/>y repite el piloto"]
+    P5["5 · Se fija el<br/>puntaje de referencia"]
+    P6["6 · Se congela como<br/>golden_set v1.0<br/>atado a rubric_version"]
+    P7["7 · Recien ahora<br/>el runner puede correr"]
 
-    P1 --> P2 --> P3 --> P4
-    P4 -->|si| P5 --> P2
-    P4 -->|no| P6 --> P7 --> P8
+    P1 --> P2 --> P3
+    P3 -->|no| P4 --> P2
+    P3 -->|si| P5 --> P6 --> P7
 ```
 
-**El paso 5 es el que más valor produce y el que más se saltea.** Cuando dos docentes difieren en una
-dimensión, casi siempre es porque el ancla de "medio" o "alto" de esa dimensión está mal escrita. Si
-estaba ambigua para un humano, para el modelo lo estaba mucho más. **Cada desacuerdo es una mejora
-gratis de la rúbrica.**
+**La revisión de anclas es la que más valor produce y la que más se saltea.** Si el docente no puede
+explicar una puntuación a partir de la evidencia, el ancla de "medio" o "alto" está incompleta. Lo
+que es ambiguo para una persona también lo será para el modelo.
 
 ### Qué tiene que hacer la pantalla
 
@@ -993,31 +941,28 @@ quedar bloqueado el primer cuatrimestre.
 
 ---
 
-### 🔴 Problema 2 — Si los docentes no se ponen de acuerdo, ningún modelo puede pasar
+### 🔴 Problema 2 — Si la referencia humana es ambigua, ningún modelo puede pasar
 
 **El problema humano es anterior al problema técnico, y es más difícil.**
 
-Si dos docentes puntúan la misma transcripción con 40 y 65 en "autonomía", el golden set tiene
-**25 puntos de ruido propio**. Ningún modelo puede quedar dentro de ±10 de un número que los propios
-humanos no acuerdan.
+Si el responsable no puede sostener por qué una transcripción vale 40 y no 65 en "autonomía", el
+Golden Set tiene ruido propio. Ningún modelo puede quedar dentro de ±10 de una referencia que la
+rúbrica no permite justificar.
 
-**PAR-14 exige más precisión del modelo que la que los docentes tengan entre sí.**
+**PAR-14 exige una referencia humana explícita y defendible.**
 
 #### Cómo resolverlo
 
-1. **Puntuación independiente primero.** Dos o más docentes puntúan por separado, sin verse.
-2. **Medir el acuerdo entre ellos.** Si la desviación entre docentes supera ±10 en una dimensión, el
-   problema es la rúbrica, no el docente.
-3. **Discutir los desacuerdos y afinar las anclas.** El desacuerdo casi siempre revela que la ancla
-   de "medio" o "alto" en esa dimensión es ambigua.
-4. **Recién ahí fijar el puntaje de referencia** (promedio o consenso).
+1. **Puntuación a ciegas primero.** El docente puntúa sin ver la salida del modelo.
+2. **Revisar la trazabilidad.** Cada puntuación debe poder vincularse con evidencia de la
+   conversación y un ancla de la rúbrica.
+3. **Afinar las anclas.** Si dos casos comparables fuerzan decisiones incompatibles, la ancla de
+   "medio" o "alto" es ambigua.
+4. **Recién ahí fijar el puntaje de referencia.** Una segunda revisión es opcional y debe quedar
+   registrada como tal, no como requisito del flujo.
 
-**Este paso 3 es el que más mejora la rúbrica.** Cada desacuerdo entre docentes es un lugar donde el
-criterio estaba mal escrito — y si estaba mal escrito para un humano, lo estaba mucho más para un
-modelo.
-
-> **Regla práctica:** si los docentes no logran acuerdo dentro de ±10 entre ellos, **no sigas con la
-> calibración del modelo.** Arreglá la rúbrica primero. Estarías midiendo contra ruido.
+> **Regla práctica:** si el docente no puede justificar una puntuación con la rúbrica, **no sigas con
+> la calibración del modelo.** Arreglá la rúbrica primero. Estarías midiendo contra ruido.
 
 ---
 
@@ -1059,14 +1004,14 @@ criterio que el docente, o solo acierta en los casos obvios.
 | Tarea | Cálculo | Horas |
 |---|---|---|
 | Producir 40 transcripciones (sintéticas + revisión) | 40 × 10 min | ~7 h |
-| Puntuar, 2 docentes independientes | 40 × 10 min × 2 | ~13 h |
-| Resolver desacuerdos y afinar anclas | | ~6 h |
-| **Total del set base** | | **~26 h de trabajo docente** |
-| **Por cada curso** (15-20 transcripciones) | | **~8 h más** |
+| Puntuar, un docente responsable | 40 × 10 min | ~7 h |
+| Revisar evidencia y afinar anclas | | ~3 h |
+| **Total del set base** | | **~17 h de trabajo docente** |
+| **Por cada curso** (15-20 transcripciones) | | **~5 h más** |
 
 **Ese número es el que hay que llevar a la reunión.** "Necesitamos el golden set" es fácil de
-postergar. "Necesitamos 26 horas de dos docentes, terminadas 3 semanas antes del inicio de clases"
-es una fecha en un calendario.
+postergar. "Necesitamos 17 horas de un docente responsable, terminadas 3 semanas antes del inicio de
+clases" es una fecha en un calendario.
 
 ## 6. Por qué esto te bloquea a vos, ahora
 

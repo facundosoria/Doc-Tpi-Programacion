@@ -53,6 +53,9 @@ tiene que inferir la intención. Hoy ese producto no existe.
 
 **Decisión:** evaluador, generador, corrector y calibración corren como trabajos asincrónicos.
 
+> ⚠️ **Alcance actualizado por P-01 (2026-09-06):** la mención al corrector se conserva como texto
+> histórico del ADR, pero esa función quedó fuera del alcance vigente.
+
 **Por qué:** tres beneficios de un mismo corte — Batch API (−50%), RF-IA-27 (score diferido) queda
 implementado por construcción, y el pico de carga se absorbe sin escalar nada.
 
@@ -163,6 +166,10 @@ bloques de código hasta validarlos.
 **Decisión:** tutor y generador en Gemini 3.5 Flash-Lite, evaluador y corrector en Claude Haiku 4.5
 con Batch, moderador en GPT-5 nano con pre-filtro. Contexto del tutor recortado a ~3.000 tokens con
 prompt caching.
+
+> ⚠️ **Alcance actualizado por P-01 y ADR-018:** el corrector quedó fuera del producto y el docente
+> puede seleccionar por curso un modelo habilitado que supere la doble calibración. Los nombres de
+> esta decisión se conservan como punto de partida histórico, no como asignación obligatoria.
 
 > ⚠️ **La cláusula del moderador quedó superada por ADR-012**, que lo dejó sin LLM: esa línea del
 > presupuesto pasó de USD 0,31 a **USD 0**. El resto del escenario sigue vigente, y el total apenas se
@@ -363,6 +370,58 @@ la misma interfaz.
 
 ---
 
+### ADR-017 — Rúbricas editables y versionadas por curso
+
+> **Adenda de producto al PRD.** Amplía de forma deliberada la configuración docente de la rúbrica.
+
+**Decisión:** las cinco dimensiones del evaluador son obligatorias y no pueden agregarse, eliminarse
+ni reemplazarse. Dentro de ese marco, el docente puede editar los criterios, las anclas, los prompts
+de evaluación y el peso de cada dimensión para un curso. Los pesos deben ser números válidos y sumar
+exactamente 100 %. Un curso puede conservar varias versiones seleccionables.
+
+Las versiones empiezan como borradores editables. Al publicarse quedan inmutables; cualquier cambio
+posterior crea una versión nueva. Las calibraciones y evaluaciones guardan la versión exacta de la
+rúbrica utilizada, por lo que una edición nunca altera resultados históricos.
+
+**Por qué:** el docente necesita adaptar el énfasis pedagógico a la etapa y los temas del curso sin
+perder comparabilidad, trazabilidad ni las cinco dimensiones exigidas por el PRD. El versionado hace
+visible esa adaptación y evita configuraciones globales implícitas.
+
+**Se revisa si:** una evaluación pedagógica demuestra que permitir editar algún campo impide comparar
+cursos o vuelve imposible cumplir PAR-14. La revisión debe identificar el campo concreto; no habilita
+a eliminar las cinco dimensiones ni a mutar versiones publicadas.
+
+📄 [00](00-fuentes-de-verdad-y-convenciones.md), [13](13-rubrica-y-prompts.md), [31](31-plan-revision-golden-set-calibracion.md)
+
+---
+
+### ADR-018 — Selección de modelo por curso sujeta a doble calibración
+
+> **Adenda de producto al PRD.** Reemplaza la selección global única y limita el alcance de ADR-011.
+
+**Decisión:** ADMIN configura los adaptadores, credenciales, endpoints y modelos disponibles. El
+docente no administra secretos ni infraestructura; solo puede elegir, para cada curso, uno de los
+modelos habilitados por ADMIN. Puede guardar varias calibraciones asociadas a distintos modelos y
+mantener una sola activa por curso.
+
+Un modelo solo puede ofrecerse para activación si superó primero la calibración del Golden Set base
+de plataforma y luego la calibración de la versión de Golden Set y rúbrica del curso. La regla vale
+para proveedores externos y para cualquier modelo local que ADMIN decida exponer. Por lo tanto,
+ADR-011 deja de ser una prohibición absoluta de modelos locales para el evaluador: PAR-14 y la doble
+calibración deciden su aptitud.
+
+**Por qué:** distintos cursos, etapas y temas pueden necesitar configuraciones diferentes. Mantener
+la infraestructura bajo ADMIN evita exponer credenciales al docente, mientras que la doble
+calibración conserva una barrera común de plataforma y otra específica del curso.
+
+**Se revisa si:** la operación de múltiples modelos impide sostener trazabilidad, costo o
+reproducibilidad. Una simplificación futura debe conservar la versión exacta del modelo en cada
+calibración y evaluación histórica.
+
+📄 [00](00-fuentes-de-verdad-y-convenciones.md), [03](03-modelos-costos-y-contexto.md), [31](31-plan-revision-golden-set-calibracion.md)
+
+---
+
 ## ⚠️ Decisiones que se revisaron durante el diseño
 
 **Leé esto antes de reabrir una discusión.** Nueve decisiones cambiaron mientras se armaba la
@@ -394,19 +453,14 @@ Van con recomendación, no solo con la pregunta.
 
 ---
 
-### ❓ P-01 — ¿El corrector de respuestas abiertas tiene golden set y calibración?
+### ✅ P-01 — Corrector de respuestas abiertas fuera de alcance
 
-**El hueco:** el PRD construye una maquinaria completa alrededor del **evaluador de uso de IA**
-(rúbrica versionada, golden set en dos niveles, calibración bloqueante, deriva, auditoría,
-apelación). El **corrector de respuestas abiertas** no está especificado como función propia — y
-tiene exactamente el mismo problema: una IA poniendo una nota.
+**Resuelta el 2026-09-06:** el PRD calibra al evaluador del uso de IA. No especifica un corrector
+académico basado en LLM y no se lo incorporará por analogía. La validación de una entrega corresponde
+a reglas determinísticas del dominio o revisión docente. Incorporar un corrector en el futuro exige
+un cambio de alcance con requisitos, riesgos, responsable y validación propios.
 
-**Recomendación:** aplicarle el mismo aparato. El argumento que justifica el del evaluador es
-idéntico. Si el PO decide que no, que sea una decisión consciente y quede registrada.
-
-**Prioridad:** Alta — condiciona el diseño del corrector.
-
-📄 [04](04-funciones-de-ia.md)
+📄 [00](00-fuentes-de-verdad-y-convenciones.md), [32](32-especificacion-funcional-golden-set-calibracion.md)
 
 ---
 
@@ -428,17 +482,13 @@ de RF-IA-27.
 
 ---
 
-### ❓ P-03 — ¿La corrección automática es definitiva o sugerencia?
+### ✅ P-03 — Sin corrección académica automática por LLM
 
-**La pregunta:** ¿la nota que pone la IA se aplica sola, o queda como sugerencia hasta que el
-profesor confirma?
+**Resuelta el 2026-09-06:** no existe una nota académica producida por este evaluador, definitiva ni
+sugerida. El resultado es un score sobre el uso de IA y sigue el flujo de transparencia, apelación y
+override del PRD.
 
-**Recomendación: sugerencia en el MVP.** Pasar a automática solo cuando haya datos de precisión que
-lo respalden — el mismo criterio de evidencia que el PRD aplica al evaluador.
-
-**Prioridad:** Alta — cambia el flujo de la entrega y la UI del profesor.
-
-📄 [04](04-funciones-de-ia.md)
+📄 [00](00-fuentes-de-verdad-y-convenciones.md), [32](32-especificacion-funcional-golden-set-calibracion.md)
 
 ---
 
@@ -799,7 +849,9 @@ Solo aplica si el RAG es tuyo (A-3). La cátedra advierte en §1.4 que si model�
 
 Sin calibración aprobada **ningún curso pasa de borrador a activo**, y no hay override ni de ADMIN (RF-IA-36).
 
-**Lo que hay que pedir, concreto:** ~26 h de trabajo de dos docentes (40 transcripciones puntuadas por dos personas de forma independiente, más resolución de desacuerdos), **terminadas 3 semanas antes del inicio del período lectivo**.
+**Lo que hay que pedir, concreto:** tiempo de un docente para revisar y puntuar las cinco dimensiones
+de cada conversación, con la versión publicada **terminada 3 semanas antes del inicio del período
+lectivo**. La estimación anterior de 26 h basada en doble puntuación deja de aplicar.
 
 📄 [04](04-funciones-de-ia.md)
 
@@ -815,17 +867,16 @@ Los free tiers habitualmente permiten al proveedor usar lo enviado para mejorar 
 
 ---
 
-### 🟡 C-3 — ¿El corrector lleva golden set y calibración como el evaluador?
+### ✅ C-3 — El Golden Set no calibra un corrector
 
-El PRD monta toda la maquinaria de calibración para el **evaluador de uso de IA** y no dice nada del **corrector de respuestas** — que tiene el mismo problema: una IA poniendo una nota.
-
-**Recomendación: sí, el mismo aparato.** Si el PO decide que no, que quede registrado como decisión consciente.
+Resuelta el 2026-09-06: el corrector LLM queda fuera del alcance. El Golden Set contiene
+conversaciones y calibra únicamente al evaluador del uso de IA.
 
 ---
 
-### 🟡 C-4 — ¿La corrección es definitiva o sugerencia hasta que el profesor confirma?
+### ✅ C-4 — No existe corrección académica LLM en el alcance vigente
 
-**Recomendación: sugerencia en el MVP.** Pasar a automática cuando haya datos de precisión que lo respalden — el mismo criterio de evidencia que el PRD aplica al evaluador.
+Resuelta el 2026-09-06: no se implementa un flujo de corrección académica automática ni sugerida.
 
 ---
 
@@ -846,10 +897,10 @@ Solo hay que dejarlas escritas.
 | 🟢 D-1 | Lenguaje del servicio | **Java Spring Boot**, igual que el resto de la plataforma. Ver [02](02-arquitectura-y-stack.md) | Hagan falta otros lenguajes en los desafíos, o embeddings locales |
 | 🟢 D-2 | Base de datos | **Postgres propio y exclusivo** (+ pgvector si el RAG es tuyo) | — |
 | 🟢 D-3 | Cola interna | **Redis persistente**, workers propios. Es diseño interno, no viola la regla del bus | — |
-| 🟢 D-4 | Modelo evaluador | **Claude Haiku 4.5 con Batch** como punto de partida | **La calibración manda.** Si Flash-Lite pasa PAR-14, usalo y ahorrás. Si Haiku no pasa, subí a Sonnet 5 |
+| 🟢 D-4 | Modelo evaluador | El docente selecciona por curso entre modelos habilitados por ADMIN; exige calibración base y del curso (ADR-018) | Costo, trazabilidad o reproducibilidad vuelven inviable sostener múltiples modelos |
 | 🟢 D-5 | Tamaño del golden set base | **40 transcripciones**, con cobertura bajo/medio/alto en las 5 dimensiones y casos de frontera | La desviación resulte ruidosa |
-| 🟢 D-6 | Docentes por transcripción | **2, puntuando de forma independiente** | — |
-| 🟢 D-7 | Acuerdo mínimo entre docentes | **±10 por dimensión**, igual que PAR-14. Si no acuerdan, se arregla la rúbrica antes de calibrar | — |
+| 🟢 D-6 | Docentes por transcripción | **1 docente** puede asignar las cinco referencias humanas | Una futura política académica exige doble revisión |
+| 🟢 D-7 | Justificación del puntaje humano | Opcional en todas las dimensiones | Una futura política de auditoría la vuelve obligatoria |
 | 🟢 D-8 | Umbrales de RF-IA-22 | 15 mensajes de tutor por desafío · 60 por día · 20 regeneraciones de parcial por profesor por día | Con datos reales de uso |
 | 🟢 D-9 | Formato de la rúbrica | Artefacto declarativo versionado, **legible por un docente** — RF-IA-29 dice "declarativo" | — |
 | 🟢 D-10 | Idioma en el golden set | Guardar `idioma` como campo **desde ahora**, aunque el MVP sea solo español | — |
@@ -890,7 +941,7 @@ los puntos marcados está publicado como artifact.
 | 🟢 **F-2** | ¿La banda de "puntuación a ciegas" es visible o el bloqueo es silencioso? | **Visible.** Explica por qué la pantalla se siente incompleta y evita que pidan "ver lo del otro" como función faltante |
 | 🔴 **F-3** | ¿Cuánto del desafío ve el docente? | **Consigna sí, solución esperada no.** Con la solución a la vista, tiende a puntuar si el alumno resolvió — que no es lo que la rúbrica mide |
 | 🟡 **F-4** | ¿Las anclas de la rúbrica siempre visibles o a pedido? | **Siempre.** Son lo que reduce la varianza entre personas. El costo del espacio es menor que el de la varianza |
-| 🟡 **F-5** | ¿La justificación por dimensión es obligatoria? | **Solo en los extremos** (menos de 30, más de 70) y donde haya desacuerdo. Es lo que convierte 4 horas en 26 |
+| 🟢 **F-5** | ¿La justificación por dimensión es obligatoria? | **No.** Es opcional en todos los puntajes |
 | 🔴 **F-6** | ¿Se muestra el score agregado mientras puntúa? | **Ocultarlo hasta completar las 5 dimensiones.** Si lo ve antes, decide "esto es un 60" y mueve las dimensiones hasta que dé 60 |
 | 🟡 **F-7** | ¿Qué diferencia "saltear" de "marcar como ambiguo"? | **Ambiguo es una marca de valor, no un descarte.** Los casos de frontera son los más útiles del golden set. Reservar ~8 de las 40 a propósito |
 
@@ -899,7 +950,7 @@ los puntos marcados está publicado como artifact.
 | Pantalla | Para qué | Prioridad |
 |---|---|---|
 | **Carga** de transcripciones al conjunto | Sin esto no hay nada que puntuar | Alta — va primero |
-| **Comparación** entre docente A y B, resaltando diferencias mayores a ±10 | **Es la que más valor produce:** cada desacuerdo señala un ancla mal escrita | Alta |
+| **Revisión** de puntuaciones y anclas antes de publicar | Permite que el docente detecte inconsistencias sin exigir doble puntuación | Alta |
 | **Congelado** del conjunto como versión atada a `rubric_version` | Cierra el ciclo y habilita al runner | Media |
 
 > **Recordatorio de secuencia:** la herramienta de carga tiene que existir **antes** de que el
@@ -949,7 +1000,7 @@ dónde está, quién lo define y cuándo.
 
 | # | Qué | Dónde | Marca | Quién lo define | Cuándo |
 |---|---|---|---|---|---|
-| E-01 | **Las anclas de las 5 dimensiones** | [13](13-rubrica-y-prompts.md) §3 | 📝 | 🔴 **Dos docentes**, ajustando sobre nuestro borrador | Paso 6 — al comparar puntajes |
+| E-01 | **Las anclas de las 5 dimensiones** | [13](13-rubrica-y-prompts.md) §3 | 📝 | **Docente del curso**, ajustando sobre el borrador | Antes de publicar la rúbrica |
 | E-02 | Prompt del evaluador | [13](13-rubrica-y-prompts.md) §6 | 📝 | P3 | Paso 5 |
 | E-03 | Prompt del tutor + las 3 variantes de riesgo | [13](13-rubrica-y-prompts.md) §7 | 📝 | P5 + P6 | Paso 11 |
 | E-04 | Prompt del generador | [13](13-rubrica-y-prompts.md) §8 | 📝 | P2 | Paso 10 |
@@ -962,8 +1013,8 @@ dónde está, quién lo define y cuándo.
 
 > **E-01 es el más importante de la tabla.** Nuestras anclas son un punto de partida para que los
 > docentes no arranquen de cero — **no son la rúbrica**. El proceso que las convierte en definitivas
-> está en [04](04-funciones-de-ia.md), Parte 3: dos docentes puntúan por separado, y **donde difieren
-> más de ±10 el ancla está mal escrita**.
+> está en [04](04-funciones-de-ia.md), Parte 3: un docente puntúa las cinco dimensiones y revisa que
+> las anclas permitan justificar el criterio antes de publicar.
 
 ### Golden set
 

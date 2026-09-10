@@ -234,8 +234,8 @@ Mitigaciones concretas:
 
 | Medida | Efecto |
 |---|---|
-| **Enviar solo lo mínimo** | Nunca mandes nombre, legajo, email ni ranking. El modelo no los necesita para tutorear ni para corregir |
-| **Corregir a ciegas** | El corrector no sabe de quién es la respuesta. Menos PII y menos sesgo, de un tiro |
+| **Enviar solo lo mínimo** | Nunca mandes nombre, legajo, email ni ranking. El tutor y el evaluador no los necesitan |
+| **Evaluar a ciegas** | El evaluador no recibe la identidad personal del alumno. Reduce PII y una fuente de sesgo |
 | **Seudonimizar identificadores** | Si necesitás un id en el prompt, que sea opaco y de un solo uso |
 | **Registrar qué se envió y a quién** | RF-NFR-09 exige transparencia; sin log no la podés demostrar |
 | **Verificar la política de retención del proveedor** | Y en particular **la del free tier**, que suele permitir entrenar con tus datos. Ver [03](03-modelos-costos-y-contexto.md) §4b |
@@ -293,7 +293,7 @@ Para ir tachando:
 - [ ] La solución de referencia **jamás** entra al prompt del tutor
 - [ ] Los tests ocultos **jamás** entran al prompt del tutor
 - [ ] Sin PII en los prompts: ni nombre, ni legajo, ni email
-- [ ] El corrector trabaja a ciegas de la identidad
+- [ ] El evaluador trabaja sin identidad personal del alumno
 
 **Salida**
 - [ ] Comparación de similitud contra la solución antes de mostrar (RF-IA-20)
@@ -319,6 +319,12 @@ Para ir tachando:
 
 # Parte B — Fuentes de verdad y dónde corre cada guardarraíl
 
+> **Corrección de alcance (2026-09-06).** La validación académica corresponde a reglas
+> determinísticas o revisión docente. `llm-service` no implementa un corrector. La solución esperada
+> solo se usa en la salvaguarda anti-fuga para revisar la salida del tutor; nunca entra al Golden Set
+> ni al prompt del evaluador. Ver [00](00-fuentes-de-verdad-y-convenciones.md) y
+> [32](32-especificacion-funcional-golden-set-calibracion.md).
+
 
 > De dónde sale cada nota, qué rol cumple el golden set, y en qué punto exacto del flujo corre la
 > salvaguarda anti-fuga.
@@ -327,16 +333,19 @@ Para ir tachando:
 
 | Nota | Qué mide | Su fuente de verdad |
 |---|---|---|
-| **Nota del parcial** | Si la respuesta está bien | La respuesta esperada + la rúbrica de esa pregunta, **más el chunk del que salió la pregunta** |
+| **Resultado académico** | Si la respuesta o entrega supera el desafío | Reglas determinísticas del dominio o revisión docente; fuera de `llm-service` |
 | **Score de uso de IA** (0-100) | Cómo el alumno usó al tutor | La rúbrica de 5 dimensiones con sus anclas |
 | **XP final** | Progreso académico | La calcula el Tema 10, no vos. Combina XP base + calidad + tiempo + tu score |
 
-**No las mezcles.** La primera la produce el corrector; la segunda, el evaluador; la tercera no es tuya.
+**No las mezcles.** La primera pertenece al motor académico o al docente; la segunda, al evaluador;
+la tercera la calcula el Tema 10.
 
-## 2. La corrección sí usa el RAG — pero de una forma específica
+## 2. Análisis retirado: propuesta de corrector con RAG
 
-**Corrección de la observación anterior.** En un intercambio previo dije que el corrector no usa el
-RAG. Es más preciso decir esto:
+> Esta propuesta queda fuera del alcance y no debe implementarse. Se conserva solo para explicar el
+> origen de decisiones antiguas; no define contratos ni tareas.
+
+El análisis histórico proponía que un corrector usara RAG. La decisión vigente descarta esa función:
 
 > **El RAG es la fuente de verdad última, porque la pregunta se generó desde ahí. Pero al corregir
 > no se hace una búsqueda nueva: se usa el chunk exacto del que salió la pregunta.**
@@ -349,8 +358,8 @@ flowchart LR
     B["Generador toma<br/>el chunk X"]
     C["Pregunta<br/>+ respuesta esperada<br/>+ rubrica de correccion<br/>+ chunk_fuente_id = X"]
     D["El alumno responde"]
-    E["Corrector compara"]
-    F["Nota + feedback"]
+    E["Propuesta retirada"]
+    F["Sin salida vigente"]
 
     A --> B --> C
     C --> E
@@ -374,8 +383,8 @@ lo que el alumno dijo, no lo que la pregunta evaluaba**.
 ### Para qué sirve tener el chunk a mano
 
 El caso que lo justifica: **el alumno da una respuesta válida que la rúbrica no previó.** Sin el
-fragmento fuente, el corrector la marca mal porque no coincide con la esperada. Con el fragmento, puede
-verificar que está respaldada por el material y aceptarla.
+fragmento fuente, la propuesta podía marcarla mal por no coincidir con la esperada. Ese riesgo refuerza
+la decisión de mantener las respuestas abiertas bajo revisión docente.
 
 Es la diferencia entre corregir contra una plantilla y corregir contra el contenido.
 
@@ -416,7 +425,7 @@ flowchart TB
     G4 -->|"habilita al modelo<br/>para poder correr"| E3
 ```
 
-**El golden set es el examen de admisión del modelo, no un insumo de cada corrección.** Si lo metieras
+**El Golden Set es la prueba de habilitación del evaluador, no un insumo de cada evaluación real.** Si lo metieras
 en el prompt de cada evaluación, tendrías prompts enormes, costo multiplicado, y —lo peor— dejarías
 de tener una vara independiente contra la cual medirlo.
 

@@ -1,0 +1,4 @@
+package ar.edu.utn.frc.tup.piv.llm.application;
+import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.ChallengeCalibrationAssignmentRepository; import java.util.UUID; import org.springframework.context.annotation.Profile; import org.springframework.stereotype.Component; import org.springframework.transaction.annotation.Transactional;
+/** Mock replacement for challenges-service until its event/HTTP contract is available. */
+@Component @Profile({"default","dev","test"}) public class MockChallengeEnablementAdapter implements ChallengeEnablementPort {private final ChallengeCalibrationAssignmentRepository assignments;public MockChallengeEnablementAdapter(ChallengeCalibrationAssignmentRepository a){assignments=a;}@Transactional public void enable(UUID challenge,UUID course){if(!assignments.assignActive(challenge,course))throw new IllegalStateException("No existe calibración activa válida para habilitar el desafío");}}

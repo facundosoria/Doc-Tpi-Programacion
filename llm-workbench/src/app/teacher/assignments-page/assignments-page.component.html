@@ -1,0 +1,87 @@
+<header>
+  <p class="eyebrow">ASIGNACIONES</p>
+  <h1>Desafíos y evaluaciones</h1>
+  <p>La calibración queda bloqueada al iniciar el primer intento. Este módulo informa el uso de IA; no decide la aprobación académica.</p>
+</header>
+
+@if (assignments.isLoading() || pending.isLoading()) {
+  <p class="loading" role="status">Actualizando asignaciones…</p>
+}
+
+@if (assignments.error() || pending.error()) {
+  <section class="error" role="alert">
+    <strong>No se pudo actualizar el estado de asignaciones.</strong>
+    <button type="button" (click)="reload()">Reintentar</button>
+  </section>
+}
+
+@if (!assignments.isLoading() && !assignments.value().items.length) {
+  <section class="empty">
+    <h2>No hay desafíos asignados</h2>
+    <p>Cuando habilites un desafío con una calibración activa, su versión aparecerá aquí.</p>
+  </section>
+} @else if (assignments.value().items.length) {
+  <section>
+    <h2>Calibración por desafío</h2>
+    <div class="table-wrap">
+      <table>
+        <caption>Asociaciones vigentes del curso</caption>
+        <thead>
+          <tr>
+            <th scope="col">Desafío</th>
+            <th scope="col">Calibración</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (assignment of assignments.value().items; track assignment.challengeId) {
+            <tr>
+              <th scope="row"><code>{{ shortId(assignment.challengeId) }}</code></th>
+              <td><code>{{ shortId(assignment.calibrationRunId) }}</code></td>
+              <td>
+                <span class="state" [class.locked]="assignment.locked">
+                  {{ assignment.locked ? 'Bloqueada por intento' : 'Puede migrarse' }}
+                </span>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+}
+
+<section class="pending">
+  <h2>Evaluaciones suspendidas</h2>
+  @if (!pending.value().items.length) {
+    <p>No hay evaluaciones en cola.</p>
+  } @else {
+    <p>{{ pending.value().items.length }} evaluación(es) esperan una calibración válida para reanudarse.</p>
+    <div class="table-wrap">
+      <table>
+        <caption>Cola de evaluaciones de uso de IA</caption>
+        <thead>
+          <tr>
+            <th scope="col">Intento</th>
+            <th scope="col">Calibración preservada</th>
+            <th scope="col">Estado</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (evaluation of pending.value().items; track evaluation.id) {
+            <tr>
+              <th scope="row"><code>{{ shortId(evaluation.attemptId) }}</code></th>
+              <td><code>{{ shortId(evaluation.calibrationRunId) }}</code></td>
+              <td>{{ evaluation.state }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
+
+<section class="audit" aria-labelledby="audit-title">
+  <h2 id="audit-title">Auditoría y trazabilidad de activaciones</h2>
+  <p>Las activaciones y migraciones quedan registradas de forma inmutable con actor, timestamp y traceparent. Los desafíos con intentos iniciados quedan permanentemente blindados contra cambios de versión.</p>
+</section>
