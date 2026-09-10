@@ -21,14 +21,17 @@ Material fijo. Cómo se entiende y se redacta una épica en este esquema de trab
 
 ## Apartados de la ficha
 
-La ficha es: una línea de heading `# [GXX] — EP-0X: NOMBRE`, un blockquote corto que
-apunta al catálogo, y **estas cuatro secciones** — nada más. Sin bloque `| Campo | Valor |`.
+La ficha es: una línea de heading `# GXX — NOMBRE` (sin corchetes, sin prefijo `EP-0X:`;
+el número de épica vive en el catálogo y en el nombre de archivo), un blockquote corto
+que apunta al catálogo, un separador `---` en línea propia **entre cada sección** (y
+entre el encabezado y la primera), y **estas cuatro secciones** — nada más. Sin bloque
+`| Campo | Valor |`.
 
 | Apartado | Qué poner |
 |---|---|
 | **Objetivo** | 1–2 líneas (que entren en ~2 renglones): qué **valor** de negocio / usuario entrega la épica, en términos observables —específico y medible por los CA de abajo—. No solución técnica: sin nombres de componentes internos ni pasos de implementación. |
 | **Suposiciones y Restricciones** | Suposiciones = lo que se da por cierto para que la épica tenga sentido. Restricciones = límites legales / técnicos / académicos que acotan *cómo* puede resolverse. |
-| **Criterios de Aceptación a nivel épico** | El **cierre observable del conjunto**, no de una historia: el conjunto mínimo de historias permite un flujo extremo a extremo (nombrarlo); KPIs / umbrales iniciales; sin regresiones críticas en las áreas que toca; observabilidad y alertas donde aplique; documentación de uso y operación publicada. Ajustar a la épica: borrar lo que no aplique. |
+| **Criterios de Aceptación a nivel épico** | Lista de tildar (`- [ ]`). El **cierre observable del conjunto**, no de una historia: el conjunto mínimo de historias permite un flujo extremo a extremo (nombrarlo); KPIs / umbrales iniciales; sin regresiones críticas en las áreas que toca; observabilidad y alertas donde aplique; documentación de uso y operación publicada. Ajustar a la épica: borrar lo que no aplique. Al pegar en Taiga: una línea por ítem, sin `code` inline ni sub-viñetas. |
 | **Dependencias / Impactos** | Servicios / APIs, módulos afectados, otros equipos, impacto en datos / migraciones, feature flags (sí/no + plan de retiro). |
 
 ## De alcance de producto a catálogo de épicas
@@ -47,6 +50,8 @@ apunta al catálogo, y **estas cuatro secciones** — nada más. Sin bloque `| C
 ## Reglas de oro
 
 - Objetivo = valor observable, no implementación; entra en ~2 renglones.
+- Encabezado `# GXX — <título>`: sin corchetes, sin `EP-0X:`. Separador `---` entre cada
+  sección. Criterios de Aceptación como lista `- [ ]`.
 - Sin Como/Quiero/Para, sin BDD, sin puntos, sin MoSCoW, sin INVEST, sin sprint
   comprometido en la ficha.
 - La ficha no lleva bloque de metadata: pareja/sprints/fase/requisitos van en el catálogo.

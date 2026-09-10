@@ -27,14 +27,14 @@ H06; pantalla → H07). Acá se muestra **H06**.
 
 > Título en Taiga: `G07 — Consultar la colección aunque el sistema se reinicie`.
 
-| | |
-|---|---|
-| **Grupo de trabajo** | Colección de referencia y calibración humana (EP-03) |
-| **Pareja a cargo** | P5 |
-| **Depende de** | H04 |
-| **Trabajo estimado** | 14 horas |
-| **Tipo** | Historia de valor · **historia patrón** (la vara para medir las demás) |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** Colección de referencia y calibración humana (EP-03)
+- **Pareja a cargo:** P5
+- **Depende de:** H04
+- **Trabajo estimado:** 14 horas
+- **Tipo:** Historia de valor · **historia patrón** (la vara para medir las demás)
+- **Responsable del producto:** Se nombra en el Sprint 0
+
+---
 
 ## Descripción (Como / Quiero / Para)
 
@@ -43,6 +43,8 @@ H06; pantalla → H07). Acá se muestra **H06**.
   reiniciado**.
 - **Para:** confiar en que lo que cargué no se pierde y puedo seguir trabajando sobre
   eso.
+
+---
 
 ## Notas / Observaciones
 
@@ -66,20 +68,24 @@ H06; pantalla → H07). Acá se muestra **H06**.
 - **Operaciones nuevas:** «listar mis colecciones» y «ver el detalle de una colección con
   sus ejemplos».
 
+---
+
 ## Criterios de Aceptación (CA)
 
-- **CA1:** una colección creada y con un ejemplo se puede consultar y devuelve ese
+- [ ] **CA1:** una colección creada y con un ejemplo se puede consultar y devuelve ese
   ejemplo.
-- **CA2:** después de apagar y volver a prender, la misma consulta devuelve **lo mismo**.
-- **CA3:** el listado respeta el número y el tamaño de página, y el orden del más nuevo
+- [ ] **CA2:** después de apagar y volver a prender, la misma consulta devuelve **lo mismo**.
+- [ ] **CA3:** el listado respeta el número y el tamaño de página, y el orden del más nuevo
   al más viejo.
-- **CA4 (caso que debe fallar):** la colección de otro curso no aparece en el listado y
+- [ ] **CA4 (caso que debe fallar):** la colección de otro curso no aparece en el listado y
   pedir su detalle responde «no encontrado».
-- **CA5 (caso que debe fallar):** pedir una colección con un identificador bien formado
+- [ ] **CA5 (caso que debe fallar):** pedir una colección con un identificador bien formado
   pero inexistente → «no encontrado», nunca un error de servidor.
-- **CA6 (caso que debe fallar):** pedir una página de tamaño 500 → «pedido inválido».
+- [ ] **CA6 (caso que debe fallar):** pedir una página de tamaño 500 → «pedido inválido».
 
-## BDD (mínimo 3 escenarios)
+---
+
+## BDD
 
 **Qué se prueba:** la lectura de la colección con datos que sobreviven.
 
@@ -109,16 +115,30 @@ H06; pantalla → H07). Acá se muestra **H06**.
 - **Cuando:** se pide una página de tamaño 500.
 - **Entonces:** el servicio responde «pedido inválido» y no devuelve datos.
 
+---
+
 ## Prototipo
 
 - **Capturas / bocetos:** boceto del listado de colecciones (versión, plantilla, idioma,
   fecha) y del detalle con los ejemplos y sus cinco puntajes.
 - **Maqueta / documentación:** el agregado de este tramo al acuerdo con el otro equipo.
 
+---
+
 ## Estimación / Prioridad
 
+**Formato rápido:**
+
+- **Puntos (Fibonacci):** [1 / 2 / 3 / 5 / 8 / 13] — *(historia patrón: se estima primera
+  en el Sprint 0 y su valor ancla al resto)*
+- **Prioridad (MoSCoW / numérica):** Must — o 1 en escala [1..5]
+
+**En palabras:**
+
 - **Puntos de esfuerzo:** es la **historia patrón**, se estima primera en el Sprint 0.
-- **Prioridad:** imprescindible.
+- **Prioridad:** imprescindible (Must).
+
+---
 
 ## Dependencias / Impactos
 
@@ -131,26 +151,16 @@ H06; pantalla → H07). Acá se muestra **H06**.
 - **Riesgos:** si el «cajón» no sobrevive, la demo falla; se verifica con la prueba de
   reinicio de H09.
 
-## Tareas (los pasos técnicos)
-
-| # | Tarea | h |
-|---|---|--:|
-| T1 | «Listar mis colecciones»: de a páginas, de la más nueva a la más vieja, siempre filtrado por curso | 4 |
-| T2 | «Ver el detalle» con sus ejemplos; colección ajena o inexistente → «no encontrado», nunca error de servidor | 4 |
-| T3 | Permiso de consulta igual al de carga; pedir una página de tamaño imposible → «pedido inválido» | 3 |
-| T4 | Prueba de apagar y prender que confirma que la consulta devuelve exactamente lo mismo | 3 |
-| | **Total** | **14** |
-
 ---
 
 ## La misma historia en estilo técnico (bajo pedido)
 
 Aplicando [`referencia-estilo-tecnico.md`](referencia-estilo-tecnico.md), la misma ficha
-queda como `docs/historias/s01.md` H06: metadatos con «Épica / Requisito», Notas con
-«Reglas de negocio / Validaciones / Endpoints» (`GET /api/llm/golden-sets?page&size`,
+queda en estilo técnico: metadatos con «Épica / Requisito», Notas con «Reglas de negocio /
+Validaciones / Endpoints» (`GET /api/llm/golden-sets?page&size`,
 `GET /api/llm/golden-sets/{goldenSetId}`), CA «(negativo)», BDD «Característica:»,
-Estimación como tabla Fibonacci + MoSCoW, «Servicios involucrados: Gateway, PostgreSQL,
-courses-service». Mismos 4 escenarios, mismas 4 tareas, mismas 14 h.
+Estimación como tabla `| Puntos (Fibonacci) | Prioridad (MoSCoW / 1..5) |`, «Servicios involucrados: Gateway, PostgreSQL,
+courses-service». Mismos 4 escenarios, mismo desglose de 4 tareas, mismas 14 h.
 
 ---
 
@@ -170,9 +180,11 @@ courses-service». Mismos 4 escenarios, mismas 4 tareas, mismas 14 h.
   consultar); escenario 2, el `Y` tras `Entonces` suma otro resultado.
 - Las **Notas** dicen qué debe cumplirse (rangos de página, filtro por curso siempre,
   persistencia) sin decir cómo se implementa.
-- **Sin puntos asignados**: se deja para el Sprint 0. Como es la historia patrón, se
+- **«Formato rápido» con la escala visible pero sin valor inventado**: los puntos se
+  dejan como `[1/2/3/5/8/13]` pendientes de Sprint 0. Como es la historia patrón, se
   estima primera y su valor ancla el resto.
-- **Prioridad imprescindible**: no por su valor aislado, sino porque la demo del sprint
-  depende de ella y es condición para la pantalla (H07).
-- **Tareas sin Como/Quiero/Para**, en orden de construcción, cada una ≤ 1 jornada,
-  sumando las 14 h.
+- **Prioridad Must (imprescindible)**: no por su valor aislado, sino porque la demo del
+  sprint depende de ella y es condición para la pantalla (H07).
+- **El desglose en tareas es un documento aparte** (skill `generar-tareas`): tareas SMART
+  sin Como/Quiero/Para, en orden de construcción, cada una ≤ 1 jornada, sumando las 14 h.
+  La ficha no lo incluye.

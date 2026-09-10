@@ -6,7 +6,7 @@ nuestra documentación: el equipo aporta su contexto (brief, requisitos, funcion
 del equipo) y el skill produce los documentos en el formato de la casa, o le dice cómo
 producirlos.
 
-**Dónde viven.** Estos 7 skills están en `.agents/skills/` — la ubicación estándar de
+**Dónde viven.** Estos 8 skills están en `.agents/skills/` — la ubicación estándar de
 Claude Code, donde se **auto-descubren e invocan** (igual que `ui-ux-design-guide` y
 `web-design-reviewer`). Cada uno es **autónomo**: trae su copia del material fijo y
 declara en su `SKILL.md` qué entradas necesita.
@@ -25,7 +25,7 @@ bundle **no** es parte del árbol `docs/`: es la herramienta que lo produce.
 |---|---|---|
 | **Arranque** | Crea el esqueleto de `docs/` una vez | `scaffold-planificacion-agil` |
 | **Referencia** | Reglas fijas a seguir + plantillas a rellenar. No transforma nada. | `contratos-api-gateway`, `contratos-kafka` |
-| **Generador** | Toma una entrada del equipo y produce un documento derivado | `generar-vision-y-alcance`, `generar-backlog-y-recetas`, `generar-epicas`, `generar-historias-usuario` |
+| **Generador** | Toma una entrada del equipo y produce un documento derivado | `generar-vision-y-alcance`, `generar-backlog-y-recetas`, `generar-epicas`, `generar-historias-usuario`, `generar-tareas` |
 
 ## Pipeline
 
@@ -40,6 +40,8 @@ generar-vision-y-alcance      → docs/vision/
                     │
                     ├─→ generar-epicas          → docs/epicas/
                     └─→ generar-historias-usuario → docs/historias/
+                                │
+                                └─→ generar-tareas → docs/tareas/
 ```
 
 | Skill | Tipo | Entrada | Salida |
@@ -50,7 +52,8 @@ generar-vision-y-alcance      → docs/vision/
 | [`contratos-kafka`](contratos-kafka/SKILL.md) | **referencia** | — (se consulta) | reglas del bus de eventos (de plataforma) + esqueleto AsyncAPI → `docs/contracts/` (canal asíncrono) |
 | [`generar-backlog-y-recetas`](generar-backlog-y-recetas/SKILL.md) | generador | brief + requisitos + fases + datos del equipo | `docs/plan/` y `docs/backlog/` — capacidad, catálogo de épicas, Sprint 0, receta por sprint |
 | [`generar-epicas`](generar-epicas/SKILL.md) | generador | el catálogo de épicas | `docs/epicas/` — fichas de épica en formato Taiga, una por archivo |
-| [`generar-historias-usuario`](generar-historias-usuario/SKILL.md) | generador | una receta de sprint | `docs/historias/` — fichas de HU **en lenguaje simple** (estilo `s01-test.md`) + tareas; variante técnica bajo pedido |
+| [`generar-historias-usuario`](generar-historias-usuario/SKILL.md) | generador | una receta de sprint | `docs/historias/` — fichas de HU **en lenguaje simple** (variante técnica bajo pedido); el desglose en tareas va aparte (`generar-tareas`) |
+| [`generar-tareas`](generar-tareas/SKILL.md) | generador | una HU con sus CA y su BDD | `docs/tareas/` — tareas **SMART** por historia en formato de Tarea de Taiga, cada una trazada a un CA o escenario y partida en ≤ 1 jornada |
 
 ## Anatomía de cada skill
 
@@ -64,6 +67,25 @@ generar-vision-y-alcance      → docs/vision/
 ```
 
 Formato de frontmatter tomado del skill `ui-ux-design-guide` que ya estaba en el repo.
+
+## Material compartido (mantener en sync)
+
+Cada skill es autónomo y trae su propia copia del material fijo, así que hay archivos
+**duplicados byte a byte** entre skills. El original vive en `scaffold-planificacion-agil/`
+(es el skill que copia ese material a `docs/`); los demás son copias. Si tocás uno,
+replicá el cambio en su par.
+
+| Contenido | Original (en `scaffold-planificacion-agil/references/`) | Copia |
+|---|---|---|
+| Template de Épica de Taiga | `plantilla-epica.md` | `generar-epicas/references/plantilla-epica.md` |
+| Template de HU de Taiga (lenguaje simple) | `plantilla-historia-usuario.md` | `generar-historias-usuario/references/plantilla-historia-usuario.md` |
+| Template de Tarea de Taiga (SMART) | `plantilla-tarea-taiga.md` | `generar-tareas/references/plantilla-tarea-taiga.md` |
+| Método SMART para tareas | `metodo-tareas-smart.md` | `generar-tareas/references/guia-metodo-smart.md` |
+| Glosario simple↔técnico de HU | `estilo-tecnico-historias.md` | `generar-historias-usuario/references/referencia-estilo-tecnico.md` |
+| Método de cátedra para HU | `metodo-historias-de-usuario.md` | `generar-historias-usuario/references/guia-metodo.md` |
+| DoR/DoD de arranque | `dor-dod-starter.md` | `generar-historias-usuario/references/dor-dod.md` |
+
+Chequeo: un `diff` entre cada original y su copia no debe devolver nada.
 
 ## Huecos conocidos (próximos skills)
 

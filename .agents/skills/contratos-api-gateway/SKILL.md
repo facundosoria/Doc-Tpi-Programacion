@@ -26,7 +26,8 @@ El **canal asíncrono** (eventos por Kafka) tiene su propia referencia:
 > **De quién es cada cosa.** Las reglas del **Gateway / borde** (secciones 1-5 y 10 de
 > `references/convenciones-contrato.md`) las define el **equipo de plataforma/borde**, no
 > el equipo del servicio. Acá va el resumen; la fuente autoritativa es la documentación
-> de ese equipo (`docs/gateway-y-discovery/`, `docs/00 §3-4`). No se modifican desde acá.
+> del equipo de plataforma/borde de tu organización (en el proyecto de referencia,
+> `docs/gateway-y-discovery/` y `docs/00 §3-4`). No se modifican desde acá.
 > El resto (recursos vs RPC, paginación, append-only, versionado) es estilo de la casa.
 
 ## Cuándo consultarla

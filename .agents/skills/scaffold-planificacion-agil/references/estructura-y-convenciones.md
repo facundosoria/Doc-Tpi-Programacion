@@ -50,8 +50,9 @@ Si dos documentos dicen algo distinto sobre el mismo dato, **manda la fuente ún
 - **Documentos fuente**: `docs/00`, visión, plan, backlog, contratos. Abren declarando
   que *ellos son la fuente* de tal cosa.
 - **Vistas derivadas**: fichas de épica (`docs/epicas/ep-01.md`…), fichas de HU
-  (`docs/historias/sXX.md`), propuestas de sprint (`docs/sprints/`). Son **formato de
-  presentación** para cargar en Taiga o presentar. No son fuente de planificación.
+  (`docs/historias/`), tareas SMART (`docs/tareas/`), propuestas de sprint
+  (`docs/sprints/`). Son **formato de presentación** para cargar en Taiga o presentar. No
+  son fuente de planificación.
 
 Toda vista derivada abre con:
 
@@ -103,8 +104,11 @@ docs/
 │   ├── README.md                       catálogo (tabla) + estado por sprint
 │   └── ep-01.md … ep-NN.md             una ficha por épica (template Taiga)
 ├── historias/
-│   ├── README.md                       índice de sprints
-│   └── s01.md … sNN.md                 fichas de HU por sprint (lenguaje simple por defecto)
+│   ├── README.md                       índice (por sprint o por épica)
+│   └── s01.md / ep-01.md … …           fichas de HU (lenguaje simple por defecto)
+├── tareas/
+│   ├── README.md                       índice historia → tareas + método SMART
+│   └── ep-01.md / s01.md … …           tareas SMART por historia (template Tarea de Taiga)
 ├── sprints/
 │   ├── sprint-0.md                     acta de arranque
 │   └── s01-propuesto.md …              propuesta de Planning por sprint (registro-sprint)
@@ -113,9 +117,11 @@ docs/
 ├── plantillas/
 │   ├── epica-taiga.md
 │   ├── historia-de-usuario-taiga.md
+│   ├── tarea-taiga.md
 │   └── registro-sprint.md
 ├── metodo/
 │   ├── historias-de-usuario.md
+│   ├── tareas-smart.md
 │   ├── estilo-tecnico-historias.md
 │   └── epicas.md
 ├── dor-dod.md
@@ -146,7 +152,8 @@ docs/00 + contratos + ADR → resto de docs/.
 | Contratos | docs/contracts/*.yaml, docs/contracts/NN-contratos-inter-equipos.md | docs/historias/sNN.md |
 | Capacidad del sprint | docs/plan/plan-construccion.md | docs/sprints/sNN-propuesto.md |
 | Catálogo de épicas | docs/backlog/backlog-ejecutable.md | docs/epicas/*.md |
-| Recetas de sprint | docs/backlog/backlog-ejecutable.md | docs/historias/sNN.md |
+| Recetas de sprint | docs/backlog/backlog-ejecutable.md | docs/historias/*.md |
+| Horas por historia / tarea | docs/backlog/backlog-ejecutable.md | docs/tareas/*.md |
 | DoR / DoD | docs/dor-dod.md | — |
 
 ## Cómo se llena
@@ -157,4 +164,5 @@ docs/00 + contratos + ADR → resto de docs/.
 4. `generar-backlog-y-recetas` → docs/plan/ y docs/backlog/
 5. `generar-epicas` → docs/epicas/
 6. `generar-historias-usuario` → docs/historias/
+7. `generar-tareas` → docs/tareas/
 ```

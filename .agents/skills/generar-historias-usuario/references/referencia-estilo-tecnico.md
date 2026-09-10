@@ -1,15 +1,16 @@
 # Estilo simple (por defecto) ↔ estilo técnico
 
-El skill genera **lenguaje simple** por defecto (como `docs/historias/s01-test.md`). Si
-el equipo pide la versión con jerga precisa (`sXX-tecnico.md`, como
-`docs/historias/s01.md`), aplicá los cambios de abajo. **El contenido y los escenarios
-son los mismos**: cambia el idioma y algunos rótulos.
+El skill genera **lenguaje simple** por defecto. Si el equipo pide la versión con jerga
+precisa (endpoints, códigos HTTP, nombres exactos), aplicá los cambios de abajo. **El
+contenido y los escenarios son los mismos**: cambia el idioma y algunos rótulos. En un
+proyecto que agrupa por épica, el estilo técnico vive en `docs/historias/ep-0X.md` y la
+versión en lenguaje simple, en un doc narrativo del sprint (`docs/sprints/sN-explicado.md`).
 
 ## 1. Rótulos de sección
 
 | Estilo simple (por defecto) | Estilo técnico |
 |---|---|
-| Tabla de metadatos: **Grupo de trabajo · Pareja a cargo · Depende de · Trabajo estimado · Tipo · Responsable del producto** | **Épica · Pareja · Dependencias · Estimación (plan) · Tipo · Requisito · Referente de producto** |
+| Lista de metadatos (viñetas `- **Rótulo:** valor`): **Grupo de trabajo · Pareja a cargo · Depende de · Trabajo estimado · Tipo · Responsable del producto** | **Épica · Pareja · Dependencias · Estimación (plan) · Tipo · Requisito · Referente de producto** |
 | Notas → **Reglas de trabajo** | **Reglas de negocio** |
 | Notas → **Cómo se controla** | **Validaciones** |
 | Notas → **Qué tiene que incluir sí o sí** | **Datos obligatorios** |
@@ -18,10 +19,9 @@ son los mismos**: cambia el idioma y algunos rótulos.
 | CA → **(caso que debe fallar)** | **(negativo)** |
 | BDD → **Qué se prueba:** | **Característica:** |
 | BDD → escenario «camino esperado» | «camino feliz» |
-| Estimación en **bullets** («Puntos de esfuerzo: se asignan en el Sprint 0» / «Prioridad: imprescindible») | **tabla** `\| Puntos (Fibonacci) \| Prioridad (MoSCoW) \|` |
+| Estimación: **«Formato rápido»** en bullets (`Puntos (Fibonacci): [1/2/3/5/8/13]` · `Prioridad (MoSCoW / numérica): [Must/Should/Could/Won't] o [1..5]`) + versión en palabras | **tabla** `\| Puntos (Fibonacci) \| Prioridad (MoSCoW / 1..5) \|` |
 | Dependencias → **Partes involucradas** | **Servicios involucrados** + **Módulos afectados** |
 | Dependencias → **Impacto en los datos** | **Impacto en datos / migraciones** |
-| **Tareas (los pasos técnicos)** — tabla `# · Tarea · h` | **Tareas** — tabla `# · Tarea · Paso (playbook §4) · h` |
 | Tipo: **Tarea interna** / **Historia de valor** | **Tarea de sprint (habilitador)** / **HU de valor** |
 | Prioridad: **imprescindible / deseable / se puede posponer** | **Must / Should / Could / Won't** |
 

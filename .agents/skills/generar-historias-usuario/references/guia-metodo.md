@@ -154,6 +154,11 @@ los criterios de aceptación**. Procedimiento en §5.
 | **Historia de usuario** | Unidad de valor entregable; se estima y se compromete en un sprint. | Sí |
 | **Tarea** | Paso técnico interno para completar una historia. La define el equipo. | **No** |
 
+> El **desglose de una historia en tareas** no es parte de este skill: lo hace
+> `generar-tareas` (método **SMART**, una tarea por paso técnico ≤ 1 jornada, cada tarea
+> trazada a un CA o escenario BDD de la historia). Acá la historia **no** incluye ese
+> desglose.
+
 ### ¿Separo o dejo junta?
 
 - **Separá si…** hay dos verbos de acción distintos; intervienen dos roles; una parte se
@@ -208,6 +213,12 @@ responde **«cuánto vale»** (lo fija el Product Owner). Criterios de prioridad
 
 El **backlog de producto** es una lista **ordenada**: lo primero es lo próximo a
 construir. Ante empate, primero la más pequeña. Se reordena en cada refinamiento.
+
+**Notación de prioridad en la ficha.** Se admite **MoSCoW** (`Must` / `Should` / `Could`
+/ `Won't`) o una **escala numérica `1..5`** (1 = máxima). Equivalencia con las palabras
+simples: `Must` = imprescindible, `Should` = deseable, `Could` = se puede posponer,
+`Won't` = fuera de este sprint. La ficha deja la escala explícita en el «Formato rápido»
+de la sección Estimación / Prioridad.
 
 > **Puntos vs. horas:** algunos equipos planifican por velocidad en puntos y otros por
 > capacidad en horas-persona. Son dos escalas; **no se convierten** una en otra

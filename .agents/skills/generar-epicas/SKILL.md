@@ -73,8 +73,8 @@ dependencias.
 3. **Suposiciones y Restricciones.** Suposiciones = lo que se da por cierto para que la
    épica tenga sentido. Restricciones = límites legales/técnicos/académicos que acotan
    *cómo* puede resolverse. Vienen de las entradas 5 y 6.
-4. **Criterios de Aceptación a nivel épico.** Redactá el **cierre observable del
-   conjunto**, no de una historia:
+4. **Criterios de Aceptación a nivel épico.** Lista de tildar (`- [ ]`). Redactá el
+   **cierre observable del conjunto**, no de una historia:
    - El conjunto mínimo de historias permite un **flujo extremo a extremo** (nómbralo).
    - KPIs / umbrales iniciales alcanzados (si el equipo los dio; si no, `*(a definir)*`).
    - Sin regresiones críticas en las áreas/sistemas que toca.
@@ -86,11 +86,13 @@ dependencias.
    entrada 5; lo que no sepas va como `*(a confirmar)*`.
 6. **Un archivo por épica**, bajo `docs/epicas/`. Nombre `docs/epicas/ep-01.md`,
    `ep-02.md`, … Sigue exactamente [`references/plantilla-epica.md`](references/plantilla-epica.md):
-   una línea de encabezado `# [GXX] — EP-0X: <NOMBRE>`, un blockquote corto que apunta al
-   catálogo como fuente de verdad, y las **cuatro secciones** — Objetivo, Suposiciones y
-   Restricciones, Criterios de Aceptación a nivel Épico, Dependencias / Impactos. **Sin
-   bloque `| Campo | Valor |`**: pareja, sprints, fase y requisitos **no** van en la
-   ficha (ver paso 7).
+   una línea de encabezado `# GXX — <NOMBRE>` (sin corchetes, sin prefijo `EP-0X:`; el
+   número de épica vive en el catálogo y en el nombre de archivo), un blockquote corto que
+   apunta al catálogo como fuente de verdad, y las **cuatro secciones** — Objetivo,
+   Suposiciones y Restricciones, Criterios de Aceptación a nivel Épico, Dependencias /
+   Impactos. Un separador `---` en línea propia **entre cada sección** (y entre el
+   encabezado y la primera). **Sin bloque `| Campo | Valor |`**: pareja, sprints, fase y
+   requisitos **no** van en la ficha (ver paso 7).
 7. **Índice / catálogo.** Generá además `docs/epicas/README.md` con la tabla resumen —
    Épica · Ficha · Nombre · **Fase** · Pareja líder · Sprints · Requisitos (orientativo)—.
    Este catálogo es **el único lugar** donde viven pareja/sprints/fase/requisitos. Dejá
@@ -102,6 +104,13 @@ dependencias.
 
 - Sin `Como/Quiero/Para`, sin BDD, sin puntos, sin sprint comprometido, **sin MoSCoW,
   sin INVEST** en la ficha (todo eso es de las Historias de Usuario).
+- Encabezado `# GXX — <título>`: sin corchetes, sin `EP-0X:`. El número de épica vive en
+  el catálogo y en el nombre de archivo, no en el título.
+- Un separador `---` entre cada sección (y entre el encabezado y la primera).
+- Criterios de Aceptación como lista de tildar `- [ ]`.
+- Al pegar en Taiga, los criterios van **una línea por ítem, sin `code` inline ni listas
+  anidadas** (el renderer de Taiga los descoloca). El detalle largo con sub-viñetas y
+  backticks queda solo en el repo.
 - El objetivo describe **valor observable**, no implementación, y entra en ~2 renglones.
 - Los CA a nivel épico son del **conjunto** (flujo e2e, KPIs, no-regresión), no
   criterios de una historia.
@@ -118,6 +127,8 @@ dependencias.
 - [ ] Ninguna ficha trae estimación en puntos, prioridad MoSCoW, checklist INVEST ni
       «se compromete en Sxx».
 - [ ] Ninguna ficha tiene bloque `| Campo | Valor |`: solo heading + blockquote + 4 secciones.
+- [ ] Encabezado `# GXX — <título>` (sin `[...]`, sin `EP-0X:`); `---` entre cada sección.
+- [ ] Criterios de Aceptación como lista `- [ ]`.
 - [ ] Los CA a nivel épico describen el cierre del conjunto (incluye un flujo e2e).
 - [ ] Suposiciones y Restricciones separadas y concretas.
 - [ ] Dependencias / Impactos con dueño o marcadas `*(a confirmar)*`.

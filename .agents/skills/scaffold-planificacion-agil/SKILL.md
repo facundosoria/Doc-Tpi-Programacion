@@ -6,7 +6,7 @@ description: >-
   verdad y precedencia (producto → plataforma → docs/00 + contratos + ADR →
   resto), el árbol de carpetas, el índice, la convención de encabezado de los
   documentos derivados, la disciplina de fuente única, y la copia del material
-  fijo (templates de Épica y de Historia de Usuario de Taiga, guía de método,
+  fijo (templates de Épica, Historia de Usuario y Tarea de Taiga, guía de método,
   registro de sprint, starter de DoR/DoD). Úsalo al arrancar un proyecto nuevo o
   al ordenar la documentación de uno existente. No genera visión, contratos,
   backlog ni fichas: eso es de los otros skills del pipeline.
@@ -28,6 +28,7 @@ Se **encadena** con (cada uno también funciona solo):
 3. `generar-backlog-y-recetas` → `docs/plan/` y `docs/backlog/`
 4. `generar-epicas` → `docs/epicas/`
 5. `generar-historias-usuario` → `docs/historias/`
+6. `generar-tareas` → `docs/tareas/`
 
 ## Las capas (lo que hace que «esté bien estructurado»)
 
@@ -60,15 +61,18 @@ docs/
 │   ├── README.md                          STUB → contratos-api-gateway + contratos-kafka
 │   └── NN-contratos-inter-equipos.md      STUB
 ├── epicas/README.md                       STUB → catálogo; una ep-01.md… por épica
-├── historias/README.md                    STUB → una sXX.md por sprint (lenguaje simple)
+├── historias/README.md                    STUB → fichas de HU (por sprint o por épica)
+├── tareas/README.md                       STUB → tareas SMART por historia
 ├── sprints/sprint-0.md                    STUB → acta de arranque
 ├── prototipos/                            (vacío) bocetos que citan las HU
 ├── plantillas/
 │   ├── epica-taiga.md                     FIJO
 │   ├── historia-de-usuario-taiga.md       FIJO (lenguaje simple)
+│   ├── tarea-taiga.md                     FIJO (SMART)
 │   └── registro-sprint.md                 FIJO
 ├── metodo/
 │   ├── historias-de-usuario.md            FIJO
+│   ├── tareas-smart.md                    FIJO
 │   ├── estilo-tecnico-historias.md        FIJO (glosario simple↔técnico)
 │   └── epicas.md                          FIJO
 ├── dor-dod.md                             STARTER (se ratifica en Sprint 0)
@@ -103,10 +107,11 @@ Opcional:
    (capa 1–4), la regla de `docs/importado/`, y la tabla de identidad canónica del
    servicio (lo que se sepa; el resto marcado a fijar).
 3. **Copiar el material fijo** desde `references/` a `docs/plantillas/`, `docs/metodo/` y
-   `docs/dor-dod.md`. Ajustá `GXX` en los templates de Taiga.
+   `docs/dor-dod.md` (incluye `tarea-taiga.md` y `tareas-smart.md`). Ajustá `GXX` en los
+   templates de Taiga.
 4. **Escribir los STUB** de `vision/`, `plan/`, `backlog/`, `contracts/`, `epicas/README`,
-   `historias/README`, `sprints/sprint-0` con: (a) qué va acá, (b) qué skill lo genera,
-   (c) el bloque de encabezado de convención. Sin inventar contenido.
+   `historias/README`, `tareas/README`, `sprints/sprint-0` con: (a) qué va acá, (b) qué
+   skill lo genera, (c) el bloque de encabezado de convención. Sin inventar contenido.
 5. **Escribir `docs/README.md`**: resumen de las capas (apunta a `docs/00`) + la tabla de
    **fuente única** (una fila por dato) + «cómo se llena» (orden de los skills). Plantilla
    en `references/estructura-y-convenciones.md`.
@@ -135,8 +140,8 @@ verdad) · **Fuente que manda** (tabla `Dato → Fuente única`). Los documentos
       la regla de `docs/importado/` y la identidad canónica del servicio.
 - [ ] `docs/plantillas/`, `docs/metodo/` y `docs/dor-dod.md` con el material fijo; `GXX`
       puesto.
-- [ ] STUBs de vision/plan/backlog/contracts/epicas/historias/sprints con «qué va acá +
-      qué skill lo genera».
+- [ ] STUBs de vision/plan/backlog/contracts/epicas/historias/tareas/sprints con «qué va
+      acá + qué skill lo genera».
 - [ ] `docs/README.md` con resumen de capas + tabla de fuente única + orden de skills.
 - [ ] Convención de encabezado escrita.
 - [ ] Ningún STUB contiene planificación inventada (capacidad, épicas, recetas, contratos).
@@ -148,6 +153,8 @@ verdad) · **Fuente que manda** (tabla `Dato → Fuente única`). Los documentos
 | [`references/estructura-y-convenciones.md`](references/estructura-y-convenciones.md) | Capas (precedencia), árbol de `docs/`, tabla de fuente única, convención de encabezado, trazabilidad, plantilla de `docs/README.md`. |
 | [`references/plantilla-epica.md`](references/plantilla-epica.md) | Template oficial de Épica de Taiga. FIJO. |
 | [`references/plantilla-historia-usuario.md`](references/plantilla-historia-usuario.md) | Template de Historia de Usuario de Taiga, lenguaje simple. FIJO. |
+| [`references/plantilla-tarea-taiga.md`](references/plantilla-tarea-taiga.md) | Template oficial de Tarea de Taiga (método SMART). FIJO. |
+| [`references/metodo-tareas-smart.md`](references/metodo-tareas-smart.md) | Método SMART para desglosar una historia en tareas. FIJO. |
 | [`references/estilo-tecnico-historias.md`](references/estilo-tecnico-historias.md) | Glosario de traducción simple↔técnico para las HU. FIJO. |
 | [`references/plantilla-registro-sprint.md`](references/plantilla-registro-sprint.md) | Registro de sprint (Planning / ejecución / cierre), parametrizable. FIJO. |
 | [`references/metodo-historias-de-usuario.md`](references/metodo-historias-de-usuario.md) | Método de cátedra condensado para HU. FIJO. |

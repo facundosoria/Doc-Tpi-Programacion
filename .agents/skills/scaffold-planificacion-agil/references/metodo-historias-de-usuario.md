@@ -154,6 +154,11 @@ los criterios de aceptación**. Procedimiento en §5.
 | **Historia de usuario** | Unidad de valor entregable; se estima y se compromete en un sprint. | Sí |
 | **Tarea** | Paso técnico interno para completar una historia. La define el equipo. | **No** |
 
+> El **desglose de una historia en tareas** no es parte de este skill: lo hace
+> `generar-tareas` (método **SMART**, una tarea por paso técnico ≤ 1 jornada, cada tarea
+> trazada a un CA o escenario BDD de la historia). Acá la historia **no** incluye ese
+> desglose.
+
 ### ¿Separo o dejo junta?
 
 - **Separá si…** hay dos verbos de acción distintos; intervienen dos roles; una parte se

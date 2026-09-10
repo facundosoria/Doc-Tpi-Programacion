@@ -12,6 +12,20 @@
 >
 > Las compuertas (DoR / DoD) están en `dor-dod.md`. Cómo se redacta y estima cada
 > apartado: `guia-metodo.md`.
+>
+> **Formato fijo de la ficha:**
+> - Encabezado de cada historia en el documento: `# Sxx-Hyy — <título>` (el ID interno es
+>   la ancla del índice). El **título de Taiga** es `GXX — <título>` (sin corchetes, sin
+>   `Sxx-Hyy`), como dice el blockquote de abajo.
+> - Un separador `---` en línea propia **entre cada sección** `##` (también entre el bloque
+>   de encabezado/metadatos y la primera sección). Los `### Escenario N` del BDD **no** se
+>   separan entre sí.
+> - Los Criterios de Aceptación como lista de tildar `- [ ]`.
+> - Los **metadatos de la ficha** van en viñetas (`- **Rótulo:** valor`), **nunca en
+>   tabla**: el renderer de Taiga rompe las tablas sin encabezado.
+> - **Al pegar en Taiga:** los criterios van una línea por ítem y sin `code` inline — el
+>   renderer de Taiga en modo lectura descoloca las tildas si el ítem trae `code` o listas
+>   anidadas.
 
 ---
 
@@ -19,14 +33,14 @@
 
 > Título en Taiga: `GXX — TÍTULO`. `GXX` = número de grupo/equipo.
 
-| | |
-|---|---|
-| **Grupo de trabajo** | [nombre de la épica] ([EP-0X]) |
-| **Pareja a cargo** | [P_] |
-| **Depende de** | [Hnn, … o «Nada»] |
-| **Trabajo estimado** | [N] horas |
-| **Tipo** | [Tarea interna (no la «vive» un usuario final) / Historia de valor (la protagoniza [rol real])] |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** [nombre de la épica] ([EP-0X])
+- **Pareja a cargo:** [P_]
+- **Depende de:** [Hnn, … o «Nada»]
+- **Trabajo estimado:** [N] horas
+- **Tipo:** [Tarea interna (no la «vive» un usuario final) / Historia de valor (la protagoniza [rol real])]
+- **Responsable del producto:** Se nombra en el Sprint 0
+
+---
 
 ## Descripción (Como / Quiero / Para)
 
@@ -34,6 +48,8 @@
   programador del equipo». No «el sistema».]
 - **Quiero:** [lo que la persona quiere hacer, no cómo se resuelve por dentro]
 - **Para:** [el beneficio real, no repetir la acción]
+
+---
 
 ## Notas / Observaciones
 
@@ -50,18 +66,22 @@
 - **Operaciones nuevas:** [si el trabajo agrega formas de pedirle algo al servicio,
   nombrarlas en palabras: «crear la colección», «consultar el detalle»]
 
+---
+
 ## Criterios de Aceptación (CA)
 
-- **CA1:** [condición concreta y verificable, en palabras]
-- **CA2:** [·]
-- **CA3:** [·]
-- **CA4 (caso que debe fallar):** [pedido sin permiso / dato inválido / algo repetido /
+- [ ] **CA1:** [condición concreta y verificable, en palabras]
+- [ ] **CA2:** [·]
+- [ ] **CA3:** [·]
+- [ ] **CA4 (caso que debe fallar):** [pedido sin permiso / dato inválido / algo repetido /
   una pieza caída]
-- **CA5 (caso que debe fallar):** [otro caso que debe fallar]
+- [ ] **CA5 (caso que debe fallar):** [otro caso que debe fallar]
 
 > Siempre al menos un caso que sale bien y **dos que deben fallar**.
 
-## BDD (mínimo 3 escenarios)
+---
+
+## BDD
 
 **Qué se prueba:** [en una frase, qué comportamiento se está validando]
 
@@ -84,6 +104,8 @@
 - **Cuando:** [acción]
 - **Entonces:** [lo que se ve]
 
+---
+
 ## Prototipo
 
 - **Capturas / bocetos:** [bocetos simples de las pantallas principales, o «no aplica» +
@@ -91,14 +113,28 @@
 - **Maqueta / documentación:** [enlace a la maqueta, la demo o el documento del acuerdo;
   o «no aplica»]
 
+---
+
 ## Estimación / Prioridad
+
+**Formato rápido** (la referencia de escalas, para que quede explícita en la ficha):
+
+- **Puntos (Fibonacci):** [1 / 2 / 3 / 5 / 8 / 13] — *(a fijar en el Sprint 0; no se
+  inventan acá)*
+- **Prioridad (MoSCoW / numérica):** [Must / Should / Could / Won't] o [1..5]
+
+**En palabras:**
 
 - **Puntos de esfuerzo:** se asignan en el Sprint 0, con la técnica de estimación del
   equipo [/ comparando contra la historia patrón].
-- **Prioridad:** [imprescindible / deseable / se puede posponer].
+- **Prioridad:** [imprescindible (Must) / deseable (Should) / se puede posponer (Could) /
+  fuera de este sprint (Won't)].
 
 > El «Trabajo estimado» en horas de la ficha es la referencia del plan; **no** se
-> convierte a puntos.
+> convierte a puntos. Si todavía no hubo Planning Poker, dejá los corchetes con la escala
+> y marcá el valor como pendiente — nunca lo inventes.
+
+---
 
 ## Dependencias / Impactos
 
@@ -106,16 +142,3 @@
 - **Otros equipos / aprobaciones:** [de quién se depende, o «ninguna externa»]
 - **Impacto en los datos:** [si crea, cambia o solo lee datos]
 - **Riesgos:** [qué puede salir mal y cómo se acota]
-
-## Tareas (los pasos técnicos)
-
-> Los pasos concretos en los que el equipo de desarrollo parte el trabajo. **No** se
-> escriben en formato Como/Quiero/Para. Cada una dura **un día de trabajo o menos**. Las
-> horas son aproximadas y suman el «Trabajo estimado» de la ficha.
-
-| # | Tarea | h |
-|---|---|--:|
-| T1 | [·] | · |
-| T2 | [·] | · |
-| T3 | [·] | · |
-| | **Total** | **·** |

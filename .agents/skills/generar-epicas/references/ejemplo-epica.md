@@ -16,17 +16,21 @@ un puntero al catálogo y las cuatro secciones:
 
 ---
 
-# [G07] — EP-01: Plataforma, contratos e integración
+# G07 — Plataforma, contratos e integración
 
 > Ficha en el formato del [template oficial de Épica de la Wiki de Taiga](../plantillas/epica-taiga.md).
 > El catálogo (pareja líder, sprints donde aporta, fase y requisitos que cubre) vive en
 > [`docs/epicas/README.md`](README.md); si un dato no coincide, **manda el catálogo**.
+
+---
 
 ## Objetivo
 
 Que los demás equipos puedan integrarse con el `llm-service` desde el primer sprint
 contra un contrato estable, y que todo dato académico quede registrado de forma
 reproducible y sin pérdida, antes de que existan las funciones de IA.
+
+---
 
 ## Suposiciones y Restricciones
 
@@ -41,20 +45,27 @@ reproducible y sin pérdida, antes de que existan las funciones de IA.
   - El dato académico es *append-only*: sin edición destructiva a nivel base.
   - Ningún endpoint funcional accesible sin pasar por el Gateway.
 
+---
+
 ## Criterios de Aceptación a nivel Épico
 
-- El conjunto mínimo de historias permite el flujo e2e: un consumidor autenticado por el
-  Gateway llega al `llm-service`, opera sobre datos versionados y recibe respuestas
+- [ ] El conjunto mínimo de historias permite el flujo e2e: un consumidor autenticado por
+  el Gateway llega al `llm-service`, opera sobre datos versionados y recibe respuestas
   conformes al contrato publicado.
-- El esquema inicial se crea desde base vacía con migración reproducible y auditoría.
-- El contrato OpenAPI publicado describe **solo** operaciones implementadas y un mock
+- [ ] El esquema inicial se crea desde base vacía con migración reproducible y auditoría.
+- [ ] El contrato OpenAPI publicado describe **solo** operaciones implementadas y un mock
   levantable permite integrar sin el servicio real.
-- Sin regresiones críticas en el borde (autenticación M2M, identidad delegada,
+- [ ] Sin regresiones críticas en el borde (autenticación M2M, identidad delegada,
   correlación de trazas) al agregar funciones en sprints posteriores.
-- Observabilidad mínima: *health/readiness*, trazas `traceparent` / `X-Request-Id` y
+- [ ] Observabilidad mínima: *health/readiness*, trazas `traceparent` / `X-Request-Id` y
   logs estructurados sin secretos.
-- Documentación de arranque (`up` / health / `down`), del contrato y del ADR de
+- [ ] Documentación de arranque (`up` / health / `down`), del contrato y del ADR de
   arquitectura publicada y enlazada desde el CI.
+
+> Al pegar estos criterios en Taiga: una línea por ítem y sin `code` inline (Taiga
+> descoloca las tildas si el ítem trae `code` o sub-viñetas).
+
+---
 
 ## Dependencias / Impactos
 
