@@ -1,11 +1,12 @@
-# Historias de usuario — Sprint 1, explicadas en palabras simples
+# Sprint 1 — las nueve historias explicadas en palabras simples
 
-> **Qué es este documento.** Son las mismas nueve historias del Sprint 1 que están
-> en [`s01.md`](s01.md), con la **misma estructura del template de Taiga**
-> (Como / Quiero / Para, Notas, Criterios de Aceptación, escenarios BDD,
-> Prototipo, Estimación y Dependencias), pero contadas **sin jerga técnica**:
-> como si se las explicara a alguien que nunca programó. Mismo contenido, mismo
-> objetivo de la demo. Cambia solo el idioma.
+> **Qué es este documento.** Son las mismas nueve historias del Sprint 1 que están,
+> en formato técnico, en [`../historias/ep-01.md`](../historias/ep-01.md) y
+> [`../historias/ep-03.md`](../historias/ep-03.md), con la **misma estructura del
+> template de Taiga** (Como / Quiero / Para, Notas, Criterios de Aceptación, escenarios
+> BDD, Prototipo, Estimación y Dependencias), pero contadas **sin jerga técnica**: como
+> si se las explicara a alguien que nunca programó. Mismo contenido, mismo objetivo de
+> la demo. Cambia solo el idioma.
 >
 > **Qué NO es.** No es fuente de verdad para planificar. Si un número, una fecha
 > o una responsabilidad no coincide, vale lo que dice:
@@ -13,7 +14,9 @@
 > | Dato | Dónde manda |
 > |---|---|
 > | ID, grupo, pareja, dependencias, horas | [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) · «S1» |
-> | Ficha técnica completa (con los códigos y términos exactos) | [`s01.md`](s01.md) |
+> | Ficha técnica completa (con los códigos y términos exactos) | [`../historias/`](../historias/README.md) |
+> | Índice del sprint, tipo de cada historia y demo | [`s1-historias.md`](s1-historias.md) |
+> | Desglose en tareas | [`../tareas/`](../tareas/README.md) |
 > | Requisitos para empezar una historia y para darla por terminada | [23 · §9.2](../23-plan-construccion-producto-llm.md) |
 >
 > **Sobre los códigos raros que van a aparecer.** Cosas como `EP-01`, `P1`,
@@ -81,25 +84,23 @@ sistema, y el ejemplo sigue ahí cuando lo consulta.
 carne y hueso (un profesor) que nota el beneficio. "Tarea interna" es un cimiento
 del que depende el resto, pero que ningún usuario final "vive" directamente.
 
-**Tareas:** cada ficha termina con una lista de **tareas**: los pasos concretos en
-los que el equipo de desarrollo parte el trabajo para hacerlo. No se escriben en
-formato "Como / Quiero / Para" (eso es para las historias, no para las tareas) y
-cada una está pensada para durar **un día de trabajo o menos**. Las horas de cada
-tarea son aproximadas y suman el "Trabajo estimado" de la ficha; el detalle técnico
-exacto está en la versión con jerga, [`s01.md`](s01.md).
+**Tareas:** cada historia se parte en **tareas**: los pasos concretos en los que el
+equipo de desarrollo divide el trabajo. No se escriben en formato "Como / Quiero /
+Para" (eso es para las historias) y cada una está pensada para durar **un día de
+trabajo o menos**. Las tareas de las nueve historias, con su método (SMART) y sus
+horas, están en [`../tareas/`](../tareas/README.md); el detalle técnico de cada
+historia, en [`../historias/`](../historias/README.md).
 
 ---
 
 # LLM-S01-H01 — Ponerse de acuerdo sobre cómo se construye el programa
 
-| | |
-|---|---|
-| **Grupo de trabajo** | Plataforma, contratos e integración (EP-01) |
-| **Pareja a cargo** | P1 |
-| **Depende de** | Nada |
-| **Trabajo estimado** | 16 horas |
-| **Tipo** | Tarea interna (no la "vive" un usuario final) |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** Plataforma, contratos e integración (EP-01)
+- **Pareja a cargo:** P1
+- **Depende de:** Nada
+- **Trabajo estimado:** 16 horas
+- **Tipo:** Tarea interna (no la "vive" un usuario final)
+- **Responsable del producto:** Se nombra en el Sprint 0
 
 ## Descripción (Como / Quiero / Para)
 
@@ -143,7 +144,7 @@ exacto está en la versión con jerga, [`s01.md`](s01.md).
 - **CA5 (caso que debe fallar):** usar una "perilla de configuración" que no
   está en la lista se marca en la revisión.
 
-## BDD (mínimo 3 escenarios)
+## BDD
 
 **Qué se prueba:** que las cinco parejas de programadores arranquen todas de la
 misma forma.
@@ -189,29 +190,16 @@ misma forma.
   resuelve el primer día del sprint y bloquea al resto de las historias hasta
   estar aprobado.
 
-## Tareas (los pasos técnicos)
-
-| #  | Tarea                                                                                                     |   h |
-| -- | ----------------------------------------------------------------------------------------------------- | --: |
-| T1 | Juntar las convenciones candidatas (lenguaje, herramientas) y mirar los antecedentes que ya existen    |   3 |
-| T2 | Escribir en el documento las partes del programa y qué parte puede apoyarse en cuál                    |   4 |
-| T3 | Armar la tabla de "perillas de configuración" y decir dónde viven las claves y secretos                |   3 |
-| T4 | Dejar un control (automático o de revisión) que rebota si el "corazón" toma una dependencia prohibida  |   3 |
-| T5 | Revisión y aprobación del equipo; publicar el documento y enlazarlo desde el control automático        |   3 |
-|    | **Total**                                                                                             | **16** |
-
 ---
 
 # LLM-S01-H02 — Encender todo el entorno con un solo comando
 
-| | |
-|---|---|
-| **Grupo de trabajo** | Plataforma, contratos e integración (EP-01) |
-| **Pareja a cargo** | P1 |
-| **Depende de** | H01 |
-| **Trabajo estimado** | 30 horas |
-| **Tipo** | Tarea interna |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** Plataforma, contratos e integración (EP-01)
+- **Pareja a cargo:** P1
+- **Depende de:** H01
+- **Trabajo estimado:** 30 horas
+- **Tipo:** Tarea interna
+- **Responsable del producto:** Se nombra en el Sprint 0
 
 ## Descripción (Como / Quiero / Para)
 
@@ -252,7 +240,7 @@ misma forma.
 - **CA4 (caso que debe fallar):** si un "enchufe" (puerto) necesario ya está
   ocupado, el error dice exactamente cuál es el que está en conflicto.
 
-## BDD (mínimo 3 escenarios)
+## BDD
 
 **Qué se prueba:** que el entorno se pueda reproducir en cualquier máquina.
 
@@ -299,31 +287,16 @@ misma forma.
 - **Riesgos:** que el entorno local no se parezca al real. Se acota levantando
   solo lo que la plataforma realmente expone y documentando cada pieza.
 
-## Tareas (los pasos técnicos)
-
-| #  | Tarea                                                                                                     |   h |
-| -- | ----------------------------------------------------------------------------------------------------- | --: |
-| T1 | Archivo del entorno con la base de datos, su "cajón" que sobrevive a los reinicios y su chequeo de salud |   5 |
-| T2 | Sumar las demás piezas comunes (directorio, recepción central, mensajería) según haga falta, cada una con su chequeo |   6 |
-| T3 | Archivo de ejemplo con las "perillas"; el archivo real no se guarda en el repositorio                    |   3 |
-| T4 | Que el arranque falle con un mensaje claro si falta la herramienta base, sin dejar cosas a medio encender |   4 |
-| T5 | Detectar el "enchufe" (puerto) ocupado y decir exactamente cuál es                                        |   3 |
-| T6 | Sección del manual con prender, comprobar y apagar, probada en una computadora limpia                     |   4 |
-| T7 | Prueba del arranque en frío y medición de cuánto tarda en una notebook del equipo                         |   5 |
-|    | **Total**                                                                                               | **30** |
-
 ---
 
 # LLM-S01-H03 — El esqueleto del servicio: puertas de entrada y seguridad
 
-| | |
-|---|---|
-| **Grupo de trabajo** | Plataforma, contratos e integración (EP-01) |
-| **Pareja a cargo** | P1 |
-| **Depende de** | H02 |
-| **Trabajo estimado** | 34 horas |
-| **Tipo** | Tarea interna |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** Plataforma, contratos e integración (EP-01)
+- **Pareja a cargo:** P1
+- **Depende de:** H02
+- **Trabajo estimado:** 34 horas
+- **Tipo:** Tarea interna
+- **Responsable del producto:** Se nombra en el Sprint 0
 
 ## Descripción (Como / Quiero / Para)
 
@@ -370,7 +343,7 @@ misma forma.
   falsificada → "prohibido".
 - **CA6:** el control de calidad automático del servicio está "en verde".
 
-## BDD (mínimo 3 escenarios)
+## BDD
 
 **Qué se prueba:** que exista un punto de conexión estable contra la cual conectarse.
 
@@ -416,32 +389,16 @@ misma forma.
 - **Riesgos:** el "contrato" de qué viaja en cada pedido puede cambiar. Se aísla
   en la parte de seguridad y se cubre con pruebas.
 
-## Tareas (los pasos técnicos)
-
-| #  | Tarea                                                                                                     |   h |
-| -- | ----------------------------------------------------------------------------------------------------- | --: |
-| T1 | Definir qué viaja en cada pedido (quién llama, permisos, en nombre de quién, número de seguimiento) y qué puede fallar |   4 |
-| T2 | Estructura de partes del programa + configuración base y "chequeo de salud" que no llama a servicios externos |   4 |
-| T3 | Anotar el servicio en el directorio y publicar la puerta general a través de la recepción central         |   5 |
-| T4 | Seguridad: comprobar la credencial y los permisos; sin el permiso necesario → "no autorizado"             |   6 |
-| T5 | Rechazar una identificación de persona ausente o falsificada → "prohibido", sin ejecutar nada             |   4 |
-| T6 | Formato ordenado y siempre igual para los errores; nunca anotar credenciales en los registros             |   4 |
-| T7 | Devolver siempre el mismo número de seguimiento que llegó en el pedido                                     |   3 |
-| T8 | Pruebas del acuerdo con la recepción central y dejar el control de calidad "en verde"                      |   4 |
-|    | **Total**                                                                                               | **34** |
-
 ---
 
 # LLM-S01-H04 — Preparar la base de datos para que no se pueda romper ni borrar
 
-| | |
-|---|---|
-| **Grupo de trabajo** | Plataforma, contratos e integración (EP-01) |
-| **Pareja a cargo** | P1 |
-| **Depende de** | H03 |
-| **Trabajo estimado** | 38 horas |
-| **Tipo** | Tarea interna |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** Plataforma, contratos e integración (EP-01)
+- **Pareja a cargo:** P1
+- **Depende de:** H03
+- **Trabajo estimado:** 38 horas
+- **Tipo:** Tarea interna
+- **Responsable del producto:** Se nombra en el Sprint 0
 
 ## Descripción (Como / Quiero / Para)
 
@@ -487,7 +444,7 @@ misma forma.
 - **CA5 (caso que debe fallar):** dos registros "iguales" para la misma
   operación y la misma persona no pueden coexistir.
 
-## BDD (mínimo 3 escenarios)
+## BDD
 
 **Qué se prueba:** un archivador académico ordenado y que no se puede alterar.
 
@@ -534,31 +491,16 @@ misma forma.
 - **Riesgos:** si los criterios o pesos cambian después de este tramo, se crea
   una versión nueva de la plantilla; la 1.0 no se toca.
 
-## Tareas (los pasos técnicos)
-
-| #  | Tarea                                                                                                     |   h |
-| -- | ----------------------------------------------------------------------------------------------------- | --: |
-| T1 | Definir las reglas de las tablas (plantilla, colección, ejemplo, "marca antiduplicado", registro firmado) |   6 |
-| T2 | Proceso automático que arma todo desde una base vacía y crea la plantilla 1.0 con sus cinco criterios y pesos |   8 |
-| T3 | Regla de "solo se puede agregar" a nivel base en las tablas de datos académicos                           |   6 |
-| T4 | Regla que rechaza un puntaje incompleto (menos de cinco criterios) o fuera de 0–100                        |   4 |
-| T5 | Regla que impide dos registros "iguales" para la misma operación y la misma persona                       |   4 |
-| T6 | Registro firmado: quién actuó, sobre qué y el número de seguimiento; sin guardar las conversaciones como texto libre |   4 |
-| T7 | Prueba que corre el armado dos veces (mismo resultado) y prueba los casos que deben fallar                 |   6 |
-|    | **Total**                                                                                               | **38** |
-
 ---
 
 # LLM-S01-H05 — Que el profesor cree su colección de referencia y le cargue ejemplos
 
-| | |
-|---|---|
-| **Grupo de trabajo** | Colección de referencia y calibración humana (EP-03) |
-| **Pareja a cargo** | P5 (con P4 en la definición de la plantilla) |
-| **Depende de** | H04 |
-| **Trabajo estimado** | 24 horas |
-| **Tipo** | Historia de valor (la protagoniza un profesor) |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** Colección de referencia y calibración humana (EP-03)
+- **Pareja a cargo:** P5 (con P4 en la definición de la plantilla)
+- **Depende de:** H04
+- **Trabajo estimado:** 24 horas
+- **Tipo:** Historia de valor (la protagoniza un profesor)
+- **Responsable del producto:** Se nombra en el Sprint 0
 
 ## Descripción (Como / Quiero / Para)
 
@@ -607,7 +549,7 @@ misma forma.
 - **CA5 (caso que debe fallar):** un pedido que intenta saltearse la recepción
   central → "prohibido".
 
-## BDD (mínimo 3 escenarios)
+## BDD
 
 **Qué se prueba:** el profesor construyendo su colección de referencia.
 
@@ -667,30 +609,16 @@ misma forma.
 - **Riesgos:** saber de quién es cada curso depende del servicio de cursos; si no
   está listo, se acuerda un criterio provisional documentado.
 
-## Tareas (los pasos técnicos)
-
-| #  | Tarea                                                                                                     |   h |
-| -- | ----------------------------------------------------------------------------------------------------- | --: |
-| T1 | Acordar y "congelar" con el otro equipo las operaciones nuevas y sus campos                              |   3 |
-| T2 | "Crear colección": revisar los datos, guardarla y devolver su identificador y su dirección              |   4 |
-| T3 | "Cargar un ejemplo": revisar la conversación (texto de dato, nunca órdenes) y los cinco puntajes de 0 a 100 |   5 |
-| T4 | Permisos: profesor verificado, con permiso y dueño del curso; si no cumple → "prohibido"                 |   5 |
-| T5 | Antiduplicado: marca obligatoria; reenviar el mismo pedido no crea un segundo registro                   |   4 |
-| T6 | Anotar cada carga en el registro firmado y devolver un error claro si los puntajes están mal             |   3 |
-|    | **Total**                                                                                               | **24** |
-
 ---
 
 # LLM-S01-H06 — Consultar la colección aunque el sistema se reinicie
 
-| | |
-|---|---|
-| **Grupo de trabajo** | Colección de referencia y calibración humana (EP-03) |
-| **Pareja a cargo** | P5 |
-| **Depende de** | H04 |
-| **Trabajo estimado** | 14 horas |
-| **Tipo** | Historia de valor · **historia patrón** (la vara para medir las demás) |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** Colección de referencia y calibración humana (EP-03)
+- **Pareja a cargo:** P5
+- **Depende de:** H04
+- **Trabajo estimado:** 14 horas
+- **Tipo:** Historia de valor · **historia patrón** (la vara para medir las demás)
+- **Responsable del producto:** Se nombra en el Sprint 0
 
 ## Descripción (Como / Quiero / Para)
 
@@ -739,7 +667,7 @@ misma forma.
 - **CA6 (caso que debe fallar):** pedir una página de tamaño 500 → "pedido
   inválido".
 
-## BDD (mínimo 3 escenarios)
+## BDD
 
 **Qué se prueba:** la lectura de la colección con datos que sobreviven.
 
@@ -793,28 +721,16 @@ misma forma.
 - **Riesgos:** si el "cajón" no sobrevive, la demo falla; se verifica con la
   prueba de reinicio de la tarea 9.
 
-## Tareas (los pasos técnicos)
-
-| #  | Tarea                                                                                                     |   h |
-| -- | ----------------------------------------------------------------------------------------------------- | --: |
-| T1 | "Listar mis colecciones": de a páginas, de la más nueva a la más vieja, siempre filtrado por curso       |   4 |
-| T2 | "Ver el detalle" con sus ejemplos; colección ajena o inexistente → "no encontrado", nunca error de servidor |   4 |
-| T3 | Permiso de consulta igual al de carga; pedir una página de tamaño imposible → "pedido inválido"          |   3 |
-| T4 | Prueba de apagar y prender que confirma que la consulta devuelve exactamente lo mismo                     |   3 |
-|    | **Total**                                                                                               | **14** |
-
 ---
 
 # LLM-S01-H07 — La pantalla sencilla para el profesor
 
-| | |
-|---|---|
-| **Grupo de trabajo** | Colección de referencia y calibración humana (EP-03) |
-| **Pareja a cargo** | P5 |
-| **Depende de** | H05, H06 |
-| **Trabajo estimado** | 24 horas |
-| **Tipo** | Historia de valor (la protagoniza un profesor) |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** Colección de referencia y calibración humana (EP-03)
+- **Pareja a cargo:** P5
+- **Depende de:** H05, H06
+- **Trabajo estimado:** 24 horas
+- **Tipo:** Historia de valor (la protagoniza un profesor)
+- **Responsable del producto:** Se nombra en el Sprint 0
 
 ## Descripción (Como / Quiero / Para)
 
@@ -858,7 +774,7 @@ misma forma.
 - **CA6 (caso que debe fallar):** una respuesta "prohibido" del servicio se
   refleja como "no autorizado" en la pantalla.
 
-## BDD (mínimo 3 escenarios)
+## BDD
 
 **Qué se prueba:** la pantalla mínima del profesor.
 
@@ -912,30 +828,16 @@ misma forma.
 - **Riesgos:** si el marco visual compartido no está definido, se entrega como
   página web autónoma que apunta a la recepción central y se integra después.
 
-## Tareas (los pasos técnicos)
-
-| #  | Tarea                                                                                                     |   h |
-| -- | ----------------------------------------------------------------------------------------------------- | --: |
-| T1 | Armar la página web y que llame **siempre** a la recepción central, nunca directo al servicio            |   4 |
-| T2 | Vista de listado de colecciones con carteles de "cargando" y de "error"                                  |   4 |
-| T3 | Vista de alta de colección + mostrar quién está operando y con qué permiso                               |   3 |
-| T4 | Vista de detalle y carga: los cinco puntajes agrupados y aviso de que la conversación no se interpreta como órdenes |   6 |
-| T5 | Mensajes claros si el servicio está caído ("no se pudo contactar al servidor") o responde "prohibido"    |   3 |
-| T6 | Accesibilidad (etiquetas, foco, teclado, lector de pantalla) y pruebas propias de la pantalla            |   4 |
-|    | **Total**                                                                                               | **24** |
-
 ---
 
 # LLM-S01-H08 — Publicar el acuerdo y una maqueta para que otro equipo avance
 
-| | |
-|---|---|
-| **Grupo de trabajo** | Plataforma, contratos e integración (EP-01) |
-| **Pareja a cargo** | P1 |
-| **Depende de** | H03 |
-| **Trabajo estimado** | 10 horas |
-| **Tipo** | Tarea interna |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** Plataforma, contratos e integración (EP-01)
+- **Pareja a cargo:** P1
+- **Depende de:** H03
+- **Trabajo estimado:** 10 horas
+- **Tipo:** Tarea interna
+- **Responsable del producto:** Se nombra en el Sprint 0
 
 ## Descripción (Como / Quiero / Para)
 
@@ -976,7 +878,7 @@ misma forma.
 - **CA5 (caso que debe fallar):** un campo nuevo sin acuerdo con el otro equipo
   frena la publicación.
 
-## BDD (mínimo 3 escenarios)
+## BDD
 
 **Qué se prueba:** el contrato y la maqueta para quienes van a usar el servicio.
 
@@ -1023,28 +925,16 @@ misma forma.
 - **Riesgos:** que el contrato y lo que hace el servicio se desalineen; se cubre
   con pruebas en la tarea 9.
 
-## Tareas (los pasos técnicos)
-
-| #  | Tarea                                                                                                     |   h |
-| -- | ----------------------------------------------------------------------------------------------------- | --: |
-| T1 | Completar el contrato con **solo** las cuatro operaciones que existen y validarlo contra su formato      |   4 |
-| T2 | Revisar y registrar el agregado de este tramo con el otro equipo; congelar los campos no acordados       |   2 |
-| T3 | Maqueta que se levanta con un comando documentado y responde según el contrato                           |   2 |
-| T4 | Control que rebota una propuesta que agrega al contrato operaciones o campos que no existen              |   2 |
-|    | **Total**                                                                                               | **10** |
-
 ---
 
 # LLM-S01-H09 — Las pruebas automáticas y la guía para la demostración
 
-| | |
-|---|---|
-| **Grupo de trabajo** | Plataforma, contratos e integración (EP-01) |
-| **Pareja a cargo** | Todas (una persona por pareja) |
-| **Depende de** | H04, H05, H06, H07 |
-| **Trabajo estimado** | 18 horas |
-| **Tipo** | Tarea interna |
-| **Responsable del producto** | Se nombra en el Sprint 0 |
+- **Grupo de trabajo:** Plataforma, contratos e integración (EP-01)
+- **Pareja a cargo:** Todas (una persona por pareja)
+- **Depende de:** H04, H05, H06, H07
+- **Trabajo estimado:** 18 horas
+- **Tipo:** Tarea interna
+- **Responsable del producto:** Se nombra en el Sprint 0
 
 ## Descripción (Como / Quiero / Para)
 
@@ -1090,7 +980,7 @@ misma forma.
 - **CA6 (caso que debe fallar):** si la prueba de reinicio detecta que se
   perdieron datos, **falla** y no se puede dar por aprobado el tramo.
 
-## BDD (mínimo 3 escenarios)
+## BDD
 
 **Qué se prueba:** evidencia reproducible del trabajo del tramo.
 
@@ -1134,18 +1024,6 @@ misma forma.
   reales.
 - **Riesgos:** una demo local que no represente el ambiente compartido; se
   mitiga exigiendo que la guía corra en el ambiente compartido.
-
-## Tareas (los pasos técnicos)
-
-| #  | Tarea                                                                                                     |   h |
-| -- | ----------------------------------------------------------------------------------------------------- | --: |
-| T1 | Pruebas de las reglas del negocio, sin conexión                                                          |   4 |
-| T2 | Pruebas de que los datos se guardan y se recuperan bien                                                  |   3 |
-| T3 | Pruebas del acuerdo con la recepción central ("no autorizado" / "prohibido" / "marca antiduplicado")     |   3 |
-| T4 | Prueba automática de apagar y prender que confirma que la colección sigue ahí                            |   3 |
-| T5 | Correr los escenarios de aceptación de las tareas 5, 6 y 7 (camino esperado y casos que fallan) con evidencia |   3 |
-| T6 | Guía de demo paso a paso, ejecutable en el ambiente compartido; el mínimo de código probado frena el cambio |   2 |
-|    | **Total**                                                                                               | **18** |
 
 ---
 

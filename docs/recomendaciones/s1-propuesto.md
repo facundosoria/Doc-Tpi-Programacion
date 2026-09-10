@@ -7,7 +7,7 @@
 > ([sprints/sprint-0.md · §4](../sprints/sprint-0.md)).
 >
 > **Fuentes:** receta de S1 en [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) ·
-> historias en [`historias/s01.md`](../historias/s01.md) · épicas [`ep-01.md`](../epicas/ep-01.md) /
+> historias en [`historias/`](../historias/README.md) (índice del sprint en [`sprints/s1-historias.md`](../sprints/s1-historias.md)) · épicas [`ep-01.md`](../epicas/ep-01.md) /
 > [`ep-03.md`](../epicas/ep-03.md) · DoR/DoD [23 · §9.2](../23-plan-construccion-producto-llm.md).
 
 ---
