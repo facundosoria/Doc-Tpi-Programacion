@@ -6,7 +6,7 @@
 > (`docs/sprints/`, backlog de Taiga, etc.) y acá queda solo como antecedente.
 >
 > El plan del equipo ([23](../23-plan-construccion-producto-llm.md),
-> [`Plan de ejecucion/07`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>)) también
+> [`35`](../35-backlog-ejecutable.md)) también
 > es **interno**: reemplaza calendarios previos pero no sustituye al PRD, las convenciones ni
 > los contratos inter-equipos.
 

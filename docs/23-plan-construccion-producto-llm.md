@@ -72,7 +72,7 @@ capacidad adicional para comprometer funcionalidades. El soporte conocido se des
 calcular la reserva.
 
 **Capacidad ≠ presupuesto de trabajo.** Las recetas S1–S19 del
-[backlog ejecutable](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>) estiman el trabajo
+[backlog ejecutable](35-backlog-ejecutable.md) estiman el trabajo
 de cada sprint en **~208 h de paquetes** (una estimación gruesa anterior a los contratos, no un
 tope). La diferencia con las 571 h —**~363 h por sprint**— es **margen explícito** para
 re-estimar en Planning, absorber imprevistos y cubrir el overhead de coordinar 12 personas. El
@@ -373,7 +373,7 @@ fecha.
 | **Quién la verifica** | El equipo con el referente de producto | El equipo con el referente de producto y los consumidores incluidos en el compromiso |
 | **Si no se cumple** | La historia **no entra** al sprint: se refina o se divide | La historia **vuelve a *en progreso***: no se presenta como terminada |
 
-El [playbook de construcción](<../Plan de ejecucion/06-playbook-de-construccion.md>) aplica estas
+El [playbook de construcción](36-playbook-de-construccion.md) aplica estas
 mismas dos definiciones al nivel de cada PR; **no define unas propias**. Esta sección es la fuente
 única.
 
@@ -418,7 +418,7 @@ interno `LLM-Sxx-Hyy` y el título del template son compatibles: el ID vive en l
 **historia canónica** contra la que se estiman todas se elige y se fija en el Sprint 0.
 
 El catálogo de épicas y las historias de S1 están en el
-[backlog ejecutable](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>).
+[backlog ejecutable](35-backlog-ejecutable.md).
 
 #### DoD — la historia y el incremento están terminados
 
@@ -477,12 +477,12 @@ arrastrado se reestima por lo que falta y consume capacidad; no se suma gratis a
 ## 10. Inicio operativo y plantilla
 
 Usar [la plantilla de sprint](plantillas/sprint-llm.md) para registrar el compromiso y el cierre.
-La guía para quienes se incorporan por primera vez —tecnologías, fases, Docker, pruebas y flujo Git—
-está en [Plan de ejecución](<../Plan de ejecucion/README.md>).
+La rutina diaria y el flujo Git están en [GITFLOW](GITFLOW.md) y
+[WORKFLOW_DIARIO](WORKFLOW_DIARIO.md).
 
 El arranque —lo que la primera Planning debe dejar cerrado antes de ejecutar S1, incluidas las
 épicas y las historias de S1— es el **Sprint 0** del
-[backlog ejecutable](<../Plan de ejecucion/07-backlog-ejecutable-sprints.md>). No se repite acá
+[backlog ejecutable](35-backlog-ejecutable.md). No se repite acá
 para que haya un solo checklist.
 
 Este documento fija planificación y criterios. Crear issues remotas, asignar personas, coordinar

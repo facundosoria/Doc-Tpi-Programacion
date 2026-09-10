@@ -15,10 +15,12 @@
 >   y son transversales a los 19 sprints; no se estiman ni pertenecen a un sprint. El Sprint 0
 >   solo las **revisa**, mapea cada historia de S1 a una épica (§2 · #6) y carga en Taiga las que
 >   tocan a S1 —EP-01 y EP-03— con el template oficial (§6). Las HU de S1 tampoco se redactan
->   acá: ya están en [`../historias/s01.md`](../historias/s01.md); el Sprint 0 las refina y las sube.
+>   acá: ya están, agrupadas por épica, en [`../historias/ep-01.md`](../historias/ep-01.md) y
+>   [`../historias/ep-03.md`](../historias/ep-03.md) (índice del sprint en
+>   [`s1-historias.md`](s1-historias.md)); el Sprint 0 las refina y las sube.
 >
 > **Fuente de verdad del checklist:**
-> [`Plan de ejecucion/07` · «Sprint 0»](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>).
+> [`35` · «Sprint 0»](../35-backlog-ejecutable.md).
 > Este archivo es el **acta**: se completa el día del Sprint 0 y se guarda como evidencia.
 
 ---
@@ -126,7 +128,7 @@ La historia de referencia contra la que se estiman **todas** las demás del back
 | Historia elegida | `LLM-S01-H06` — *Consulta del golden set que sobrevive al reinicio* *(candidata; confirmar)* |
 | Por qué es buena canónica | Recorrido completo (autorización + lectura + persistencia), chica, la entienden las cinco parejas |
 | Puntos asignados (convención interna) | *(fijar en la sesión: p. ej. 2)* |
-| Registrada en | Ficha de Taiga de `LLM-S01-H06` + [`../historias/s01.md`](../historias/s01.md) |
+| Registrada en | Ficha de Taiga de `LLM-S01-H06` + [`../historias/ep-03.md`](../historias/ep-03.md#llm-s01-h06--consulta-del-golden-set-que-sobrevive-al-reinicio) |
 
 > El valor en puntos es una **convención del equipo**; no se compara con otros equipos ni se
 > convierte a horas ([30 · §3.5](../30-arranque-agil-y-sprint-0.md)).
@@ -139,14 +141,14 @@ La historia de referencia contra la que se estiman **todas** las demás del back
 |---|---|---|---|
 | EP-01 · Plataforma, contratos e integración | Epic | [`epicas/ep-01.md`](../epicas/ep-01.md) | |
 | EP-03 · Golden set y referencia humana | Epic | [`epicas/ep-03.md`](../epicas/ep-03.md) | |
-| `LLM-S01-H01` · ADR de arquitectura | Tarea (EP-01) | [`historias/s01.md`](../historias/s01.md) | |
+| `LLM-S01-H01` · ADR de arquitectura | Tarea (EP-01) | [`historias/ep-01.md`](../historias/ep-01.md) · [tareas](../tareas/ep-01.md) | |
 | `LLM-S01-H02` · Entorno reproducible | Tarea (EP-01) | idem | |
 | `LLM-S01-H03` · Esqueleto transversal | Tarea (EP-01) | idem | |
 | `LLM-S01-H04` · Esquema versionado con auditoría | Tarea (EP-01) | idem | |
-| `LLM-S01-H05` · Alta de golden set y carga de entradas | **HU** (EP-03) | [template HU](../plantillas/historia-de-usuario-taiga.md) | |
+| `LLM-S01-H05` · Alta de golden set y carga de entradas | **HU** (EP-03) | [`historias/ep-03.md`](../historias/ep-03.md) · [tareas](../tareas/ep-03.md) | |
 | `LLM-S01-H06` · Consulta que sobrevive al reinicio | **HU** (EP-03) · **canónica** | idem | |
 | `LLM-S01-H07` · Pantalla docente mínima | **HU** (EP-03) | idem | |
-| `LLM-S01-H08` · Contrato OpenAPI y mock | Tarea (EP-01) | [`historias/s01.md`](../historias/s01.md) | |
+| `LLM-S01-H08` · Contrato OpenAPI y mock | Tarea (EP-01) | [`historias/ep-01.md`](../historias/ep-01.md) · [tareas](../tareas/ep-01.md) | |
 | `LLM-S01-H09` · Suite de pruebas y guía de demo | Tarea (EP-01) | idem | |
 
 > **H05–H07** se cargan como **HU** (rol real: docente; BDD camino feliz + 2 negativos;
@@ -186,7 +188,7 @@ La historia de referencia contra la que se estiman **todas** las demás del back
 - [ ] Repo remoto `tpi-llm` creado.
 - [ ] Ramas `main` y `develop` creadas.
 - [ ] Protección en ambas: **PR obligatorio**, **CI en verde** para mergear, **sin push
-  directo**, **sin force-push** ([GITFLOW](../GITFLOW.md), [flujo diario y Git](<../../Plan de ejecucion/05-flujo-diario-y-git.md>)).
+  directo**, **sin force-push** ([GITFLOW](../GITFLOW.md), [flujo diario y Git](../WORKFLOW_DIARIO.md)).
 - [ ] Las ramas `feature/sNN/llm-sNN-hNN-<slug>` **no** se crean en Sprint 0: nacen de
   `develop` al arrancar cada historia de S1.
 

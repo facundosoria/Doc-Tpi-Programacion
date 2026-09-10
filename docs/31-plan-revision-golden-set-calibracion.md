@@ -146,7 +146,7 @@ Los porcentajes se actualizan al cerrar tareas con criterio de aceptación cumpl
 - [x] **GS-0123** Corregir `llm-service/golden-set-calibration-demo.html`.
 - [x] **GS-0124** Revisar `Demos/Golden Set` y reemplazar los conceptos centrales de exámenes/correcciones por conversaciones/evaluaciones; queda incluida en la búsqueda final de consistencia.
 - [x] **GS-0125** Añadir una advertencia e índice visible para `docs/importado/`, sin alterar su contenido histórico.
-- [x] **GS-0126** Ejecutar una búsqueda global de términos prohibidos y clasificar cada coincidencia legítima o pendiente. Las referencias a solución esperada se conservan solo para la salvaguarda anti-fuga; las menciones al corrector LLM explicitan su exclusión; `docs/importado/` y `Plan de ejecucion/referencia/` son históricos.
+- [x] **GS-0126** Ejecutar una búsqueda global de términos prohibidos y clasificar cada coincidencia legítima o pendiente. Las referencias a solución esperada se conservan solo para la salvaguarda anti-fuga; las menciones al corrector LLM explicitan su exclusión; `docs/importado/` es histórico.
 
 **Criterio de salida:** ningún documento vigente afirma que el Golden Set calibra la corrección académica de exámenes o desafíos.
 
