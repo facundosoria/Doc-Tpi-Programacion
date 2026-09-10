@@ -2,43 +2,41 @@
 
 > Template oficial de Épica. Uso **obligatorio** para uniformidad del backlog.
 >
-> Copiar este contenido al crear una épica nueva. Reemplazar `GXX` por el número de
-> grupo/equipo y borrar los textos de ejemplo antes de publicar.
+> Copiar desde `# [GXX] — EP-0X: …` al crear la épica en el módulo **Epics** de Taiga.
+> Reemplazar `GXX` por el número de grupo/equipo y `EP-0X` por el identificador de la
+> épica; borrar los textos de ejemplo antes de publicar.
 >
-> Las épicas **no se estiman** ni se comprometen a un sprint: se cierran cuando todas
-> sus historias pasan la Definition of Done. El template de épica **no** usa
-> `Como / Quiero / Para` ni BDD.
-
----
-
-# Épica EP-0X — [NOMBRE]
-
-> Ficha en el formato del template oficial de Épica de la Wiki de Taiga. Copiar desde
-> `# [GXX] — EP-0X: …` al crear la épica en el módulo **Epics** de Taiga; reemplazar
-> `GXX` por el número de grupo. Catálogo y fuente de verdad: `backlog/backlog-ejecutable.md`.
+> **Qué NO lleva la ficha de épica:**
+> - No usa `Como / Quiero / Para` ni escenarios BDD — eso es exclusivo de las Historias
+>   de Usuario.
+> - No se estima en puntos Fibonacci ni se compromete a un sprint.
+> - No lleva prioridad **MoSCoW** ni checklist **INVEST**: son criterios de Historia de
+>   Usuario, no de épica. La épica se cierra cuando **todas sus historias** pasan la
+>   Definition of Done.
 >
-> | Campo | Valor |
-> |---|---|
-> | Pareja / equipo líder | **[P_ · nombre]** |
-> | Sprints donde aporta | **[S1, S3, …]** |
-> | Requisitos (orientativo) | [RF-* / PAR-*] |
-> | Historias iniciales | [`Sxx-H01` … o «a desglosar en el Refinamiento»] |
-> | Se cierra cuando | Todas sus historias cumplen la DoD; las épicas no se estiman ni se comprometen. |
+> El catálogo (pareja / equipo líder, sprints donde aporta, fase y requisitos que
+> cubre) vive **fuera de la ficha**, en el índice de épicas (`docs/epicas/README.md`) o
+> en el plan de sprints. Si un dato de la ficha no coincide con el catálogo, **manda el
+> catálogo**.
 
 ---
 
 # [GXX] — EP-0X: [TÍTULO DEL ÉPICO]
 
+> Ficha en el formato del template oficial de Épica de la Wiki de Taiga.
+> El catálogo (pareja líder, sprints donde aporta, fase y requisitos que cubre) vive en
+> `docs/epicas/README.md`; si un dato no coincide, **manda el catálogo**.
+
 ## Objetivo
 
-[1–2 líneas: qué valor de negocio / usuario entrega la épica. En términos observables,
-no de implementación.]
+[1–2 líneas: qué valor de negocio / usuario entrega la épica, en términos observables
+—específico y medible por los Criterios de Aceptación de abajo—. No describir la
+solución técnica, los componentes internos ni los pasos de implementación.]
 
 ## Suposiciones y Restricciones
 
 - **Suposiciones:** [lo que se da por cierto para que la épica tenga sentido]
-- **Restricciones (legales / técnicas / académicas):** [límites que acotan cómo puede
-  resolverse]
+- **Restricciones (legales / técnicas):** [límites que acotan cómo puede resolverse]
 
 ## Criterios de Aceptación a nivel Épico
 

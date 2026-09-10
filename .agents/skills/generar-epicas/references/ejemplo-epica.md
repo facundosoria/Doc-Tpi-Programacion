@@ -6,38 +6,27 @@ Contexto de entrada que aportó el equipo (resumido):
   programación.
 - **Fila del catálogo:** `EP-01 · Plataforma, contratos e integración · resultado que
   habilita: «el servicio arranca reproducible, expone /api/llm/** por Gateway, versiona
-  su esquema y publica contratos que los demás equipos consumen» · pareja P1 · sprints
-  S1, S3, S6, S10, S19 · RF-NFR-01/03/04/09/10; contratos v1`.
+  su esquema y publica contratos que los demás equipos consumen» · fase F1 · pareja P1 ·
+  sprints S1, S3, S6, S10, S19 · RF-NFR-01/03/04/09/10; contratos v1`.
 - **Grupo:** G07.
 
-Ficha generada (`ep-01.md`):
-
----
-
-# Épica EP-01 — Plataforma, contratos e integración
-
-> Ficha en el formato del template oficial de Épica de la Wiki de Taiga. Copiar desde
-> `# [G07] — EP-01: …` al crear la épica en Taiga. Catálogo y fuente de verdad:
-> `backlog/backlog-ejecutable.md`.
->
-> | Campo | Valor |
-> |---|---|
-> | Pareja / equipo líder | **P1 · Plataforma e integración** |
-> | Sprints donde aporta | **S1, S3, S6, S10, S19** |
-> | Requisitos (orientativo) | RF-NFR-01/03/04/09/10; contratos v1 |
-> | Historias iniciales | `LLM-S01-H01` a `H04`, `H08`, `H09` |
-> | Se cierra cuando | Todas sus historias cumplen la DoD; las épicas no se estiman ni se comprometen. |
+La pareja, los sprints, la fase y los requisitos **no** entran en la ficha: van en el
+catálogo (`docs/epicas/README.md`). La ficha generada (`ep-01.md`) es solo el heading,
+un puntero al catálogo y las cuatro secciones:
 
 ---
 
 # [G07] — EP-01: Plataforma, contratos e integración
 
+> Ficha en el formato del [template oficial de Épica de la Wiki de Taiga](../plantillas/epica-taiga.md).
+> El catálogo (pareja líder, sprints donde aporta, fase y requisitos que cubre) vive en
+> [`docs/epicas/README.md`](README.md); si un dato no coincide, **manda el catálogo**.
+
 ## Objetivo
 
-Que el `llm-service` sea una base operable para el resto de la plataforma: arranca de
-forma reproducible, se expone únicamente a través del Gateway en `/api/llm/**`, versiona
-su esquema de datos con auditoría y publica contratos estables que los demás equipos
-pueden consumir antes de que existan las funciones de IA.
+Que los demás equipos puedan integrarse con el `llm-service` desde el primer sprint
+contra un contrato estable, y que todo dato académico quede registrado de forma
+reproducible y sin pérdida, antes de que existan las funciones de IA.
 
 ## Suposiciones y Restricciones
 
@@ -46,7 +35,7 @@ pueden consumir antes de que existan las funciones de IA.
     provee la plataforma y están disponibles en el ambiente integrado.
   - Cada equipo consumidor integra contra el contrato publicado, no contra la
     implementación.
-- **Restricciones (legales / técnicas / académicas):**
+- **Restricciones (legales / técnicas):**
   - Stack fijado por la cátedra: Java 21, Spring Boot 3 / Maven.
   - El paquete `domain` no puede depender de framework ni de SDKs de proveedores.
   - El dato académico es *append-only*: sin edición destructiva a nivel base.
@@ -83,11 +72,14 @@ pueden consumir antes de que existan las funciones de IA.
 
 ## Por qué queda así
 
-- El **Objetivo** reformula la columna «resultado que habilita» en prosa de valor, sin
-  nombres de clases ni pasos de implementación.
+- El **Objetivo** reformula la columna «resultado que habilita» en prosa de valor: qué
+  ganan los otros equipos y el dato académico. Una sola oración, ~2 renglones, sin
+  nombrar `outbox`, `OpenAPI` ni módulos: eso vive en las secciones de abajo.
+- **No** hay bloque `| Campo | Valor |`: pareja, sprints, fase y requisitos están en el
+  catálogo (`docs/epicas/README.md`), que es la fuente. La ficha solo apunta a él.
 - **No** hay `Como/Quiero/Para` ni escenarios BDD: eso vive en las historias `S01-H01…`.
-- **No** hay puntos ni «se compromete en S1»: la épica se cierra cuando H01–H04, H08 y
-  H09 (y las de sprints posteriores) pasan la DoD.
+- **No** hay puntos, ni MoSCoW, ni INVEST, ni «se compromete en S1»: la épica se cierra
+  cuando H01–H04, H08 y H09 (y las de sprints posteriores) pasan la DoD.
 - Los **CA a nivel épico** hablan del **conjunto** (flujo e2e, migración reproducible,
   contrato + mock, no-regresión del borde), no de un criterio puntual de una historia.
 - Lo que el equipo no fijó (KPIs numéricos) no se inventó: se ató a condiciones

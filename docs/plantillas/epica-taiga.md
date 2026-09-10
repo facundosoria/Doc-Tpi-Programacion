@@ -8,12 +8,18 @@
 > el número de grupo asignado por la cátedra y borrar los textos de ejemplo antes de
 > publicar.
 >
-> El catálogo de épicas del equipo (EP-01…EP-10, con prioridad de pareja, sprints y
-> requisitos que cubre) está en
-> [`Plan de ejecucion/07-backlog-ejecutable-sprints.md`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>);
-> esta plantilla es el **formato de presentación** de cada una en Taiga. Las épicas no
-> se estiman ni se comprometen: se cierran cuando todas sus historias pasan la DoD
-> ([23 · §9.2](../23-plan-construccion-producto-llm.md)).
+> El catálogo de épicas del equipo (EP-01…EP-10, con pareja líder, sprints donde aporta,
+> fase y requisitos que cubre) está en
+> [`Plan de ejecucion/07-backlog-ejecutable-sprints.md`](<../../Plan de ejecucion/07-backlog-ejecutable-sprints.md>)
+> y en el índice [`epicas/README.md`](../epicas/README.md); esta plantilla es el
+> **formato de presentación** de cada una en Taiga y **no** repite esos datos (sin bloque
+> `| Campo | Valor |`).
+>
+> Las épicas no se estiman ni se comprometen: se cierran cuando todas sus historias pasan
+> la DoD ([23 · §9.2](../23-plan-construccion-producto-llm.md)). **No llevan prioridad
+> MoSCoW, ni checklist INVEST, ni puntos Fibonacci** — son criterios de Historia de
+> Usuario ([29 · §3 y §6](../29-guia-catedra-historias-de-usuario.md)). La prioridad de
+> una épica es su **fase (F1/F2/F3) + sprint**, y vive en el catálogo.
 
 ---
 

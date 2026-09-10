@@ -14,13 +14,19 @@ Material fijo. Cómo se entiende y se redacta una épica en este esquema de trab
   es exclusivo de las Historias de Usuario. (Algunas guías generales dicen que una épica
   es «una HU demasiado grande» y por eso admitiría el formato; para la carga en Taiga
   manda el template oficial, que no lo usa.)
+- **MoSCoW, INVEST y puntos Fibonacci son criterios de Historia de Usuario, no de
+  épica**: no van en la ficha. La priorización a nivel épica es **fase (F1/F2/F3) +
+  sprint** y vive en el catálogo.
 - Cada historia `Sxx-Hyy` pertenece a **una sola** épica.
 
 ## Apartados de la ficha
 
+La ficha es: una línea de heading `# [GXX] — EP-0X: NOMBRE`, un blockquote corto que
+apunta al catálogo, y **estas cuatro secciones** — nada más. Sin bloque `| Campo | Valor |`.
+
 | Apartado | Qué poner |
 |---|---|
-| **Objetivo** | 1–2 líneas: qué **valor** de negocio / usuario entrega la épica, en términos observables. No solución técnica. |
+| **Objetivo** | 1–2 líneas (que entren en ~2 renglones): qué **valor** de negocio / usuario entrega la épica, en términos observables —específico y medible por los CA de abajo—. No solución técnica: sin nombres de componentes internos ni pasos de implementación. |
 | **Suposiciones y Restricciones** | Suposiciones = lo que se da por cierto para que la épica tenga sentido. Restricciones = límites legales / técnicos / académicos que acotan *cómo* puede resolverse. |
 | **Criterios de Aceptación a nivel épico** | El **cierre observable del conjunto**, no de una historia: el conjunto mínimo de historias permite un flujo extremo a extremo (nombrarlo); KPIs / umbrales iniciales; sin regresiones críticas en las áreas que toca; observabilidad y alertas donde aplique; documentación de uso y operación publicada. Ajustar a la épica: borrar lo que no aplique. |
 | **Dependencias / Impactos** | Servicios / APIs, módulos afectados, otros equipos, impacto en datos / migraciones, feature flags (sí/no + plan de retiro). |
@@ -33,14 +39,17 @@ Material fijo. Cómo se entiende y se redacta una épica en este esquema de trab
    sentido de producto sin la otra, son **una** épica. Apuntar a un número manejable
    (típico 6–12 para un producto entero).
 3. Para cada épica: nombre, «resultado que habilita» (→ *Objetivo*), pareja/equipo
-   responsable, sprints en que vive, requisitos que cubre (orientativo).
-4. El **catálogo** (esa tabla) es la fuente; las fichas son su formato de presentación.
-   Si un dato de la ficha no coincide con el catálogo, manda el catálogo.
+   responsable, **fase**, sprints en que vive, requisitos que cubre (orientativo).
+4. El **catálogo** (esa tabla, con columna Fase) es la fuente y el **único lugar** donde
+   viven pareja/sprints/fase/requisitos; las fichas son su formato de presentación y no
+   los repiten. Si un dato de la ficha no coincide con el catálogo, manda el catálogo.
 
 ## Reglas de oro
 
-- Objetivo = valor, no implementación.
-- Sin Como/Quiero/Para, sin BDD, sin puntos, sin sprint comprometido en la ficha.
+- Objetivo = valor observable, no implementación; entra en ~2 renglones.
+- Sin Como/Quiero/Para, sin BDD, sin puntos, sin MoSCoW, sin INVEST, sin sprint
+  comprometido en la ficha.
+- La ficha no lleva bloque de metadata: pareja/sprints/fase/requisitos van en el catálogo.
 - CA a nivel épico = del **conjunto** (flujo e2e, KPIs, no-regresión).
 - No inventar KPIs, requisitos ni dependencias: lo desconocido se marca `*(a definir)*`.
 - Numeración estable: una épica no se renumera; si se descarta, su número no se reutiliza.

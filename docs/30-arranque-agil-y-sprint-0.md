@@ -213,9 +213,14 @@ DoD.
 | **EP-10** | Personalización y agente (F3) | El alumno resuelve desafíos personalizados y menciona a `@agente`, con efectos idempotentes y salida moderada | P5 + P4 + P3 | S17–S18 |
 
 > **En Taiga** cada épica se carga con el [template oficial](plantillas/epica-taiga.md):
-> *Objetivo* (columna de arriba), *Suposiciones y Restricciones*, *Criterios de Aceptación a
-> nivel épico* y *Dependencias / Impactos* (arrancan de [23 · §8](23-plan-construccion-producto-llm.md)).
-> El template de épica **no** usa Como / Quiero / Para ni BDD.
+> solo heading + *Objetivo* (columna de arriba, 1–2 líneas de valor observable),
+> *Suposiciones y Restricciones*, *Criterios de Aceptación a nivel épico* y
+> *Dependencias / Impactos* (arrancan de [23 · §8](23-plan-construccion-producto-llm.md)).
+> El template de épica **no** usa Como / Quiero / Para ni BDD, **ni prioridad MoSCoW, ni
+> checklist INVEST, ni puntos Fibonacci** — todo eso es de las Historias de Usuario. La
+> prioridad de una épica es su **fase (F1/F2/F3) + sprint**, en la tabla de arriba, no en
+> la ficha. Pareja, sprints, fase y requisitos viven en el catálogo
+> ([`epicas/README.md`](epicas/README.md)), no en la ficha de Taiga.
 
 ---
 
