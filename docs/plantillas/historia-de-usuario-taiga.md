@@ -17,16 +17,30 @@
 >
 > Cómo se redacta y estima cada apartado (3C, COMO/QUIERO/PARA, escenarios BDD,
 > INVEST, Planning Poker): [29 · Guía de cátedra: Historias de Usuario](../29-guia-catedra-historias-de-usuario.md).
+>
+> **Formato fijo de la ficha:**
+> - Encabezado `# GXX — <título>` (sin corchetes, sin el ID `LLM-Sxx-Hyy`; el ID interno
+>   se usa como ancla en el documento de historias del sprint, no en el título de Taiga).
+> - Un separador `---` en línea propia **entre cada sección** `##` (también entre el
+>   encabezado y la primera sección). Los `### Escenario N` del BDD **no** se separan.
+> - Los Criterios de Aceptación como lista de tildar `- [ ]`.
+> - **Al pegar en Taiga:** los criterios van una línea por ítem y sin `code` inline — el
+>   renderer de Taiga en modo lectura descoloca las tildas si el ítem trae `code` o listas
+>   anidadas.
 
 ---
 
-# [GXX] — [TÍTULO DE LA HISTORIA DE USUARIO]
+# GXX — [TÍTULO DE LA HISTORIA DE USUARIO]
+
+---
 
 ## Descripción (Como / Quiero / Para)
 
 - **Como:** [ROL]
 - **Quiero:** [FUNCIONALIDAD DESEADA]
 - **Para:** [PROPÓSITO / VALOR ENTREGADO]
+
+---
 
 ## Notas / Observaciones
 
@@ -38,17 +52,21 @@
 - **Accesibilidad (WCAG / teclado / lectores):** [DETALLAR]
 - **Otros:** [DETALLAR]
 
+---
+
 ## Criterios de Aceptación (CA)
 
-- **CA1:** [CONDICIÓN MEDIBLE Y OBJETIVA]
-- **CA2:** [CONDICIÓN MEDIBLE Y OBJETIVA]
-- **CA3:** [CONDICIÓN MEDIBLE Y OBJETIVA]
-- **Extras (opcional):** [CONDICIÓN MEDIBLE Y OBJETIVA]
+- [ ] **CA1:** [CONDICIÓN MEDIBLE Y OBJETIVA]
+- [ ] **CA2:** [CONDICIÓN MEDIBLE Y OBJETIVA]
+- [ ] **CA3:** [CONDICIÓN MEDIBLE Y OBJETIVA]
+- [ ] **Extras (opcional):** [CONDICIÓN MEDIBLE Y OBJETIVA]
 
 > Incluir siempre los criterios **negativos** (no autorizado, entrada inválida,
 > duplicado, dependencia caída), no solo el camino feliz.
 
-## BDD (mínimo 3 escenarios)
+---
+
+## BDD
 
 **Característica:** [NOMBRE / OBJETIVO DE LA FUNCIONALIDAD]
 
@@ -70,12 +88,16 @@
 - **Cuando:** [acción]
 - **Entonces:** [resultado]
 
+---
+
 ## Prototipo
 
 - **Capturas:** [PEGAR AQUÍ]
 - **URL Figma:** [https://...]
 - **Storybook:** [https://...]
 - **Mock API / Swagger:** `[GET /api/...]`, `[POST /api/...]`
+
+---
 
 ## Estimación / Prioridad
 
@@ -89,6 +111,8 @@
 | Puntos (Fibonacci) | Prioridad (MoSCoW / Numérica) |
 |---|---|
 | [1 / 2 / 3 / 5 / 8 / 13] | [Must / Should / Could / Won't] o [1..5] |
+
+---
 
 ## Dependencias / Impactos
 

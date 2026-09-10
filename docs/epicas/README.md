@@ -5,9 +5,8 @@
 > Taiga](../plantillas/epica-taiga.md): *Objetivo*, *Suposiciones y Restricciones*,
 > *Criterios de Aceptación a nivel Épico* y *Dependencias / Impactos*.
 >
-> **Cómo se usan.** Copiar cada archivo a partir de `# [GXX] — EP-0X: …` al crear la épica
-> en el módulo **Epics** de Taiga. Reemplazar `GXX` por el número de grupo asignado por la
-> cátedra (`G01`, `G02`, …) y borrar los textos de ejemplo antes de publicar.
+> **Cómo se usan.** Copiar cada archivo a partir de `# G03 — …` al crear la épica
+> en el módulo **Epics** de Taiga y borrar los textos de ejemplo antes de publicar.
 >
 > **Fuente de verdad.** El catálogo maestro (resultado que habilita, pareja líder,
 > sprints, requisitos) vive en
@@ -67,7 +66,7 @@ no en la ficha. Si un dato de una ficha no coincide con esta tabla, **manda la t
 
 | Sprint | Épicas activas | Historias | Fichas de HU |
 |---|---|---|---|
-| **S1** | EP-01 (H01–H04, H08, H09) · EP-03 (H05–H07) | 9 | [`historias/s01.md`](../historias/s01.md) |
+| **S1** | EP-01 (H01–H04, H08, H09) · EP-03 (H05–H07) | 9 | [`historias/ep-01.md`](../historias/ep-01.md) · [`historias/ep-03.md`](../historias/ep-03.md) |
 | **S2** | EP-03 | *(a desglosar en el Refinamiento previo a S2)* | — |
 | **S3–S19** | ver catálogo | *(a desglosar sprint a sprint)* | — |
 
