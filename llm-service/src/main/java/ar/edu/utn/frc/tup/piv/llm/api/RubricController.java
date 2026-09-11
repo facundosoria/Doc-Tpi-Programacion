@@ -5,6 +5,9 @@ import ar.edu.utn.frc.tup.piv.llm.application.RubricPublicationService;
 import ar.edu.utn.frc.tup.piv.llm.security.CourseAuthorization;
 import ar.edu.utn.frc.tup.piv.llm.security.GoldenSetAuthorization;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import java.util.List;
 import java.util.UUID;
 import org.springframework.http.HttpHeaders;
@@ -49,11 +52,15 @@ public class RubricController {
 
   @PostMapping
   public ResponseEntity<RubricDraftService.RubricVersion> create(@PathVariable UUID courseId,
-      @Valid @RequestBody RubricDraftService.RubricInput input, @RequestHeader HttpHeaders headers) {
+      @Valid @RequestBody CreateFromTemplateRequest input, @RequestHeader HttpHeaders headers) {
     var actor = authorize(courseId, headers);
-    var created = draftService.create(courseId, input, actor);
+    var created = draftService.createFromTemplate(courseId, input.templateVersionId(), input.name(), actor);
     return ResponseEntity.created(java.net.URI.create("/api/llm/courses/" + courseId + "/rubrics/" + created.id())).body(created);
   }
+
+  public record CreateFromTemplateRequest(
+      @NotNull UUID templateVersionId,
+      @NotBlank @Size(max = 160) String name) {}
 
   @PatchMapping("/{versionId}")
   public RubricDraftService.RubricVersion autosave(@PathVariable UUID courseId, @PathVariable UUID versionId,

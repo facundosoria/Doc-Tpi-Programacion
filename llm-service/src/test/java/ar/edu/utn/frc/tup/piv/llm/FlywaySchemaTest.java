@@ -35,7 +35,7 @@ class FlywaySchemaTest {
         UUID rubricFamilyId = UUID.randomUUID();
         UUID rubricVersionId = UUID.randomUUID();
         statement.executeUpdate("insert into llm.rubric_families (id, scope, course_id, name, created_by_user_id) values ('" + rubricFamilyId + "', 'COURSE', '" + courseId + "', 'Rúbrica curso', '" + actorId + "')");
-        statement.executeUpdate("insert into llm.rubric_version_v2 (id, family_id, version_no, state, created_by_user_id, published_at) values ('" + rubricVersionId + "', '" + rubricFamilyId + "', 1, 'PUBLISHED', '" + actorId + "', now())");
+        statement.executeUpdate("insert into llm.rubric_version_v2 (id, family_id, version_no, name, state, created_by_user_id, published_at) values ('" + rubricVersionId + "', '" + rubricFamilyId + "', 1, 'Rúbrica curso', 'PUBLISHED', '" + actorId + "', now())");
         assertThatThrownBy(() -> statement.executeUpdate("update llm.rubric_version_v2 set revision = 2 where id = '" + rubricVersionId + "'"))
             .isInstanceOf(SQLException.class);
 

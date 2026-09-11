@@ -17,7 +17,7 @@ class RubricVersioningServiceTest {
   @Test void createsASeparateDraftFromAPublishedVersion() {
     var repository = mock(RubricVersionRepository.class); var service = new RubricDraftService(repository);
     UUID course = UUID.randomUUID(), published = UUID.randomUUID(), draft = UUID.randomUUID(), family = UUID.randomUUID(), user = UUID.randomUUID();
-    RubricVersion newDraft = new RubricVersion(draft, family, 2, "Rúbrica", "DRAFT", 1, List.of());
+    RubricVersion newDraft = new RubricVersion(draft, family, 2, "Rúbrica", "DRAFT", 1, null, List.of());
     when(repository.createNextDraft(course, published, user)).thenReturn(Optional.of(newDraft));
 
     assertThat(service.createNextVersion(course, published, new CallerIdentity("gateway", user, null, null))).isEqualTo(newDraft);

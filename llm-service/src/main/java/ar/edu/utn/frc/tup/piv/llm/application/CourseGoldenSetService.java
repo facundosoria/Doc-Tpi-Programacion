@@ -4,6 +4,7 @@ import ar.edu.utn.frc.tup.piv.llm.domain.RealCaseAnonymizer;
 import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.AuditRepository;
 import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.CourseGoldenSetRepository;
 import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.CourseGoldenSetRepository.CourseGoldenSetVersion;
+import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.CourseGoldenSetRepository.GoldenSetDetail;
 import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.CourseGoldenSetRepository.CourseGoldenSetView;
 import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.CourseGoldenSetRepository.GoldenSetCaseInput;
 import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.CourseGoldenSetRepository.GoldenSetCaseSummary;
@@ -52,19 +53,32 @@ public class CourseGoldenSetService {
   }
 
   @Transactional
-  public GoldenSetCaseSummary addCase(UUID courseId, UUID versionId, GoldenSetCaseInput input) {
+  public GoldenSetCaseSummary addCase(UUID courseId, UUID versionId, GoldenSetCaseInput input, CallerIdentity actor) {
     validateScores(input.referenceScores());
+    if (goldenSets.countCases(versionId) >= 5) {
+      throw new GoldenSetSizeException("Un Golden Set admite como máximo cinco casos");
+    }
     GoldenSetCaseInput sanitized = new GoldenSetCaseInput(
         RealCaseAnonymizer.anonymize(input.transcript()),
         input.challengeContext(),
         input.metadata() != null ? RealCaseAnonymizer.anonymize(input.metadata()) : input.metadata(),
-        input.author(), input.referenceScores(), input.scoreJustifications());
+        actor == null ? input.author() : actor.delegatedUserId().toString(), input.referenceScores(), input.scoreJustifications());
     return goldenSets.addDraftCase(courseId, versionId, sanitized)
         .orElseThrow(() -> new IllegalStateException("El caso sólo puede crearse en un Golden Set borrador del curso"));
   }
 
+  /** Compatibility entry point for existing application callers; HTTP requests always provide an actor. */
+  @Transactional
+  public GoldenSetCaseSummary addCase(UUID courseId, UUID versionId, GoldenSetCaseInput input) {
+    return addCase(courseId, versionId, input, null);
+  }
+
   @Transactional
   public void publish(UUID courseId, UUID versionId, CallerIdentity actor) {
+    int cases = goldenSets.countCases(versionId);
+    if (cases < 3 || cases > 5) {
+      throw new GoldenSetSizeException("Para publicar el Golden Set necesitás entre tres y cinco casos");
+    }
     if (!goldenSets.publishDraft(courseId, versionId)) {
       throw new IllegalStateException("El Golden Set no existe en el curso o ya no es un borrador");
     }
@@ -72,6 +86,24 @@ public class CourseGoldenSetService {
       audit.record("golden_set.published", "golden-set-version", versionId, actor,
           "{\"courseId\":\"" + courseId + "\"}");
     }
+  }
+
+  @Transactional(readOnly = true)
+  public GoldenSetDetail get(UUID courseId, UUID versionId) {
+    return goldenSets.findDetail(courseId, versionId)
+        .orElseThrow(() -> new IllegalStateException("El Golden Set no existe en el curso"));
+  }
+
+  @Transactional
+  public GoldenSetCaseSummary updateCase(UUID courseId, UUID versionId, UUID caseId, GoldenSetCaseInput input,
+      CallerIdentity actor) {
+    validateScores(input.referenceScores());
+    GoldenSetCaseInput sanitized = new GoldenSetCaseInput(
+        RealCaseAnonymizer.anonymize(input.transcript()), input.challengeContext(),
+        input.metadata() != null ? RealCaseAnonymizer.anonymize(input.metadata()) : input.metadata(),
+        actor.delegatedUserId().toString(), input.referenceScores(), input.scoreJustifications());
+    return goldenSets.updateDraftCase(courseId, versionId, caseId, sanitized)
+        .orElseThrow(() -> new IllegalStateException("El caso sólo puede editarse en un Golden Set borrador del curso"));
   }
 
   @Transactional
@@ -94,5 +126,9 @@ public class CourseGoldenSetService {
         throw new IllegalArgumentException("Las cinco puntuaciones deben estar entre 0 y 100");
       }
     }
+  }
+
+  public static class GoldenSetSizeException extends RuntimeException {
+    public GoldenSetSizeException(String message) { super(message); }
   }
 }

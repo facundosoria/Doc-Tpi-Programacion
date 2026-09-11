@@ -17,6 +17,7 @@ services:
       SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/llm
       SPRING_DATASOURCE_USERNAME: llm
       SPRING_DATASOURCE_PASSWORD: llm
+      LLM_CREDENTIALS_MASTER_KEY: ${LLM_CREDENTIALS_MASTER_KEY:?Set a base64-encoded 32-byte AES key before starting llm-service}
     depends_on:
       postgres:
         condition: service_healthy

@@ -22,12 +22,13 @@ class RubricDraftServiceTest {
     var repository = mock(RubricVersionRepository.class); var service = new RubricDraftService(repository);
     UUID course = UUID.randomUUID(), version = UUID.randomUUID(), family = UUID.randomUUID(); RubricInput input = input();
     when(repository.advanceRevision(course, version, 3)).thenReturn(true);
-    RubricVersion saved = new RubricVersion(version, family, 1, "Rúbrica", "DRAFT", 4, input.dimensions());
+    RubricVersion saved = new RubricVersion(version, family, 1, "Rúbrica", "DRAFT", 4, null, input.dimensions());
     when(repository.find(course, version)).thenReturn(java.util.Optional.of(saved));
 
     assertThat(service.autosave(course, version, 3, input, new CallerIdentity("gateway", UUID.randomUUID(), null, null)).revision()).isEqualTo(4);
     var order = org.mockito.Mockito.inOrder(repository);
     order.verify(repository).advanceRevision(course, version, 3);
+    order.verify(repository).updateVersionName(course, version, input.name());
     order.verify(repository).replaceDimensions(version, input.dimensions());
   }
   @Test void rejectsStaleAutosaveWithoutModifyingDimensions() {
@@ -37,9 +38,23 @@ class RubricDraftServiceTest {
         .isInstanceOf(RubricDraftService.OptimisticLockException.class);
     verify(repository, never()).replaceDimensions(org.mockito.ArgumentMatchers.any(), org.mockito.ArgumentMatchers.any());
   }
+  @Test void createsCourseRubricWithTheTitleChosenByTheTeacher() {
+    var repository = mock(RubricVersionRepository.class); var service = new RubricDraftService(repository);
+    UUID course = UUID.randomUUID(), template = UUID.randomUUID(), version = UUID.randomUUID(), family = UUID.randomUUID();
+    var actor = new CallerIdentity("gateway", UUID.randomUUID(), null, null);
+    var created = new RubricVersion(version, family, 1, "Evaluación de depuración", "DRAFT", 1, template, input().dimensions());
+    when(repository.createDraftFromPublishedTemplate(course, template, "Evaluación de depuración", actor.delegatedUserId())).thenReturn(java.util.Optional.of(created));
+
+    assertThat(service.createFromTemplate(course, template, "  Evaluación de depuración  ", actor).name()).isEqualTo("Evaluación de depuración");
+    verify(repository).createDraftFromPublishedTemplate(course, template, "Evaluación de depuración", actor.delegatedUserId());
+  }
   private RubricInput input() {
     return new RubricInput("Rúbrica", List.of(
         dimension(Dimension.AUTONOMY), dimension(Dimension.CLARITY), dimension(Dimension.PROGRESSION), dimension(Dimension.COMPLIANCE), dimension(Dimension.EFFICIENCY)));
   }
-  private DimensionInput dimension(Dimension key) { return new DimensionInput(key, key.name(), "criterio", "{}", "prompt", BigDecimal.valueOf(20)); }
+  private DimensionInput dimension(Dimension key) { return new DimensionInput(key, key.name(), "criterio", anchors(), BigDecimal.valueOf(20)); }
+  private RubricDraftService.Anchors anchors() { return new RubricDraftService.Anchors(
+      new RubricDraftService.Anchor("bajo", 25, "ejemplo bajo"),
+      new RubricDraftService.Anchor("medio", 60, "ejemplo medio"),
+      new RubricDraftService.Anchor("alto", 90, "ejemplo alto")); }
 }
