@@ -12,7 +12,7 @@
 > |---|---|
 > | Checklist de Sprint 0 | [`35` · «Sprint 0»](../35-backlog-ejecutable.md) y [30 · §1](../30-arranque-agil-y-sprint-0.md) |
 > | DoR / DoD | [23 · §9.2](../23-plan-construccion-producto-llm.md) |
-> | Cálculo de capacidad | [23 · §2](../23-plan-construccion-producto-llm.md) / [30 · §3](../30-arranque-agil-y-sprint-0.md) |
+> | Cálculo de capacidad | [`capacidad-sprints.md`](capacidad-sprints.md) · [23 · §2](../23-plan-construccion-producto-llm.md) / [30 · §3](../30-arranque-agil-y-sprint-0.md) |
 > | Recetas de construcción S1–S19 | [`35`](../35-backlog-ejecutable.md) |
 > | Épicas | [`../epicas/`](../epicas/README.md) |
 > | Fichas de historias (por épica) | [`../historias/`](../historias/README.md) |
@@ -30,6 +30,7 @@
 
 ## Regla de nombrado
 
+- `capacidad-sprints.md` — modelo de cálculo de capacidad del equipo y auditoría de la planilla.
 - `sprint-0.md` — arranque (documento propio, **no** usa la plantilla de sprint).
 - `s1.md`, `s2.md`, … — el **registro** de un sprint (Planning / ejecución / cierre), copia
   de [`plantillas/sprint-llm.md`](../plantillas/sprint-llm.md). Nace en la Planning.
