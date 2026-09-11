@@ -22,17 +22,23 @@ Material fijo. Cómo se entiende y se redacta una épica en este esquema de trab
 ## Apartados de la ficha
 
 La ficha es: una línea de heading `# GXX — NOMBRE` (sin corchetes, sin prefijo `EP-0X:`;
-el número de épica vive en el catálogo y en el nombre de archivo), un blockquote corto
-que apunta al catálogo, un separador `---` en línea propia **entre cada sección** (y
-entre el encabezado y la primera), y **estas cuatro secciones** — nada más. Sin bloque
-`| Campo | Valor |`.
+el número de épica vive en el catálogo y en el nombre de archivo), **sin blockquote de
+presentación** (va directo al contenido, no se referencia a sí misma ni a otro doc), un
+separador `---` en línea propia **entre cada sección** (y entre el encabezado y la
+primera), y **estas cuatro secciones** — nada más. Sin bloque `| Campo | Valor |`.
 
 | Apartado | Qué poner |
 |---|---|
 | **Objetivo** | 1–2 líneas (que entren en ~2 renglones): qué **valor** de negocio / usuario entrega la épica, en términos observables —específico y medible por los CA de abajo—. No solución técnica: sin nombres de componentes internos ni pasos de implementación. |
-| **Suposiciones y Restricciones** | Suposiciones = lo que se da por cierto para que la épica tenga sentido. Restricciones = límites legales / técnicos / académicos que acotan *cómo* puede resolverse. |
-| **Criterios de Aceptación a nivel épico** | Lista de tildar (`- [ ]`). El **cierre observable del conjunto**, no de una historia: el conjunto mínimo de historias permite un flujo extremo a extremo (nombrarlo); KPIs / umbrales iniciales; sin regresiones críticas en las áreas que toca; observabilidad y alertas donde aplique; documentación de uso y operación publicada. Ajustar a la épica: borrar lo que no aplique. Al pegar en Taiga: una línea por ítem, sin `code` inline ni sub-viñetas. |
-| **Dependencias / Impactos** | Servicios / APIs, módulos afectados, otros equipos, impacto en datos / migraciones, feature flags (sí/no + plan de retiro). |
+| **Suposiciones y Restricciones** | Suposiciones = lo que se da por cierto para que la épica tenga sentido. Restricciones = límites legales / técnicos / académicos que acotan *cómo* puede resolverse. En lenguaje llano: el efecto o la regla («los datos académicos no se editan una vez guardados»), no el mecanismo interno — sin headers HTTP, versiones de framework, RFCs ni nombres de tabla/columna. |
+| **Criterios de Aceptación a nivel épico** | Lista de tildar (`- [ ]`). El **cierre observable del conjunto**, no de una historia: el conjunto mínimo de historias permite un flujo extremo a extremo (nombrarlo); KPIs / umbrales iniciales; sin regresiones críticas en las áreas que toca; observabilidad y alertas donde aplique; documentación de uso y operación publicada. Ajustar a la épica: borrar lo que no aplique. Pocos criterios pero esenciales, en lenguaje llano (el efecto, no el mecanismo interno) — no agotar cada métrica posible. Al pegar en Taiga: una línea por ítem, sin `code` inline ni sub-viñetas. |
+| **Dependencias / Impactos** | Servicios / APIs, módulos afectados, otros equipos, impacto en datos / migraciones, feature flags (sí/no + plan de retiro). Nombrar por función («la base de datos», «el equipo de Gateway»), no por paquete o librería interna. |
+
+**Reglas transversales a las 4 secciones:** nada de jerga técnica fuera del
+Objetivo (sin nombres de paquete/clase, headers, versión de framework, RFC ni ruta de
+archivo — importa el efecto, no la implementación) y sin citar ni referenciar
+documentos del repo dentro del cuerpo (`doc NN`, rutas `docs/...`, ni el catálogo): la
+ficha no se presenta ni apunta a nada más, se entiende sola.
 
 ## De alcance de producto a catálogo de épicas
 
@@ -49,6 +55,12 @@ entre el encabezado y la primera), y **estas cuatro secciones** — nada más. S
 
 ## Reglas de oro
 
+- Lenguaje llano en las 4 secciones, no solo en el Objetivo — el detalle técnico
+  (paquetes, headers, versión de framework) vive en la documentación técnica del
+  servicio, no en la ficha de épica.
+- Sin referencias a documentos del repo dentro del cuerpo (`doc NN`, rutas `docs/...`)
+  y sin blockquote de encabezado: la ficha no se presenta ni apunta a otro doc.
+- Criterios de Aceptación: pocos pero esenciales, cada uno específico y medible.
 - Objetivo = valor observable, no implementación; entra en ~2 renglones.
 - Encabezado `# GXX — <título>`: sin corchetes, sin `EP-0X:`. Separador `---` entre cada
   sección. Criterios de Aceptación como lista `- [ ]`.

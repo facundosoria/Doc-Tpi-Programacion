@@ -9,6 +9,8 @@
 >
 > **Formato fijo de la ficha:**
 > - Encabezado `# GXX — <título>` (sin corchetes, sin prefijo `EP-0X:`).
+> - **Sin blockquote de encabezado**: después del título va directo un `---` y la
+>   primera sección — la ficha no se presenta ni apunta a otro doc, se entiende sola.
 > - Un separador `---` en línea propia entre cada sección (también entre el encabezado y
 >   la primera sección).
 > - Los Criterios de Aceptación como lista de tildar `- [ ]`.
@@ -20,6 +22,12 @@
 > - No lleva prioridad **MoSCoW** ni checklist **INVEST**: son criterios de Historia de
 >   Usuario, no de épica. La épica se cierra cuando **todas sus historias** pasan la
 >   Definition of Done.
+> - No lleva jerga técnica en ninguna sección (no solo en el Objetivo): sin nombres de
+>   paquete/clase, headers HTTP, versiones de framework, RFCs ni rutas de archivo —
+>   importa el efecto, no la implementación. Ese detalle sigue viviendo en la
+>   documentación técnica del servicio.
+> - No cita documentos del repo dentro del cuerpo (`doc NN`, rutas `docs/...`): la
+>   ficha no referencia ningún otro doc, ni siquiera al catálogo.
 >
 > El catálogo (pareja / equipo líder, sprints donde aporta, fase y requisitos que
 > cubre) vive **fuera de la ficha**, en el índice de épicas (`docs/epicas/README.md`) o
@@ -35,10 +43,6 @@
 
 # GXX — [TÍTULO DEL ÉPICO]
 
-> Ficha en el formato del template oficial de Épica de la Wiki de Taiga.
-> El catálogo (pareja líder, sprints donde aporta, fase y requisitos que cubre) vive en
-> `docs/epicas/README.md`; si un dato no coincide, **manda el catálogo**.
-
 ---
 
 ## Objetivo
@@ -51,8 +55,10 @@ solución técnica, los componentes internos ni los pasos de implementación.]
 
 ## Suposiciones y Restricciones
 
-- **Suposiciones:** [lo que se da por cierto para que la épica tenga sentido]
-- **Restricciones (legales / técnicas):** [límites que acotan cómo puede resolverse]
+- **Suposiciones:** [lo que se da por cierto para que la épica tenga sentido — en
+  lenguaje llano, el efecto o la regla, no el mecanismo interno]
+- **Restricciones (legales / técnicas):** [límites que acotan cómo puede resolverse —
+  igual: sin nombres de header, framework, RFC ni tabla/columna]
 
 ---
 
@@ -65,14 +71,15 @@ solución técnica, los componentes internos ni los pasos de implementación.]
 - [ ] Documentación de uso y operación publicada.
 
 > Ajustar la lista a la épica concreta: borrar lo que no aplique, no dejar ítems de
-> relleno.
+> relleno. Preferir pocos criterios pero esenciales, en lenguaje llano (el efecto
+> observable, no el mecanismo interno) — no hace falta agotar cada métrica posible.
 
 ---
 
 ## Dependencias / Impactos
 
-- **Servicios / APIs:** [listar]
-- **Módulos afectados:** [listar]
-- **Otros equipos:** [listar]
+- **Servicios / APIs:** [listar por función, no por nombre de librería/producto]
+- **Módulos afectados:** [listar en lenguaje llano: qué parte propia se toca]
+- **Otros equipos:** [listar — qué necesitan de nosotros o nosotros de ellos]
 - **Impacto en datos / migraciones:** [detallar]
 - **Feature toggles / flags:** [sí / no, plan de retiro]

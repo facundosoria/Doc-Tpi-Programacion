@@ -72,7 +72,11 @@ dependencias.
    preferentemente; si son dos, cortas.
 3. **Suposiciones y Restricciones.** Suposiciones = lo que se da por cierto para que la
    épica tenga sentido. Restricciones = límites legales/técnicos/académicos que acotan
-   *cómo* puede resolverse. Vienen de las entradas 5 y 6.
+   *cómo* puede resolverse. Vienen de las entradas 5 y 6. Redactalas en **lenguaje
+   llano, describiendo el efecto o la regla** — «los datos académicos no se editan una
+   vez guardados», no «el esquema es *append-only* gestionado por Flyway». Sin nombres
+   de headers HTTP, versiones de framework, RFCs ni nombres de tabla/columna: ese
+   detalle vive en la documentación técnica del servicio, no en la ficha de épica.
 4. **Criterios de Aceptación a nivel épico.** Lista de tildar (`- [ ]`). Redactá el
    **cierre observable del conjunto**, no de una historia:
    - El conjunto mínimo de historias permite un **flujo extremo a extremo** (nómbralo).
@@ -81,18 +85,29 @@ dependencias.
    - Observabilidad y alertas configuradas (logs, métricas, trazas) donde aplique.
    - Documentación de uso y operación publicada.
    Ajustá esta lista a la épica: borrá lo que no aplique, no dejes ítems de relleno.
+   Mantenelos verificables — específicos y medibles (SMART) — pero en **lenguaje
+   llano**: nombrá el efecto observable, no el mecanismo interno (nada de nombres de
+   header, rutas de endpoint literales o IDs de esquema). Preferí **menos criterios
+   pero esenciales**: un KPI que de verdad define si la épica está lista comunica mejor
+   que tres si los otros dos no cambian esa decisión — no hace falta agotar cada
+   métrica posible.
 5. **Dependencias / Impactos.** Servicios/APIs, módulos afectados, otros equipos,
    impacto en datos/migraciones, feature flags (sí/no + plan de retiro). Arrancá de la
-   entrada 5; lo que no sepas va como `*(a confirmar)*`.
+   entrada 5; lo que no sepas va como `*(a confirmar)*`. Nombrá servicios y equipos por
+   su **función** («la base de datos», «el equipo de Gateway»), no por el nombre de
+   paquete o librería interna (evitá `api`, `application`, `domain`, `Spring Cloud
+   Gateway`, `Netflix Eureka`…): a otro equipo le importa qué se ve afectado, no el
+   detalle de implementación de nuestro propio servicio.
 6. **Un archivo por épica**, bajo `docs/epicas/`. Nombre `docs/epicas/ep-01.md`,
-   `ep-02.md`, … Sigue exactamente [`references/plantilla-epica.md`](references/plantilla-epica.md):
-   una línea de encabezado `# GXX — <NOMBRE>` (sin corchetes, sin prefijo `EP-0X:`; el
-   número de épica vive en el catálogo y en el nombre de archivo), un blockquote corto que
-   apunta al catálogo como fuente de verdad, y las **cuatro secciones** — Objetivo,
-   Suposiciones y Restricciones, Criterios de Aceptación a nivel Épico, Dependencias /
-   Impactos. Un separador `---` en línea propia **entre cada sección** (y entre el
-   encabezado y la primera). **Sin bloque `| Campo | Valor |`**: pareja, sprints, fase y
-   requisitos **no** van en la ficha (ver paso 7).
+   `ep-02.md`, … Sigue exactamente la plantilla embebida más abajo (sección
+   «Template»): una línea de encabezado `# GXX — <NOMBRE>` (sin corchetes, sin prefijo
+   `EP-0X:`; el número de épica vive en el catálogo y en el nombre de archivo) y,
+   después de un separador `---`, las **cuatro secciones** — Objetivo, Suposiciones y
+   Restricciones, Criterios de Aceptación a nivel Épico, Dependencias / Impactos. **Sin
+   blockquote de encabezado**: la ficha no se presenta ni se explica a sí misma, va
+   directo al contenido. Un separador `---` en línea propia **entre cada sección**.
+   **Sin bloque `| Campo | Valor |`**: pareja, sprints, fase y requisitos **no** van en
+   la ficha (ver paso 7).
 7. **Índice / catálogo.** Generá además `docs/epicas/README.md` con la tabla resumen —
    Épica · Ficha · Nombre · **Fase** · Pareja líder · Sprints · Requisitos (orientativo)—.
    Este catálogo es **el único lugar** donde viven pareja/sprints/fase/requisitos. Dejá
@@ -100,12 +115,75 @@ dependencias.
    catálogo** (`docs/backlog/backlog-ejecutable.md`).
 8. **Autocontrol** con la checklist de abajo antes de entregar.
 
+## Template (embebido — copiá y completá, no hace falta abrir otro archivo)
+
+```markdown
+# GXX — [TÍTULO DEL ÉPICO]
+
+---
+
+## Objetivo
+
+[1–2 líneas: qué valor de negocio / usuario entrega la épica, en términos observables
+—específico y medible por los Criterios de Aceptación de abajo—. No describir la
+solución técnica, los componentes internos ni los pasos de implementación.]
+
+---
+
+## Suposiciones y Restricciones
+
+- **Suposiciones:** [lo que se da por cierto para que la épica tenga sentido — en
+  lenguaje llano, el efecto o la regla, no el mecanismo interno]
+- **Restricciones (legales / técnicas):** [límites que acotan cómo puede resolverse —
+  igual: sin nombres de header, framework, RFC ni tabla/columna]
+
+---
+
+## Criterios de Aceptación a nivel Épico
+
+- [ ] El conjunto mínimo de historias permite [flujo extremo a extremo, nombrado].
+- [ ] KPIs iniciales alcanzan: [valores] *(o «a definir» si el equipo aún no los fijó)*.
+- [ ] Sin regresiones críticas en [áreas / sistemas que la épica toca].
+- [ ] Observabilidad y alertas configuradas (logs, métricas, trazas) donde aplique.
+- [ ] Documentación de uso y operación publicada.
+
+> Ajustar la lista a la épica concreta: borrar lo que no aplique, no dejar ítems de
+> relleno. Preferir pocos criterios pero esenciales, en lenguaje llano (el efecto
+> observable, no el mecanismo interno) — no hace falta agotar cada métrica posible.
+
+---
+
+## Dependencias / Impactos
+
+- **Servicios / APIs:** [listar por función, no por nombre de librería/producto]
+- **Módulos afectados:** [listar en lenguaje llano: qué parte propia se toca]
+- **Otros equipos:** [listar — qué necesitan de nosotros o nosotros de ellos]
+- **Impacto en datos / migraciones:** [detallar]
+- **Feature toggles / flags:** [sí / no, plan de retiro]
+```
+
+Al pegar en Taiga, los Criterios van **una línea por ítem y sin `code` inline** — el
+renderer de Taiga en modo lectura descoloca las tildas si el ítem trae texto en `code` o
+listas anidadas. En el repo (GitHub) el detalle largo con sub-viñetas y backticks se ve
+bien.
+
 ## Reglas de oro
 
+- **Lenguaje llano en las 4 secciones, no solo en el Objetivo.** Nombres de paquete o
+  clase, headers HTTP, versiones de framework, RFCs y rutas de archivo no van en la
+  ficha: importa el efecto que tienen, no cómo están implementados. Ese detalle sigue
+  existiendo en la documentación técnica del servicio; la épica no lo repite.
+- **Sin referencias a documentos del repo dentro del cuerpo** (`doc 24`, `doc 27`,
+  rutas `docs/...`) **y sin blockquote de encabezado**: la ficha no se presenta ni
+  apunta a ningún otro doc, va directo al título y las 4 secciones — se entiende sola.
+- **En Criterios de Aceptación, menos ítems pero esenciales:** cada uno específico y
+  medible (SMART), no una lista exhaustiva de todas las métricas que se podrían medir.
 - Sin `Como/Quiero/Para`, sin BDD, sin puntos, sin sprint comprometido, **sin MoSCoW,
   sin INVEST** en la ficha (todo eso es de las Historias de Usuario).
 - Encabezado `# GXX — <título>`: sin corchetes, sin `EP-0X:`. El número de épica vive en
   el catálogo y en el nombre de archivo, no en el título.
+- **Sin blockquote de encabezado**: después del título va directo un `---` y la
+  primera sección — no hay presentación ni puntero al catálogo dentro de la ficha.
 - Un separador `---` entre cada sección (y entre el encabezado y la primera).
 - Criterios de Aceptación como lista de tildar `- [ ]`.
 - Al pegar en Taiga, los criterios van **una línea por ítem, sin `code` inline ni listas
@@ -123,10 +201,19 @@ dependencias.
 
 - [ ] Cada épica tiene Objetivo en 1–2 líneas (~2 renglones), en términos de valor
       observable, sin nombres de componentes internos ni pasos de implementación.
+- [ ] Ninguna sección (Suposiciones/Restricciones, Criterios, Dependencias) tiene
+      nombres de paquete/clase, headers HTTP, versiones de framework ni rutas de
+      archivo — solo el efecto observable, en lenguaje llano.
+- [ ] El cuerpo de la ficha no cita números ni rutas de documentos del repo (`doc NN`,
+      `docs/...`) y **no tiene blockquote de encabezado** — va directo del título a
+      las 4 secciones.
+- [ ] Los Criterios de Aceptación son pocos y esenciales — cada uno específico y
+      medible, no una lista exhaustiva de métricas posibles.
 - [ ] Ninguna ficha usa Como/Quiero/Para ni escenarios BDD.
 - [ ] Ninguna ficha trae estimación en puntos, prioridad MoSCoW, checklist INVEST ni
       «se compromete en Sxx».
-- [ ] Ninguna ficha tiene bloque `| Campo | Valor |`: solo heading + blockquote + 4 secciones.
+- [ ] Ninguna ficha tiene bloque `| Campo | Valor |` ni blockquote de encabezado: solo
+      heading + 4 secciones.
 - [ ] Encabezado `# GXX — <título>` (sin `[...]`, sin `EP-0X:`); `---` entre cada sección.
 - [ ] Criterios de Aceptación como lista `- [ ]`.
 - [ ] Los CA a nivel épico describen el cierre del conjunto (incluye un flujo e2e).
@@ -140,7 +227,7 @@ dependencias.
 
 | Archivo | Para qué |
 |---|---|
-| [`references/plantilla-epica.md`](references/plantilla-epica.md) | Template oficial en blanco. Copiar y completar. |
+| [`references/plantilla-epica.md`](references/plantilla-epica.md) | Mismo template, ya **embebido arriba** (sección «Template») — no hace falta abrirlo para generar. Se mantiene en el repo porque otros skills (`scaffold-planificacion-agil`) lo referencian. |
 | [`references/ejemplo-epica.md`](references/ejemplo-epica.md) | Épica resuelta de punta a punta como referencia de tono y nivel de detalle. |
 
 ## Relación con historias de usuario
