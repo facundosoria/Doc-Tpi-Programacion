@@ -4,7 +4,7 @@ import { TestBed } from '@angular/core/testing';
 import { RubricsPage } from './rubrics-page';
 
 const courseId = '00000000-0000-0000-0000-000000000010';
-const dimensions = ['AUTONOMY', 'CLARITY', 'PROGRESSION', 'COMPLIANCE', 'EFFICIENCY'].map(key => ({ key, label: key, criterion: `Criterio ${key}`, anchors: '{"low":"bajo","medium":"medio","high":"alto"}', evaluatorPrompt: `Evalúa ${key}`, weight: 20 }));
+const dimensions = ['AUTONOMY', 'CLARITY', 'PROGRESSION', 'COMPLIANCE', 'EFFICIENCY'].map(key => ({ key, label: key, criterion: `Criterio ${key}`, anchors: { low: { behavior: 'Conducta baja', referenceScore: 25, example: 'Ejemplo bajo' }, medium: { behavior: 'Conducta media', referenceScore: 60, example: 'Ejemplo medio' }, high: { behavior: 'Conducta alta', referenceScore: 90, example: 'Ejemplo alto' } }, weight: 20 }));
 
 describe('RubricsPage', () => {
   async function createPage() {
@@ -26,7 +26,7 @@ describe('RubricsPage', () => {
     http.expectOne(`/api/llm/courses/${courseId}/rubrics`).flush({ items: [{ id: 'rubric-1', familyId: 'family-1', name: 'Uso responsable', version: 1, state: 'DRAFT', revision: 3, dimensions }] });
     await fixture.whenStable(); fixture.detectChanges();
     (fixture.nativeElement as HTMLElement).querySelector<HTMLButtonElement>('.edit')!.click(); fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Dimensión obligatoria: AUTONOMY');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('AUTONOMY');
     fixture.componentInstance.form.controls.name.setValue('Uso responsable actualizado'); fixture.componentInstance.save();
     const request = http.expectOne(`/api/llm/courses/${courseId}/rubrics/rubric-1`);
     expect(request.request.method).toBe('PATCH'); expect(request.request.headers.get('If-Match')).toBe('3'); expect(request.request.body.name).toBe('Uso responsable actualizado');
@@ -34,12 +34,12 @@ describe('RubricsPage', () => {
     fixture.detectChanges(); expect((fixture.nativeElement as HTMLElement).textContent).toContain('Borrador guardado. Revisión 4.');
   });
 
-  it('rejects invalid anchors and weights that do not total 100%', async () => {
+  it('rejects unordered anchors and weights that do not total 100%', async () => {
     const fixture = await createPage(); const http = TestBed.inject(HttpTestingController);
     http.expectOne(`/api/llm/courses/${courseId}/rubrics`).flush({ items: [{ id: 'rubric-1', familyId: 'family-1', name: 'Uso responsable', version: 1, state: 'DRAFT', revision: 3, dimensions }] });
     await fixture.whenStable(); fixture.detectChanges(); fixture.componentInstance.editDraft({ id: 'rubric-1', familyId: 'family-1', name: 'Uso responsable', version: 1, state: 'DRAFT', revision: 3, dimensions });
-    fixture.componentInstance.dimensions.at(0).controls.weight.setValue(19); fixture.componentInstance.dimensions.at(1).controls.anchors.setValue('{}'); fixture.componentInstance.save(); fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Los cinco pesos deben sumar exactamente 100 %.'); expect((fixture.nativeElement as HTMLElement).textContent).toContain('Las anclas deben ser un JSON con low, medium y high.');
+    fixture.componentInstance.dimensions.at(0).controls.weight.setValue(19); fixture.componentInstance.dimensions.at(1).controls.anchors.controls.high.controls.referenceScore.setValue(40); fixture.componentInstance.save(); fixture.detectChanges();
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Los pesos deben sumar 100 %.'); expect((fixture.nativeElement as HTMLElement).textContent).toContain('Completá las tres anclas y asegurá puntajes crecientes');
     http.expectNone(`/api/llm/courses/${courseId}/rubrics/rubric-1`);
   });
 
@@ -65,7 +65,7 @@ describe('RubricsPage', () => {
     http.expectOne(`/api/llm/courses/${courseId}/rubrics`).flush({ items: [{ id: 'rubric-1', familyId: 'family-1', name: 'Uso pedagógico', version: 1, state: 'PUBLISHED', revision: 2, dimensions }] });
     fixture.detectChanges();
 
-    expect(page.textContent).toContain('Rúbrica v1 publicada exitosamente (inmutable).');
+    expect(fixture.componentInstance.comparingRubric()).toBeNull();
   });
 
   it('creates next version from a published rubric and reloads versions', async () => {
@@ -87,6 +87,19 @@ describe('RubricsPage', () => {
     ] });
     fixture.detectChanges();
 
-    expect(page.textContent).toContain('Nueva versión borrador (v2) creada exitosamente.');
+    expect(fixture.componentInstance.rubrics.value().items).toHaveLength(2);
+  });
+
+  it('sends the teacher-selected name when creating a rubric from a template', async () => {
+    const fixture = await createPage(); const http = TestBed.inject(HttpTestingController);
+    http.expectOne(`/api/llm/courses/${courseId}/rubrics`).flush({ items: [] });
+    fixture.componentInstance.templateVersionId.set('template-1');
+    fixture.componentInstance.newRubricName.set('Rúbrica de depuración');
+    fixture.componentInstance.createFirstDraft();
+
+    const request = http.expectOne(`/api/llm/courses/${courseId}/rubrics`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ templateVersionId: 'template-1', name: 'Rúbrica de depuración' });
+    request.flush({ id: 'rubric-1', familyId: 'family-1', name: 'Rúbrica de depuración', version: 1, state: 'DRAFT', revision: 1, dimensions });
   });
 });

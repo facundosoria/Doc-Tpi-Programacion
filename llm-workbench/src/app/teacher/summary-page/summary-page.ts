@@ -64,7 +64,7 @@ export class SummaryPage {
     return first ? first.state === 'FAILED' : false;
   });
   readonly nextAction = computed(() => {
-    if (!this.rubrics.value().items.some(item => item.state === 'PUBLISHED')) return { label: 'Crear rúbrica', detail: 'Definí el criterio con el que se evaluarán las conversaciones.', link: '../rubricas/new' };
+    if (!this.rubrics.value().items.some(item => item.state === 'PUBLISHED')) return { label: 'Ir a rúbricas', detail: 'Elegí una plantilla institucional y adaptala para tu curso.', link: '../rubricas' };
     if (!this.goldenSets.value().items.some(item => item.state === 'PUBLISHED')) return { label: 'Crear Golden Set', detail: 'Incorporá casos de referencia humana antes de calibrar.', link: '../golden-set/new' };
     if (!this.hasActiveCalibration()) return { label: 'Crear calibración', detail: 'Validá el evaluador con las versiones publicadas.', link: '../calibraciones' };
     return { label: 'Ver asignaciones', detail: 'La calibración activa está lista para los desafíos del curso.', link: '../asignaciones' };

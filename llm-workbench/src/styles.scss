@@ -29,19 +29,13 @@ body {
   font-family: var(--body);
 }
 
-:root body app-summary-page header,
-:root body app-rubrics-page header,
-:root body app-golden-set-page header,
-:root body app-calibrations-page header,
-:root body app-assignments-page header,
-:root body app-evaluator-page header {
-  max-width: none;
-  padding: 1.25rem 1.35rem;
-  border: 1px solid var(--line);
-  border-radius: 0.8rem;
-  background: #fff;
-  box-shadow: 0 0.55rem 1.3rem rgb(19 55 84 / 0.06);
-}
+:root body app-summary-page > header,
+:root body app-rubrics-page > header,
+:root body app-golden-set-page > header,
+:root body app-calibrations-page > header,
+:root body app-assignments-page > header,
+:root body app-evaluator-page > header,
+:root body app-how-to-use-page > header { display: none; }
 
 :root body app-summary-page .eyebrow,
 :root body app-rubrics-page .eyebrow,

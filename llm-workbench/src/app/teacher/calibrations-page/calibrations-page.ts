@@ -1,6 +1,6 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
 import { HttpClient, httpResource } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnDestroy, signal } from '@angular/core';
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { catchError, finalize, of } from 'rxjs';
 
@@ -18,7 +18,7 @@ function createIdempotencyKey(): string {
   templateUrl: './calibrations-page.component.html',
   styleUrl: './calibrations-page.component.scss',
 })
-export class CalibrationsPage {
+export class CalibrationsPage implements OnDestroy {
   private readonly http = inject(HttpClient);
   private readonly fb = inject(NonNullableFormBuilder);
 
@@ -48,6 +48,14 @@ export class CalibrationsPage {
     () => this.courseId() ? `/api/llm/courses/${this.courseId()}/active-calibration` : undefined,
     { defaultValue: null }
   );
+  readonly activeEvaluator = httpResource<ActiveEvaluator>(() => '/api/llm/admin/evaluator-models/active');
+  readonly calibrationTarget = httpResource<ActiveEvaluator>(() => '/api/llm/admin/evaluator-models/calibration-target');
+
+  readonly activeRubric = computed(() => {
+    const activeRunId = this.activeCalibration.value()?.calibrationRunId;
+    const rubricVersionId = this.calibrations.value().items.find(run => run.id === activeRunId)?.rubricVersionId;
+    return this.rubrics.value().items.find(rubric => rubric.id === rubricVersionId) ?? null;
+  });
 
   readonly publishedRubrics = computed(() =>
     this.rubrics.value().items.filter(r => r.state === 'PUBLISHED')
@@ -78,12 +86,10 @@ export class CalibrationsPage {
   readonly runForm = this.fb.group({
     rubricVersionId: ['', Validators.required],
     goldenSetVersionId: ['', Validators.required],
-    modelDeploymentId: ['', Validators.required],
   });
 
   readonly selectedRubricId = signal('');
   readonly selectedGoldenSetId = signal('');
-  readonly selectedModelId = signal('');
 
   readonly selectedRubric = computed(() =>
     this.publishedRubrics().find(r => r.id === this.selectedRubricId())
@@ -93,16 +99,15 @@ export class CalibrationsPage {
     this.publishedGoldenSets().find(g => g.id === this.selectedGoldenSetId())
   );
 
-  readonly selectedModel = computed(() =>
-    this.modelDeployments().find(m => m.id === this.selectedModelId())
-  );
-
   constructor() {
     this.runForm.valueChanges.subscribe(val => {
       this.selectedRubricId.set(val.rubricVersionId || '');
       this.selectedGoldenSetId.set(val.goldenSetVersionId || '');
-      this.selectedModelId.set(val.modelDeploymentId || '');
     });
+    if (typeof EventSource !== 'undefined') {
+      const modelEvents = new EventSource('/api/llm/admin/evaluator-models/events');
+      modelEvents.addEventListener('active-model', () => this.activeEvaluator.reload());
+    }
   }
 
   readonly launching = signal(false);
@@ -113,6 +118,7 @@ export class CalibrationsPage {
   readonly activationPreview = signal<ActivationPreviewData | null>(null);
   readonly selectedMigrableIds = signal<string[]>([]);
   readonly activating = signal(false);
+  private refreshTimer: ReturnType<typeof setInterval> | undefined;
 
   startCalibration() {
     if (this.runForm.invalid) return;
@@ -127,7 +133,6 @@ export class CalibrationsPage {
       {
         rubricVersionId: val.rubricVersionId,
         goldenSetVersionId: val.goldenSetVersionId,
-        modelDeploymentId: val.modelDeploymentId,
       },
       { headers: { 'Idempotency-Key': createIdempotencyKey() } }
     ).pipe(
@@ -141,8 +146,24 @@ export class CalibrationsPage {
         this.successBanner.set('Corrida de calibración encolada exitosamente.');
         this.selectedRunId.set(created.id);
         this.calibrations.reload();
+        this.startRefreshing();
       }
     });
+  }
+
+  ngOnDestroy(): void { this.stopRefreshing(); }
+
+  private startRefreshing(): void {
+    this.stopRefreshing();
+    this.refreshTimer = setInterval(() => {
+      this.calibrations.reload();
+      if (!this.runningRuns().length) this.stopRefreshing();
+    }, 2_000);
+  }
+
+  private stopRefreshing(): void {
+    if (this.refreshTimer !== undefined) clearInterval(this.refreshTimer);
+    this.refreshTimer = undefined;
   }
 
   selectRun(id: string) {
@@ -228,6 +249,8 @@ interface CalibrationRunItem {
   modelDeploymentId: string;
   maeFinal?: number | null;
   maxIndividualError?: number | null;
+  failureCode?: string | null;
+  failureDetail?: string | null;
   reason: string;
   createdAt: string;
   finishedAt?: string | null;
@@ -235,5 +258,6 @@ interface CalibrationRunItem {
 interface RubricItem { id: string; name: string; version: number; state: string; }
 interface GoldenSetItem { id: string; name: string; version: number; state: string; cases: any[]; }
 interface ModelDeploymentItem { id: string; provider: string; modelId: string; modelVersion: string; state: string; }
+interface ActiveEvaluator { id: string; provider: string; modelId: string; state: string; }
 interface ActiveCalibration { courseId: string; calibrationRunId: string; activatedAt: string; }
 interface ActivationPreviewData { previewToken: string; migrableChallengeIds: string[]; lockedChallengeIds: string[]; }

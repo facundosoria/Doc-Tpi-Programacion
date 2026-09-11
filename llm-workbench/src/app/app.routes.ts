@@ -42,6 +42,7 @@ export const routes: Routes = [
     { path: 'golden-set/:versionId/edit', loadComponent: () => import('./teacher/golden-set-page/golden-set-page').then((m) => m.GoldenSetPage) },
     { path: 'golden-set', loadComponent: () => import('./teacher/golden-set-page/golden-set-page').then((m) => m.GoldenSetPage) },
     { path: 'calibraciones', loadComponent: () => import('./teacher/calibrations-page/calibrations-page').then((m) => m.CalibrationsPage) },
+    { path: 'llm-api-keys', loadComponent: () => import('./teacher/llm-settings-page/llm-settings-page').then((m) => m.LlmSettingsPage) },
     { path: 'asignaciones', loadComponent: () => import('./teacher/assignments-page/assignments-page').then((m) => m.AssignmentsPage) },
     { path: 'como-usar', loadComponent: () => import('./teacher/how-to-use-page/how-to-use-page').then((m) => m.HowToUsePage) },
   ] },
