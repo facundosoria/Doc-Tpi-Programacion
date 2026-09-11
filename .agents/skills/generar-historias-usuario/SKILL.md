@@ -27,18 +27,23 @@ esperado, resuelto de punta a punta en los dos estilos, está en
 precisa (endpoints, códigos HTTP, nombres exactos) es una **variante bajo pedido** — ver
 [`references/referencia-estilo-tecnico.md`](references/referencia-estilo-tecnico.md).
 
-Lee primero, en este orden:
+**El template de cada ficha ya está embebido más abajo** (sección «Template de cada
+ficha») — no hace falta abrir `references/plantilla-historia-usuario.md` para generar.
+Lo que sí conviene leer aparte, porque son opcionales/consultivos y no siempre hacen
+falta:
 
 1. [`references/guia-metodo.md`](references/guia-metodo.md) — el método de cátedra
    condensado (3C, COMO/QUIERO/PARA, BDD, INVEST, épica/historia/tarea, Planning Poker).
+   Consultalo si el paso 4 de abajo no alcanza.
 2. [`references/dor-dod.md`](references/dor-dod.md) — las dos compuertas: qué exige la
-   DoR para comprometer una historia y qué exige la DoD para aceptarla.
-3. [`references/plantilla-historia-usuario.md`](references/plantilla-historia-usuario.md)
-   — el template en blanco (lenguaje simple) que hay que rellenar.
-4. [`references/referencia-estilo-tecnico.md`](references/referencia-estilo-tecnico.md)
-   — glosario de traducción y los cambios de rótulo para la variante técnica.
-5. [`references/ejemplo-historia.md`](references/ejemplo-historia.md) — una historia
-   resuelta de punta a punta en los dos estilos.
+   DoR para comprometer una historia y qué exige la DoD para aceptarla. Hace falta para
+   el paso 7 (verificación de DoR).
+3. [`references/referencia-estilo-tecnico.md`](references/referencia-estilo-tecnico.md)
+   — glosario de traducción y los cambios de rótulo, **solo si piden la variante
+   técnica**.
+4. [`references/ejemplo-historia.md`](references/ejemplo-historia.md) — una historia
+   resuelta de punta a punta en los dos estilos, **solo si hay dudas** de tono o nivel de
+   detalle.
 
 ## Entradas que necesito (las pide el equipo al invocar)
 
@@ -83,7 +88,7 @@ estimaciones ni dependencias.
    nada entrega valor o los escenarios se repetirían. Regla: **un rol, una acción, un
    resultado observable**; si el título necesita «y/o/además», son dos historias.
 4. **Redactar cada apartado del template en lenguaje simple** (detalle en
-   `guia-metodo.md`; plantilla y rótulos en `plantilla-historia-usuario.md`):
+   `guia-metodo.md`; rótulos exactos en la plantilla embebida más abajo):
    - **Título**: en palabras, identifica la historia sin leer el detalle.
    - **Como / Quiero / Para**: rol real en palabras · acción del usuario (no solución
      técnica) · beneficio real (no repetir la acción).
@@ -121,6 +126,138 @@ estimaciones ni dependencias.
 7. **Verificá DoR** de cada historia contra `references/dor-dod.md`. Lo que no se cumpla
    se marca como pendiente de Refinamiento/Sprint 0, no se maquilla.
 8. **Autocontrol** con la checklist de abajo.
+
+## Template de cada ficha (embebido — copiá y completá, no hace falta abrir otro archivo)
+
+> **Formato fijo de la ficha:**
+> - Encabezado de cada historia en el documento: `# Sxx-Hyy — <título>` (el ID interno es
+>   la ancla del índice). El **título de Taiga** es `GXX — <título>` (sin corchetes, sin
+>   `Sxx-Hyy`).
+> - Un separador `---` en línea propia **entre cada sección** `##` (también entre el
+>   bloque de encabezado/metadatos y la primera sección). Los `### Escenario N` del BDD
+>   **no** se separan entre sí.
+> - Los Criterios de Aceptación como lista de tildar `- [ ]`.
+> - Los **metadatos de la ficha** van en viñetas (`- **Rótulo:** valor`), **nunca en
+>   tabla**: el renderer de Taiga rompe las tablas sin encabezado.
+> - **Al pegar en Taiga:** los criterios van una línea por ítem y sin `code` inline — el
+>   renderer de Taiga en modo lectura descoloca las tildas si el ítem trae `code` o listas
+>   anidadas.
+
+```markdown
+# Sxx-Hyy — [TÍTULO EN PALABRAS SIMPLES]
+
+> Título en Taiga: `GXX — TÍTULO`. `GXX` = número de grupo/equipo.
+
+- **Grupo de trabajo:** [nombre de la épica] ([EP-0X])
+- **Pareja a cargo:** [P_]
+- **Depende de:** [Hnn, … o «Nada»]
+- **Trabajo estimado:** [N] horas
+- **Tipo:** [Tarea interna (no la «vive» un usuario final) / Historia de valor (la protagoniza [rol real])]
+- **Responsable del producto:** Se nombra en el Sprint 0
+
+---
+
+## Descripción (Como / Quiero / Para)
+
+- **Como:** [ROL REAL en palabras — «profesor autorizado de un curso», «cualquier
+  programador del equipo». No «el sistema».]
+- **Quiero:** [lo que la persona quiere hacer, no cómo se resuelve por dentro]
+- **Para:** [el beneficio real, no repetir la acción]
+
+---
+
+## Notas / Observaciones
+
+- **Reglas de trabajo:** [las reglas del negocio contadas en palabras: qué tiene que
+  pasar, sin nombrar tablas ni clases]
+- **Cómo se controla:** [qué revisa el sistema antes de aceptar; qué casos rechaza]
+- **Qué tiene que incluir sí o sí:** [los datos obligatorios, en palabras]
+- **Tiempos / volumen:** [si importa la rapidez o la cantidad; si no, «no aplica»]
+- **Seguridad:** [quién puede y quién no; qué pasa con un pedido sin permiso
+  («prohibido» / «no autorizado»)]
+- **Accesibilidad:** [pensada para alguien que navega con teclado o usa lector de
+  pantalla; o «no aplica» + motivo]
+- **Otros:** [lo que aclaró el cliente y no entra arriba]
+- **Operaciones nuevas:** [si el trabajo agrega formas de pedirle algo al servicio,
+  nombrarlas en palabras: «crear la colección», «consultar el detalle»]
+
+---
+
+## Criterios de Aceptación (CA)
+
+- [ ] **CA1:** [condición concreta y verificable, en palabras]
+- [ ] **CA2:** [·]
+- [ ] **CA3:** [·]
+- [ ] **CA4 (caso que debe fallar):** [pedido sin permiso / dato inválido / algo repetido /
+  una pieza caída]
+- [ ] **CA5 (caso que debe fallar):** [otro caso que debe fallar]
+
+> Siempre al menos un caso que sale bien y **dos que deben fallar**.
+
+---
+
+## BDD
+
+**Qué se prueba:** [en una frase, qué comportamiento se está validando]
+
+### Escenario 1 — [título del camino esperado]
+
+- **Dado:** [la situación de partida]
+- **Cuando:** [lo que hace la persona o el sistema]
+- **Entonces:** [lo que se ve: una pantalla, un mensaje o un dato guardado]
+- **Y:** [opcional — continúa el paso anterior]
+
+### Escenario 2 — [título de un caso que debe fallar]
+
+- **Dado:** [situación]
+- **Cuando:** [acción]
+- **Entonces:** [lo que se ve]
+
+### Escenario 3 — [título de otro caso que debe fallar]
+
+- **Dado:** [situación]
+- **Cuando:** [acción]
+- **Entonces:** [lo que se ve]
+
+---
+
+## Prototipo
+
+- **Capturas / bocetos:** [bocetos simples de las pantallas principales, o «no aplica» +
+  motivo si es una pieza interna sin pantalla]
+- **Maqueta / documentación:** [enlace a la maqueta, la demo o el documento del acuerdo;
+  o «no aplica»]
+
+---
+
+## Estimación / Prioridad
+
+**Formato rápido** (la referencia de escalas, para que quede explícita en la ficha):
+
+- **Puntos (Fibonacci):** [1 / 2 / 3 / 5 / 8 / 13] — *(a fijar en el Sprint 0; no se
+  inventan acá)*
+- **Prioridad (MoSCoW / numérica):** [Must / Should / Could / Won't] o [1..5]
+
+**En palabras:**
+
+- **Puntos de esfuerzo:** se asignan en el Sprint 0, con la técnica de estimación del
+  equipo [/ comparando contra la historia patrón].
+- **Prioridad:** [imprescindible (Must) / deseable (Should) / se puede posponer (Could) /
+  fuera de este sprint (Won't)].
+
+> El «Trabajo estimado» en horas de la ficha es la referencia del plan; **no** se
+> convierte a puntos. Si todavía no hubo Planning Poker, dejá los corchetes con la escala
+> y marcá el valor como pendiente — nunca lo inventes.
+
+---
+
+## Dependencias / Impactos
+
+- **Partes involucradas:** [qué piezas del sistema o servicios entran en juego]
+- **Otros equipos / aprobaciones:** [de quién se depende, o «ninguna externa»]
+- **Impacto en los datos:** [si crea, cambia o solo lee datos]
+- **Riesgos:** [qué puede salir mal y cómo se acota]
+```
 
 ## Salida
 
@@ -169,7 +306,7 @@ la demo final en una frase.]
 ---
 
 # Sxx-H01 — <Título en palabras simples>
-<... ficha completa según plantilla-historia-usuario.md ...>
+<... ficha completa según la sección «Template de cada ficha» de más arriba ...>
 
 ---
 
@@ -178,8 +315,8 @@ la demo final en una frase.]
 [Lista de lo que queda funcionando al final del sprint, en una línea por historia.]
 ```
 
-- Cada `# Sxx-Hyy — Título` sigue [`references/plantilla-historia-usuario.md`](references/plantilla-historia-usuario.md)
-  (lista de metadatos de 6 ítems con rótulos simples, Descripción, Notas, CA con «(caso
+- Cada `# Sxx-Hyy — Título` sigue la plantilla embebida arriba («Template de cada ficha»:
+  lista de metadatos de 6 ítems con rótulos simples, Descripción, Notas, CA con «(caso
   que debe fallar)», BDD con «Qué se prueba», Prototipo, Estimación en bullets con el
   «Formato rápido» de escalas —Puntos Fibonacci y Prioridad MoSCoW/numérica—,
   Dependencias). El índice usa anclas a cada sección.
@@ -251,7 +388,7 @@ receta/plan del equipo, **manda la receta/plan**.
 |---|---|
 | [`references/guia-metodo.md`](references/guia-metodo.md) | Método de cátedra condensado: 3C, COMO/QUIERO/PARA, BDD (regla del camino feliz + fallos, escenario de 5 partes, 2 reglas), INVEST, épica/historia/tarea, historia canónica, Planning Poker, priorización. |
 | [`references/dor-dod.md`](references/dor-dod.md) | Definition of Ready y Definition of Done: las dos compuertas de cada historia y del incremento. |
-| [`references/plantilla-historia-usuario.md`](references/plantilla-historia-usuario.md) | Template en blanco, lenguaje simple (estilo por defecto). Copiar y completar. |
+| [`references/plantilla-historia-usuario.md`](references/plantilla-historia-usuario.md) | Mismo template, ya **embebido arriba** (sección «Template de cada ficha») — no hace falta abrirlo para generar. Se mantiene en el repo porque otros skills (`scaffold-planificacion-agil`) lo referencian. |
 | [`references/referencia-estilo-tecnico.md`](references/referencia-estilo-tecnico.md) | Glosario de traducción simple↔técnico y los cambios de rótulo para la variante técnica. |
 | [`references/ejemplo-historia.md`](references/ejemplo-historia.md) | Una historia resuelta en los dos estilos, con notas de por qué queda así. |
 
