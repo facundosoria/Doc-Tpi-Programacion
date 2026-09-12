@@ -279,11 +279,11 @@ requisito de despliegue.
 
 Por qué no las otras tres:
 
-| Estrategia | Por qué no |
-|---|---|
-| **Blue-Green** | Duplica la infraestructura, y su punto débil declarado son las migraciones de base. Las nuestras son append-only ([07](07-datos-y-terminos.md) §3.3), y van camino a triggers de inmutabilidad en la base ([14](14-sincronizacion-guia-didactica.md) A-5): dos esquemas vivos a la vez es peor acá que en un CRUD |
-| **Canary** | Necesita repartir tráfico por porcentaje. Con 1-2 réplicas el mínimo alcanzable es 50%, que ya no es un canario |
-| **A/B Testing** | 🔴 **Inaceptable por el dominio, no por la infraestructura.** Compara versiones sobre poblaciones distintas: dos alumnos con la misma transcripción recibirían notas de versiones distintas. Una nota no es una tasa de conversión |
+| Estrategia      | Por qué no                                                                                                                                                                                                                                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Blue-Green**  | Duplica la infraestructura, y su punto débil declarado son las migraciones de base. Las nuestras son append-only ([07](07-datos-y-terminos.md) §3.3), y van camino a triggers de inmutabilidad en la base ([14](14-sincronizacion-guia-didactica.md) A-5): dos esquemas vivos a la vez es peor acá que en un CRUD |
+| **Canary**      | Necesita repartir tráfico por porcentaje. Con 1-2 réplicas el mínimo alcanzable es 50%, que ya no es un canario                                                                                                                                                                                                   |
+| **A/B Testing** | 🔴 **Inaceptable por el dominio, no por la infraestructura.** Compara versiones sobre poblaciones distintas: dos alumnos con la misma transcripción recibirían notas de versiones distintas. Una nota no es una tasa de conversión                                                                                |
 
 **Shadow deployment sí se adopta, pero no como estrategia de release:** se usa para validar una
 `rubric_version` o un `prompt_version` nuevos contra tráfico real descartando la salida. Está en

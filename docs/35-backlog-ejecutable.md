@@ -2,6 +2,11 @@
 
 Cada bloque de S1 en adelante es una receta de implementación. Las horas de cada paquete son el **trabajo estimado** (desarrollo, pruebas, revisión, documentación y demo; no reuniones ni reserva) y suman **~208 h por sprint**. Esa cifra es una estimación gruesa anterior a los contratos, **no el tope**: la **capacidad del sprint es 571 h** ([23 · §2.1](23-plan-construccion-producto-llm.md)) y la diferencia (**~363 h**) es margen para re-estimar en Planning, imprevistos y coordinación de 12 personas. Reestimar en cada Planning según disponibilidad real. Leer antes el [playbook](36-playbook-de-construccion.md).
 
+> **Excepción S1/S3.** En la reprogramación a 8 semanas ([sprints/README.md](sprints/README.md)),
+> S1 pasa a 240 h y S3 a 176 h: se adelantó el paquete "Puerto AI Gateway y fake" de S3 a S1
+> (`LLM-S01-H10`) porque solo depende del ADR, no del golden set. Ambos siguen dentro del
+> margen de la capacidad comprometible.
+
 Este documento tiene tres capas: las **épicas** (para qué producto), el **Sprint 0** (qué se deja listo antes de construir) y las **recetas S1–S19** (cómo se construye cada incremento). La DoR y la DoD únicas están en [23 · §9.2](23-plan-construccion-producto-llm.md); el cálculo de capacidad, en [23 · §2](23-plan-construccion-producto-llm.md). La **vista de entrega** que reúne Sprint 0, DoD, capacidad, épicas e historias de S1 con el formato de la guía de cátedra es [30](30-arranque-agil-y-sprint-0.md).
 
 ---
@@ -13,7 +18,7 @@ Diez épicas cubren el alcance de las tres fases. Cada historia `LLM-Sxx-Hyy` pe
 | Épica | Nombre | Resultado que habilita | Pareja líder | Sprints | Requisitos (orientativo) |
 |---|---|---|---|---|---|
 | **EP-01** | Plataforma, contratos e integración | El servicio arranca reproducible, expone `/api/llm/**` por Gateway, versiona su esquema y publica contratos que los demás equipos consumen | P1 | S1, S3, S6, S10, S19 | RF-NFR-01/03/04/09/10; contratos v1 |
-| **EP-02** | AI Gateway, modelos y resiliencia | Toda llamada a un modelo pasa por un punto único con timeout, presupuesto, validación de salida y cambio de modelo por configuración | P2 | S3, S8, S9 | RF-IA-22/23/24/35 |
+| **EP-02** | AI Gateway, modelos y resiliencia | Toda llamada a un modelo pasa por un punto único con timeout, presupuesto, validación de salida y cambio de modelo por configuración | P2 | **S1** (adelantado), S3, S8, S9 | RF-IA-22/23/24/35 |
 | **EP-03** | Golden set y referencia humana | Un docente autorizado construye, puntúa y versiona el set de referencia que habilita calibrar | P5 + P4 | S1, S2 | RF-IA-29/30 a 36 |
 | **EP-04** | Calibración y gobernanza del modelo | No se activa un curso sin calibración dentro de tolerancia; el cambio de modelo se audita y dispara recalibración | P4 | S3, S4, S8 | RF-IA-30 a 36; PAR-14 |
 | **EP-05** | Tutor seguro y guardarraíles | El alumno recibe ayuda socrática dentro del desafío; jailbreak y fuga de solución se bloquean antes de mostrarse | P3 + P2 | S5 | RF-IA-01/02/04/19/20 |
@@ -109,9 +114,10 @@ La columna **h** es la referencia de planificación del plan. Los **puntos Fibon
 | **LLM-S01-H07** | Como docente, quiero una pantalla mínima para el alta, la carga y la consulta del golden set, sin depender de Swagger | Formulario/listado real vía Gateway, con estados de carga y error y la autorización visible. La pantalla no llama al servicio directo: pasa por el Gateway | EP-03 | P5 | H05, H06 | 24 |
 | **LLM-S01-H08** | Como equipo de integración, quiero el contrato OpenAPI y un mock del golden set publicados para que `admin-service` avance sin el servicio real | Contrato en el repo con **solo** las operaciones existentes; mock levantable con una línea documentada. Cualquier campo ausente se congela con `admin-service` antes de publicarlo | EP-01 | P1 | H03 | 10 |
 | **LLM-S01-H09** | Como equipo, quiero la suite de pruebas y la guía de demo de S1 para que la Review se valide con evidencia y no con relato | Unitarias + Testcontainers/Flyway + WireMock del Gateway; reinicio de Compose probado; cobertura según [24](24-convenciones-cobertura.md). Guía de demo reproducible: acceso autorizado → carga → consulta tras reinicio | EP-01 | todos | H04–H07 | 18 |
-| | | | | | **Total** | **208** |
+| **LLM-S01-H10** *(adelantada de S3)* | Como equipo, quiero un puerto para invocar modelos con un adaptador fake para no depender de ningún proveedor concreto desde el día 1 | Interfaz de invocación sin SDK de proveedor en `domain`; adaptador fake responde por WireMock; tabla `función→proveedor+modelo` con una fila editable sin redeploy; respuesta fuera de schema o timeout → error controlado | EP-02 | P2 | H01 | 32 |
+| | | | | | **Total** | **240** |
 
-**Demo de S1:** un docente autorizado crea un golden set, carga una entrada y la consulta después de reiniciar el servicio.
+**Demo de S1:** un docente autorizado crea un golden set, carga una entrada y la consulta después de reiniciar el servicio. **H10 no es parte de esta demo** — corre en paralelo como preparación de EP-02 (reprogramación a 8 semanas, ver [`sprints/README.md`](sprints/README.md)).
 
 ## S2 — Referencia humana versionada (~208 h estimadas)
 
@@ -128,13 +134,17 @@ La columna **h** es la referencia de planificación del plan. Los **puntos Fibon
 
 **Aceptación negativa:** un docente no edita su nota publicada ni consulta una cohorte ajena; discrepancia sin resolución no habilita publicación.
 
-## S3 — Calibración de plataforma (~208 h estimadas)
+## S3 — Calibración de plataforma (~176 h estimadas)
 
 **No iniciar sin:** S2 con golden set publicado, credenciales de proveedor administradas fuera del repo y tolerancias PAR-14 confirmadas. **Demo:** ADMIN inicia runner, consulta job/reporte y un modelo fuera de tolerancia no se habilita.
 
+> El paquete 1 original ("Puerto AI Gateway y fake", 32 h) se adelantó a **S1** como
+> `LLM-S01-H10`: no depende del golden set publicado, solo del ADR de convenciones. Este
+> sprint arranca directamente del paquete 2, sobre el puerto que ya existe.
+
 | Orden | Paquete verificable | h | Salida / prueba |
 |---:|---|---:|---|
-| 1 | Puerto AI Gateway y fake | 32 | Interfaz proveedor, `RestClient`, fake/WireMock, timeout y schema estricto de salida. |
+| ~~1~~ | ~~Puerto AI Gateway y fake~~ *(adelantado a S1 · `LLM-S01-H10`)* | ~~32~~ | — |
 | 2 | Catálogo/asignación/auditoría | 28 | Modelo, versión, función, costo/latencia y habilitación separados de configuración de secretos. |
 | 3 | Jobs durables | 42 | Migración, lease, reintentos, endpoint de estado y recuperación tras reinicio. |
 | 4 | Evaluación y métrica PAR-14 | 42 | Transcripción como dato; promedio y dimensión; evidencia modelo/prompt/rúbrica. |

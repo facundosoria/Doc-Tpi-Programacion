@@ -1,8 +1,8 @@
 # Sprint 1 — las nueve historias explicadas en palabras simples
 
 > **Qué es este documento.** Son las mismas nueve historias del Sprint 1 que están,
-> en formato técnico, en [`../historias/ep-01.md`](../historias/ep-01.md) y
-> [`../historias/ep-03.md`](../historias/ep-03.md), con la **misma estructura del
+> en formato técnico, en [`../historias/ep-01/`](../historias/ep-01/README.md) y
+> [`../historias/ep-03/`](../historias/ep-03/README.md), con la **misma estructura del
 > template de Taiga** (Como / Quiero / Para, Notas, Criterios de Aceptación, escenarios
 > BDD, Prototipo, Estimación y Dependencias), pero contadas **sin jerga técnica**: como
 > si se las explicara a alguien que nunca programó. Mismo contenido, mismo objetivo de
@@ -52,12 +52,15 @@ llamamos **golden set** (la "colección de referencia" o "colección dorada"). E
 como el solucionario del profesor: la máquina después se compara contra eso para
 ver si corrige parecido a un humano.
 
-**En este primer tramo de trabajo (el "Sprint 1") todavía NO se construye la
+**En este primer tramo de trabajo (el "Sprint 1") todavía NO se corrige nada con
 inteligencia artificial.** Se construyen los cimientos: ponerse de acuerdo,
 lograr que el sistema encienda con un comando, armar el esqueleto del servicio,
 preparar la base de datos, y darle a un profesor la posibilidad de **crear** su
 colección de referencia, **cargarle** ejemplos y **volver a consultarlos**, con
-una pantalla sencilla para hacerlo.
+una pantalla sencilla para hacerlo. En paralelo, y sin que dependa de nada de lo
+anterior, arranca la pieza que más adelante va a "hablar" con un modelo de
+lenguaje — pero en este tramo todavía habla solo con un **doble simulado**, no
+con un modelo real (H10).
 
 **La demo final de este tramo, en una frase:** un profesor con permiso crea su
 colección de referencia, le carga un ejemplo, apagamos y volvemos a encender el
@@ -78,7 +81,13 @@ sistema, y el ejemplo sigue ahí cuando lo consulta.
 | [H07](#llm-s01-h07--la-pantalla-sencilla-para-el-profesor) | La pantalla sencilla para el profesor | Historia de valor | EP-03 | P5 | H05, H06 | 24 h |
 | [H08](#llm-s01-h08--publicar-el-acuerdo-y-una-maqueta-para-que-otro-equipo-avance) | Publicar el acuerdo y una maqueta para que otro equipo avance | Tarea interna | EP-01 | P1 | H03 | 10 h |
 | [H09](#llm-s01-h09--las-pruebas-automáticas-y-la-guía-para-la-demostración) | Las pruebas automáticas y la guía para la demostración | Tarea interna | EP-01 | todas | H04–H07 | 18 h |
-| | | | | | **Total** | **208 h** |
+| [H10](#llm-s01-h10--el-camino-para-hablar-con-un-modelo-de-lenguaje-todavía-simulado) | El camino para hablar con un modelo de lenguaje, todavía simulado | Tarea interna | EP-02 | P2 | H01 | 32 h |
+| | | | | | **Total** | **240 h** |
+
+> **H10 se suma en la reprogramación a 8 semanas** (ver [`README.md`](README.md)): se
+> adelanta desde un tramo posterior porque no depende de nada de lo que hace el profesor,
+> solo del acuerdo técnico (H01). No cambia la demo de este tramo, que sigue siendo el
+> golden set.
 
 **Tipo:** "historia de valor" quiere decir que la protagoniza una persona de
 carne y hueso (un profesor) que nota el beneficio. "Tarea interna" es un cimiento
@@ -1027,9 +1036,114 @@ misma forma.
 
 ---
 
+# LLM-S01-H10 — El camino para hablar con un modelo de lenguaje, todavía simulado
+
+- **Grupo de trabajo:** IA, modelos y resiliencia (EP-02)
+- **Pareja a cargo:** P2
+- **Depende de:** H01 (el acuerdo de cómo se construye el programa)
+- **Trabajo estimado:** 32 horas
+- **Tipo:** Tarea interna (no la "vive" un usuario final)
+- **Responsable del producto:** Se nombra en el Sprint 0
+
+## Descripción (Como / Quiero / Para)
+
+- **Como:** equipo que programa este servicio.
+- **Quiero:** un único "camino" por el que pasa cualquier pedido a un modelo de
+  inteligencia artificial, con un doble simulado para probarlo.
+- **Para:** que ninguna función de IA quede "casada" con una empresa proveedora
+  concreta, y que se pueda desarrollar y probar sin llamar a un modelo real ni
+  gastar un centavo.
+
+## Notas / Observaciones
+
+- **Por qué está acá y no más adelante:** originalmente este trabajo estaba
+  planeado para un tramo posterior, después de que el profesor terminara de
+  puntuar su colección de referencia. Pero no necesita nada de eso: solo
+  necesita el acuerdo técnico de la tarea 1. Por eso se adelanta y una pareja
+  distinta (la que se ocupa de los modelos) puede avanzar **al mismo tiempo**
+  que la que arma el golden set, en vez de esperar su turno.
+- **Reglas de trabajo:** el "camino" es una pieza de código que no sabe nada de
+  ninguna marca de inteligencia artificial en particular. Detrás de ese camino
+  hay, por ahora, solo un **doble simulado**: no llama a ningún modelo real,
+  devuelve respuestas de prueba. Existe también una lista de "qué función usa
+  qué modelo", que arranca con un solo renglón.
+- **Cómo se controla:** lo que devuelve el doble simulado se revisa contra un
+  formato estricto antes de aceptarse; si no cumple el formato, se rechaza en
+  vez de "arreglarse" a mano. Si tarda demasiado, se corta con un aviso, sin
+  trabar el resto del programa.
+- **Tiempos / volumen:** no aplica llamadas reales todavía.
+- **Seguridad:** en este tramo no hay ninguna clave de un proveedor real
+  guardada en ningún lado, porque no se llama a ninguno de verdad.
+- **Accesibilidad:** no aplica (es una pieza interna, sin pantalla).
+- **Otros:** esto **no forma parte de la demo** de este tramo. La demo sigue
+  siendo la del profesor con su colección de referencia.
+
+## Criterios de Aceptación (CA)
+
+- **CA1:** existe el "camino" único y no tiene, en su parte más interna,
+  ninguna referencia a una marca de inteligencia artificial concreta.
+- **CA2:** el doble simulado responde a través de ese camino con datos de
+  prueba, sin llamar a nada real.
+- **CA3:** existe la lista "función → proveedor y modelo", con al menos un
+  renglón, y cambiarla no exige tocar ni recompilar el código.
+- **CA4 (caso que debe fallar):** una respuesta que no cumple el formato
+  esperado se rechaza con un aviso claro, no se deja pasar como si estuviera
+  bien.
+- **CA5 (caso que debe fallar):** una respuesta que tarda más de lo permitido
+  se corta con un aviso, sin dejar a nadie esperando para siempre.
+
+## BDD
+
+**Qué se prueba:** que cualquier función pueda "hablar" con un modelo sin
+saber con cuál habla en realidad.
+
+### Escenario 1 — El camino funciona con el doble simulado
+
+- **Dado:** el camino configurado con el doble simulado.
+- **Cuando:** una función pide una respuesta a través del camino.
+- **Entonces:** el doble simulado responde con datos de prueba que cumplen el
+  formato esperado.
+
+### Escenario 2 — Respuesta con formato incorrecto
+
+- **Dado:** el doble simulado configurado para responder algo que no cumple el
+  formato.
+- **Cuando:** una función pide una respuesta.
+- **Entonces:** el camino la rechaza y avisa del error, sin dejarla pasar.
+
+### Escenario 3 — Demora excesiva
+
+- **Dado:** el doble simulado tardando más de lo permitido.
+- **Cuando:** una función pide una respuesta.
+- **Entonces:** el pedido se corta con un aviso al cumplirse el tiempo límite.
+
+## Prototipo
+
+- **Capturas:** no aplica (es una pieza interna, sin pantalla).
+
+## Estimación / Prioridad
+
+- **Puntos de esfuerzo:** se asignan en el Sprint 0.
+- **Prioridad:** conviene hacerlo, pero no bloquea la demo de este tramo.
+
+## Dependencias / Impactos
+
+- **Partes involucradas:** ninguna externa real todavía (solo el doble
+  simulado).
+- **Otros equipos / aprobaciones:** ninguna en este tramo. Quién provee el
+  modelo real, y con qué credenciales, se decide antes del tramo que sí llama
+  a un modelo de verdad.
+- **Impacto en los datos:** crea la lista "función → proveedor y modelo".
+- **Riesgos:** ninguno propio de este tramo — al no llamar a un proveedor
+  real, no depende de ninguna decisión legal pendiente sobre el uso de datos
+  de alumnos.
+
+---
+
 ## En resumen
 
-Al final de este tramo no hay inteligencia artificial todavía, pero sí hay:
+Al final de este tramo no hay corrección con inteligencia artificial todavía,
+pero sí hay:
 
 - un acuerdo escrito de cómo trabaja el equipo,
 - un sistema que se enciende con un comando,
@@ -1039,4 +1153,7 @@ Al final de este tramo no hay inteligencia artificial todavía, pero sí hay:
   vuelve a ver después de reiniciar,
 - una pantalla sencilla para hacerlo,
 - un contrato y una maqueta para que otro equipo avance en paralelo,
-- y pruebas automáticas que demuestran que todo eso es verdad.
+- pruebas automáticas que demuestran que todo eso es verdad,
+- y, en paralelo y sin bloquear nada de lo anterior, el camino listo para
+  algún día hablar con un modelo real — hoy todavía habla solo con un doble
+  simulado.
