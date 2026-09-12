@@ -3,7 +3,7 @@
 > **Qué es.** Revisión del estado actual de la épica **EP-03 · Golden set y referencia humana**
 > para el **Sprint 1** (historias `LLM-S01-H05`, `H06`, `H07`), contrastando lo implementado en
 > `llm-service/` y `llm-workbench/` con:
-> - los criterios de aceptación y escenarios BDD de [`docs/historias/ep-03.md`](../historias/ep-03.md);
+> - los criterios de aceptación y escenarios BDD de [`docs/historias/ep-03/`](../historias/ep-03/README.md);
 > - la ficha de épica [`docs/epicas/ep-03.md`](../epicas/ep-03.md);
 > - la **DoD por historia** y **por incremento** de [23 · §9.2](../23-plan-construccion-producto-llm.md);
 > - la [adenda S1 del contrato](../contracts/llm-service-v1-s1-golden-set-adenda.md).
@@ -14,6 +14,13 @@
 > quien lo mantiene; acá quedan consolidados para la conversación de Sprint 1.
 >
 > **Fecha de la revisión.** 2026-09-10. Rama `facu`, working tree.
+>
+> **🔴 OBSOLETA desde 2026-09-12.** El commit `605f381` (ver [§8](#8-nota-de-coordinación--rama-605f381)
+> y [decision-605f381.md](decision-605f381.md)) borró el `GoldenSetController` v1 que esta
+> ficha audita y lo reemplazó por un flujo distinto (`CourseGoldenSetController` y el resto
+> de piezas de calibración/rúbrica/model-deployment). Las secciones 1–7 y el punch-list del
+> §9 **ya no describen el código actual**. Se conservan como registro histórico; no usarlas
+> para priorizar trabajo sin re-verificar primero.
 
 ---
 
@@ -168,17 +175,20 @@ modifica golden sets de cohortes ajenas → `403`/`404`").
 
 ## 8. Nota de coordinación — rama `605f381`
 
-El commit `605f381` ("feat(s01): implementar flujo de calibración Golden Set v2", autor Coleman)
-**en otra rama** borra por completo esta implementación de S1 (`GoldenSetController`,
+> **🟢 Resuelto el 2026-09-12 — ver [decision-605f381.md](decision-605f381.md).** El commit ya
+> está fusionado en `facu` (verificado con `git merge-base --is-ancestor`), no es una rama
+> paralela por decidir. Se ratificó la opción (a): S1 queda rebasado sobre la v2. Como
+> consecuencia, **toda esta ficha de verificación (secciones 1 a 7) quedó obsoleta**: está
+> escrita contra el `GoldenSetController` v1, que el commit borró. No usar el punch-list del
+> §9 sin antes re-verificar contra el código actual (`CourseGoldenSetController` y el resto
+> de las piezas listadas en la decisión).
+
+El commit `605f381` ("feat(s01): implementar flujo de calibración Golden Set v2", autor Franco
+Brizzio) borra por completo esta implementación de S1 (`GoldenSetController`,
 `GoldenSetService`, …) y la reemplaza por un flujo de calibración con endpoints
 `/api/llm/courses/{courseId}/…`, un `CourseGoldenSetController` y un
 `CourseAuthorization.requireTeacher(courseId, …)` — que es justamente el chequeo de ownership por
-curso que falta acá.
-
-Antes de invertir en tapar los huecos de esta versión hay que decidir con el/los dueños del
-código: **(a)** S1 se rebasa sobre la v2, **(b)** se reconcilian, o **(c)** la v2 se pospone a
-S2/EP-04 (calibración) y S1 sigue con esta base más el ownership agregado. Es una decisión de
-quien mantiene el módulo, no un arreglo de esta revisión.
+curso que faltaba acá.
 
 ---
 

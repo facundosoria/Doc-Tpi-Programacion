@@ -38,7 +38,7 @@ no en la ficha. Si un dato de una ficha no coincide con esta tabla, **manda la t
 | Épica | Ficha | Nombre | Fase | Pareja líder | Sprints | Requisitos (orientativo) |
 |---|---|---|---|---|---|---|
 | **EP-01** | [`ep-01.md`](ep-01.md) | Plataforma, contratos e integración | F1 (+ operación integral) | P1 | S1, S3, S6, S10, S19 | RF-NFR-01/03/04/09/10; contratos v1 |
-| **EP-02** | [`ep-02.md`](ep-02.md) | AI Gateway, modelos y resiliencia | F1 | P2 | S3, S8, S9 | RF-IA-22/23/24/35 |
+| **EP-02** | [`ep-02.md`](ep-02.md) | AI Gateway, modelos y resiliencia | F1 | P2 | **S1** (adelantado), S3, S8, S9 | RF-IA-22/23/24/35 |
 | **EP-03** | [`ep-03.md`](ep-03.md) | Golden set y referencia humana | F1 | P5 + P4 | S1, S2 | RF-IA-29/30 a 36 |
 | **EP-04** | [`ep-04.md`](ep-04.md) | Calibración y gobernanza del modelo | F1 | P4 | S3, S4, S8 | RF-IA-30 a 36; PAR-14 |
 | **EP-05** | [`ep-05.md`](ep-05.md) | Tutor seguro y guardarraíles | F1 | P3 + P2 | S5 | RF-IA-01/02/04/19/20 |
@@ -66,9 +66,14 @@ no en la ficha. Si un dato de una ficha no coincide con esta tabla, **manda la t
 
 | Sprint | Épicas activas | Historias | Fichas de HU |
 |---|---|---|---|
-| **S1** | EP-01 (H01–H04, H08, H09) · EP-03 (H05–H07) | 9 | [`historias/ep-01.md`](../historias/ep-01.md) · [`historias/ep-03.md`](../historias/ep-03.md) |
-| **S2** | EP-03 | *(a desglosar en el Refinamiento previo a S2)* | — |
-| **S3–S19** | ver catálogo | *(a desglosar sprint a sprint)* | — |
+| **S1** | EP-01 (H01–H04, H08, H09) · EP-02 (H10) · EP-03 (H05–H07, histórico) | 10 | [`historias/ep-01/`](../historias/ep-01/README.md) · [`historias/ep-02/`](../historias/ep-02/README.md) · [`historias/ep-03/`](../historias/ep-03/README.md) |
+| **S2** | EP-03 (LLM-S02-H01, H02) | 2 — **ya construidas, escritas a posteriori** | [`historias/ep-03/`](../historias/ep-03/README.md) |
+| **S3** | EP-04 (LLM-S03-H01) | 1 — esqueleto construido, hueco de implementación | [`historias/ep-04/`](../historias/ep-04/README.md) |
+| **S4–S19** | ver catálogo | *(a desglosar sprint a sprint)* | — |
+
+> **S1–S3 pasaron de "a construir" a "auditar contra lo ya construido"** tras el commit
+> `605f381` — ver [decision-605f381.md](../entregas/decision-605f381.md) y
+> [entrega-1.md](../entregas/entrega-1.md).
 
 Las historias de un sprint se derivan de la **receta** correspondiente en
 [`35`](../35-backlog-ejecutable.md) durante

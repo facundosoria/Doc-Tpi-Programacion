@@ -21,13 +21,15 @@
 | Fecha de Planning previa a ejecución | *(fijar; sus 24 h-persona se cargan a S1)* |
 | Objetivo y usuario beneficiado | Un **docente autorizado** carga y consulta casos de referencia (*golden set*) y **los datos sobreviven al reinicio** del servicio. |
 | Recorrido funcional que se demostrará | Acceso autorizado por Gateway → alta de golden set para la cohorte → carga de una entrada (transcripción + 5 puntajes) → `docker compose restart` → consulta que devuelve exactamente lo cargado. |
-| Límites del incremento | Solo golden set base (sin doble puntuación ciega ni publicación de versiones: eso es S2). Sin funciones de IA (tutor/evaluador). Un solo idioma (`es`), rúbrica 1.0. |
+| Límites del incremento | Solo golden set base (sin doble puntuación ciega ni publicación de versiones: eso es S2). Sin funciones de IA (tutor/evaluador). Un solo idioma (`es`), rúbrica 1.0. **H10** (EP-02) corre en paralelo como preparación técnica; no forma parte del recorrido de demo. |
 | Versión anterior que debe seguir funcionando | Ninguna (es el primer incremento). |
 | Referente de producto / facilitador | *(nombrar en Sprint 0)* |
 | Ambiente de integración | Ambiente compartido con Gateway, Eureka y PostgreSQL reales (no máquina local aislada). |
 
-**Trabajo estimado de la receta:** ~208 h de paquetes (piso, no tope) sobre una capacidad de
-referencia de ≈ 571 h.
+**Trabajo estimado de la receta:** ~240 h de paquetes (piso, no tope) sobre una capacidad de
+referencia de ≈ 571 h. Incluye **H10**, adelantada desde S3 en la reprogramación a 8 semanas
+([`../sprints/README.md`](../sprints/README.md)) — corre en Pista B (P2+P3), en paralelo con
+la Pista A (P1+P4+P5) de este sprint.
 
 ---
 
@@ -71,7 +73,8 @@ demo pertenece a la Review.
 
 ## 4. Historias propuestas y dependencias
 
-Derivadas de la receta de S1. Épica **EP-01** (H01–H04, H08, H09) y **EP-03** (H05–H07). La
+Derivadas de la receta de S1. Épica **EP-01** (H01–H04, H08, H09), **EP-03** (H05–H07) y
+**EP-02** (H10, adelantada de S3). La
 columna *h* es la referencia de planificación; los **puntos Fibonacci** se asignan en
 Planning contra la canónica `LLM-S01-H06`.
 
@@ -86,7 +89,8 @@ Planning contra la canónica `LLM-S01-H06`.
 | `LLM-S01-H07` | **docente** usa una pantalla mínima para alta, carga y consulta | RF-IA-30 a 36 | Formulario/listado real por Gateway, estados de carga/error, autorización visible, WCAG AA. **Neg:** backend caído → aviso claro y navegable; transcripción no-JSON no se envía; `403` → «no autorizado» | **P5** | H05, H06 | 24 | *(Planning)* | Pendiente |
 | `LLM-S01-H08` | *(equipo de integración)* contrato OpenAPI y mock del golden set publicados | contratos v1; RF-NFR-01 | OpenAPI con **solo** operaciones existentes; mock con una línea documentada; adenda revisada con `admin-service`. **Neg:** PR con operación no implementada o campo no acordado → bloqueado | **P1** | H03 | 10 | *(Planning)* | Pendiente |
 | `LLM-S01-H09` | *(equipo)* suite de pruebas y guía de demo de S1 | [24](../24-convenciones-cobertura.md); [25](../25-matriz-pruebas-infraestructura.md) | Unitarias + Testcontainers/Flyway + WireMock del Gateway + prueba de reinicio de Compose; cobertura ≥ 95 %; guía de demo reproducible. **Neg:** cobertura bajo umbral → CI falla; pérdida de datos en reinicio → falla y bloquea la Review | **P1** (una persona por pareja) | H04–H07 | 18 | *(Planning)* | Pendiente |
-| | | | | | **Total** | **208** | | |
+| `LLM-S01-H10` *(adelantada de S3)* | *(equipo)* puerto de invocación de modelos con adaptador fake, sin SDK de proveedor en `domain` | RF-IA-11; RF-IA-25/26 | Puerto sin import de SDK en `domain`; fake por WireMock cumple schema estricto; tabla función→proveedor+modelo editable sin redeploy. **Neg:** respuesta fuera de schema → error controlado; timeout → error controlado, no cuelgue | **P2** | H01 | 32 | *(Planning)* | Pendiente |
+| | | | | | **Total** | **240** | | |
 
 ### Dependencias
 
@@ -120,7 +124,7 @@ Planning contra la canónica `LLM-S01-H06`.
 | Reuniones programadas | 102 | |
 | Soporte conocido | *(según sprint)* | |
 | Reserva | ≈ 143 | |
-| Entregables | ≈ 571 (trabajo estimado ~208) | |
+| Entregables | ≈ 571 (trabajo estimado ~240) | |
 
 Si se agota la reserva, registrar la renegociación del alcance. No se rebajan pruebas ni
 controles académicos para cumplir fecha.

@@ -263,7 +263,7 @@ después de reiniciar el servicio.
 > [backlog ejecutable](35-backlog-ejecutable.md). Las nueve
 > historias en **formato largo del template de Taiga** (Como/Quiero/Para, Notas, CA con
 > negativos, ≥ 3 escenarios BDD, Prototipo, Estimación, Dependencias) están agrupadas por
-> épica en [`historias/ep-01.md`](historias/ep-01.md) y [`historias/ep-03.md`](historias/ep-03.md)
+> épica en [`historias/ep-01/`](historias/ep-01/README.md) y [`historias/ep-03/`](historias/ep-03/README.md)
 > (índice del sprint y demo en [`sprints/s1-historias.md`](sprints/s1-historias.md); tareas
 > SMART en [`tareas/`](tareas/README.md)); las diez épicas (EP-01…EP-10), una por archivo, en
 > [`epicas/`](epicas/README.md) — las activas en S1 son EP-01 y EP-03. El arranque como acta

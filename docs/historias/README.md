@@ -31,22 +31,33 @@
 
 | Épica | Archivo | Historias | Tipo en Taiga |
 |---|---|---|---|
-| **EP-01** · Plataforma, contratos e integración | [`ep-01.md`](ep-01.md) | LLM-S01-H01 · H02 · H03 · H04 · H08 · H09 | Tareas de sprint (habilitadores) |
-| **EP-03** · Golden set y referencia humana | [`ep-03.md`](ep-03.md) | LLM-S01-H05 · H06 · H07 | **HU** de valor (rol: docente) |
+| **EP-01** · Plataforma, contratos e integración | [`ep-01/`](ep-01/README.md) | LLM-S01-H01 · H02 · H03 · H04 · H08 · H09 | Tareas de sprint (habilitadores) |
+| **EP-02** · AI Gateway, modelos y resiliencia | [`ep-02/`](ep-02/README.md) | LLM-S01-H10 | Tarea de sprint (habilitador) |
+| **EP-03** · Golden set y referencia humana | [`ep-03/`](ep-03/README.md) | LLM-S01-H05 · H06 · H07 (histórico) · LLM-S02-H01 · H02 (vigentes) | **HU** de valor (rol: docente) |
+| **EP-04** · Calibración y gobernanza del modelo | [`ep-04/`](ep-04/README.md) | LLM-S03-H01 | **HU** de valor (rol: docente) — 🟡 con hueco de implementación |
 
 > **H05–H07** se cargan en Taiga como **HU** (rol real, puntos Fibonacci contra la
-> canónica `LLM-S01-H06`, INVEST verificado). **H01–H04, H08, H09** como **tareas**
-> bajo EP-01: fallan la **V** de INVEST (el `COMO` es «el equipo» o «la plataforma»).
+> canónica `LLM-S01-H06`, INVEST verificado). **H01–H04, H08, H09, H10** como **tareas**
+> bajo su épica: fallan la **V** de INVEST (el `COMO` es «el equipo» o «la plataforma»).
 > El formato largo de HU acá es para trazar los escenarios de aceptación, no para
 > forzar su carga como HU ([30 · §5](../30-arranque-agil-y-sprint-0.md)).
+>
+> **H10 es una incorporación de la reprogramación a 8 semanas** (ver
+> [`../sprints/README.md`](../sprints/README.md)): adelanta desde S3 el primer paquete de
+> EP-02 porque no depende del golden set publicado, solo del ADR (H01).
 
 ## Historias por sprint
 
 | Sprint | Épicas activas | Historias | Vista de sprint |
 |---|---|---|---|
-| **S1** | EP-01 (H01–H04, H08, H09) · EP-03 (H05–H07) | 9 | [`../sprints/s1-historias.md`](../sprints/s1-historias.md) · [`../sprints/s1-explicado.md`](../sprints/s1-explicado.md) |
-| **S2** | EP-03 | *(a desglosar en el Refinamiento previo a S2)* | — |
-| S3–S19 | ver [catálogo](../epicas/README.md) | *(sprint a sprint)* | — |
+| **S1** | EP-01 (H01–H04, H08, H09) · EP-02 (H10) · EP-03 (H05–H07, histórico) | 10 | [`../sprints/s1-historias.md`](../sprints/s1-historias.md) · [`../sprints/s1-explicado.md`](../sprints/s1-explicado.md) |
+| **S2** | EP-03 (LLM-S02-H01, H02) | 2 — **ya construidas, escritas a posteriori** ([verificación](../entregas/verificacion-v2-golden-set-calibracion.md)) | — |
+| **S3** | EP-04 (LLM-S03-H01) | 1 — esqueleto construido, hueco de implementación (falta conectar H10) | — |
+| S4–S19 | ver [catálogo](../epicas/README.md) | *(sprint a sprint; EP-02 conserva S8–S9, S3 pierde su primer paquete)* | — |
+
+> **S1–S3 dejaron de ser "a construir" y pasaron a "auditar contra lo ya construido".** El
+> commit `605f381` adelantó de facto ese trabajo — ver [decision-605f381.md](../entregas/decision-605f381.md)
+> y la propuesta de [Entrega 1](../entregas/entrega-1.md).
 
 ## Cómo se generan
 

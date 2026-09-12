@@ -1,9 +1,10 @@
 # Tareas del `llm-service` — fichas SMART por historia
 
-> **Qué es esta carpeta.** El desglose en **tareas** de cada Historia de Usuario, una
-> ficha por tarea con el formato del [template oficial de Tarea de la Wiki de
-> Taiga](../plantillas/tarea-taiga.md). En Taiga cada tarea **cuelga de su HU** (o de la
-> tarea de sprint, si el padre es un habilitador).
+> **Qué es esta carpeta.** El desglose en **tareas** de cada Historia de Usuario, en el mismo
+> patrón que [`../historias/`](../historias/README.md): **una carpeta por épica, un archivo
+> por historia** (`ep-0X/hYY.md` o `ep-0X/sZZ-hYY.md`), con el formato del [template oficial
+> de Tarea de la Wiki de Taiga](../plantillas/tarea-taiga.md). En Taiga cada tarea **cuelga de
+> su HU** (o de la tarea de sprint, si el padre es un habilitador).
 >
 > **Método: SMART.** Una tarea está bien escrita si es **S**pecífica (un solo paso
 > técnico, verbo + resultado), **M**edible (su criterio de terminado se responde sí/no),
@@ -17,35 +18,55 @@
 >
 > | Dato | Dónde vive |
 > |---|---|
-> | Horas por historia y por sprint | [`35`](../35-backlog-ejecutable.md) · «S1» |
+> | Horas por historia y por sprint (S1) | [`35`](../35-backlog-ejecutable.md) · «S1» |
 > | Criterios de aceptación y escenarios BDD (lo que cada tarea traza) | [`../historias/`](../historias/README.md) |
 > | Orden de construcción de las tareas | [playbook · §4](../36-playbook-de-construccion.md) |
 > | Vista del sprint (índice, demo) | [`../sprints/s1-historias.md`](../sprints/s1-historias.md) |
+> | Estado real del código (S2/S3, escritas a posteriori) | [`../entregas/verificacion-v2-golden-set-calibracion.md`](../entregas/verificacion-v2-golden-set-calibracion.md) |
 >
 > Las horas por tarea son **orientativas** y suman la referencia de la historia. Si un
-> número de acá no coincide con la fuente, **manda la fuente**.
+> número de acá no coincide con la fuente, **manda la fuente**. En las historias escritas a
+> posteriori (S2, S3), la mayoría de las tareas ya están **hechas** — están marcadas
+> explícitamente; no son planificación a futuro.
 
-## Índice
+## Índice por épica
 
-| Archivo | Historias | Épica |
-|---|---|---|
-| [`ep-01.md`](ep-01.md) | LLM-S01-H01 · H02 · H03 · H04 · H08 · H09 | EP-01 · Plataforma, contratos e integración |
-| [`ep-03.md`](ep-03.md) | LLM-S01-H05 · H06 · H07 | EP-03 · Golden set y referencia humana |
+| Épica | Carpeta | Historias | Estado |
+|---|---|---|---|
+| **EP-01** · Plataforma, contratos e integración | [`ep-01/`](ep-01/README.md) | LLM-S01-H01 · H02 · H03 · H04 · H08 · H09 | Planificadas (S1) |
+| **EP-02** · AI Gateway, modelos y resiliencia | [`ep-02/`](ep-02/README.md) | LLM-S01-H10 | Planificada, adelantada a S1 |
+| **EP-03** · Golden set y referencia humana | [`ep-03/`](ep-03/README.md) | LLM-S01-H05 · H06 · H07 (histórico) · LLM-S02-H01 · H02 (vigentes) | S1 histórico; S2 ya construida |
+| **EP-04** · Calibración y gobernanza del modelo | [`ep-04/`](ep-04/README.md) | LLM-S03-H01 | Esqueleto construido, 1 tarea bloqueante |
 
-**Total S1:** 208 h de tareas (piso de planificación, no tope).
+## Horas — S1 (planificación original, vigente)
 
-| Historia | Tareas | h |
-|---|---:|---:|
-| [LLM-S01-H01](ep-01.md#llm-s01-h01--adr-de-arquitectura-y-convenciones-técnicas) | 5 | 16 |
-| [LLM-S01-H02](ep-01.md#llm-s01-h02--entorno-reproducible-con-un-comando) | 7 | 30 |
-| [LLM-S01-H03](ep-01.md#llm-s01-h03--esqueleto-transversal-del-servicio) | 8 | 34 |
-| [LLM-S01-H04](ep-01.md#llm-s01-h04--esquema-inicial-versionado-con-auditoría) | 7 | 38 |
-| [LLM-S01-H05](ep-03.md#llm-s01-h05--alta-de-golden-set-y-carga-de-entradas) | 6 | 24 |
-| [LLM-S01-H06](ep-03.md#llm-s01-h06--consulta-del-golden-set-que-sobrevive-al-reinicio) | 4 | 14 |
-| [LLM-S01-H07](ep-03.md#llm-s01-h07--pantalla-docente-mínima-del-golden-set) | 6 | 24 |
-| [LLM-S01-H08](ep-01.md#llm-s01-h08--contrato-openapi-y-mock-del-golden-set-publicados) | 4 | 10 |
-| [LLM-S01-H09](ep-01.md#llm-s01-h09--suite-de-pruebas-y-guía-de-demo-de-s1) | 6 | 18 |
-| **Total** | **53** | **208** |
+**Total S1:** 240 h de tareas (piso de planificación, no tope).
+
+| Historia | Archivo | Tareas | h |
+|---|---|---:|---:|
+| LLM-S01-H01 | [`ep-01/h01.md`](ep-01/h01.md) | 5 | 16 |
+| LLM-S01-H02 | [`ep-01/h02.md`](ep-01/h02.md) | 7 | 30 |
+| LLM-S01-H03 | [`ep-01/h03.md`](ep-01/h03.md) | 8 | 34 |
+| LLM-S01-H04 | [`ep-01/h04.md`](ep-01/h04.md) | 7 | 38 |
+| LLM-S01-H05 *(histórico)* | [`ep-03/h05.md`](ep-03/h05.md) | 6 | 24 |
+| LLM-S01-H06 *(histórico)* | [`ep-03/h06.md`](ep-03/h06.md) | 4 | 14 |
+| LLM-S01-H07 *(histórico)* | [`ep-03/h07.md`](ep-03/h07.md) | 6 | 24 |
+| LLM-S01-H08 | [`ep-01/h08.md`](ep-01/h08.md) | 4 | 10 |
+| LLM-S01-H09 | [`ep-01/h09.md`](ep-01/h09.md) | 6 | 18 |
+| LLM-S01-H10 | [`ep-02/h10.md`](ep-02/h10.md) | 6 | 32 |
+| **Total** | | **59** | **240** |
+
+## Horas — S2/S3 (escritas a posteriori, código ya construido)
+
+No suman al total de S1: son la documentación retroactiva de `605f381`
+([decision-605f381.md](../entregas/decision-605f381.md)). Las horas son de referencia, no un
+compromiso de sprint.
+
+| Historia | Archivo | Tareas | Estado |
+|---|---|---:|---|
+| LLM-S02-H01 | [`ep-03/s02-h01.md`](ep-03/s02-h01.md) | 6 | 5 hechas, 1 pendiente de decisión |
+| LLM-S02-H02 | [`ep-03/s02-h02.md`](ep-03/s02-h02.md) | 7 | 6 hechas, 1 pendiente de código |
+| LLM-S03-H01 | [`ep-04/s03-h01.md`](ep-04/s03-h01.md) | 7 | 6 hechas, 1 bloqueante (conectar H10) |
 
 ## Cómo se generan
 

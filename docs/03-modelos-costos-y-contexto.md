@@ -26,12 +26,12 @@ de modelo y varias además mejoran la calidad.**
 
 ### La tabla de decisión
 
-| Función | Modelo | Costo por consulta | Por qué |
-|---|---|---|---|
-| **Tutor** | Gemini 3.5 Flash-Lite | USD 0,00052 | Rápido y sigue instrucciones negativas razonablemente bien |
-| **Moderador** | Capa clásica + `omni-moderation-latest` | **USD 0** | No es un LLM: listas y heurísticas resuelven 4 de 6 categorías, y el clasificador —que es gratuito— cubre el resto. Ver ADR-012 |
-| **Evaluador** | Claude Haiku 4.5 + Batch | USD 0,006 | Consistencia de criterio. **Acá no se ahorra** |
-| **Generador** | Gemini 3.5 Flash-Lite + Batch | USD 0,00083 | Hay revisión humana obligatoria |
+| Función       | Modelo                                  | Costo por consulta | Por qué                                                                                                                         |
+| ------------- | --------------------------------------- | ------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
+| **Tutor**     | Gemini 3.5 Flash-Lite                   | USD 0,00052        | Rápido y sigue instrucciones negativas razonablemente bien                                                                      |
+| **Moderador** | Capa clásica + `omni-moderation-latest` | **USD 0**          | No es un LLM: listas y heurísticas resuelven 4 de 6 categorías, y el clasificador —que es gratuito— cubre el resto. Ver ADR-012 |
+| **Evaluador** | Claude Haiku 4.5 + Batch                | USD 0,006          | Consistencia de criterio. **Acá no se ahorra**                                                                                  |
+| **Generador** | Gemini 3.5 Flash-Lite + Batch           | USD 0,00083        | Hay revisión humana obligatoria                                                                                                 |
 
 ### El supuesto que más mueve este número: cuántos tokens pesa un prompt
 
