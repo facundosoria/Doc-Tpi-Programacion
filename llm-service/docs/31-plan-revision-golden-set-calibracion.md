@@ -140,10 +140,10 @@ Los porcentajes se actualizan al cerrar tareas con criterio de aceptación cumpl
 
 ### 7.3 Presentaciones y demos
 
-- [x] **GS-0120** Corregir `presentaciones/guia-golden-set.html`.
-- [x] **GS-0121** Corregir `presentaciones/defensa-39-slides.html` en los bloques de Golden Set, PAR-14, referencia humana y catálogo del corrector; queda incluida en la búsqueda final de consistencia.
-- [x] **GS-0122** Corregir `presentaciones/CORRECCIONES-SUGERIDAS.md` para que refleje el estado real.
-- [x] **GS-0123** Corregir `llm-service/golden-set-calibration-demo.html`.
+- [x] **GS-0120** Corregir `docs/presentaciones/guia-golden-set.html`.
+- [x] **GS-0121** Corregir `docs/presentaciones/defensa-39-slides.html` en los bloques de Golden Set, PAR-14, referencia humana y catálogo del corrector; queda incluida en la búsqueda final de consistencia.
+- [x] **GS-0122** Corregir `docs/presentaciones/CORRECCIONES-SUGERIDAS.md` para que refleje el estado real.
+- [x] **GS-0123** Corregir `docs/prototipos/golden-set-calibration-demo.html`.
 - [x] **GS-0124** Revisar `Demos/Golden Set` y reemplazar los conceptos centrales de exámenes/correcciones por conversaciones/evaluaciones; queda incluida en la búsqueda final de consistencia.
 - [x] **GS-0125** Añadir una advertencia e índice visible para `docs/importado/`, sin alterar su contenido histórico.
 - [x] **GS-0126** Ejecutar una búsqueda global de términos prohibidos y clasificar cada coincidencia legítima o pendiente. Las referencias a solución esperada se conservan solo para la salvaguarda anti-fuga; las menciones al corrector LLM explicitan su exclusión; `docs/importado/` es histórico.

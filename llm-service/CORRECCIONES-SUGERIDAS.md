@@ -10,8 +10,8 @@ anotadas acá en vez de aplicadas, para que las haga quien es dueño del código
 ## 🟡 1. Siete controllers saltan a `infrastructure/persistence` directo, sin pasar por `application`
 
 **Detectado al mapear el árbol real de carpetas contra la regla de
-[36 §4](../docs/36-playbook-de-construccion.md), documentado en
-[37 §6](../docs/37-estructura-carpetas-backend.md#6-hueco-conocido--no-corregido-acá).**
+[36 §4](docs/36-playbook-de-construccion.md), documentado en
+[37 §6](docs/37-estructura-carpetas-backend.md#6-hueco-conocido--no-corregido-acá).**
 
 El flujo que fija el doc 36 es:
 
@@ -78,7 +78,7 @@ contrario.
 ---
 
 > **Los ítems 2 a 10 vienen de
-> [`docs/entregas/verificacion-v2-golden-set-calibracion.md`](../docs/entregas/verificacion-v2-golden-set-calibracion.md)**
+> [`docs/entregas/verificacion-v2-golden-set-calibracion.md`](docs/entregas/verificacion-v2-golden-set-calibracion.md)**
 > (revisión del código v2 post-`605f381`, 2026-09-12), que pedía explícitamente transcribirlos
 > acá y no se había hecho todavía.
 
@@ -86,7 +86,7 @@ contrario.
 
 > **🟢 Parcialmente resuelto el 2026-09-12.** El puerto de invocación + fake (`LLM-S01-H10`) ya
 > existe (`domain/ai/ModelInvocationPort`, `infrastructure/ai/FakeModelAdapter`,
-> `application/ModelInvocationService`) — ver [`docs/estado-implementacion/ep-02/h10.md`](../docs/estado-implementacion/ep-02/h10.md).
+> `application/ModelInvocationService`) — ver [`docs/estado-implementacion/ep-02/h10.md`](docs/estado-implementacion/ep-02/h10.md).
 > **Sigue sin conectarse a la calibración**: el párrafo de abajo describe el estado tal como
 > estaba antes de H10 y el paso que falta sigue exactamente igual — solo que ahora existe algo
 > concreto para enchufar.
@@ -149,26 +149,26 @@ contra un CA acordado. Hace falta escribir esas fichas retroactivamente.
 
 Las historias dicen "cohorte" de punta a punta; el código dice "curso". Adoptar "curso" en la
 documentación — confirmando antes con Franco Brizzio si `courseId` es el curso-plantilla o la
-cohorte/oferta concreta ([08 §B-7](../docs/08-decisiones-y-pendientes.md)).
+cohorte/oferta concreta ([08 §B-7](docs/08-decisiones-y-pendientes.md)).
 
 ## 🟡 9. Confirmar el invariante de pesos de la rúbrica
 
-[23 §4.2](../docs/23-plan-construccion-producto-llm.md) fija 30/25/20/15/10 como invariante de
+[23 §4.2](docs/23-plan-construccion-producto-llm.md) fija 30/25/20/15/10 como invariante de
 producto; `RubricValidator` sólo exige que las cinco dimensiones sumen 100, sin fijar esos valores
 concretos. Decidir si cada curso puede variar sus pesos (y el invariante de 23 está desactualizado)
 o si falta una validación en el código. Detalle en
-[`LLM-S02-H01`](../docs/historias/ep-03/s02-h01.md).
+[`LLM-S02-H01`](docs/historias/ep-03/s02-h01.md).
 
 ## 🟡 10. Confirmar el alcance de calibración: plataforma vs. curso
 
 EP-04 describe calibración de plataforma **y** de curso; el código sólo implementa la de curso.
-Detalle en [`LLM-S03-H01`](../docs/historias/ep-04/s03-h01.md).
+Detalle en [`LLM-S03-H01`](docs/historias/ep-04/s03-h01.md).
 
 ---
 
 > **Los ítems 11 a 15 salen de cruzar
-> [`docs/contracts/llm-service-v2-golden-set.openapi.yaml`](../docs/contracts/llm-service-v2-golden-set.openapi.yaml)
-> y [`docs/contracts/llm-service-v1.openapi.yaml`](../docs/contracts/llm-service-v1.openapi.yaml)
+> [`docs/contracts/llm-service-v2-golden-set.openapi.yaml`](docs/contracts/llm-service-v2-golden-set.openapi.yaml)
+> y [`docs/contracts/llm-service-v1.openapi.yaml`](docs/contracts/llm-service-v1.openapi.yaml)
 > contra los `@*Mapping` reales de los 12 controllers, endpoint por endpoint (2026-09-12).**
 
 ## 🟡 11. Tres endpoints reales no están en el contrato v2
@@ -198,7 +198,7 @@ qué `baseVersionId` usar salvo conociéndolo de antemano.
 ## 🔴 13. El contrato v1 sigue documentando rutas que el código prohíbe activamente reintroducir
 
 `docs/contracts/llm-service-v1.openapi.yaml` (y su adenda
-[`llm-service-v1-s1-golden-set-adenda.md`](../docs/contracts/llm-service-v1-s1-golden-set-adenda.md))
+[`llm-service-v1-s1-golden-set-adenda.md`](docs/contracts/llm-service-v1-s1-golden-set-adenda.md))
 describen `POST /golden-sets`, `GET /golden-sets`, `POST /golden-sets/{goldenSetId}/entries`,
 `POST /calibrations`, `GET /course-cohorts/{courseCohortId}/calibration` y
 `GET /course-cohorts/{courseCohortId}/pending-evaluations` — el vocabulario y las rutas exactas
@@ -210,11 +210,11 @@ actualizó el archivo de contrato que sigue prometiéndolas. Alguien integrando 
 `llm-service-v1.openapi.yaml` hoy escribiría un cliente para endpoints que el propio servicio se
 asegura de rechazar.
 
-[`decision-605f381.md`](../docs/entregas/decision-605f381.md) ya identificó la deuda de
+[`decision-605f381.md`](docs/entregas/decision-605f381.md) ya identificó la deuda de
 terminología ("cohorte" vs "curso") en las historias, pero no menciona que el contrato v1 tiene el
-mismo problema **en un archivo que se publica a otros equipos** ([18](../docs/18-contratos-inter-equipos.md)).
+mismo problema **en un archivo que se publica a otros equipos** ([18](docs/18-contratos-inter-equipos.md)).
 No se edita acá — el contrato es un artefacto compartido y cambiarlo sin aviso es exactamente lo
-que [02](../docs/02-arquitectura-y-stack.md) prohíbe ("un cambio incompatible sin aviso rompe al
+que [02](docs/02-arquitectura-y-stack.md) prohíbe ("un cambio incompatible sin aviso rompe al
 otro equipo en medio de su sprint"). Queda anotado para decidir en la sesión de integración: ¿se
 marca `v1.openapi.yaml` como histórico/reemplazado, o se fusiona con v2 como la adenda original
 pedía?
@@ -223,7 +223,7 @@ pedía?
 
 El resto del contrato v1 (tutor, evaluaciones, apelaciones, overrides, `/jobs/{jobId}`,
 `/model-assignments/{function}`) no tiene ningún controller real. **No es una inconsistencia**:
-son EP-05/EP-06/EP-02, que todavía no empezaron (ver [37 §7](../docs/37-estructura-carpetas-backend.md)).
+son EP-05/EP-06/EP-02, que todavía no empezaron (ver [37 §7](docs/37-estructura-carpetas-backend.md)).
 Se anota sólo para que no se lea como un hueco al lado de los ítems 11-13, que sí lo son.
 
 ## 🟢 15. `GoldenSetUpdateProposal` (contrato) trae campos que el repositorio no expone completos
@@ -237,9 +237,9 @@ omite. Queda para confirmar junto con el ítem 1 si se decide envolver esta resp
 ---
 
 > **Los ítems 16 a 22 salen de cruzar las historias y tareas SMART de
-> [`docs/historias/ep-01/`](../docs/historias/ep-01/README.md),
-> [`docs/historias/ep-02/h10.md`](../docs/historias/ep-02/h10.md) y
-> [`docs/historias/ep-03/`](../docs/historias/ep-03/README.md) — con sus tareas espejo en
+> [`docs/historias/ep-01/`](docs/historias/ep-01/README.md),
+> [`docs/historias/ep-02/h10.md`](docs/historias/ep-02/h10.md) y
+> [`docs/historias/ep-03/`](docs/historias/ep-03/README.md) — con sus tareas espejo en
 > `docs/tareas/` — contra el código y la configuración reales (2026-09-12).**
 
 ## 🔴 16. H03·T3 no cumplida: el servicio no se registra en Eureka
@@ -251,7 +251,7 @@ Verificado: **cero** menciones de Eureka en todo `llm-service/` — ni dependenc
 pero no hay forma de que el API Gateway lo descubra. **H03·CA1 no se cumple.**
 
 No es necesariamente un bug urgente — el resto de la plataforma (Gateway/Eureka reales) tampoco
-está integrado todavía ([24](../docs/24-convenciones-cobertura.md): *"Gateway y Eureka se
+está integrado todavía ([24](docs/24-convenciones-cobertura.md): *"Gateway y Eureka se
 ejecutan en CI cuando existan sus módulos reales"*) — pero la tarea está marcada como parte de S1
 y hoy tiene 0 horas de las 5 aplicadas.
 
@@ -272,42 +272,47 @@ actualizarse para dejar de prometer un `401` que nunca va a llegar.
 
 ## 🟡 18. H09·T6 no cumplida: sin JaCoCo no hay gate de cobertura backend posible
 
-La tarea T6 de H09 pide "activar el gate de cobertura de [24](../docs/24-convenciones-cobertura.md)
+La tarea T6 de H09 pide "activar el gate de cobertura de [24](docs/24-convenciones-cobertura.md)
 en CI" (umbral 95% backend). Verificado: `pom.xml` **no tiene el plugin de JaCoCo configurado**
 (`grep jacoco pom.xml` → vacío). Sin JaCoCo no hay `target/site/jacoco/index.html` ni `jacoco.xml`
 que un gate de CI pueda leer — el umbral de doc 24 no puede estar activo hoy, sin importar cuántos
 tests haya.
 
-## 🟡 19. H02: falta `.env.example`; `down` no está documentado en el README
+## 🟢 19. H02: `.env.example` y `down` — resuelto el 2026-09-12
+
+> Ya no es un hueco: existe [`.env.example`](.env.example) con las variables del ADR, y
+> [`README.md`](README.md) documenta `up` (aislado y con workbench), `docker compose down` y cómo
+> verificar salud desde afuera del contenedor. Se conserva la redacción original como registro de
+> lo que faltaba antes de la consolidación de `docs/`/`llm-workbench/` dentro de `llm-service/`.
 
 H02 pide como dato obligatorio un "archivo `.env.example` con las variables del ADR" y que el
-README documente `up`, la comprobación de salud y `down`. Verificado: no existe ningún archivo
-`.env*` en el repo, y [`llm-service/README.md`](README.md) sólo documenta los dos comandos `up`
-(aislado y con workbench) — no menciona `docker compose down` ni cómo verificar salud desde
+README documente `up`, la comprobación de salud y `down`. Verificado en su momento: no existía
+ningún archivo `.env*` en el repo, y `llm-service/README.md` sólo documentaba los dos comandos `up`
+(aislado y con workbench) — no mencionaba `docker compose down` ni cómo verificar salud desde
 afuera del contenedor.
 
 ## 🔴 20. H05, H06 y H07 describen endpoints que ya no existen — quedaron obsoletas y nadie las reescribió
 
-Las tres fichas ([h05](../docs/historias/ep-03/h05.md), [h06](../docs/historias/ep-03/h06.md),
-[h07](../docs/historias/ep-03/h07.md)) siguen documentando literalmente
+Las tres fichas ([h05](docs/historias/ep-03/h05.md), [h06](docs/historias/ep-03/h06.md),
+[h07](docs/historias/ep-03/h07.md)) siguen documentando literalmente
 `POST /api/llm/golden-sets`, `GET /api/llm/golden-sets/{goldenSetId}`, "cohorte" como término y
 `403` (nunca `404`) para un golden set inexistente. **Ninguno de esos endpoints existe hoy**: el
 código real es `/api/llm/courses/{courseId}/golden-sets/...` (`CourseGoldenSetController`), tal
-como ya identificó [decision-605f381.md](../docs/entregas/decision-605f381.md) a nivel de
+como ya identificó [decision-605f381.md](docs/entregas/decision-605f381.md) a nivel de
 subsistema. Este ítem lo hace explícito a nivel de **ficha completa**: H05/H06/H07, tal como están
 escritas hoy, no se pueden ejecutar ni verificar contra el servicio real — ni un solo `curl` de
 sus secciones "Endpoints" funciona. Es el mismo problema que ya tuvo
-[ep-03-s1-verificacion.md](../docs/entregas/ep-03-s1-verificacion.md) (marcada obsoleta), pero acá
+[ep-03-s1-verificacion.md](docs/entregas/ep-03-s1-verificacion.md) (marcada obsoleta), pero acá
 nadie marcó ni reescribió las historias mismas.
 
 ## 🟢 21. H10 — confirmado 0 de 6 tareas hechas, no sólo "falta la pieza que invoca"
 
 > **🟢 Resuelto el 2026-09-12.** Las 6 tareas están hechas — ver
-> [`docs/estado-implementacion/ep-02/h10.md`](../docs/estado-implementacion/ep-02/h10.md). Se
+> [`docs/estado-implementacion/ep-02/h10.md`](docs/estado-implementacion/ep-02/h10.md). Se
 > conserva la tabla original como registro de lo que faltaba antes de portar
 > `LlmGateway`/`GroqAdapter` de `codigo-ejemplo/ms-evaluacion-llm` (carpeta ya eliminada).
 
-Yendo tarea por tarea de [`tareas/ep-02/h10.md`](../docs/tareas/ep-02/h10.md) contra el código
+Yendo tarea por tarea de [`tareas/ep-02/h10.md`](docs/tareas/ep-02/h10.md) contra el código
 (complementa el ítem 2, que ya reportaba el síntoma):
 
 | Tarea | Pide | Estado |
@@ -327,13 +332,13 @@ de dejar de quedarse en `RUNNING`.
 
 Verificado en `V1__schema_and_rubric.sql`: la migración `V1` sí crea `rubric_versions` con la
 versión `1.0` y `rubric_dimensions` con los cinco pesos exactos que pide H04 y que
-[23 §4.2](../docs/23-plan-construccion-producto-llm.md) fija como invariante — autonomía 30,
+[23 §4.2](docs/23-plan-construccion-producto-llm.md) fija como invariante — autonomía 30,
 claridad 25, progresión 20, cumplimiento 15, eficiencia 10. **H04·CA1 se cumple.**
 
 Dato adicional no pedido por H04 pero relevante para otro documento: los nombres de tabla y columna
 son **en inglés** (`rubric_versions`, `golden_sets`, `autonomy`, `clarity`...), en las migraciones
-`V1` y `V2` por igual. [28 §6](../docs/28-normativa-catedra-plataforma.md) y
-[11 Parte B](../docs/11-glosario-y-metadata.md) documentan esto como una divergencia **abierta**
+`V1` y `V2` por igual. [28 §6](docs/28-normativa-catedra-plataforma.md) y
+[11 Parte B](docs/11-glosario-y-metadata.md) documentan esto como una divergencia **abierta**
 frente a la cátedra, con una propuesta de nombres en español marcada `E-15` todavía sin decidir.
 El código ya decidió: fue directo al inglés, sin pasar por la propuesta en español. No lo cambio
 acá (no es un bug, es información para quien mantenga 28/11), pero alguien debería actualizar esos

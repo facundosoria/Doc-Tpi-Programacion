@@ -11,8 +11,8 @@ antecedentes. No reemplaza el PRD, las [convenciones](00-fuentes-de-verdad-y-con
 ni los contratos inter-equipos. La cobertura funcional se consulta en
 [21](21-matriz-trazabilidad-llm.md).
 
-El calendario de este documento se ejecuta mediante el [playbook para agentes](../Plan%20de%20ejecucion/06-playbook-de-construccion.md)
-y el [backlog ejecutable de S1–S19](../Plan%20de%20ejecucion/07-backlog-ejecutable-sprints.md).
+El calendario de este documento se ejecuta mediante el [playbook para agentes](36-playbook-de-construccion.md)
+y el [backlog ejecutable de S1–S19](35-backlog-ejecutable.md).
 Allí están el orden atómico de construcción, los gates de dependencia, el presupuesto por
 paquete, las pruebas y la evidencia exigida; las tablas de fases de este documento son el mapa
 de producto, no el nivel de detalle de implementación.

@@ -29,6 +29,6 @@
 | [LLM-S01-H08](h08.md) | Contrato OpenAPI y mock del golden set publicados | Tarea (habilitador) | P1 | H03 | 10 |
 | [LLM-S01-H09](h09.md) | Suite de pruebas y guía de demo de S1 | Tarea (habilitador) | todos | H04–H07 | 18 |
 
-> Las HU de valor de S1 (**H05–H07**, EP-03) están en [`../ep-03.md`](../ep-03.md). La vista
+> Las HU de valor de S1 (**H05–H07**, EP-03) están en [`../ep-03/`](../ep-03/README.md). La vista
 > completa del sprint (índice de las 9, demo) está en
 > [`../../sprints/s1-historias.md`](../../sprints/s1-historias.md).

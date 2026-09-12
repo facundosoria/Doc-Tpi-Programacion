@@ -36,7 +36,7 @@ de modelo y varias además mejoran la calidad.**
 ### El supuesto que más mueve este número: cuántos tokens pesa un prompt
 
 Todo el rango de arriba sale de contar el texto del alumno. **Pero el prompt del alumno nunca se
-envía solo.** El informe de gestión de modelos —[`presentaciones/informe-gestion-modelos.html`](../presentaciones/informe-gestion-modelos.html)—
+envía solo.** El informe de gestión de modelos —[`presentaciones/informe-gestion-modelos.html`](presentaciones/informe-gestion-modelos.html)—
 desarma el payload real de una consulta al tutor y le encuentra cuatro capas:
 
 | Capa | Tokens |

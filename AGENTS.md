@@ -46,11 +46,14 @@ npm run build -- --configuration=production
 # ==========================================
 # Infraestructura y Entorno Local
 # ==========================================
-# Levantar laboratorio/dependencias locales
-docker compose -f demo/docker-compose.yml up -d
+# Levantar laboratorio/dependencias locales (Postgres + llm-service)
+docker compose -f llm-service/compose.yaml up -d
 
-# Inspeccionar logs del servicio y backend
-docker compose -f demo/docker-compose.yml logs -f backend
+# Levantar entorno completo con Frontend Workbench
+docker compose -f llm-service/compose.yaml -f llm-service/compose.workbench.yaml up -d
+
+# Inspeccionar logs del servicio backend
+docker compose -f llm-service/compose.yaml logs -f llm-service
 ```
 
 ---

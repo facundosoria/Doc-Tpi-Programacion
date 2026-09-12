@@ -2,19 +2,19 @@
 
 `mapa-conceptual-interactivo.html`, `guia-golden-set.html` e
 `informe-gestion-modelos.html` se armaron sobre la rama `doc-tpi-unificada` —la que se
-importó en [`docs/importado/`](../docs/importado/)—, no sobre [`docs/`](../docs/). Eso
+importó en [`docs/importado/`](../importado/)—, no sobre [`docs/`](../). Eso
 las dejó desalineadas en ocho puntos.
 
 **Los ocho originales están corregidos.** El 2026-09-06 se abrió una revisión adicional de Golden
 Set y calibración. Esa revisión retiró el corrector LLM del alcance, corrigió PAR-14 y registró dos
 adendas: rúbricas editables/versionadas por curso (ADR-017) y selección de modelo por curso con doble
 calibración (ADR-018). El seguimiento vigente está en
-[`docs/31`](../docs/31-plan-revision-golden-set-calibracion.md) y la especificación funcional en
-[`docs/32`](../docs/32-especificacion-funcional-golden-set-calibracion.md).
+[`docs/31`](../31-plan-revision-golden-set-calibracion.md) y la especificación funcional en
+[`docs/32`](../32-especificacion-funcional-golden-set-calibracion.md).
 
 > **Cuál manda cuando difieren:** `docs/`, por la misma razón de siempre — es la
 > documentación de trabajo y tiene el registro de decisiones en
-> [`docs/08`](../docs/08-decisiones-y-pendientes.md).
+> [`docs/08`](../08-decisiones-y-pendientes.md).
 
 > **Estas tres ya no son byte a byte idénticas a su rama de origen.** Fue una decisión
 > explícita: se privilegió que digan lo mismo que `docs/` antes que conservarlas
@@ -33,14 +33,14 @@ Verificado valor por valor contra `docs/`:
 | Qué | `docs/` |
 |---|---|
 | Los 36 requerimientos, de RF-IA-01 a RF-IA-36 | los mismos códigos |
-| Las 5 dimensiones y sus pesos, 30/25/20/15/10 | [13](../docs/13-rubrica-y-prompts.md) §1 |
-| Tolerancia PAR-14: MAE ≤ ±5,0 promedio · ≤ ±10,0 por dimensión | [03](../docs/03-modelos-costos-y-contexto.md) §3 |
-| Muestreo docente PAR-10 del 10 % | [04](../docs/04-funciones-de-ia.md) §3 |
-| Golden set en dos niveles: 50 base · 15-20 por curso | [04](../docs/04-funciones-de-ia.md) §4c |
-| Quién puntúa el golden set: docentes, nunca un modelo | [04](../docs/04-funciones-de-ia.md) §4b |
-| Los cinco roles de IA (RF-IA-23) | [01](../docs/01-problema-y-alcance.md) |
-| Evaluador sin plan B (RF-IA-25) frente a pools para el resto | [04](../docs/04-funciones-de-ia.md) §5 |
-| Los cinco costos unitarios por función | [03](../docs/03-modelos-costos-y-contexto.md) §2 |
+| Las 5 dimensiones y sus pesos, 30/25/20/15/10 | [13](../13-rubrica-y-prompts.md) §1 |
+| Tolerancia PAR-14: MAE ≤ ±5,0 promedio · ≤ ±10,0 por dimensión | [03](../03-modelos-costos-y-contexto.md) §3 |
+| Muestreo docente PAR-10 del 10 % | [04](../04-funciones-de-ia.md) §3 |
+| Golden set en dos niveles: 50 base · 15-20 por curso | [04](../04-funciones-de-ia.md) §4c |
+| Quién puntúa el golden set: docentes, nunca un modelo | [04](../04-funciones-de-ia.md) §4b |
+| Los cinco roles de IA (RF-IA-23) | [01](../01-problema-y-alcance.md) |
+| Evaluador sin plan B (RF-IA-25) frente a pools para el resto | [04](../04-funciones-de-ia.md) §5 |
+| Los cinco costos unitarios por función | [03](../03-modelos-costos-y-contexto.md) §2 |
 | El evaluador nunca corre local | ADR-011 |
 
 ---
@@ -48,7 +48,7 @@ Verificado valor por valor contra `docs/`:
 ## 1 · El registro de ADR
 
 El mapa traía los 16 ADR de la rama importada, donde del 010 en adelante el mismo
-número significaba otra decisión que en [`docs/08`](../docs/08-decisiones-y-pendientes.md).
+número significaba otra decisión que en [`docs/08`](../08-decisiones-y-pendientes.md).
 
 **Aplicado:** los 15 ADR del mapa son ahora los de `docs/08`, uno a uno. Se eliminó la
 última referencia al **ADR-016**, que no existe en nuestro registro: el marco GRC de las
@@ -63,7 +63,7 @@ va en Java Spring Boot.
 **Aplicado:**
 
 - El buffer anti-fuga dice **JavaParser**, no `tree-sitter`. Es el argumento de
-  [02](../docs/02-arquitectura-y-stack.md): con los desafíos en Java, JavaParser es
+  [02](../02-arquitectura-y-stack.md): con los desafíos en Java, JavaParser es
   mejor, y `tree-sitter` queda como contingencia si algún día entran otros lenguajes.
   La fila del panel de debate que daba ganador a `tree-sitter` decía lo contrario que el 02.
 - El scoring híbrido se calcula en **código Java determinístico**, no Python.
@@ -74,7 +74,7 @@ va en Java Spring Boot.
 
 ## 3 · Los endpoints
 
-[`docs/17`](../docs/17-mapa-de-integracion.md) fija el contrato bajo `/ai/…`.
+[`docs/17`](../17-mapa-de-integracion.md) fija el contrato bajo `/ai/…`.
 
 **Aplicado:** no queda ningún `/api/v1/…` de los nuestros. Los tres que faltaban pasaron
 a `POST /ai/auditoria/override`, `GET /ai/admin/health/calibracion` y
@@ -96,7 +96,7 @@ citan PAR-15.
 ## 5 · El costo: la hipótesis subió a `docs/03`
 
 El informe ubica el escenario realista en **USD 62 a 118 al año**;
-[`docs/03`](../docs/03-modelos-costos-y-contexto.md) decía **USD 5 a 22 por
+[`docs/03`](../03-modelos-costos-y-contexto.md) decía **USD 5 a 22 por
 cuatrimestre** para el mismo volumen.
 
 **No era un error del informe.** Es otra hipótesis sobre el tamaño del prompt: de 350
@@ -105,8 +105,8 @@ los delimitadores XML, la rúbrica y el RAG.
 
 **Aplicado:** el razonamiento completo —la anatomía del payload y por qué el sobrecosto
 neto de seguridad es del 20-25 % y no del 400 % gracias al prompt caching— está ahora en
-[`docs/03`](../docs/03-modelos-costos-y-contexto.md) §1, y el **ADR-010** de
-[`docs/08`](../docs/08-decisiones-y-pendientes.md) suma la cláusula de revisión: si el
+[`docs/03`](../03-modelos-costos-y-contexto.md) §1, y el **ADR-010** de
+[`docs/08`](../08-decisiones-y-pendientes.md) suma la cláusula de revisión: si el
 payload medido se acerca a 1.550 tokens, el escenario se rehace con ese número. Los
 números del informe no se tocaron: son el escenario conservador, y ahora `docs/03`
 explica por qué hay dos rangos.
