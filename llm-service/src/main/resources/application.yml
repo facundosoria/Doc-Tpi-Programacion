@@ -26,3 +26,7 @@ llm:
   gateway:
     trusted-service: admin-service
     required-scope: llm.golden-set.manage
+  tutor:
+    trusted-service: practice-service
+    required-scope: llm.tutor.interact
+    invocation-timeout-ms: 8000
