@@ -1669,7 +1669,9 @@ está retenido y por qué. Ver [07](07-datos-y-terminos.md).
 > `confianza`.
 
 ✅ **El contrato ya está escrito en OpenAPI:**
-[`codigo-ejemplo/ms-evaluacion-llm/src/main/resources/contracts/moderacion-v1.yaml`](../codigo-ejemplo/ms-evaluacion-llm/src/main/resources/contracts/moderacion-v1.yaml).
+[`contracts/llm-service-v1-moderacion-borrador.yaml`](contracts/llm-service-v1-moderacion-borrador.yaml)
+(borrador sin implementar, portado de `codigo-ejemplo/ms-evaluacion-llm` antes de eliminar esa
+carpeta — ver [`docs/estado-implementacion/README.md`](estado-implementacion/README.md)).
 Es un recorte del sobre común `POST /ai/{funcion}` de [02](02-arquitectura-y-stack.md) —a propósito,
 para que el mock del otro equipo siga sirviendo para las cinco funciones—. Agrega tres campos que este
 diseño vuelve necesarios: `origen` (qué capa decidió), `desafio_activo` (lo necesita la heurística de

@@ -82,7 +82,14 @@ contrario.
 > (revisión del código v2 post-`605f381`, 2026-09-12), que pedía explícitamente transcribirlos
 > acá y no se había hecho todavía.
 
-## 🔴 2. La calibración nunca invoca un modelo — todo run queda en `RUNNING` para siempre
+## 🟡 2. La calibración nunca invoca un modelo — todo run queda en `RUNNING` para siempre
+
+> **🟢 Parcialmente resuelto el 2026-09-12.** El puerto de invocación + fake (`LLM-S01-H10`) ya
+> existe (`domain/ai/ModelInvocationPort`, `infrastructure/ai/FakeModelAdapter`,
+> `application/ModelInvocationService`) — ver [`docs/estado-implementacion/ep-02/h10.md`](../docs/estado-implementacion/ep-02/h10.md).
+> **Sigue sin conectarse a la calibración**: el párrafo de abajo describe el estado tal como
+> estaba antes de H10 y el paso que falta sigue exactamente igual — solo que ahora existe algo
+> concreto para enchufar.
 
 `CalibrationRunController.create` → `CalibrationRunService.enqueue` crea el registro y audita.
 `CalibrationRunWorker.dispatch` (`@Scheduled`, cada 1s) sólo hace la transición `QUEUED → RUNNING`.
@@ -91,10 +98,10 @@ contrario.
 de datos están bien probados (`CalibrationMetricsTest`, `CalibrationStateMachineTest`) — falta la
 pieza que los conecta con un modelo real o simulado.
 
-**Es exactamente lo que `LLM-S01-H10`** (puerto de invocación + fake) está pensada para cerrar.
-Falta además un paso sin ficha todavía: algo (¿una extensión de `CalibrationWorkflowService` o un
-`CalibrationRunner` nuevo?) que tome el puerto de H10, corra los casos del golden set contra el
-fake, llene `calibration_case_results` y cierre el run con `CalibrationMetrics.assess`.
+**Falta un paso sin ficha todavía**: algo (¿una extensión de `CalibrationWorkflowService` o un
+`CalibrationRunner` nuevo?) que tome `ModelInvocationService` (ya existe), corra los casos del
+golden set contra el fake, llene `calibration_case_results` y cierre el run con
+`CalibrationMetrics.assess`.
 
 ## 🔴 3. El catálogo de modelos no lee su propia tabla
 
@@ -293,7 +300,12 @@ sus secciones "Endpoints" funciona. Es el mismo problema que ya tuvo
 [ep-03-s1-verificacion.md](../docs/entregas/ep-03-s1-verificacion.md) (marcada obsoleta), pero acá
 nadie marcó ni reescribió las historias mismas.
 
-## 🔴 21. H10 — confirmado 0 de 6 tareas hechas, no sólo "falta la pieza que invoca"
+## 🟢 21. H10 — confirmado 0 de 6 tareas hechas, no sólo "falta la pieza que invoca"
+
+> **🟢 Resuelto el 2026-09-12.** Las 6 tareas están hechas — ver
+> [`docs/estado-implementacion/ep-02/h10.md`](../docs/estado-implementacion/ep-02/h10.md). Se
+> conserva la tabla original como registro de lo que faltaba antes de portar
+> `LlmGateway`/`GroqAdapter` de `codigo-ejemplo/ms-evaluacion-llm` (carpeta ya eliminada).
 
 Yendo tarea por tarea de [`tareas/ep-02/h10.md`](../docs/tareas/ep-02/h10.md) contra el código
 (complementa el ítem 2, que ya reportaba el síntoma):

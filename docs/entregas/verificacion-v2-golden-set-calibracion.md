@@ -18,6 +18,10 @@
 >
 > **Fecha.** 2026-09-12. Rama `facu` (commit `23ea20f`), working tree limpio en
 > `llm-service/`/`llm-workbench/`.
+>
+> **Ver también.** El detalle de acá quedó organizado por historia (y por subsistema sin ficha)
+> en [`docs/estado-implementacion/`](../estado-implementacion/README.md) — ese tablero no repite
+> este análisis, lo referencia.
 
 ---
 

@@ -7,6 +7,9 @@
 > qué cambia para la planificación.
 >
 > **Fecha de esta revisión.** 2026-09-12.
+>
+> **Ver también.** El estado historia-por-historia que resulta de esta decisión vive en
+> [`docs/estado-implementacion/`](../estado-implementacion/README.md).
 
 ---
 

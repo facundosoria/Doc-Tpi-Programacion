@@ -110,7 +110,8 @@ Son las de [10](10-entregables-y-plan.md) Parte 2 §7, con la corrección que im
 2. **Nadie llama a un proveedor de LLM directamente.** Todos pasan por la función de C2. Con seis
    células, seis formas de manejar un timeout es garantía de que ninguna anda.
 3. **`repository/` y `entity/` son territorio compartido y el punto de conflicto más probable**
-   ([ESTRUCTURA.md](../codigo-ejemplo/ms-evaluacion-llm/ESTRUCTURA.md)). Podés leer la entidad de
+   ([ESTRUCTURA.md](estado-implementacion/codigo-ejemplo/fuentes/ESTRUCTURA.md), preservado tal
+   cual antes de eliminar `codigo-ejemplo/`). Podés leer la entidad de
    otra célula; para cambiarle un campo, hablás con su dueña. Un `ALTER` sobre una tabla ajena rompe
    la migración de otro y se descubre en la máquina de él, no en la tuya.
 
@@ -299,7 +300,7 @@ evaluador se queda sin insumo.**
 | E08-03 | Los tres niveles de ayuda de RF-IA-19 | El tutor sube de nivel según lo que el alumno ya intentó, y el nivel queda registrado en la transcripción | 5 | E08-01 | 🟡 |
 | E08-04 | Buffer anti-streaming de RF-IA-20 | En desafíos prácticos no hay streaming token a token: se muestra *«pensando…»* hasta que la respuesta pasa el guardarraíl (ADR-009) | 3 | E08-01 | 🔴 |
 | E08-05 | Transcripción completa persistida y entregable | La conversación más su metadata queda disponible para el evaluador con una sola consulta | 5 | E08-02 | 🔴 |
-| E08-06 | 🔴 Rotar la API key de Groq versionada en la demo | La key se rota en el proveedor y queda solo como variable de entorno. Está anotada en [codigo-ejemplo/CORRECCIONES-SUGERIDAS.md](../codigo-ejemplo/CORRECCIONES-SUGERIDAS.md) | 2 | — | 🔴 |
+| E08-06 | 🔴 Rotar la API key de Groq que estuvo versionada en la demo | El archivo (`lara-heredia-demo-llm-spring-ai`) ya no está en el working tree, pero la key puede seguir en el historial de git — rotarla en el proveedor. Detalle en [CORRECCIONES-SUGERIDAS.md](estado-implementacion/codigo-ejemplo/fuentes/CORRECCIONES-SUGERIDAS.md) | 2 | — | 🔴 |
 
 ---
 
