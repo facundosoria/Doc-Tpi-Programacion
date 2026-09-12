@@ -6,10 +6,11 @@
 >
 > **Qué NO es.** No reemplaza a 36 (ahí vive la regla y su porqué) ni a 02 (ahí viven los 8 módulos
 > lógicos M1–M8, que son un corte distinto y ortogonal a estas carpetas). No cubre `llm-workbench`
-> (frontend); si hace falta un equivalente, va en un doc aparte.
+> (frontend) como *código*; si hace falta un equivalente, va en un doc aparte. Sí importa dónde vive
+> `llm-workbench/` como *carpeta* — ver §0.1.
 >
-> **Alcance:** sólo `llm-service/`. Código importado — no se edita para "prolijarlo"; ver
-> [[no-tocar-codigo-ajeno]]. Fecha de la foto: 2026-09-12.
+> **Alcance:** sólo el árbol de código de `llm-service/` (§1–§7). Código importado — no se edita
+> para "prolijarlo"; ver [[no-tocar-codigo-ajeno]]. Fecha de la foto: 2026-09-12.
 
 ---
 
@@ -32,6 +33,18 @@ guardarraíles del tutor en el mismo `domain/ai/` (EP-05) — y la carpeta se el
 [`ep-05/interactions.md`](estado-implementacion/ep-05/interactions.md); los artefactos no-código
 que este documento seguía citando quedaron preservados en
 [`docs/estado-implementacion/codigo-ejemplo/fuentes/`](estado-implementacion/codigo-ejemplo/fuentes/).
+
+## 0.1. Por qué `docs/` y `llm-workbench/` viven ahora dentro de `llm-service/`
+
+**🟢 2026-09-12.** Antes de esta fecha `docs/`, `llm-workbench/` y `llm-service/` eran tres carpetas
+hermanas en la raíz del repo. Se consolidaron dentro de `llm-service/` para tener **una sola
+carpeta para copiar y pegar** con todo el TP hasta la fecha: backend, frontend de prueba y
+documentación juntos y autocontenidos, sin depender de hermanas que se puedan perder al copiar o
+compartir la carpeta suelta.
+
+Esto es ortogonal a la integración con el proyecto de cátedra (§9): ese caso sigue queriendo sólo
+el microservicio pelado, así que ahí `docs/` y `llm-workbench/` se **excluyen a mano** de la copia
+en vez de quedar afuera solas por ser hermanas.
 
 ## 1. La regla (fuente: doc 36)
 
@@ -187,21 +200,28 @@ muy lejos todavía. Queda anotado para no descubrirlo recién ahí.
 
 ## 9. Qué se copia como raíz al integrar con el proyecto de cátedra
 
+**🟡 2026-09-12 — cambió la forma, no el fondo.** Hasta esta fecha `docs/` y `llm-workbench/` eran
+carpetas hermanas de `llm-service/` en la raíz del repo, así que quedaban afuera "solas" al copiar
+únicamente `llm-service/`. Ahora viven **adentro** de `llm-service/docs/` y
+`llm-service/llm-workbench/` — precisamente para que `llm-service/` sea la carpeta única que se
+puede copiar y pegar con todo el TP adentro (código + docs + frontend de prueba), ver §0.1. Eso
+significa que integrar con la cátedra ya no las deja afuera gratis por ser hermanas: **hay que
+borrarlas a mano** de la copia antes de integrar.
+
 El árbol de §3 es el de este repo de trabajo (TP). Cuando llegue el momento de integrar con el
 proyecto completo de la cátedra (gateway + discovery + microservicios de los demás grupos), **la
-carpeta que se copia/renombra como raíz real es `llm-service/` en sí misma** — no una carpeta
-envolvente, y no junto a `llm-workbench/` (ver [00](00-fuentes-de-verdad-y-convenciones.md) y
+carpeta que se copia/renombra como raíz real sigue siendo `llm-service/` en sí misma** — no una
+carpeta envolvente (ver [00](00-fuentes-de-verdad-y-convenciones.md) y
 [gateway-y-discovery/03](gateway-y-discovery/03-convenciones-nombres-y-ruteo.md) para la convención
-de nombre `llm-service`, sufijo `-service`).
+de nombre `llm-service`, sufijo `-service`) — pero antes de copiarla hay que **quitarle** dos
+subcarpetas:
 
-De ese árbol de trabajo, **no viajan** a esa raíz:
-
-| Archivo/carpeta | Por qué se queda solo en este repo |
+| Carpeta/archivo a borrar de la copia | Por qué no viaja a la integración |
 |---|---|
-| `llm-workbench/` | Es un frontend Angular temporal de dev/demo (S1); su propio README aclara que no reemplaza el monolito Angular compartido de la cátedra |
+| `llm-service/llm-workbench/` | Es un frontend Angular temporal de dev/demo (S1); su propio README aclara que no reemplaza el monolito Angular compartido de la cátedra |
+| `llm-service/docs/` | Material del TP (documentación), no del servicio |
 | `llm-service/CORRECCIONES-SUGERIDAS.md` | Nota de trabajo interna (detalle del hueco de §6), no parte de la raíz de despliegue |
-| `llm-service/compose.workbench.yaml` | Hace `build: ../llm-workbench`; se rompe si `llm-service` queda sola como raíz sin ese sibling |
-| `docs/` | Material del TP (documentación), no del servicio |
+| `llm-service/compose.workbench.yaml` | Hace `build: ./llm-workbench`; queda apuntando a nada si se borra `llm-workbench/` sin borrar también este archivo |
 
 Lo que sí viaja es todo el resto de `llm-service/` de §3 (`pom.xml`, `Dockerfile`, `compose.yaml`,
 `.env.example`, `src/`, `scripts/`) — ya con el cliente Eureka agregado a `pom.xml`/`application.yml`

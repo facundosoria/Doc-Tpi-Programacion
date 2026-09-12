@@ -28,9 +28,9 @@ No uses `git pull origin develop` dentro de una feature ni trabajes directamente
 
 ## Tomar una tarea
 
-1. Leer el sprint en el [backlog ejecutable](../Plan%20de%20ejecucion/07-backlog-ejecutable-sprints.md).
+1. Leer el sprint en el [backlog ejecutable](35-backlog-ejecutable.md).
 2. Comprobar requisitos previos, contrato, fuente normativa y dependencia externa.
-3. Verificar DoR en el [playbook](../Plan%20de%20ejecucion/06-playbook-de-construccion.md).
+3. Verificar DoR en el [playbook](36-playbook-de-construccion.md).
 4. Registrar responsable, horas, riesgo y dependencia en la plantilla del sprint.
 5. Mover la tarea a `En progreso` y crear `feature/sNN/<id>-<slug>`.
 

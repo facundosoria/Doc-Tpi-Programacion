@@ -116,6 +116,10 @@ decisiones y orquestación entre sistemas o áreas.
 - [ ] Validar conformidad BPMN 2.0 y numerar versiones.
 - [ ] Adjuntar enlace a Draw.io (editable).
 
+> *Ejemplo:* El proceso "Registrar Pedido" comienza con la solicitud del cliente,
+> continúa con la validación del producto y finaliza con la confirmación del pago. Los
+> roles involucrados son Cliente, Sistema de Pedidos y Sistema de Pagos.
+
 ### 4.3 Flujograma (flowchart) — opcional
 
 **Propósito:** aclarar la lógica interna de un método, servicio o algoritmo cuando el
@@ -129,6 +133,10 @@ locales o internos de una función.
 - [ ] No exceder la complejidad visual (si crece, dividir o pasar a BPMN).
 - [ ] Mantener sincronía con el código o pseudocódigo correspondiente.
 - [ ] Adjuntar enlace a Draw.io (editable).
+
+> *Ejemplo:* el flujograma describe el proceso de validación de un usuario: 1) se
+> ingresa el email y la contraseña; 2) si los datos son válidos, se permite el acceso;
+> 3) en caso contrario, se muestra un mensaje de error.
 
 **Decisión rápida BPMN vs. flujograma:**
 

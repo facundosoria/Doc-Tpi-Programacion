@@ -2,7 +2,6 @@
 
 | Archivo | Qué es | Cómo se usa | Alineado con `docs/` |
 |---|---|---|---|
-| [`Demos/Seguridad/index.html`](../Demos/Seguridad/index.html) | **Simulador de Seguridad LLM (8 Capas).** 11 slides interactivas | Se abre en el navegador o vía `node server.js`. Modo debug en tiempo real, inyección de payloads y pipeline E2E | ✅ Sí |
 | [`defensa-39-slides.html`](defensa-39-slides.html) | **La presentación de defensa.** 39 slides | Se abre en el navegador. `←` `→` para navegar, `O` para el índice, `F` para pantalla completa | ✅ Sí |
 | [`presentacion-integracion-servicios.html`](presentacion-integracion-servicios.html) | **Integración y contratos inter-servicios.** 17 slides | Se abre en el navegador. Teclado (`←`/`→`/`Espacio`), touch, selector directo de slide | ✅ Sí |
 | [`prd-wiki-consulta.html`](prd-wiki-consulta.html) | El PRD, sección IA, como wiki navegable | Documento de consulta con barra lateral. **No es una presentación** | ✅ Sí |
@@ -16,7 +15,7 @@ Los archivos son páginas HTML autocontenidas: no necesitan servidor ni compilac
 
 `mapa-conceptual-interactivo.html`, `guia-golden-set.html` e
 `informe-gestion-modelos.html` se armaron contra `doc-tpi-unificada` —la rama que se
-importó en [`docs/importado/`](../docs/importado/)—, no contra `docs/`. Eso las dejaba
+importó en [`docs/importado/`](../importado/)—, no contra `docs/`. Eso las dejaba
 desalineadas en ocho puntos: el registro de ADR, el ADR-005 viejo con FastAPI, los
 endpoints, la frecuencia de la detección de deriva, el costo total, el catálogo de
 modelos, los enlaces al repositorio y la dependencia del CDN.

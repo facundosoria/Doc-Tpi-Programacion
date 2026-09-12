@@ -13,6 +13,10 @@
 
 `docs/importado/` es material histórico y no participa de esta jerarquía. Tampoco se modifica.
 
+Los PDF de origen (`PRD-Plataforma-Gamificada-TP.pdf`, `TUP_PIV_BE_PROPUESTA_ARQ.pdf`,
+`TUP_PIV_FE_TEO_U1_ARQUITECTURA_DESPLIEGUE.pdf`) viven en `docs/fuentes/`,
+no se versionan (`.gitignore`) y no se modifican: se distribuyen por los canales de la cátedra.
+
 Las decisiones de producto que amplían el PRD para Golden Set y calibración son:
 
 - [ADR-017](08-decisiones-y-pendientes.md#adr-017--rúbricas-editables-y-versionadas-por-curso): el docente puede editar criterios, anclas, prompts y pesos; las cinco dimensiones siguen siendo obligatorias y los pesos deben sumar 100 %.
