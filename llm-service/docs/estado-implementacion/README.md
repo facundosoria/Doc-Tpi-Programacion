@@ -28,7 +28,7 @@
 > |---|---|
 > | [`docs/entregas/decision-605f381.md`](../entregas/decision-605f381.md) | Qué reemplazó el commit `605f381` y por qué |
 > | [`docs/entregas/verificacion-v2-golden-set-calibracion.md`](../entregas/verificacion-v2-golden-set-calibracion.md) | Auditoría de golden set/rúbrica/calibración v2 (EP-03, EP-04) |
-> | [`llm-service/CORRECCIONES-SUGERIDAS.md`](../../llm-service/CORRECCIONES-SUGERIDAS.md) | 22 hallazgos puntuales de código, incluida la auditoría CA-por-CA de EP-01 (H01–H04, H08, H09) y EP-02 (H10) que ninguna otra ficha tenía todavía |
+> | [`llm-service/CORRECCIONES-SUGERIDAS.md`](../../CORRECCIONES-SUGERIDAS.md) | 22 hallazgos puntuales de código, incluida la auditoría CA-por-CA de EP-01 (H01–H04, H08, H09) y EP-02 (H10) que ninguna otra ficha tenía todavía |
 > | Informe del agente sobre `codigo-ejemplo/` (2026-09-12, ver [`codigo-ejemplo/README.md`](codigo-ejemplo/README.md)) | Qué son los dos proyectos de referencia y a qué épica se parecen |
 >
 > **Cómo se actualiza.** Cuando el código cambie, re-auditar la historia puntual (no hace falta

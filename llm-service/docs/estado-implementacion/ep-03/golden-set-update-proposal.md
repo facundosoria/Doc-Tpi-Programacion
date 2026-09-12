@@ -3,14 +3,14 @@
 - **Estado:** ⚪ No auditado en profundidad
 - **Épica tentativa:** EP-03 (mismo dominio que el golden set por curso)
 - **Código:** `GoldenSetUpdateProposalController` + `GoldenSetUpdateProposalRepository`
-- **Evidencia:** [`CORRECCIONES-SUGERIDAS.md` ítem 15](../../../llm-service/CORRECCIONES-SUGERIDAS.md)
+- **Evidencia:** [`CORRECCIONES-SUGERIDAS.md` ítem 15](../../../CORRECCIONES-SUGERIDAS.md)
 
 ## Qué se sabe
 
 - El controller devuelve el tipo anidado del repository (`GoldenSetUpdateProposalRepository.
   GoldenSetUpdateProposal`) directo como respuesta HTTP, sin DTO intermedio — mismo patrón que
   otros 6 controllers (ver [`ep-01/h03.md`](../ep-01/h03.md) y
-  [`CORRECCIONES-SUGERIDAS.md` ítem 1](../../../llm-service/CORRECCIONES-SUGERIDAS.md)).
+  [`CORRECCIONES-SUGERIDAS.md` ítem 1](../../../CORRECCIONES-SUGERIDAS.md)).
 - El schema `GoldenSetUpdateProposal` del contrato v2 exige `baseVersion` y `baseCaseCount`; no
   se verificó si el registro real del repository trae esos dos campos poblados.
 

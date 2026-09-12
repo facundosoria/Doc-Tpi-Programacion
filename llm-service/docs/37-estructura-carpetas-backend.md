@@ -34,17 +34,19 @@ guardarraíles del tutor en el mismo `domain/ai/` (EP-05) — y la carpeta se el
 que este documento seguía citando quedaron preservados en
 [`docs/estado-implementacion/codigo-ejemplo/fuentes/`](estado-implementacion/codigo-ejemplo/fuentes/).
 
-## 0.1. Por qué `docs/` y `llm-workbench/` viven ahora dentro de `llm-service/`
+## 0.1. Por qué `docs/`, `llm-workbench/` y AGENTS.md viven ahora dentro de `llm-service/`
 
 **🟢 2026-09-12.** Antes de esta fecha `docs/`, `llm-workbench/` y `llm-service/` eran tres carpetas
-hermanas en la raíz del repo. Se consolidaron dentro de `llm-service/` para tener **una sola
-carpeta para copiar y pegar** con todo el TP hasta la fecha: backend, frontend de prueba y
-documentación juntos y autocontenidos, sin depender de hermanas que se puedan perder al copiar o
-compartir la carpeta suelta.
+hermanas en la raíz del repo, y `README.md`/`AGENTS.md` vivían en esa misma raíz. Se consolidó todo
+dentro de `llm-service/` para tener **una sola carpeta para copiar y pegar** con todo el TP hasta la
+fecha: backend, frontend de prueba, documentación y las instrucciones de trabajo (`AGENTS.md`)
+juntos y autocontenidos, sin depender de hermanas que se puedan perder al copiar o compartir la
+carpeta suelta. La raíz del repo quedó sin `README.md` propio (el de `llm-service/` es el único) —
+GitHub ya no renderiza una portada al entrar al repo, es el costo aceptado de esta consolidación.
 
 Esto es ortogonal a la integración con el proyecto de cátedra (§9): ese caso sigue queriendo sólo
-el microservicio pelado, así que ahí `docs/` y `llm-workbench/` se **excluyen a mano** de la copia
-en vez de quedar afuera solas por ser hermanas.
+el microservicio pelado, así que ahí `docs/`, `llm-workbench/` y `AGENTS.md` se **excluyen a mano**
+de la copia en vez de quedar afuera solos por ser hermanos.
 
 ## 1. La regla (fuente: doc 36)
 
@@ -174,7 +176,7 @@ diagrama en §2):
 
 Este documento **no lo corrige** (es código importado con dueño, [[no-tocar-codigo-ajeno]]): el
 detalle completo, con los 7 archivos y el fragmento de código, está transcripto en
-[`llm-service/CORRECCIONES-SUGERIDAS.md`](../llm-service/CORRECCIONES-SUGERIDAS.md).
+[`llm-service/CORRECCIONES-SUGERIDAS.md`](../CORRECCIONES-SUGERIDAS.md).
 
 ## 7. Chequeo contra las 10 épicas — ¿alcanzan las 8 capas para todo el servicio?
 
@@ -213,13 +215,14 @@ proyecto completo de la cátedra (gateway + discovery + microservicios de los de
 carpeta que se copia/renombra como raíz real sigue siendo `llm-service/` en sí misma** — no una
 carpeta envolvente (ver [00](00-fuentes-de-verdad-y-convenciones.md) y
 [gateway-y-discovery/03](gateway-y-discovery/03-convenciones-nombres-y-ruteo.md) para la convención
-de nombre `llm-service`, sufijo `-service`) — pero antes de copiarla hay que **quitarle** dos
-subcarpetas:
+de nombre `llm-service`, sufijo `-service`) — pero antes de copiarla hay que **quitarle** varias
+carpetas y archivos:
 
 | Carpeta/archivo a borrar de la copia | Por qué no viaja a la integración |
 |---|---|
 | `llm-service/llm-workbench/` | Es un frontend Angular temporal de dev/demo (S1); su propio README aclara que no reemplaza el monolito Angular compartido de la cátedra |
 | `llm-service/docs/` | Material del TP (documentación), no del servicio |
+| `llm-service/AGENTS.md` | Instrucciones de trabajo para agentes de este TP (comandos, convenciones de branch); no son del servicio ni de la cátedra |
 | `llm-service/CORRECCIONES-SUGERIDAS.md` | Nota de trabajo interna (detalle del hueco de §6), no parte de la raíz de despliegue |
 | `llm-service/compose.workbench.yaml` | Hace `build: ./llm-workbench`; queda apuntando a nada si se borra `llm-workbench/` sin borrar también este archivo |
 

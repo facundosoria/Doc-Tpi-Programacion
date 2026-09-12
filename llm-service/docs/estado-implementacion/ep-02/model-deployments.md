@@ -4,7 +4,7 @@
 - **Épica tentativa:** EP-02 (tabla de
   [`verificacion-v2-golden-set-calibracion.md` · §1](../../entregas/verificacion-v2-golden-set-calibracion.md))
 - **Código:** `ModelDeploymentController.java`
-- **Evidencia:** [`CORRECCIONES-SUGERIDAS.md` ítem 3](../../../llm-service/CORRECCIONES-SUGERIDAS.md)
+- **Evidencia:** [`CORRECCIONES-SUGERIDAS.md` ítem 3](../../../CORRECCIONES-SUGERIDAS.md)
 
 ## Qué hay en el código
 
@@ -19,12 +19,12 @@
   ([08 · B-6/C-2](../../08-decisiones-y-pendientes.md)).
 - Ambos endpoints inyectan el `*Repository` directo en el controller, sin capa `application/`
   intermedia (patrón general de 7 de los 12 controllers, ver
-  [`CORRECCIONES-SUGERIDAS.md` ítem 1](../../../llm-service/CORRECCIONES-SUGERIDAS.md)).
+  [`CORRECCIONES-SUGERIDAS.md` ítem 1](../../../CORRECCIONES-SUGERIDAS.md)).
 - No está en ningún contrato OpenAPI publicado (`llm-service-v2-golden-set.openapi.yaml` no lo
   documenta) — ver [`ep-01/h08.md`](../ep-01/h08.md) ítem 11.
 - El contrato v2 sí documenta `POST /api/llm/admin/model-adapters` (alta de adapter), pero **no
   existe ningún endpoint que lo implemente** — ver
-  [`CORRECCIONES-SUGERIDAS.md` ítem 12](../../../llm-service/CORRECCIONES-SUGERIDAS.md).
+  [`CORRECCIONES-SUGERIDAS.md` ítem 12](../../../CORRECCIONES-SUGERIDAS.md).
 
 ## Qué falta para cerrar el hueco
 
