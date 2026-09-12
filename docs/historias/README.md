@@ -23,6 +23,7 @@
 > | Método para redactar y estimar | [29 · Guía de cátedra: Historias de Usuario](../29-guia-catedra-historias-de-usuario.md) |
 > | Contratos HTTP y adendas | [`../contracts/`](../contracts/) |
 > | Desglose en tareas | [`../tareas/`](../tareas/README.md) |
+> | **Estado de implementación real** (qué de esto ya está construido, contra qué código) | [`../estado-implementacion/`](../estado-implementacion/README.md) |
 >
 > **Título en Taiga.** Cada ficha se carga con el título `GXX — TÍTULO` (`GXX` =
 > número de grupo, aún sin asignar). El ID interno `LLM-Sxx-Hyy` es el del equipo.

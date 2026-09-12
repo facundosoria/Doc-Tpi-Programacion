@@ -95,13 +95,13 @@ la verificación de disponibilidad y calibración del modelo que se implemente.
 | 31 | [Plan de revisión de Golden Set y calibración](docs/31-plan-revision-golden-set-calibracion.md) | Revisión y checklist de la calibración del golden set. |
 | 32 | [Especificación funcional de Golden Set y calibración](docs/32-especificacion-funcional-golden-set-calibracion.md) | Comportamiento funcional del golden set y de la calibración. |
 | 33 | [Modelo de dominio y transiciones — Golden Set](docs/33-modelo-dominio-y-transiciones-golden-set.md) | Entidades, estados y transiciones del golden set. |
-| 34 | [Plan de purga V1 y transición exclusiva a V2](docs/34-plan-purga-v1-transicion-v2.md) | Purga de la V1 y pase a V2 del golden set. |
+| 34 | Plan de purga V1 y transición exclusiva a V2 *(en elaboración)* | Purga de la V1 y pase a V2 del golden set. |
 | 35 | [Backlog ejecutable S0–S19](docs/35-backlog-ejecutable.md) | Catálogo de las diez épicas (EP-01…EP-10), checklist de Sprint 0 y las recetas atómicas S1–S19 con horas, gates y aceptación. Fuente de ID, épica, pareja, dependencias y horas. Antes vivía en `Plan de ejecucion/07`. |
 | 36 | [Playbook de construcción](docs/36-playbook-de-construccion.md) | Reglas de ejecución: autoridad y precedencia, arquitectura y fronteras, secuencia obligatoria para una capacidad nueva (§4), patrones que no se negocian y pruebas mínimas. Antes vivía en `Plan de ejecucion/06`. |
 | 37 | [Estructura de carpetas del backend](docs/37-estructura-carpetas-backend.md) | El árbol real de `llm-service/` mapeado a las capas de 36, guía de en qué carpeta va cada cosa nueva, y el hueco conocido (controllers que saltan a persistencia directo). Sólo backend. |
 | — | [Épicas del `llm-service` (formato Taiga)](docs/epicas/README.md) | Las diez épicas (EP-01…EP-10), una por archivo, en el template oficial de épica: objetivo, suposiciones y restricciones, criterios de aceptación a nivel épico y dependencias. Fuente de verdad del catálogo: `docs/35`. |
 | — | [Historias de usuario (formato Taiga), por épica](docs/historias/README.md) | Las HU en el template oficial, agrupadas por épica ([EP-01](docs/historias/ep-01/README.md), [EP-03](docs/historias/ep-03/README.md)): Como/Quiero/Para, notas, criterios de aceptación con negativos, BDD (≥3 escenarios), prototipo, estimación y dependencias. Versión detallada de la tabla de `docs/35`. |
-| — | [Tareas SMART por historia](docs/tareas/README.md) | El desglose de cada historia en tareas técnicas ([EP-01](docs/tareas/ep-01.md), [EP-03](docs/tareas/ep-03.md)), método SMART, en el template de Tarea de Taiga: objetivo SMART, pasos, criterio de terminado, estimación y trazabilidad al CA/escenario. |
+| — | [Tareas SMART por historia](docs/tareas/README.md) | El desglose de cada historia en tareas técnicas ([EP-01](docs/tareas/ep-01/README.md), [EP-03](docs/tareas/ep-03/README.md)), método SMART, en el template de Tarea de Taiga: objetivo SMART, pasos, criterio de terminado, estimación y trazabilidad al CA/escenario. |
 | — | [Sprints — registro y vista de historias](docs/sprints/README.md) | Empieza en el **Sprint 0** ([acta](docs/sprints/sprint-0.md)): arranque sin incremento, capacidad de S1, historia canónica, dependencias y ambiente. Vista de S1: [índice y demo](docs/sprints/s1-historias.md) · [explicado sin jerga](docs/sprints/s1-explicado.md). S1+ se registran con la plantilla de sprint. |
 | — | [Wireframes de LLM-S01-H07](docs/prototipos/wireframes-h07-golden-set.md) | Bocetos de baja fidelidad de la pantalla docente del golden set, con trazabilidad a los escenarios BDD de H05–H07. |
 | — | [Plantilla de sprint LLM](docs/plantillas/sprint-llm.md) | Registro de Planning, disponibilidad individual, reuniones, historias, dependencias, Review/demo y retro. |
@@ -121,22 +121,34 @@ la verificación de disponibilidad y calibración del modelo que se implemente.
 | Carpeta | Quién lo hizo | Qué hay adentro |
 |---|---|---|
 | **[`docs/importado/`](docs/importado/)** | `Brf93` (`421562`) | Anidado adentro de `docs/`, para que la raíz tenga una sola carpeta de documentación. 25 documentos: especificación técnica, nueve planes de ejecución e investigación sobre jailbreak. Material de profundización, no de trabajo diario |
-| **[`codigo-ejemplo/`](codigo-ejemplo/)** | una carpeta por autor | [`ms-evaluacion-llm/`](codigo-ejemplo/ms-evaluacion-llm/), esqueleto histórico a migrar a `llm-service` · [`lara-heredia-demo-llm-spring-ai/`](codigo-ejemplo/lara-heredia-demo-llm-spring-ai/), demo de tutor con Spring AI |
-| **[`demo/`](demo/)** | el equipo | Interfaz web interactiva de demostración (Frontend Nginx + chat tutor + guardarraíles + métricas de costos). Se levanta en un comando con Docker Compose o scripts locales |
-| **[`presentaciones/`](presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` y equipo | [`defensa-39-slides.html`](presentaciones/defensa-39-slides.html), el deck de defensa (39 slides) · [`presentacion-integracion-servicios.html`](presentaciones/presentacion-integracion-servicios.html), deck interactivo de integración y contratos (17 slides) · [`prd-wiki-consulta.html`](presentaciones/prd-wiki-consulta.html), el PRD como wiki de consulta. Más tres documentos HTML armados sobre `doc-tpi-unificada` —mapa de requerimientos, guía del golden set e informe de gestión de modelos—: venían desalineados con `docs/` en ocho puntos y **ya están corregidos**, con el registro de qué se cambió en [`CORRECCIONES-SUGERIDAS.md`](presentaciones/CORRECCIONES-SUGERIDAS.md). Las seis abren sin internet |
+| **[`llm-workbench/`](llm-workbench/)** | el equipo | Frontend docente en Angular 21 (evaluador de uso de IA, rúbricas, golden set y calibración). Se levanta con Docker Compose (`llm-service/compose.workbench.yaml`) o localmente vía Angular CLI |
+| **[`docs/presentaciones/`](docs/presentaciones/)** | base de `Brf93`, más `412181-HerediaLara` y equipo | [`defensa-39-slides.html`](docs/presentaciones/defensa-39-slides.html), el deck de defensa (39 slides) · [`presentacion-integracion-servicios.html`](docs/presentaciones/presentacion-integracion-servicios.html), deck interactivo de integración y contratos (17 slides) · [`prd-wiki-consulta.html`](docs/presentaciones/prd-wiki-consulta.html), el PRD como wiki de consulta. Más tres documentos HTML armados sobre `doc-tpi-unificada` —mapa de requerimientos, guía del golden set e informe de gestión de modelos—: venían desalineados con `docs/` en ocho puntos y **ya están corregidos**, con el registro de qué se cambió en [`CORRECCIONES-SUGERIDAS.md`](docs/presentaciones/CORRECCIONES-SUGERIDAS.md). Las seis abren sin internet |
+| **[`docs/fuentes/`](docs/fuentes/)** | cátedra | PDFs oficiales del PRD y propuesta de arquitectura del TPI (excluidos de Git) |
 
 > ### Sobre el material que vino de otras ramas
 >
-> `docs/importado/` y `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` se importaron **sin tocar
-> una sola línea**: cada archivo es byte a byte idéntico a su rama de origen, y lo que había que
-> corregir está anotado, no aplicado, en el `CORRECCIONES-SUGERIDAS.md` de cada carpeta.
+> `docs/importado/` se importó **sin tocar una sola línea**: cada archivo es byte a byte idéntico
+> a su rama de origen, y lo que había que corregir está anotado, no aplicado, en su
+> `CORRECCIONES-SUGERIDAS.md`.
 >
-> **Los tres HTML nuevos de `presentaciones/` son la excepción:** venían desalineados con `docs/` en
+> **🟢 2026-09-12 — `codigo-ejemplo/` se consolidó dentro de `llm-service/` y se eliminó.** Los
+> dos proyectos de referencia (`ms-evaluacion-llm/`, `lara-heredia-demo-llm-spring-ai/`) ya
+> cumplieron su función: lo que servía se portó a `llm-service/domain/ai/` e
+> `infrastructure/ai/` (puerto de invocación de modelos + guardarraíles del tutor — ver
+> [`docs/estado-implementacion/ep-02/h10.md`](docs/estado-implementacion/ep-02/h10.md) y
+> [`ep-05/interactions.md`](docs/estado-implementacion/ep-05/interactions.md)). El análisis
+> original y los artefactos no-código que otros docs seguían citando (`ESTRUCTURA.md`,
+> `TESTING.md`, `pom.xml`, `pmd-ruleset.xml`) quedaron preservados, sin editar, en
+> [`docs/estado-implementacion/codigo-ejemplo/fuentes/`](docs/estado-implementacion/codigo-ejemplo/fuentes/).
+>
+> **Los tres HTML nuevos de `docs/presentaciones/` son la excepción:** venían desalineados con `docs/` en
 > ocho puntos —ADR, ADR-005 con FastAPI, endpoints, deriva, costos, catálogo de modelos, enlaces y
 > dependencia del CDN— y se corrigieron. El detalle está en
-> [`presentaciones/CORRECCIONES-SUGERIDAS.md`](presentaciones/CORRECCIONES-SUGERIDAS.md). **Hay una API key de Groq versionada en la demo que
-> necesita rotarse** — el detalle está en
-> [`codigo-ejemplo/CORRECCIONES-SUGERIDAS.md`](codigo-ejemplo/CORRECCIONES-SUGERIDAS.md).
+> [`docs/presentaciones/CORRECCIONES-SUGERIDAS.md`](docs/presentaciones/CORRECCIONES-SUGERIDAS.md). **Había una API key de Groq versionada en la demo
+> (`lara-heredia-demo-llm-spring-ai`) que seguía necesitando rotarse en Groq** — el archivo ya no
+> está en el working tree, pero la clave puede seguir en el historial de git, así que la rotación
+> en el proveedor sigue siendo necesaria. Detalle preservado en
+> [`docs/estado-implementacion/codigo-ejemplo/fuentes/CORRECCIONES-SUGERIDAS.md`](docs/estado-implementacion/codigo-ejemplo/fuentes/CORRECCIONES-SUGERIDAS.md).
 
 > ### 📝 Sobre el contenido de ejemplo
 >
@@ -226,13 +238,14 @@ Detalle y recomendación de cada uno en [08 · Decisiones y pendientes](docs/08-
 
 ## Fuentes
 
-- `PRD-Plataforma-Gamificada-TP.pdf` (v2.1) — definición funcional del producto
+- `fuentes/PRD-Plataforma-Gamificada-TP.pdf` (v2.1) — definición funcional del producto
 - `idea.pptx.pdf` — convenciones obligatorias de Gateway, Eureka, seguridad, ruteo y pruebas
-- `TUP_PIV_BE_PROPUESTA_ARQ.pdf` — propuesta de arquitectura de la cátedra
-- `TUP_PIV_FE_TEO_U1_ARQUITECTURA_DESPLIEGUE.pdf` — teórico de Front End, Unidad 1: arquitectura y
+- `fuentes/TUP_PIV_BE_PROPUESTA_ARQ.pdf` — propuesta de arquitectura de la cátedra
+- `fuentes/TUP_PIV_FE_TEO_U1_ARQUITECTURA_DESPLIEGUE.pdf` — teórico de Front End, Unidad 1: arquitectura y
   despliegue. Sincronizado en [15](docs/15-sincronizacion-arquitectura-y-despliegue.md)
 
-> Los PDF de origen no se versionan en este repositorio. Se distribuyen por los canales de la cátedra.
+> Los PDF de origen no se versionan en este repositorio (carpeta `fuentes/`, gitignored). Se
+> distribuyen por los canales de la cátedra.
 
 ## Cómo se armó este repositorio
 

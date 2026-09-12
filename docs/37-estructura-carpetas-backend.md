@@ -21,15 +21,17 @@ generador) y el golden set/calibración comparten un mismo gateway interno, guar
 log; no se separan en servicios distintos. Todo lo que describe este documento — las ocho capas, el
 scaffold de §3 — es **de ese único servicio**.
 
-Lo que hay en `codigo-ejemplo/` **no es otro servicio ni una alternativa a `llm-service/`**:
-
-| Carpeta | Qué es | Qué NO es |
-|---|---|---|
-| `codigo-ejemplo/ms-evaluacion-llm/` | Esqueleto histórico de referencia, de antes de que existiera `llm-service/` | No se ejecuta ni se despliega; es material a mirar y descartar, no un servicio paralelo |
-| `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` | Demo de tutor con Spring AI, aporte de otra rama | Prueba de concepto de una librería, no una pieza del servicio real |
-
-Si alguna vez se reutiliza algo de ahí, entra **adentro** de `llm-service/`, en la capa que
-corresponda (§4) — nunca queda como un servicio separado.
+**🟢 2026-09-12 — ya pasó.** Hasta esta fecha existía `codigo-ejemplo/`, con dos proyectos que
+**no eran otro servicio ni una alternativa a `llm-service/`**: `ms-evaluacion-llm/` (esqueleto
+histórico de referencia, de antes de que existiera `llm-service/`) y
+`lara-heredia-demo-llm-spring-ai/` (demo de tutor con Spring AI, aporte de otra rama). Lo que
+servía se portó **adentro** de `llm-service/`, en la capa que corresponde (§4) — el puerto de
+invocación de modelos + fake en `domain/ai/` e `infrastructure/ai/` (EP-02/H10) y los
+guardarraíles del tutor en el mismo `domain/ai/` (EP-05) — y la carpeta se eliminó. Detalle en
+[`docs/estado-implementacion/ep-02/h10.md`](estado-implementacion/ep-02/h10.md) y
+[`ep-05/interactions.md`](estado-implementacion/ep-05/interactions.md); los artefactos no-código
+que este documento seguía citando quedaron preservados en
+[`docs/estado-implementacion/codigo-ejemplo/fuentes/`](estado-implementacion/codigo-ejemplo/fuentes/).
 
 ## 1. La regla (fuente: doc 36)
 
@@ -183,7 +185,33 @@ capas de §1 — qué necesita cada épica y si ya tiene una carpeta destino.
 pendiente es dónde vive el pipeline de RAG (EP-09) — y no es urgente: esa épica arranca en **S14**,
 muy lejos todavía. Queda anotado para no descubrirlo recién ahí.
 
-## 8. Ver también
+## 9. Qué se copia como raíz al integrar con el proyecto de cátedra
+
+El árbol de §3 es el de este repo de trabajo (TP). Cuando llegue el momento de integrar con el
+proyecto completo de la cátedra (gateway + discovery + microservicios de los demás grupos), **la
+carpeta que se copia/renombra como raíz real es `llm-service/` en sí misma** — no una carpeta
+envolvente, y no junto a `llm-workbench/` (ver [00](00-fuentes-de-verdad-y-convenciones.md) y
+[gateway-y-discovery/03](gateway-y-discovery/03-convenciones-nombres-y-ruteo.md) para la convención
+de nombre `llm-service`, sufijo `-service`).
+
+De ese árbol de trabajo, **no viajan** a esa raíz:
+
+| Archivo/carpeta | Por qué se queda solo en este repo |
+|---|---|
+| `llm-workbench/` | Es un frontend Angular temporal de dev/demo (S1); su propio README aclara que no reemplaza el monolito Angular compartido de la cátedra |
+| `llm-service/CORRECCIONES-SUGERIDAS.md` | Nota de trabajo interna (detalle del hueco de §6), no parte de la raíz de despliegue |
+| `llm-service/compose.workbench.yaml` | Hace `build: ../llm-workbench`; se rompe si `llm-service` queda sola como raíz sin ese sibling |
+| `docs/` | Material del TP (documentación), no del servicio |
+
+Lo que sí viaja es todo el resto de `llm-service/` de §3 (`pom.xml`, `Dockerfile`, `compose.yaml`,
+`.env.example`, `src/`, `scripts/`) — ya con el cliente Eureka agregado a `pom.xml`/`application.yml`
+para registrarse contra el discovery real del proyecto integrado.
+
+`infrastructure/messaging/` e `infrastructure/ai/` siguen sin crearse (🔲, §3-§4): esta decisión de
+"qué es la raíz" no adelanta esas capas — se crean recién cuando entre Kafka (Tema 11) o el proveedor
+LLM real (M1/ADR-016), como ya estaba definido.
+
+## 10. Ver también
 
 - [02 — Arquitectura y stack](02-arquitectura-y-stack.md) — los 8 módulos lógicos (M1–M8) y el AI
   Gateway; es un corte funcional, no de carpetas.

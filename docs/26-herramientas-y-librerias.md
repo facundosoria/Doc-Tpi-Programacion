@@ -12,7 +12,7 @@ Este es un **índice**, no la fuente de verdad de ninguna de las dos cosas que m
 
 | Qué buscás | Dónde está de verdad |
 |---|---|
-| **Versión exacta** de una dependencia | El `pom.xml` de cada proyecto — [`codigo-ejemplo/ms-evaluacion-llm/pom.xml`](../codigo-ejemplo/ms-evaluacion-llm/pom.xml) para el servicio real |
+| **Versión exacta** de una dependencia | El `pom.xml` de cada proyecto — [`codigo-ejemplo/ms-evaluacion-llm/pom.xml`](estado-implementacion/codigo-ejemplo/fuentes/pom.xml) para el servicio real |
 | **El porqué** de cada elección | El ADR o la sección enlazada en la columna «Decidido en» |
 
 **Columna «Estado»** en las tablas del servicio real:
@@ -48,17 +48,17 @@ Este es un **índice**, no la fuente de verdad de ninguna de las dos cosas que m
 | **Bean Validation** (Hibernate Validator) | `spring-boot-starter-validation`                      | Validar el cuerpo de cada request        | `@NotNull` / `@Size` en los DTOs de `dto/request/`                                    | ✅      | [02 Parte 2 §3](02-arquitectura-y-stack.md)                        |
 | **Jackson**                               | Transitiva de `spring-boot-starter-web`               | Serializar/deserializar JSON             | Automático; DTOs planos (`record`) en `dto/`                                          | ✅      | —                                                                  |
 | **Lombok**                                | `org.projectlombok:lombok`                            | Menos boilerplate (getters, builders)    | `optional`, vía `annotationProcessorPaths` del compiler plugin                        | ✅      | —                                                                  |
-| **springdoc-openapi**                     | `org.springdoc:springdoc-openapi-starter-webmvc-ui`   | Swagger UI para probar a mano en la demo | Reemplaza el componente Angular durante las 4 semanas de demo                         | 📋     | [ESTRUCTURA.md](../codigo-ejemplo/ms-evaluacion-llm/ESTRUCTURA.md) |
+| **springdoc-openapi**                     | `org.springdoc:springdoc-openapi-starter-webmvc-ui`   | Swagger UI para probar a mano en la demo | Reemplaza el componente Angular durante las 4 semanas de demo                         | 📋     | [ESTRUCTURA.md](estado-implementacion/codigo-ejemplo/fuentes/ESTRUCTURA.md) |
 
 ## 2. Datos y persistencia
 
 | Herramienta             | De dónde viene                                     | Para qué                                                             | Cómo la usamos                                                                                           | Estado | Decidido en                                                                        |
 | ----------------------- | -------------------------------------------------- | -------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- | ------ | ---------------------------------------------------------------------------------- |
-| **Spring Data JPA**     | `spring-boot-starter-data-jpa`                     | Acceso a Postgres                                                    | Una interfaz `Repository` por entidad en `repository/`; queries complejas con `@Query`                   | ✅      | [ESTRUCTURA.md](../codigo-ejemplo/ms-evaluacion-llm/ESTRUCTURA.md)                 |
+| **Spring Data JPA**     | `spring-boot-starter-data-jpa`                     | Acceso a Postgres                                                    | Una interfaz `Repository` por entidad en `repository/`; queries complejas con `@Query`                   | ✅      | [ESTRUCTURA.md](estado-implementacion/codigo-ejemplo/fuentes/ESTRUCTURA.md)                 |
 | **PostgreSQL** (driver) | `org.postgresql:postgresql`                        | La base de datos de registro                                         | Runtime scope; una base **propia y exclusiva** (regla de la cátedra)                                     | ✅      | [12 §2](12-almacenamiento-e-ingesta.md)                                            |
 | **pgvector**            | Extensión de Postgres (`CREATE EXTENSION vector;`) | Guardar y buscar embeddings del RAG en la misma base que su metadata | Columna `vector(1536)` en `chunks`; filtro por `curso_cohorte_id` + similitud en una sola consulta       | 📋     | [ADR-004](08-decisiones-y-pendientes.md) · [12 §2](12-almacenamiento-e-ingesta.md) |
-| **H2**                  | `com.h2database:h2`                                | Base en memoria para tests y para la demo                            | Runtime/test scope; **nunca en producción**                                                              | ✅      | [TESTING.md](../codigo-ejemplo/ms-evaluacion-llm/TESTING.md)                       |
-| **Flyway**              | `org.flywaydb:flyway-core`                         | Migraciones de esquema versionadas                                   | Scripts `V1__…` … `V4__llamadas_llm.sql` en `resources/db/migration/`; nunca se editan una vez aplicados | 📋     | [ESTRUCTURA.md](../codigo-ejemplo/ms-evaluacion-llm/ESTRUCTURA.md)                 |
+| **H2**                  | `com.h2database:h2`                                | Base en memoria para tests y para la demo                            | Runtime/test scope; **nunca en producción**                                                              | ✅      | [TESTING.md](estado-implementacion/codigo-ejemplo/fuentes/TESTING.md)                       |
+| **Flyway**              | `org.flywaydb:flyway-core`                         | Migraciones de esquema versionadas                                   | Scripts `V1__…` … `V4__llamadas_llm.sql` en `resources/db/migration/`; nunca se editan una vez aplicados | 📋     | [ESTRUCTURA.md](estado-implementacion/codigo-ejemplo/fuentes/ESTRUCTURA.md)                 |
 | **HikariCP**            | Transitiva de Spring Boot                          | Pool de conexiones                                                   | Configurado en `config/DataSourceConfig`                                                                 | 📋     | —                                                                                  |
 
 ## 3. Cola interna, cuotas y caché
@@ -94,7 +94,7 @@ Este es un **índice**, no la fuente de verdad de ninguna de las dos cosas que m
 | **Google Gemini** | 3.5 Flash-Lite | Tutor · Generador · descripción de imágenes en la ingesta | [03 §1](03-modelos-costos-y-contexto.md) |
 | **Anthropic** | Claude Haiku 4.5 (+ Batch) | Evaluador · Corrector | [03 §1](03-modelos-costos-y-contexto.md) · [ADR-010](08-decisiones-y-pendientes.md) |
 | **OpenAI** | `omni-moderation-latest` (gratis) | Residuo del moderador que la capa clásica no resuelve | [ADR-012](08-decisiones-y-pendientes.md) |
-| **Groq** | `llama-3.3-70b-versatile` | Solo en las demos (API compatible con OpenAI) | [codigo-ejemplo/README](../codigo-ejemplo/README.md) |
+| **Groq** | `llama-3.3-70b-versatile` | Solo en las demos (API compatible con OpenAI) | [codigo-ejemplo/README (preservado)](estado-implementacion/codigo-ejemplo/fuentes/README.md) |
 
 ## 5. RAG e ingesta de documentos (en Java)
 
@@ -138,29 +138,29 @@ Este es un **índice**, no la fuente de verdad de ninguna de las dos cosas que m
 |---|---|---|---|---|---|
 | **Micrometer** | Transitiva de Actuator | Métricas: latencia p50/p95/p99 por función, tasa de fallback, profundidad de cola, % de aciertos de caché, costo por curso | El tablero de 8 métricas de operación | 📋 | [06 Parte 2 §7](06-operacion-e-ingenieria.md) |
 | **`trace_id` propagado** | Header del API Gateway | Cruzar el log de una llamada entre dos microservicios | Se lee del header, se pasa como parámetro a todo el service, se guarda en `llamadas_llm` y se devuelve en toda response | 📋 | [02 Parte 3](02-arquitectura-y-stack.md) · [11 Parte B](11-glosario-y-metadata.md) |
-| **Tabla `llamadas_llm`** | Postgres (append-only) | Auditoría LLMOps: `model_id`, `model_version`, `prompt_version`, `rubric_version`, tokens, costo, latencia, incidentes | La escribe el gateway en **cada** llamada, incluso si falla (RF-IA-02/25/33) | 📋 | [ESTRUCTURA.md](../codigo-ejemplo/ms-evaluacion-llm/ESTRUCTURA.md) |
+| **Tabla `llamadas_llm`** | Postgres (append-only) | Auditoría LLMOps: `model_id`, `model_version`, `prompt_version`, `rubric_version`, tokens, costo, latencia, incidentes | La escribe el gateway en **cada** llamada, incluso si falla (RF-IA-02/25/33) | 📋 | [ESTRUCTURA.md](estado-implementacion/codigo-ejemplo/fuentes/ESTRUCTURA.md) |
 
 ## 9. Tests
 
 | Herramienta                                   | De dónde viene             | Para qué                                                            | Cómo la usamos                                                                                        | Estado | Decidido en                                                                                                  |
 | --------------------------------------------- | -------------------------- | ------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------ | ------------------------------------------------------------------------------------------------------------ |
-| **JUnit 5 · Mockito · AssertJ**               | `spring-boot-starter-test` | Tests unitarios de la lógica determinística (~80 % del servicio)    | El LLM **siempre** detrás de una interfaz que se mockea con un JSON fijo                              | ✅      | [TESTING.md](../codigo-ejemplo/ms-evaluacion-llm/TESTING.md) · [06 Parte 4 §1](06-operacion-e-ingenieria.md) |
+| **JUnit 5 · Mockito · AssertJ**               | `spring-boot-starter-test` | Tests unitarios de la lógica determinística (~80 % del servicio)    | El LLM **siempre** detrás de una interfaz que se mockea con un JSON fijo                              | ✅      | [TESTING.md](estado-implementacion/codigo-ejemplo/fuentes/TESTING.md) · [06 Parte 4 §1](06-operacion-e-ingenieria.md) |
 | **Testcontainers**                            | `org.testcontainers:*`     | Tests de integración que levantan Postgres (y Kafka / Redis) reales | `@Tag("integracion")`; fuera del build diario, dentro de `-Pcompleto`                                 | 📋     | [02 Parte 2 §3](02-arquitectura-y-stack.md)                                                                  |
 | **WireMock**                                  | `org.wiremock:wiremock`    | Simular la API HTTP del proveedor sin gastar plata                  | En los tests de los adapters                                                                          | 📋     | [02 Parte 2 §3](02-arquitectura-y-stack.md)                                                                  |
-| **Fixtures** (`src/test/resources/fixtures/`) | Archivos JSON versionados  | Respuestas fijas del modelo para probar el parseo y reproducir bugs | Un JSON por caso                                                                                      | 📋     | [ESTRUCTURA.md](../codigo-ejemplo/ms-evaluacion-llm/ESTRUCTURA.md)                                           |
-| Etiqueta **`@Tag("modelo-real")`**            | JUnit 5                    | Aislar los tests que **sí** pegan a la API real y gastan            | Excluidos en los dos perfiles; se corren a mano: `./mvnw test -Dgroups=modelo-real -DexcludedGroups=` | ✅      | [TESTING.md](../codigo-ejemplo/ms-evaluacion-llm/TESTING.md)                                                 |
+| **Fixtures** (`src/test/resources/fixtures/`) | Archivos JSON versionados  | Respuestas fijas del modelo para probar el parseo y reproducir bugs | Un JSON por caso                                                                                      | 📋     | [ESTRUCTURA.md](estado-implementacion/codigo-ejemplo/fuentes/ESTRUCTURA.md)                                           |
+| Etiqueta **`@Tag("modelo-real")`**            | JUnit 5                    | Aislar los tests que **sí** pegan a la API real y gastan            | Excluidos en los dos perfiles; se corren a mano: `./mvnw test -Dgroups=modelo-real -DexcludedGroups=` | ✅      | [TESTING.md](estado-implementacion/codigo-ejemplo/fuentes/TESTING.md)                                                 |
 
 ---
 
 # Parte 2 — Build y análisis del código Java
 
 Todo vía **Maven** (`./mvnw`, wrapper 3.9.x). Plugins declarados en el `pom.xml` del esqueleto —
-[`ms-evaluacion-llm/pom.xml`](../codigo-ejemplo/ms-evaluacion-llm/pom.xml) — y corren con `./mvnw`:
+[`ms-evaluacion-llm/pom.xml`](estado-implementacion/codigo-ejemplo/fuentes/pom.xml) — y corren con `./mvnw`:
 
 | Herramienta | De dónde viene | Versión | Para qué | Cómo la usamos |
 |---|---|---|---|---|
 | **Spotless** + `palantir-java-format` | `com.diffplug.spotless:spotless-maven-plugin` | 2.44 | Formato uniforme del Java | `spotless:apply` corrige los archivos; `spotless:check` solo avisa |
-| **PMD** | `org.apache.maven.plugins:maven-pmd-plugin` (7.x) | plugin 3.26 | Análisis estático: código muerto, variables sin usar, `catch` vacíos, comparar objetos con `==` | `failOnViolation=false`: reporta, no corta; reglas en [`pmd-ruleset.xml`](../codigo-ejemplo/ms-evaluacion-llm/pmd-ruleset.xml) |
+| **PMD** | `org.apache.maven.plugins:maven-pmd-plugin` (7.x) | plugin 3.26 | Análisis estático: código muerto, variables sin usar, `catch` vacíos, comparar objetos con `==` | `failOnViolation=false`: reporta, no corta; reglas en [`pmd-ruleset.xml`](estado-implementacion/codigo-ejemplo/fuentes/pmd-ruleset.xml) |
 | **CPD** | Viene dentro de PMD | 7.x | Bloques de código duplicados entre clases | `minimumTokens=60` (el default de 100 solo caza copias enormes) |
 | **JaCoCo** | `org.jacoco:jacoco-maven-plugin` | 0.8.12 | Instrumentar y medir cobertura | Produce el reporte XML/HTML en `target/`; el umbral **no** se fija global (un % sobre todo el módulo premia testear getters) |
 | **Surefire** | `maven-surefire-plugin` | (Spring Boot BOM) | Correr la suite | `testFailureIgnore=true` para que escriba los XML de reporte; `excludedGroups=integracion,modelo-real` por defecto |
@@ -188,17 +188,17 @@ Todo vía **Maven** (`./mvnw`, wrapper 3.9.x). Plugins declarados en el `pom.xml
 
 # Parte 4 — Las demos y las presentaciones
 
-## `demo/` — la suite de demostración del equipo
+## `llm-service/` y `llm-workbench/` — entorno local del equipo
 
-| Herramienta                               | De dónde viene                   | Para qué                                                             |
-| ----------------------------------------- | -------------------------------- | -------------------------------------------------------------------- |
-| **Docker Compose**                        | `demo/docker-compose.yml`        | Levanta front + back con un comando (`run-demo.sh` / `run-demo.bat`) |
-| **nginx:alpine**                          | imagen                           | Sirve la UI (`index.html` + `app.js` + `styles.css`), puerto 3000    |
-| **`ms-evaluacion-llm`** (Spring Boot 3.5) | el esqueleto                     | Backend REST, puerto 8087, con `InputGuard` + `AntiLeakGuard` reales |
-| **H2**                                    | en memoria                       | Conversaciones y mensajes de la demo                                 |
-| **GroqAdapter**                           | mock / `llama-3.3-70b-versatile` | Responde sin key (modo simulación) o con `GROQ_API_KEY` real         |
+| Herramienta | De dónde viene | Para qué |
+| --- | --- | --- |
+| **Docker Compose** | `llm-service/compose.yaml` | Levanta PostgreSQL 16 y `llm-service` |
+| **Workbench Compose** | `llm-service/compose.workbench.yaml` | Levanta el frontend Angular 21 en `localhost:4200` con recarga activa |
+| **PostgreSQL 16** | `postgres:16-alpine` | Base de datos relacional para el servicio |
+| **llm-service** | `llm-service/Dockerfile` | Backend Java 21 / Spring Boot 3 con Flyway y endpoints bajo `/api/llm/**` |
+| **llm-workbench** | `llm-workbench/Dockerfile.dev` | Frontend Angular 21 (evaluador de uso de IA, rúbricas, golden set y calibración) |
 
-## `codigo-ejemplo/lara-heredia-demo-llm-spring-ai/` — prueba de concepto (importada, no se edita)
+## `lara-heredia-demo-llm-spring-ai/` — prueba de concepto (🟢 carpeta eliminada el 2026-09-12, tabla preservada como registro)
 
 | Herramienta           | De dónde viene                                                      | Para qué                                                                                           |
 | --------------------- | ------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------- |
@@ -208,14 +208,17 @@ Todo vía **Maven** (`./mvnw`, wrapper 3.9.x). Plugins declarados en el `pom.xml
 | **Apache PDFBox**     | `org.apache.pdfbox:pdfbox` 3.0.1                                    | Extracción de texto de PDF                                                                         |
 | **H2**                | en memoria                                                          | Conversaciones                                                                                     |
 
-> 🔴 Trae una **API key de Groq hardcodeada** en `application.properties`. Se importó sin tocar; el
-> arreglo está anotado en [`codigo-ejemplo/CORRECCIONES-SUGERIDAS.md`](../codigo-ejemplo/CORRECCIONES-SUGERIDAS.md).
-> **Hay que rotarla en Groq**, no solo borrarla.
+> 🔴 Traía una **API key de Groq hardcodeada** en `application.properties`. El archivo ya no está
+> en el working tree (carpeta eliminada el 2026-09-12, ver
+> [`docs/estado-implementacion/codigo-ejemplo/`](estado-implementacion/codigo-ejemplo/README.md)),
+> pero la key puede seguir en el historial de git — el arreglo sigue anotado en
+> [`CORRECCIONES-SUGERIDAS.md`](estado-implementacion/codigo-ejemplo/fuentes/CORRECCIONES-SUGERIDAS.md).
+> **Hay que rotarla en Groq.**
 
-## `presentaciones/` — decks y wikis HTML
+## `docs/presentaciones/` — decks y wikis HTML
 
 Se abren sin internet. Usan **Tailwind (Play CDN)**, **marked.js** (Markdown → HTML) y **Lucide**
-(íconos) — vendorizados o por CDN según la corrección de [`presentaciones/CORRECCIONES-SUGERIDAS.md`](../presentaciones/CORRECCIONES-SUGERIDAS.md).
+(íconos) — vendorizados o por CDN según la corrección de [`presentaciones/CORRECCIONES-SUGERIDAS.md`](presentaciones/CORRECCIONES-SUGERIDAS.md).
 No son parte del build del servicio.
 
 ---
