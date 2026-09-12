@@ -1,7 +1,7 @@
 # EP-01 · Plataforma, contratos e integración — estado
 
 > Fichas fuente: [`docs/historias/ep-01/`](../../historias/ep-01/README.md). Auditoría de
-> código: [`llm-service/CORRECCIONES-SUGERIDAS.md`](../../../llm-service/CORRECCIONES-SUGERIDAS.md)
+> código: [`llm-service/CORRECCIONES-SUGERIDAS.md`](../../../CORRECCIONES-SUGERIDAS.md)
 > ítems 16–22 (primera vez que estos habilitadores se contrastan contra código; hasta el
 > 2026-09-12 ninguna ficha de EP-01 tenía marcador de estado).
 

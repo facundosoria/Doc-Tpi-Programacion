@@ -4,7 +4,7 @@
 - **Épica tentativa:** EP-03
 - **Código:** `SyntheticGoldenSetController` + `SyntheticGoldenSetProposalService`
 - **Evidencia:** [`verificacion-v2-golden-set-calibracion.md` · §5](../../entregas/verificacion-v2-golden-set-calibracion.md),
-  [`CORRECCIONES-SUGERIDAS.md` ítem 5](../../../llm-service/CORRECCIONES-SUGERIDAS.md)
+  [`CORRECCIONES-SUGERIDAS.md` ítem 5](../../../CORRECCIONES-SUGERIDAS.md)
 
 ## Qué hay en el código
 

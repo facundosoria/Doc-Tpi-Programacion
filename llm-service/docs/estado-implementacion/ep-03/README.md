@@ -2,7 +2,7 @@
 
 > Fichas fuente: [`docs/historias/ep-03/`](../../historias/ep-03/README.md). Auditoría:
 > [`verificacion-v2-golden-set-calibracion.md`](../../entregas/verificacion-v2-golden-set-calibracion.md)
-> y [`llm-service/CORRECCIONES-SUGERIDAS.md`](../../../llm-service/CORRECCIONES-SUGERIDAS.md).
+> y [`llm-service/CORRECCIONES-SUGERIDAS.md`](../../../CORRECCIONES-SUGERIDAS.md).
 > `s02-h01.md` y `s02-h02.md` ya traen su estado embebido en la propia ficha (se escribieron
 > *a posteriori*, contra código ya construido) — acá se resume, no se repite.
 

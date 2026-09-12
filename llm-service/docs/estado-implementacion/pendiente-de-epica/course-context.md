@@ -4,7 +4,7 @@
 - **Épica tentativa:** ninguna — parece un endpoint utilitario/transversal, no una función de
   negocio de una épica específica
 - **Código:** `CourseContextController.list`
-- **Evidencia:** [`CORRECCIONES-SUGERIDAS.md` ítem 11](../../../llm-service/CORRECCIONES-SUGERIDAS.md)
+- **Evidencia:** [`CORRECCIONES-SUGERIDAS.md` ítem 11](../../../CORRECCIONES-SUGERIDAS.md)
   (nota que `GET /api/llm/courses` existe en el código pero no aparece en ningún contrato
   OpenAPI publicado)
 
