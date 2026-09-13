@@ -42,22 +42,22 @@
 
 La casilla se marca **solo con su evidencia** (enlace a acta, PR, captura, planilla).
 
-| # | Ítem | Evidencia | Estado |
-|---|---|---|---|
-| 1 | Fecha de inicio, integrantes y **disponibilidad individual declarada** para el ciclo completo | | ☐ |
-| 2 | Nombres de **P1–P5** (10 integrantes), **referente de producto** y **facilitador** (los otros 2), y suplencias | | ☐ |
-| 3 | **Cálculo de capacidad de S1** hecho con la fórmula de §4 desde la planilla de disponibilidad y registrado en una copia de la [plantilla de sprint](../plantillas/sprint-llm.md) | | ☐ |
-| 4 | **DoR y DoD** ([23 · §9.2](../23-plan-construccion-producto-llm.md)) leídas y aceptadas por el equipo | | ☐ |
-| 5 | **Historia canónica** elegida y estimada (§5). Candidata: `LLM-S01-H06` | | ☐ |
-| 6 | Épicas revisadas; cada historia de S1 asignada a una épica ([../epicas/](../epicas/README.md)) | | ☐ |
-| 7 | Épicas e historias de S1 cargadas en el backlog de Taiga con los templates oficiales; **permalinks anotados** (§6) | | ☐ |
-| 8 | **D01** y **D02** con responsable y estado comprobado; **D03/D04** solicitadas con fecha (§7) | | ☐ |
-| 9 | Requisitos locales verificados: `git --version`, `docker --version`, `docker compose version`, `java -version` → **Java 21** (§8) | | ☐ |
-| 10 | Remoto `tpi-llm` con `main` y `develop` creadas y **protegidas** (PR obligatorio, CI en verde, sin push directo ni force-push) según [GITFLOW](../GITFLOW.md) (§8) | | ☐ |
-| 11 | Carpeta de evidencia del equipo acordada (PR, CI, migración, comandos Docker, demo) | | ☐ |
-| 12 | Cada historia de S1 cumple la DoR: usuario, aceptación negativa, responsable/suplente y estimación dentro de la capacidad | | ☐ |
-| 13 | La estimación de S1 incluye esqueleto, migraciones, contrato, interfaz, pruebas e integración —no solo el «camino feliz» | | ☐ |
-| 14 | Criterio de **demo de S1** acordado: acceso autorizado, carga, consulta y recuperación tras reinicio | | ☐ |
+| #   | Ítem                                                                                                                                                                             | Evidencia | Estado |
+| --- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | ------ |
+| 1   | Fecha de inicio, integrantes y **disponibilidad individual declarada** para el ciclo completo                                                                                    |           | ☐      |
+| 2   | Nombres de **P1–P5** (10 integrantes), **referente de producto** y **facilitador** (los otros 2), y suplencias                                                                   |           | ☐      |
+| 3   | **Cálculo de capacidad de S1** hecho con la fórmula de §4 desde la planilla de disponibilidad y registrado en una copia de la [plantilla de sprint](../plantillas/sprint-llm.md) |           | ☐      |
+| 4   | **DoR y DoD** ([23 · §9.2](../23-plan-construccion-producto-llm.md)) leídas y aceptadas por el equipo                                                                            |           | ☐      |
+| 5   | **Historia canónica** elegida y estimada (§5). Candidata: `LLM-S01-H06`                                                                                                          |           | ☐      |
+| 6   | Épicas revisadas; cada historia de S1 asignada a una épica ([../epicas/](../epicas/README.md))                                                                                   |           | ☐      |
+| 7   | Épicas e historias de S1 cargadas en el backlog de Taiga con los templates oficiales; **permalinks anotados** (§6)                                                               |           | ☐      |
+| 8   | **D01** y **D02** con responsable y estado comprobado; **D03/D04** solicitadas con fecha (§7)                                                                                    |           | ☐      |
+| 9   | Requisitos locales verificados: `git --version`, `docker --version`, `docker compose version`, `java -version` → **Java 21** (§8)                                                |           | ☐      |
+| 10  | Remoto `tpi-llm` con `main` y `develop` creadas y **protegidas** (PR obligatorio, CI en verde, sin push directo ni force-push) según [GITFLOW](../GITFLOW.md) (§8)               |           | ☐      |
+| 11  | Carpeta de evidencia del equipo acordada (PR, CI, migración, comandos Docker, demo)                                                                                              |           | ☐      |
+| 12  | Cada historia de S1 cumple la DoR: usuario, aceptación negativa, responsable/suplente y estimación dentro de la capacidad                                                        |           | ☐      |
+| 13  | La estimación de S1 incluye esqueleto, migraciones, contrato, interfaz, pruebas e integración —no solo el «camino feliz»                                                         |           | ☐      |
+| 14  | Criterio de **demo de S1** acordado: acceso autorizado, carga, consulta y recuperación tras reinicio                                                                             |           | ☐      |
 
 ---
 

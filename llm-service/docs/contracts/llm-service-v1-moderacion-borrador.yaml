@@ -13,6 +13,14 @@ openapi: 3.0.3
 # contra un mock, y ese mock tiene que servir para las cinco funciones.
 #
 # Este archivo es el contrato, no la implementacion. Ver ADR-012.
+#
+# 2026-09-12: fijado como forma UNICA y canonica del resultado del moderador.
+# docs/18-contratos-inter-equipos.md Seccion 4.4 tenia un bosquejo mas viejo
+# (veredicto + categorias como objeto de 6 booleanos con nombres que no eran
+# los de RF-CHT-10) que quedo desactualizado frente a este archivo, mas nuevo
+# y mas detallado. Doc 18 ya se actualizo para coincidir con RespuestaModeracion
+# de aca abajo. Si aparece la forma vieja en otro documento (presentaciones,
+# por ejemplo), es historica: esta es la que vale.
 
 info:
   title: Servicio de IA - funcion moderador

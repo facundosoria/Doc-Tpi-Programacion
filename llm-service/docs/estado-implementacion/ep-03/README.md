@@ -15,3 +15,4 @@
 | [s02-h02](s02-h02.md) | Golden set versionado por curso + import masivo | 🟢 | Construida; falta el endpoint para descubrir la base de plataforma a copiar |
 | [golden-set-update-proposal](golden-set-update-proposal.md) | Propuestas de actualización (sin ficha) | ⚪ | No auditado en profundidad |
 | [synthetic-golden-set](synthetic-golden-set.md) | Generación de casos sintéticos (sin ficha) | 🔴 | Placeholder — 3 plantillas fijas, sin LLM real pese al nombre del campo |
+| [eligible-interactions-golden-set](eligible-interactions-golden-set.md) | Interacciones elegibles para golden set (sin ficha, confirmado EP-03 el 2026-09-12) | 🔴 | Placeholder — 2 interacciones fijas hardcodeadas, sin integración con `practice-service` |

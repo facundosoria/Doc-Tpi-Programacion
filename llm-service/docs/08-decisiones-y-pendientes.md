@@ -464,17 +464,19 @@ un cambio de alcance con requisitos, riesgos, responsable y validación propios.
 
 ---
 
-### ❓ P-02 — ¿Qué pasa si el moderador de chat no está disponible?
+### ✅ P-02 — ¿Qué pasa si el moderador de chat no está disponible?
+
+**Resuelta el 2026-09-12 (misma decisión que [C-5](#-c-5--qué-pasa-si-el-moderador-de-chat-se-cae),
+no duplicar la discusión ahí).**
 
 **El hueco:** RF-CHT-09 dice que corre sobre **todo** mensaje, **antes** de entregarlo. RF-IA-27
 enumera la degradación del tutor y del evaluador, pero **no dice nada del moderador**.
 
-**Opciones:** fail-closed (se detiene el chat) / fail-open (se entrega sin moderar) / fail-open con
-red (se entrega, la capa clásica sigue corriendo, se marca y se re-modera al volver).
-
-**Recomendación: fail-open con red.** El chat social no es producción académica — es lo único que
-RF-NFR-01 permite borrar físicamente. Bloquearlo por una caída externa contradice el principio rector
-de RF-IA-27.
+**Decisión: fail-open con red** (se entrega, la capa clásica sigue corriendo, se marca y se
+re-modera al volver) — **no** fail-closed ni fail-open sin red. Es la opción que más sostiene
+resiliencia sin sacrificar seguridad: el chat social no se cae por una dependencia externa
+(RF-IA-27), y la "red" (marcar + re-moderar al volver) evita que "resiliente" signifique
+"inseguro" — ningún mensaje queda sin pasar nunca por moderación, solo se difiere.
 
 **Prioridad:** Media.
 
@@ -510,12 +512,19 @@ responsable con nombre y apellido. **Definirlo ahora, no en marzo.**
 
 ---
 
-### ❓ P-05 — ¿Cuáles son los umbrales concretos de RF-IA-22?
+### ✅ P-05 — ¿Cuáles son los umbrales concretos de RF-IA-22?
+
+**Resuelta el 2026-09-12** con los valores iniciales de abajo, a recalibrar con datos reales de
+uso — no es una cifra final e inamovible, es el punto de partida sobre el que arranca el control.
 
 **El hueco:** RF-IA-22 exige límites de uso por usuario y difiere los números al Low Level Design,
 *"dado que dependen de costo y cuota disponible"*. Ese Low Level Design es este documento.
 
-**Recomendación inicial**, a ajustar con datos reales:
+**Por qué esto es seguridad, no solo costo:** una cuota es el control técnico contra el abuso (un
+script agotando el free tier, o un alumno intentando extraer la solución a fuerza de reintentos).
+Sin un número fijado, no hay nada que hacer cumplir.
+
+**Decisión — valores iniciales:**
 
 | Límite | Valor propuesto | Fundamento |
 |---|---|---|
@@ -535,6 +544,9 @@ del tutor está acotado por diseño y no depende del comportamiento de los alumn
 
 ### ❓ P-06 — ¿La política de datos del free tier permite usarlo con datos de alumnos?
 
+> **Sigue sin resolver a propósito** (2026-09-12): es consulta legal, no algo que el equipo pueda
+> decidir por sí solo. Ver [C-2](#-c-2--el-free-tier-puede-tocar-datos-de-alumnos), misma pregunta.
+
 **El problema:** los free tiers de los proveedores habitualmente permiten **usar los datos enviados
 para mejorar sus modelos**. Acá los datos son código de alumnos, transcripciones y PII.
 
@@ -551,7 +563,9 @@ tarea legal, no técnica.
 
 ---
 
-### ❓ P-07 — ¿Se corre algo local por soberanía de datos?
+### ✅ P-07 — ¿Se corre algo local por soberanía de datos?
+
+**Resuelta el 2026-09-12.**
 
 **El contexto:** RSK-01 (cumplimiento Ley 25.326) quedó marcado como riesgo y RF-IA-11 aclara que los
 T&C *"mitigan el riesgo contractual/reputacional pero no reemplazan un análisis formal de
@@ -570,7 +584,11 @@ documentado y probado como plan B/C. Evaluador nunca local (ADR-011).
 
 ---
 
-### ❓ P-08 — ¿Qué desafíos prácticos entran al MVP y en qué lenguajes?
+### ✅ P-08 — ¿Qué desafíos prácticos entran al MVP y en qué lenguajes?
+
+**Resuelta el 2026-09-12.** Ver también su ángulo de seguridad: arrancar por riesgo medio da
+tiempo a probar el guardarraíl (RF-IA-19/20) contra algo manejable antes de exponerlo a los casos
+de mayor riesgo de fuga.
 
 **Por qué importa para la IA:** determina qué parsers de AST hacen falta para RF-IA-20 y qué reglas
 de RF-IA-19 hay que escribir primero. "Encuentra el bug" y "completado de bloques" son **riesgo
@@ -585,7 +603,10 @@ de proteger, y sumar los de riesgo alto después con el guardarraíl ya probado.
 
 ---
 
-### ❓ P-09 — ¿La respuesta del propio agente `@mención` también se modera?
+### ✅ P-09 — ¿La respuesta del propio agente `@mención` también se modera?
+
+**Resuelta el 2026-09-12** — es la de más peso en seguridad de las tres de Fase 3: sin esto, un
+prompt injection plantado en el canal tiene vía libre para publicarse sin control.
 
 **El hueco:** RF-CHT-09 dice que el moderador corre sobre *"todo mensaje... antes de que se entregue
 a los demás participantes"*. Leído literal, la respuesta del agente es un mensaje que se entrega a
@@ -605,7 +626,10 @@ antes de que quince personas lo lean.
 
 ---
 
-### ❓ P-10 — ¿Las menciones al agente cuentan contra los límites de RF-IA-22?
+### ✅ P-10 — ¿Las menciones al agente cuentan contra los límites de RF-IA-22?
+
+**Resuelta el 2026-09-12** — cierra el mismo hueco de abuso de cuota que P-05, aplicado al canal
+que menos se audita.
 
 **El hueco:** RF-IA-22 pide límites de uso de IA por usuario, y P-05 propone umbrales concretos para
 el tutor y el generador. **Ninguno contempla el chat.**
@@ -622,7 +646,9 @@ las gaste donde las gaste. Es más simple de explicar y no deja un agujero.
 
 ---
 
-### ❓ P-11 — ¿A cuántos agentes se puede mencionar, y cómo se llaman?
+### ✅ P-11 — ¿A cuántos agentes se puede mencionar, y cómo se llaman?
+
+**Resuelta el 2026-09-12.**
 
 **El hueco:** RF-CHT-05 dice *"agentes de IA"*, en plural, y `@agente` como ejemplo. No define si hay
 uno solo por curso o varios con roles distintos.
@@ -751,18 +777,23 @@ El API Gateway figura como **extra asignado al Tema 01** (columna «podría ser�
 
 **Recomendación:** pedir fecha comprometida para los tres. Mientras tanto, desarrollá contra un stub — tu servicio no debería quedar bloqueado esperando infraestructura ajena.
 
+**Aplicado el 2026-09-12 para D01/Eureka:** el sprint de cierre adopta esta recomendación para la
+fila 1 de [`s1-cierre.md`](sprints/s1-cierre.md) (registro en Eureka) — se desarrolla y se prueba
+contra una instancia local de Eureka (la que ya levanta `compose.yaml`, [`H02·T2`](tareas/ep-01/h02.md))
+mientras no haya confirmación de la compartida. **Lo que esto no reemplaza:** la prueba real de
+que el Gateway compartido descubre y rutea al servicio (CA1 de H03) solo se puede dar por cerrada
+contra la infraestructura real, no contra el stub — la fecha comprometida sigue pendiente, esto
+solo evita que el sprint se frene mientras se consigue.
+
 ---
 
-### 🟡 A-5 — ¿Cuántos desplegables somos?
+### ✅ A-5 — ¿Cuántos desplegables somos?
 
-| Opción | Cuándo conviene |
-|---|---|
-| Uno (`ms-evaluacion-llm`) | Si el alcance es estricto |
-| **Dos** (`ms-evaluacion-llm` + `worker`) *(recomendado)* | Misma imagen, distinto comando. El worker drena la cola de trabajo diferido de RF-IA-27 |
-
-**Recomendación: dos.** Es gratis (misma imagen) y es lo que hace real el cálculo diferido.
-
-**Decide:** vos.
+**Resuelta el 2026-09-12: dos** (`ms-evaluacion-llm` + `worker`, misma imagen, distinto comando).
+Es la opción de resiliencia: separa el camino síncrono (que sí le importa a un usuario esperando)
+del que drena la cola de trabajo diferido de RF-IA-27 (que puede reintentar sin que nadie lo note).
+Es gratis (misma imagen, no dos builds) y es lo que hace real el cálculo diferido de EP-06 el día
+que se construya.
 
 ---
 
@@ -880,11 +911,60 @@ Resuelta el 2026-09-06: no se implementa un flujo de corrección académica auto
 
 ---
 
-### 🟡 C-5 — ¿Qué pasa si el moderador de chat se cae?
+### ✅ C-5 — ¿Qué pasa si el moderador de chat se cae?
+
+**Resuelta el 2026-09-12** — es la misma decisión que
+[P-02](#-p-02--qué-pasa-si-el-moderador-de-chat-no-está-disponible), no dos decisiones distintas.
 
 Solo aplica si el moderador es tuyo. RF-CHT-09 dice que corre sobre todo mensaje antes de entregarlo; **el PRD no dice qué pasa si no está disponible**.
 
-**Recomendación: fail-open con red.** Se entrega, la capa clásica sigue corriendo, se marca y se re-modera al volver. El chat social no es producción académica — es lo único que RF-NFR-01 permite borrar.
+**Decisión: fail-open con red.** Se entrega, la capa clásica sigue corriendo, se marca y se re-modera al volver. El chat social no es producción académica — es lo único que RF-NFR-01 permite borrar.
+
+---
+
+### 🔴 C-6 — ¿EP-06 (evaluador real de un intento, apelación y score diferido) entra en esta entrega?
+
+**El problema, en criollo:** hoy calibramos si el evaluador *puntúa parecido a un docente* (golden
+set) — pero **nadie calcula el puntaje real de un intento de un alumno**, nadie se lo muestra
+desglosado, y no existe forma de apelarlo. Buscamos en todo el código
+(`llm-service/src/main/java`, auditoría completa del 2026-09-12,
+[`estado-implementacion/ep-06/evaluacion-y-apelacion.md`](estado-implementacion/ep-06/evaluacion-y-apelacion.md))
+y **no hay una sola línea de esto**: ni consumidor del cierre de intento, ni tabla de evaluación,
+ni publicación de resultado, ni apelación, ni override.
+
+**Por qué esto es una decisión del PO y no algo que resolvemos solos:** dos documentos nuestros se
+contradicen sobre si esto hace falta *ahora*:
+
+| Fuente | Dice |
+|---|---|
+| [`sprints/README.md` · reprogramación a 8 semanas](sprints/README.md) | Alcance estricto = 6 ítems (rúbrica, golden set, invocación de modelo, calibración, bloqueo de activación, salvaguarda anti-fuga). **EP-06 no está en la lista.** Se autodeclara *"nota de planificación, no fuente de verdad"* |
+| [`00-fuentes-de-verdad-y-convenciones.md` §5](00-fuentes-de-verdad-y-convenciones.md) | El **MVP** incluye *"evaluador asíncrono... apelación, score diferido y bloqueo de cierre"* — y este documento **sí** es fuente de verdad, con más jerarquía que la nota de arriba |
+
+**Consecuencia de cada opción:**
+
+| Si la respuesta es... | Pasa esto |
+|---|---|
+| **Sí, es parte de esta entrega** | Faltan **~2 sprints más** (S6 + S7 de [`35-backlog-ejecutable.md`](35-backlog-ejecutable.md), ~416 h) que hoy están en 0% — hay que reservarles pareja y calendario ya |
+| **No, queda para después** | 0 h adicionales ahora, pero hay que **dejarlo escrito** (acá, y en `sprints/README.md`) para que nadie en la defensa lo dé por MVP citando el doc 00 y se encuentre con que no existe |
+
+**Lo que el PO necesita para decidir** (traerlo así a la reunión, no solo la pregunta):
+
+1. Esta tabla de contradicción (arriba) — ya resuelta, no hay que investigar nada más.
+2. Cuánto tiempo/calendario real queda antes de la entrega final, para saber si 416 h adicionales
+   entran o no — dato que el equipo tiene, no algo técnico.
+3. Si la cátedra evalúa contra el doc 00 (fuente de verdad) o contra el criterio de "alcance
+   estricto" acordado en la reprogramación — si hay dudas, es una pregunta de una línea a la
+   cátedra antes de resolver esto internamente.
+
+**Recomendación:** por jerarquía documental (00 es fuente 3, la reprogramación se autodeclara sin
+rango de fuente), la lectura por defecto debería ser "sí, es MVP" — pero la decisión final depende
+del calendario real, que es dato del PO, no nuestro.
+
+**Prioridad:** 🔴 Crítica — cambia ~416 h de compromiso y es exactamente el tipo de brecha que se
+nota en una defensa.
+
+📄 [`estado-implementacion/ep-06/evaluacion-y-apelacion.md`](estado-implementacion/ep-06/evaluacion-y-apelacion.md),
+[00](00-fuentes-de-verdad-y-convenciones.md), [35](35-backlog-ejecutable.md), [`sprints/README.md`](sprints/README.md)
 
 ---
 

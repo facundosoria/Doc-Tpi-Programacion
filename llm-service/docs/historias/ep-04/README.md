@@ -17,7 +17,7 @@
 
 | ID | Título | Tipo | Pareja | Dep. | Estado |
 |---|---|---|---|---|---|
-| [LLM-S03-H01](s03-h01.md) | Correr y activar una calibración de curso con métrica PAR-14 | **HU** de valor | P4 | H10 (EP-02), H01/H02 (EP-03, S2) | 🟡 Esqueleto construido, falta conectar el modelo |
+| [LLM-S03-H01](s03-h01.md) | Correr y activar una calibración de curso con métrica PAR-14 | **HU** de valor | P4 | H10 (EP-02, ✅), H01/H02 (EP-03, S2) | 🟡 Esqueleto construido; falta conectar el modelo (T7, **14 h, programada en [sprint de cierre](../../sprints/s1-cierre.md)**) |
 
 > **Diferencia de alcance con la épica**, marcada en la ficha: EP-04 describe calibración de
 > **plataforma** (ADMIN) y de **curso** (docente); el código solo implementa la segunda. A
