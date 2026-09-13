@@ -38,6 +38,18 @@
   y demo, con enlaces a las fichas por épica en [`../historias/`](../historias/README.md).
 - `sN-explicado.md` — las historias del sprint N contadas **sin jerga técnica** (opcional).
 
+## Sprint de cierre de S1 + Entrega 1 (2026-09-12)
+
+No es un sprint numerado de la receta de [`35`](../35-backlog-ejecutable.md): agrupa los huecos
+detectados al auditar S1 contra el código real más lo que falta para la Entrega 1 propuesta en
+[`entregas/entrega-1.md`](../entregas/entrega-1.md). Registro completo en
+[`s1-cierre.md`](s1-cierre.md); checklist de origen en
+[`entregas/checklist-cierre-s1.md`](../entregas/checklist-cierre-s1.md); orden priorizado en dos
+vistas (PO / equipo) en
+[`entregas/backlog-priorizado-cierre-s1.md`](../entregas/backlog-priorizado-cierre-s1.md); **una
+página para llevar directo a la Planning** en
+[`entregas/resumen-planning-cierre-s1.md`](../entregas/resumen-planning-cierre-s1.md).
+
 ## Reprogramación a 8 semanas (alcance estricto del Tema 07)
 
 > Nota de planificación, no una fuente de verdad nueva: registra por qué S1 ganó una

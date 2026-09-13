@@ -340,24 +340,37 @@ Hay cuatro mecanismos escritos para que el score llegue al motor de desafíos. N
 
 **Contrato del moderador que Tema 11 necesita para diseñar el chat:**
 
+> ⚠️ **Actualizado 2026-09-12.** Esta sección tenía un bosquejo más viejo (`veredicto` +
+> `categorias` como objeto de 6 booleanos con nombres que no eran los de RF-CHT-10). Quedó
+> reemplazado por la forma de
+> [`contracts/llm-service-v1-moderacion-borrador.yaml`](contracts/llm-service-v1-moderacion-borrador.yaml)
+> (`RespuestaModeracion`), que es más nueva, más detallada, y usa las seis categorías exactas
+> de RF-CHT-10. Es la única forma vigente — si aparece la vieja en otro lado (una presentación,
+> por ejemplo), es histórica.
+
 ```json
 {
-  "veredicto":       "permitido | bloqueado | revision",
-  "categorias": {
-    "spam":           false,
-    "ofensivo":       false,
-    "codigo":         false,
-    "acoso":          true,
-    "amenaza":        false,
-    "academico":      false
+  "resultado": {
+    "categorias": ["integridad_academica"],
+    "severidad": "alta | media | baja",
+    "confianza": 0.94,
+    "origen": "lista | heuristica | clasificador",
+    "version_lista": "2025-05-v3"
   },
-  "severidad":       "alta | media | baja",
-  "confianza":       0.94,
-  "origen":          "lista | heuristica | clasificador",
-  "version_lista":   "2025-05-v3",
-  "trace_id":        "uuid"
+  "trace_id": "uuid",
+  "metadata": {
+    "model_id": null,
+    "model_version": null,
+    "latencia_ms": 45
+  }
 }
 ```
+
+`categorias` es un **array** de las seis categorías de RF-CHT-10 (`ofensivo_discriminatorio`,
+`acoso`, `sexual_violencia`, `spam_no_academico`, `integridad_academica`,
+`elusion_solo_texto`) — vacío si el mensaje está limpio, y puede traer más de una a la vez
+porque los detectores clásicos corren todos y fusionan veredictos. No hay campo `veredicto`
+separado: el bloqueo se infiere de `severidad` (`baja` no bloquea, `media`/`alta` sí).
 
 > Tema 11 **NO entrega el mensaje al hilo** hasta recibir `200` con `severidad: baja`.
 

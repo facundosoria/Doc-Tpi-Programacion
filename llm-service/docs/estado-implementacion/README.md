@@ -56,7 +56,7 @@
 | **EP-03** · Golden set y referencia humana | [`ep-03/`](ep-03/README.md) | 🟢 golden set y rúbrica por curso sólidos; 🔴 dos placeholders sin LLM real | 2026-09-12 |
 | **EP-04** · Calibración y gobernanza del modelo | [`ep-04/`](ep-04/README.md) | 🔴 esqueleto sólido, pero ninguna calibración puede terminar (H10 existe, la calibración no la usa todavía) | 2026-09-12 |
 | **EP-05** · Tutor seguro y guardarraíles | [`ep-05/`](ep-05/README.md) | 🟡 interacción síncrona con guardarraíles construida; sin historia formal ni streaming | 2026-09-12 |
-| EP-06 · Evaluación, score y auditoría académica | — | ⬜ / ⚪ ver [`pendiente-de-epica/course-evaluation-status.md`](pendiente-de-epica/course-evaluation-status.md) | 2026-09-12 |
+| **EP-06** · Evaluación, score y auditoría académica | [`ep-06/`](ep-06/README.md) | 🔴 **no iniciado, confirmado por auditoría exhaustiva** — cero código propio; lo que parecía EP-06 era EP-04 (ver hallazgo transversal) | 2026-09-12 |
 | EP-07 · Operación, cuotas y observabilidad | — | ⬜ sin código encontrado | — |
 | EP-08 · Moderación integrada (F2) | — | ⬜ sin código; contrato de referencia preservado en [`docs/contracts/llm-service-v1-moderacion-borrador.yaml`](../contracts/llm-service-v1-moderacion-borrador.yaml) | 2026-09-12 |
 | EP-09 · RAG y consulta de material (F3) | — | ⬜ sin código encontrado | — |
@@ -73,7 +73,25 @@ adelantado (construyó golden set versionado, rúbrica versionada y el esqueleto
 calibración con métrica PAR-14 — funcionalidad de S2/S3 — sin que existieran las fichas), pero
 en EP-01 sigue con huecos que las fichas de S1 dan por hechos (Eureka, `401`, JaCoCo — ver
 [`ep-01/`](ep-01/README.md)). El puerto de invocación de modelos de `LLM-S01-H10` (EP-02), que
-estaba en 0 de 6 tareas, se cerró el 2026-09-12 portando código de `codigo-ejemplo/` — pero
-**la calibración de EP-04 todavía no lo usa**: hoy todo run sigue quedando `RUNNING` para siempre,
-porque falta la pieza que conecte `CalibrationWorkflowService` con `ModelInvocationService`. Ver
-[`ep-02/h10.md`](ep-02/h10.md) y [`ep-04/s03-h01.md`](ep-04/s03-h01.md).
+estaba en 0 de 6 tareas, se cerró el 2026-09-12 portando código de `codigo-ejemplo/` — la tarea
+que conecta esto con la calibración de EP-04 (T7) quedó firmada en 14 h para el sprint de cierre.
+Ver [`ep-02/h10.md`](ep-02/h10.md) y [`ep-04/s03-h01.md`](ep-04/s03-h01.md).
+
+## EP-06 está en 0% — y hay una contradicción de alcance que decide si eso importa ahora
+
+Auditoría exhaustiva del 2026-09-12 (detalle en [`ep-06/`](ep-06/README.md)): **no existe ningún
+consumidor de eventos, evaluador de intento real, tabla de evaluación, publicador de resultados,
+ni mecanismo de apelación u override en todo `llm-service`.** Dos subsistemas que parecían
+candidatos (`course-evaluation-status`, `eligible-interactions`) resultaron ser, tras leerlos, de
+**EP-04** y **EP-03** respectivamente — se migraron a sus carpetas correctas
+([`ep-04/pending-evaluations-gate.md`](ep-04/pending-evaluations-gate.md),
+[`ep-03/eligible-interactions-golden-set.md`](ep-03/eligible-interactions-golden-set.md)).
+
+Esto deja una pregunta real sin responder: [`sprints/README.md`](../sprints/README.md) define el
+alcance estricto de la cátedra en 6 ítems **sin** EP-06, pero
+[`00-fuentes-de-verdad-y-convenciones.md` §5](../00-fuentes-de-verdad-y-convenciones.md) —que sí
+es fuente de verdad, con más jerarquía que la reprogramación— lista "evaluador asíncrono",
+"apelación" y "score diferido" como parte del **MVP**. Si manda el §5, faltan ~2 sprints más
+(S6+S7, ~416 h) que hoy están en 0%. Si manda la reprogramación, EP-06 queda fuera del corte
+actual. Ver el detalle y la recomendación en
+[`ep-06/evaluacion-y-apelacion.md`](ep-06/evaluacion-y-apelacion.md).
