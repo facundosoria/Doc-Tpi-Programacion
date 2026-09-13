@@ -1,0 +1,19 @@
+services:
+  llm-service:
+    environment:
+      SPRING_PROFILES_ACTIVE: workbench
+
+  workbench:
+    build:
+      context: ./llm-workbench
+      dockerfile: Dockerfile.dev
+    ports: ["4200:4200"]
+    volumes:
+      - ./llm-workbench:/workspace
+      - workbench_node_modules:/workspace/node_modules
+    depends_on:
+      llm-service:
+        condition: service_healthy
+
+volumes:
+  workbench_node_modules:

@@ -1,0 +1,316 @@
+openapi: 3.1.0
+info:
+  title: LLM Service Golden Set and Calibration API
+  version: 2.0.0-draft
+  license: {name: UNLICENSED, identifier: UNLICENSED}
+  description: Contrato de diseño. Evalúa uso de IA; no expone corrección académica ni soluciones esperadas.
+servers:
+  - url: /api/llm
+security:
+  - serviceJwt: []
+paths:
+  /courses/{courseId}/rubrics:
+    get:
+      summary: List Rubrics
+      operationId: listRubrics
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses: {'200': {$ref: '#/components/responses/RubricPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Create Rubric Draft
+      operationId: createRubricDraft
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/RubricInput'}
+      responses: {'201': {$ref: '#/components/responses/RubricVersion'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/rubrics/{rubricVersionId}:
+    get:
+      summary: Get Rubric Version
+      operationId: getRubricVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RubricVersionId'}]
+      responses: {'200': {$ref: '#/components/responses/RubricVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+    patch:
+      summary: Update Rubric Draft
+      operationId: updateRubricDraft
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RubricVersionId'}, {$ref: '#/components/parameters/IfMatch'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/RubricInput'}
+      responses: {'200': {$ref: '#/components/responses/RubricVersion'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/rubrics/{rubricVersionId}/publish:
+    post:
+      summary: Publish Rubric Version
+      operationId: publishRubricVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RubricVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'200': {$ref: '#/components/responses/RubricVersion'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/rubrics/{rubricVersionId}/next-version:
+    post:
+      summary: Create Next Rubric Version
+      operationId: createNextRubricVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RubricVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'201': {$ref: '#/components/responses/RubricVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets/copy-from-base/{baseVersionId}:
+    post:
+      summary: Copy Published Platform Golden Set into Course
+      operationId: copyGoldenSetBaseToCourse
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {name: baseVersionId, in: path, required: true, schema: {type: string, format: uuid}}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'201': {$ref: '#/components/responses/GoldenSetVersion'}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets:
+    get:
+      summary: List Golden Sets
+      operationId: listGoldenSets
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses: {'200': {$ref: '#/components/responses/CourseGoldenSetPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Create Golden Set Draft
+      operationId: createGoldenSetDraft
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/GoldenSetInput'}
+      responses: {'201': {$ref: '#/components/responses/GoldenSetVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets/{goldenSetVersionId}/cases:
+    post:
+      summary: Create Golden Set Case
+      operationId: createGoldenSetCase
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/GoldenSetVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/GoldenSetCaseInput'}
+      responses: {'201': {$ref: '#/components/responses/GoldenSetCaseSummary'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets/{goldenSetVersionId}/publish:
+    post:
+      summary: Publish Golden Set Version
+      operationId: publishGoldenSetVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/GoldenSetVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'200': {$ref: '#/components/responses/GoldenSetVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets/{goldenSetVersionId}:
+    delete:
+      summary: Logically delete an unused draft Golden Set family
+      operationId: deleteUnusedGoldenSet
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/GoldenSetVersionId'}]
+      responses: {'204': {description: Golden Set logically deleted}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-set-update-proposals:
+    get:
+      summary: List pending Golden Set base update proposals
+      operationId: listGoldenSetUpdateProposals
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/GoldenSetUpdateProposalPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-set-imports:
+    post:
+      summary: Create Golden Set Import
+      operationId: createGoldenSetImport
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/ImportInput'}
+      responses: {'201': {$ref: '#/components/responses/ImportBatch'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-set-imports/{batchId}/validate:
+    post:
+      summary: Validate Golden Set Import
+      operationId: validateGoldenSetImport
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/BatchId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'200': {$ref: '#/components/responses/ImportBatch'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-set-imports/{batchId}/rows/{rowNumber}:
+    patch:
+      summary: Replace a staged Golden Set import row
+      operationId: replaceGoldenSetImportRow
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/BatchId'}, {name: rowNumber, in: path, required: true, schema: {type: integer, minimum: 1}}]
+      requestBody: {$ref: '#/components/requestBodies/GoldenSetCaseInput'}
+      responses: {'204': {description: Fila reemplazada}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-set-imports/{batchId}/commit:
+    post:
+      summary: Commit Golden Set Import
+      operationId: commitGoldenSetImport
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/BatchId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'201': {$ref: '#/components/responses/ImportBatch'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/eligible-interactions:
+    get:
+      summary: List Eligible Interactions
+      operationId: listEligibleInteractions
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/EligibleInteractionPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/eligible-interactions/{interactionId}/anonymize-preview:
+    post:
+      summary: Preview Interaction Anonymization
+      operationId: previewInteractionAnonymization
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/InteractionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'200': {$ref: '#/components/responses/GoldenSetCase'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/synthetic-golden-set-cases:
+    post:
+      summary: Propose Synthetic Golden Set Cases
+      operationId: proposeSyntheticGoldenSetCases
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [count], properties: {count: {type: integer, minimum: 1, maximum: 20}}}}}}
+      responses: {'202': {$ref: '#/components/responses/Job'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/calibrations:
+    get:
+      summary: List Calibration Runs
+      operationId: listCalibrationRuns
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/CalibrationPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Create Calibration Run
+      operationId: createCalibrationRun
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/CalibrationInput'}
+      responses: {'202': {$ref: '#/components/responses/CalibrationRun'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/calibrations/{runId}:
+    get:
+      summary: Get Calibration Run
+      operationId: getCalibrationRun
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RunId'}]
+      responses: {'200': {$ref: '#/components/responses/CalibrationRun'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/calibrations/{runId}/activate-preview:
+    post:
+      summary: Preview Calibration Activation
+      operationId: previewCalibrationActivation
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RunId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'200': {$ref: '#/components/responses/ActivationPreview'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/calibrations/{runId}/activate:
+    post:
+      summary: Activate Calibration
+      operationId: activateCalibration
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RunId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/ActivationInput'}
+      responses: {'200': {$ref: '#/components/responses/ActiveCalibration'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/active-calibration:
+    get:
+      summary: Get Active Calibration
+      operationId: getActiveCalibration
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/ActiveCalibration'}, '404': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenge-calibration-assignments:
+    get:
+      summary: List Challenge Calibration Assignments
+      operationId: listChallengeCalibrationAssignments
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/AssignmentPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/pending-evaluations:
+    get:
+      summary: List pending evaluations
+      operationId: listPendingEvaluations
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/PendingEvaluationPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/model-adapters:
+    get:
+      summary: List Model Adapters
+      operationId: listModelAdapters
+      responses: {'200': {$ref: '#/components/responses/ModelAdapterPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Create Model Adapter
+      operationId: createModelAdapter
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ModelAdapter'}}}}
+      responses: {'201': {$ref: '#/components/responses/ModelAdapter'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/base-golden-sets:
+    get:
+      summary: List Base Golden Sets
+      operationId: listBaseGoldenSets
+      responses: {'200': {$ref: '#/components/responses/GoldenSetPage'}, '403': {$ref: '#/components/responses/Problem'}}
+components:
+  securitySchemes:
+    serviceJwt: {type: http, scheme: bearer, bearerFormat: JWT}
+  parameters:
+    IdempotencyKey: {name: Idempotency-Key, in: header, required: true, schema: {type: string, format: uuid}}
+    IfMatch: {name: If-Match, in: header, required: true, schema: {type: integer, minimum: 1}}
+    CourseId: {name: courseId, in: path, required: true, schema: {type: string, format: uuid}}
+    RubricVersionId: {name: rubricVersionId, in: path, required: true, schema: {type: string, format: uuid}}
+    GoldenSetVersionId: {name: goldenSetVersionId, in: path, required: true, schema: {type: string, format: uuid}}
+    BatchId: {name: batchId, in: path, required: true, schema: {type: string, format: uuid}}
+    InteractionId: {name: interactionId, in: path, required: true, schema: {type: string, format: uuid}}
+    RunId: {name: runId, in: path, required: true, schema: {type: string, format: uuid}}
+    Page: {name: page, in: query, schema: {type: integer, minimum: 0, default: 0}}
+    Size: {name: size, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+  requestBodies:
+    RubricInput: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RubricInput'}}}}
+    GoldenSetInput: {required: true, content: {application/json: {schema: {type: object, required: [name], properties: {name: {type: string}, copyFromBaseVersionId: {type: string, format: uuid}}}}}}
+    GoldenSetCaseInput: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetCaseInput'}}}}
+    ImportInput: {required: true, content: {application/json: {schema: {type: object, required: [goldenSetVersionId, format, rows], properties: {goldenSetVersionId: {type: string, format: uuid}, format: {type: string, enum: [JSON, CSV], description: 'Formato de origen informado por el cliente'}, rows: {type: array, minItems: 1, items: {$ref: '#/components/schemas/GoldenSetCaseInput'}}}}}}}
+    CalibrationInput: {required: true, content: {application/json: {schema: {type: object, required: [rubricVersionId, goldenSetVersionId, modelDeploymentId], properties: {rubricVersionId: {type: string, format: uuid}, goldenSetVersionId: {type: string, format: uuid}, modelDeploymentId: {type: string, format: uuid}, reason: {type: string, enum: [MANUAL, MONTHLY, MODEL_CHANGED]}}}}}}
+    ActivationInput: {required: true, content: {application/json: {schema: {type: object, required: [previewToken, challengeIdsToMigrate], properties: {previewToken: {type: string}, challengeIdsToMigrate: {type: array, items: {type: string, format: uuid}}}}}}}
+  responses:
+    Problem: {description: RFC 7807 Problem Details}
+    RubricVersion: {description: Rúbrica, content: {application/json: {schema: {$ref: '#/components/schemas/RubricVersion'}}}}
+    GoldenSetVersion: {description: Golden Set, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetVersion'}}}}
+    GoldenSetCase: {description: Caso, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetCase'}}}}
+    GoldenSetCaseSummary: {description: Resumen del caso creado, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetCaseSummary'}}}}
+    ImportBatch: {description: Lote, content: {application/json: {schema: {$ref: '#/components/schemas/ImportBatch'}}}}
+    CalibrationRun: {description: Corrida, content: {application/json: {schema: {$ref: '#/components/schemas/CalibrationRun'}}}}
+    Job: {description: Trabajo, content: {application/json: {schema: {$ref: '#/components/schemas/Job'}}}}
+    ActivationPreview: {description: Preview, content: {application/json: {schema: {$ref: '#/components/schemas/ActivationPreview'}}}}
+    ActiveCalibration: {description: Activa, content: {application/json: {schema: {$ref: '#/components/schemas/ActiveCalibration'}}}}
+    RubricPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/RubricPage'}}}}
+    GoldenSetPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetPage'}}}}
+    CourseGoldenSetPage: {description: Resumen de versiones y casos del curso, content: {application/json: {schema: {$ref: '#/components/schemas/CourseGoldenSetPage'}}}}
+    EligibleInteractionPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/EligibleInteractionPage'}}}}
+    CalibrationPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/CalibrationPage'}}}}
+    AssignmentPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/AssignmentPage'}}}}
+    ModelAdapter: {description: Adapter, content: {application/json: {schema: {$ref: '#/components/schemas/ModelAdapter'}}}}
+    PendingEvaluationPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/PendingEvaluationPage'}}}}
+    ModelAdapterPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/ModelAdapterPage'}}}}
+  schemas:
+    Dimensions:
+      type: object
+      required: [AUTONOMY, CLARITY, PROGRESSION, COMPLIANCE, EFFICIENCY]
+      properties:
+        AUTONOMY: {type: integer, minimum: 0, maximum: 100}
+        CLARITY: {type: integer, minimum: 0, maximum: 100}
+        PROGRESSION: {type: integer, minimum: 0, maximum: 100}
+        COMPLIANCE: {type: integer, minimum: 0, maximum: 100}
+        EFFICIENCY: {type: integer, minimum: 0, maximum: 100}
+    RubricDimension:
+      type: object
+      required: [key, criterion, anchors, prompt, weight]
+      properties: {key: {type: string, enum: [AUTONOMY, CLARITY, PROGRESSION, COMPLIANCE, EFFICIENCY]}, criterion: {type: string}, anchors: {type: object, required: [low, medium, high], properties: {low: {type: string}, medium: {type: string}, high: {type: string}}}, prompt: {type: string}, weight: {type: number, exclusiveMinimum: 0, maximum: 100}}
+    RubricInput:
+      type: object
+      required: [name, dimensions]
+      properties: {name: {type: string}, dimensions: {type: array, minItems: 5, maxItems: 5, items: {$ref: '#/components/schemas/RubricDimension'}}}
+    RubricVersion:
+      allOf: [{$ref: '#/components/schemas/RubricInput'}, {type: object, required: [id, familyId, version, state, revision], properties: {id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, version: {type: integer}, state: {type: string, enum: [DRAFT, PUBLISHED, SUPERSEDED]}, revision: {type: integer}}}]
+    TranscriptMessage:
+      type: object
+      required: [role, content, position]
+      properties: {role: {type: string, enum: [STUDENT, TUTOR]}, content: {type: string, minLength: 1}, position: {type: integer, minimum: 0}, occurredAt: {type: string, format: date-time}}
+    GoldenSetCaseInput:
+      type: object
+      required: [transcript, challengeContext, author, referenceScores]
+      properties: {transcript: {type: array, minItems: 1, items: {$ref: '#/components/schemas/TranscriptMessage'}}, challengeContext: {type: object, required: [externalChallengeId, statement], properties: {externalChallengeId: {type: string}, statement: {type: string}}}, metadata: {type: object, additionalProperties: true}, author: {type: string}, referenceScores: {$ref: '#/components/schemas/Dimensions'}, scoreJustifications: {type: object, additionalProperties: {type: string}}}
+    GoldenSetCase:
+      allOf: [{$ref: '#/components/schemas/GoldenSetCaseInput'}, {type: object, required: [id, goldenSetVersionId, order, reviewState], properties: {id: {type: string, format: uuid}, goldenSetVersionId: {type: string, format: uuid}, order: {type: integer}, reviewState: {type: string, enum: [DRAFT, REVIEWED]}}}]
+    GoldenSetVersion:
+      type: object
+      required: [id, familyId, version, state, name]
+      properties: {id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, version: {type: integer}, state: {type: string, enum: [DRAFT, PUBLISHED, SUPERSEDED]}, name: {type: string}, cases: {type: array, items: {$ref: '#/components/schemas/GoldenSetCase'}}}
+    GoldenSetCaseSummary:
+      type: object
+      required: [id, order, author, reviewState]
+      properties: {id: {type: string, format: uuid}, order: {type: integer}, author: {type: string}, reviewState: {type: string, enum: [DRAFT, REVIEWED]}}
+    CourseGoldenSetVersion:
+      type: object
+      required: [id, familyId, name, version, state, cases]
+      properties: {id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, name: {type: string}, version: {type: integer}, state: {type: string, enum: [DRAFT, PUBLISHED, SUPERSEDED]}, basedOnVersionId: {type: string, format: uuid}, cases: {type: array, items: {$ref: '#/components/schemas/GoldenSetCaseSummary'}}}
+    ImportBatch:
+      type: object
+      required: [id, goldenSetVersionId, format, state, rows]
+      properties: {id: {type: string, format: uuid}, goldenSetVersionId: {type: string, format: uuid}, format: {type: string, enum: [JSON, CSV]}, state: {type: string, enum: [DRAFT, VALIDATING, READY, COMMITTED, FAILED]}, rows: {type: integer, minimum: 0, description: 'Cantidad de filas cargadas. El detalle se consulta/edita por la API de staging.'}}
+    CalibrationCaseResult:
+      type: object
+      required: [caseId, modelScores, humanFinalScore, modelFinalScore, dimensionErrors, finalError]
+      properties: {caseId: {type: string, format: uuid}, modelScores: {$ref: '#/components/schemas/Dimensions'}, humanFinalScore: {type: number}, modelFinalScore: {type: number}, dimensionErrors: {$ref: '#/components/schemas/Dimensions'}, finalError: {type: number}}
+    CalibrationRun:
+      type: object
+      required: [id, state, rubricVersionId, goldenSetVersionId, modelDeploymentId, progress]
+      properties: {id: {type: string, format: uuid}, state: {type: string, enum: [QUEUED, RUNNING, PASSED, FAILED, CANCELLED]}, rubricVersionId: {type: string, format: uuid}, goldenSetVersionId: {type: string, format: uuid}, modelDeploymentId: {type: string, format: uuid}, progress: {type: integer, minimum: 0, maximum: 100}, maeFinal: {type: number}, maxIndividualError: {type: integer}, results: {type: array, items: {$ref: '#/components/schemas/CalibrationCaseResult'}}}
+    ActivationPreview: {type: object, required: [previewToken, migrableChallengeIds, lockedChallengeIds], properties: {previewToken: {type: string}, migrableChallengeIds: {type: array, items: {type: string, format: uuid}}, lockedChallengeIds: {type: array, items: {type: string, format: uuid}}}}
+    ActiveCalibration: {type: object, required: [courseId, calibrationRunId, activatedAt], properties: {courseId: {type: string, format: uuid}, calibrationRunId: {type: string, format: uuid}, activatedAt: {type: string, format: date-time}}}
+    EligibleInteraction: {type: object, required: [id], properties: {id: {type: string, format: uuid}, preview: {type: string}}}
+    ChallengeCalibrationAssignment: {type: object, required: [challengeId, calibrationRunId, locked], properties: {challengeId: {type: string, format: uuid}, calibrationRunId: {type: string, format: uuid}, locked: {type: boolean}, lockedAt: {type: string, format: date-time}}}
+    ModelDeployment: {type: object, required: [id, modelId, modelVersion, state], properties: {id: {type: string, format: uuid}, modelId: {type: string}, modelVersion: {type: string}, state: {type: string, enum: [ENABLED, DISABLED]}}}
+    ModelAdapter: {type: object, required: [id, provider, deployments], properties: {id: {type: string, format: uuid}, provider: {type: string}, deployments: {type: array, items: {$ref: '#/components/schemas/ModelDeployment'}}}}
+    PendingEvaluation:
+      type: object
+      required: [id, attemptId, assignmentId, calibrationRunId, state, reason, queuedAt]
+      properties: {id: {type: string, format: uuid}, attemptId: {type: string, format: uuid}, assignmentId: {type: string, format: uuid}, calibrationRunId: {type: string, format: uuid, description: 'Immutable calibration version applied to the attempt'}, state: {type: string, enum: [QUEUED, RUNNING, COMPLETED, FAILED]}, reason: {type: string, enum: [CALIBRATION_UNAVAILABLE]}, queuedAt: {type: string, format: date-time}}
+    Job: {type: object, required: [id, state], properties: {id: {type: string, format: uuid}, state: {type: string, enum: [QUEUED, RUNNING, COMPLETED, FAILED]}}}
+    RubricPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/RubricVersion'}}}}
+    GoldenSetPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/GoldenSetVersion'}}}}
+    CourseGoldenSetPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/CourseGoldenSetVersion'}}}}
+    GoldenSetUpdateProposalPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/GoldenSetUpdateProposal'}}}}
+    GoldenSetUpdateProposal: {type: object, required: [id, courseId, baseVersionId, baseVersion, baseCaseCount, detectedAt], properties: {id: {type: string, format: uuid}, courseId: {type: string, format: uuid}, baseVersionId: {type: string, format: uuid}, baseVersion: {type: integer}, baseCaseCount: {type: integer}, detectedAt: {type: string, format: date-time}}}
+    EligibleInteractionPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/EligibleInteraction'}}}}
+    CalibrationPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/CalibrationRun'}}}}
+    AssignmentPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/ChallengeCalibrationAssignment'}}}}
+    ModelAdapterPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/ModelAdapter'}}}}
+    PendingEvaluationPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/PendingEvaluation'}}}}

@@ -1,0 +1,41 @@
+:host { display: block; color: var(--ink); }
+
+header, .start-card, .step-card, .faq {
+  border: 1px solid var(--line);
+  border-radius: .8rem;
+  background: #fff;
+  box-shadow: 0 .55rem 1.3rem rgb(19 55 84 / 6%);
+}
+
+header { padding: 1.25rem 1.35rem; }
+h1, h2 { margin: 0; color: var(--ink); font-family: var(--body); line-height: 1.2; }
+h1 { font-size: clamp(1.8rem, 4vw, 2.5rem); }
+h2 { font-size: 1.18rem; }
+p { color: var(--muted); }
+header > p:last-child { max-width: 52rem; margin: .65rem 0 0; }
+.eyebrow { margin: 0 0 .45rem; color: var(--accent); font: 700 .7rem / 1.4 var(--mono); letter-spacing: .1em; }
+
+.start-card { display: grid; grid-template-columns: auto 1fr; gap: 1rem; margin-top: 1.25rem; padding: 1.15rem 1.25rem; border-left: 5px solid var(--accent); }
+.start-card p:last-child { margin: .5rem 0 0; }
+.start-icon { display: grid; place-items: center; width: 2.5rem; height: 2.5rem; border-radius: .6rem; background: #e9f4fd; color: var(--accent); font-size: 1.4rem; font-weight: 800; }
+
+.steps { display: grid; gap: .85rem; margin: 1.25rem 0 0; padding: 0; list-style: none; counter-reset: usage-step; }
+.step-card { display: grid; grid-template-columns: 3.3rem 1fr; gap: 1rem; padding: 1.15rem 1.25rem; }
+.step-number { display: grid; place-items: center; width: 2.45rem; height: 2.45rem; border-radius: 50%; background: #edf5fc; color: var(--accent); font: 700 .78rem var(--mono); }
+.step-card p:not(.eyebrow) { max-width: 54rem; margin: .55rem 0 .8rem; }
+.step-card a { display: inline-flex; align-items: center; min-height: 2.25rem; border: 1px solid var(--accent); border-radius: .45rem; padding: 0 .75rem; color: var(--accent); font-size: .9rem; font-weight: 700; text-decoration: none; }
+.step-card a:hover { background: #edf7fe; }
+.final-step { border-color: #b9e2cf; background: linear-gradient(110deg, #fff 68%, #effaf4); }
+.final-step .step-number { background: #e5f5ec; color: #146b45; }
+
+.faq { margin-top: 1.25rem; padding: 1.2rem 1.25rem; }
+.faq details { border-top: 1px solid var(--line); padding: .9rem 0; }
+.faq details:first-of-type { margin-top: .8rem; }
+.faq details:last-child { padding-bottom: 0; }
+.faq summary { cursor: pointer; color: var(--ink); font-weight: 700; }
+.faq details p { max-width: 57rem; margin: .55rem 0 0; }
+
+@media (max-width: 600px) {
+  .start-card, .step-card { grid-template-columns: 1fr; }
+  .start-icon { display: none; }
+}

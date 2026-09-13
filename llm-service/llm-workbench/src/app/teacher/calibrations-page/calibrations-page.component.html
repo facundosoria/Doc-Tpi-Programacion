@@ -1,0 +1,285 @@
+<header>
+  <p class="eyebrow">CALIBRACIONES</p>
+  <h1>Calibración del evaluador</h1>
+  <p>
+    Valida la concordancia del evaluador de tutoría pedagógica contra el estándar PAR-14.
+    Requiere una rúbrica y un Golden Set publicados. No califica código ni soluciones académicas.
+  </p>
+  @if (activeCalibration.value(); as active) {
+    <div class="active-badge" role="status">
+      <strong>Calibración activa del curso:</strong>
+      <code>{{ shortId(active.calibrationRunId) }}</code>
+      <span>(Activada el {{ active.activatedAt | date:'short' }})</span>
+    </div>
+  } @else if (!activeCalibration.isLoading()) {
+    <div class="warning-banner" role="status">
+      <strong>Sin calibración activa:</strong> Las evaluaciones automáticas del tutor para nuevos desafíos estarán suspendidas hasta activar una calibración válida aprobada.
+    </div>
+  }
+</header>
+
+@if (errorBanner()) {
+  <div class="error" role="alert">
+    <strong>{{ errorBanner() }}</strong>
+    <button type="button" class="small" (click)="errorBanner.set('')">Descartar</button>
+  </div>
+}
+
+@if (successBanner()) {
+  <div class="saved-banner" role="status">
+    <strong>{{ successBanner() }}</strong>
+    <button type="button" class="small" (click)="successBanner.set('')">Descartar</button>
+  </div>
+}
+
+<!-- GS-0540 & GS-0541: Crear ejecución con resumen previo -->
+<section class="card editor" aria-labelledby="new-run-heading">
+  <h2 id="new-run-heading">Nueva ejecución de calibración</h2>
+  <p class="hint">Seleccioná las versiones publicadas inmutables y el modelo que deseas evaluar.</p>
+
+  <form [formGroup]="runForm" (ngSubmit)="startCalibration()" novalidate>
+    <div class="form-grid">
+      <label>
+        Rúbrica publicada *
+        <select formControlName="rubricVersionId" required>
+          <option value="">-- Seleccionar rúbrica --</option>
+          @for (rub of publishedRubrics(); track rub.id) {
+            <option [value]="rub.id">{{ rub.name }} (v{{ rub.version }})</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Golden Set publicado *
+        <select formControlName="goldenSetVersionId" required>
+          <option value="">-- Seleccionar Golden Set --</option>
+          @for (gs of publishedGoldenSets(); track gs.id) {
+            <option [value]="gs.id">{{ gs.name }} (v{{ gs.version }}) · {{ gs.cases.length }} casos</option>
+          }
+        </select>
+      </label>
+
+      <label>
+        Modelo / Despliegue *
+        <select formControlName="modelDeploymentId" required>
+          <option value="">-- Seleccionar modelo --</option>
+          @for (mod of modelDeployments(); track mod.id) {
+            <option [value]="mod.id">{{ mod.provider }} / {{ mod.modelId }} (v{{ mod.modelVersion }})</option>
+          }
+        </select>
+      </label>
+    </div>
+
+    <!-- GS-0541 Resumen previo con versiones exactas y cantidad de casos -->
+    @if (selectedRubric() || selectedGoldenSet() || selectedModel()) {
+      <div class="preview-box">
+        <h3>Resumen previo de la calibración</h3>
+        <ul class="preview-list">
+          <li>
+            <strong>Rúbrica:</strong>
+            {{ selectedRubric() ? selectedRubric()!.name + ' (versión inmutable v' + selectedRubric()!.version + ')' : 'No seleccionada' }}
+          </li>
+          <li>
+            <strong>Golden Set:</strong>
+            {{ selectedGoldenSet() ? selectedGoldenSet()!.name + ' (versión v' + selectedGoldenSet()!.version + ' · ' + selectedGoldenSet()!.cases.length + ' casos de referencia humana)' : 'No seleccionado' }}
+          </li>
+          <li>
+            <strong>Modelo:</strong>
+            {{ selectedModel() ? selectedModel()!.provider + ' / ' + selectedModel()!.modelId + ' (versión ' + selectedModel()!.modelVersion + ')' : 'No seleccionado' }}
+          </li>
+          <li>
+            <strong>Criterio PAR-14:</strong>
+            Aprobación automática si MAE final ponderado ≤ 10.00 y ningún error individual por caso/dimensión > 10.
+          </li>
+        </ul>
+      </div>
+    }
+
+    <div class="action-row">
+      <button
+        type="submit"
+        class="save-button"
+        [disabled]="runForm.invalid || launching() || !selectedRubric() || !selectedGoldenSet() || !selectedModel()"
+      >
+        {{ launching() ? 'Iniciando calibración…' : 'Lanzar calibración PAR-14' }}
+      </button>
+    </div>
+  </form>
+</section>
+
+<!-- GS-0542: Progreso asíncrono y ejecuciones en curso -->
+@if (runningRuns().length) {
+  <section class="card" aria-labelledby="active-runs-heading">
+    <h2 id="active-runs-heading">Ejecuciones en curso (Asíncronas)</h2>
+    <p class="hint">El proceso corre de forma desacoplada en el backend. Podés cerrar o actualizar la página sin interrumpirlo.</p>
+    <div class="runs-list">
+      @for (run of runningRuns(); track run.id) {
+        <div class="run-card running">
+          <div class="run-header">
+            <div>
+              <strong>Corrida <code>{{ shortId(run.id) }}</code></strong>
+              <span class="badge" [class.badge-running]="run.state === 'RUNNING'">{{ run.state === 'RUNNING' ? 'En ejecución' : 'En cola' }}</span>
+            </div>
+            <span>{{ run.createdAt | date:'short' }}</span>
+          </div>
+          <div class="progress-bar-wrap">
+            <div class="progress-bar" [style.width.%]="run.progress"></div>
+          </div>
+          <p class="progress-text">Progreso: {{ run.progress }}% completado</p>
+        </div>
+      }
+    </div>
+  </section>
+}
+
+<!-- GS-0543, GS-0544, GS-0545: Resultados PAR-14 y Activación -->
+@if (selectedCompletedRun(); as run) {
+  <section class="card" aria-labelledby="run-detail-heading">
+    <div class="set-heading">
+      <div>
+        <p class="eyebrow">DETALLE DE RESULTADOS</p>
+        <h2 id="run-detail-heading">Calibración <code>{{ shortId(run.id) }}</code></h2>
+      </div>
+      <span class="state" [class.published]="run.state === 'PASSED'" [class.state-failed]="run.state === 'FAILED'">
+        {{ run.state === 'PASSED' ? 'APROBADA (PAR-14)' : 'RECHAZADA' }}
+      </span>
+    </div>
+
+    <div class="metrics-grid">
+      <div class="metric-card" [class.metric-pass]="run.maeFinal !== null && run.maeFinal !== undefined && run.maeFinal <= 10" [class.metric-fail]="run.maeFinal !== null && run.maeFinal !== undefined && run.maeFinal > 10">
+        <span class="metric-label">MAE Final Ponderado</span>
+        <span class="metric-value">{{ run.maeFinal !== null && run.maeFinal !== undefined ? (run.maeFinal | number:'1.2-2') : 'N/D' }}</span>
+        <span class="metric-target">Criterio: ≤ 10.00</span>
+      </div>
+
+      <div class="metric-card" [class.metric-pass]="run.maxIndividualError !== null && run.maxIndividualError !== undefined && run.maxIndividualError <= 10" [class.metric-fail]="run.maxIndividualError !== null && run.maxIndividualError !== undefined && run.maxIndividualError > 10">
+        <span class="metric-label">Error Máximo Individual</span>
+        <span class="metric-value">{{ run.maxIndividualError !== null && run.maxIndividualError !== undefined ? run.maxIndividualError : 'N/D' }}</span>
+        <span class="metric-target">Criterio: ≤ 10 pts</span>
+      </div>
+    </div>
+
+    @if (run.state === 'FAILED') {
+      <div class="error" role="alert">
+        <strong>Calibración no apta para activación:</strong>
+        @if (run.maeFinal !== null && run.maeFinal !== undefined && run.maeFinal > 10) {
+          El MAE final de {{ run.maeFinal | number:'1.2-2' }} excede el límite máximo de 10.00.
+        }
+        @if (run.maxIndividualError !== null && run.maxIndividualError !== undefined && run.maxIndividualError > 10) {
+          Al menos un caso/dimensión tuvo un error individual de {{ run.maxIndividualError }} pts (máximo tolerado: 10 pts).
+        }
+      </div>
+    } @else if (run.state === 'PASSED') {
+      <div class="activation-action">
+        @if (activeCalibration.value()?.calibrationRunId === run.id) {
+          <p class="saved">Esta calibración es la que actualmente se encuentra ACTIVA para el curso.</p>
+        } @else {
+          <button type="button" class="save-button" (click)="startActivationPreview(run)">
+            Activar esta calibración para el curso
+          </button>
+        }
+      </div>
+    }
+
+    <!-- GS-0545 Modal / Panel de previsualización y confirmación de migración -->
+    @if (activationPreview(); as prev) {
+      <div class="preview-box activation-box">
+        <h3>Confirmación de activación y migración de desafíos</h3>
+        <p class="hint">
+          Al activar esta calibración, los nuevos desafíos la adoptarán automáticamente.
+          Los desafíos sin intentos iniciados pueden migrarse con tu confirmación.
+        </p>
+
+        @if (prev.lockedChallengeIds.length > 0) {
+          <div class="notice">
+            <strong>{{ prev.lockedChallengeIds.length }} desafío(s) bloqueado(s):</strong>
+            Ya cuentan con intentos de alumnos iniciados y conservarán su calibración histórica inmutable.
+          </div>
+        }
+
+        @if (prev.migrableChallengeIds.length > 0) {
+          <div class="migrable-section">
+            <h4>Desafíos migrables (sin intentos iniciados):</h4>
+            @for (chId of prev.migrableChallengeIds; track chId) {
+              <label class="check-label">
+                <input
+                  type="checkbox"
+                  [checked]="selectedMigrableIds().includes(chId)"
+                  (change)="toggleMigrable(chId)"
+                />
+                Migrar desafío <code>{{ shortId(chId) }}</code> a la nueva versión
+              </label>
+            }
+          </div>
+        } @else {
+          <p>No hay desafíos pendientes de migrar en este curso.</p>
+        }
+
+        <div class="action-row">
+          <button
+            type="button"
+            class="save-button"
+            [disabled]="activating()"
+            (click)="confirmActivation(run, prev)"
+          >
+            {{ activating() ? 'Activando…' : 'Confirmar activación' }}
+          </button>
+          <button type="button" class="secondary" (click)="cancelActivationPreview()">
+            Cancelar
+          </button>
+        </div>
+      </div>
+    }
+  </section>
+}
+
+<!-- GS-0546: Historial comparable y motivo de calibración -->
+<section class="card" aria-labelledby="history-heading">
+  <h2 id="history-heading">Historial de calibraciones</h2>
+  @if (calibrations.isLoading()) {
+    <p class="loading">Cargando historial…</p>
+  } @else if (!calibrations.value().items.length) {
+    <p class="hint">No hay ejecuciones de calibración registradas para este curso.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <caption>Calibraciones realizadas en el curso</caption>
+        <thead>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Fecha</th>
+            <th scope="col">Motivo</th>
+            <th scope="col">MAE Final</th>
+            <th scope="col">Error Máx</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of calibrations.value().items; track item.id) {
+            <tr [class.highlight]="selectedRunId() === item.id">
+              <th scope="row"><code>{{ shortId(item.id) }}</code></th>
+              <td>{{ item.createdAt | date:'short' }}</td>
+              <td>{{ triggerReasonLabel(item.reason) }}</td>
+              <td>{{ item.maeFinal !== null && item.maeFinal !== undefined ? (item.maeFinal | number:'1.2-2') : '-' }}</td>
+              <td>{{ item.maxIndividualError !== null && item.maxIndividualError !== undefined ? item.maxIndividualError : '-' }}</td>
+              <td>
+                <span class="state" [class.published]="item.state === 'PASSED'" [class.state-failed]="item.state === 'FAILED'">
+                  {{ item.state }}
+                </span>
+                @if (activeCalibration.value()?.calibrationRunId === item.id) {
+                  <span class="badge badge-active">ACTIVA</span>
+                }
+              </td>
+              <td>
+                <button type="button" class="secondary small" (click)="selectRun(item.id)">
+                  Ver detalle
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  }
+</section>
