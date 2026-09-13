@@ -64,6 +64,7 @@ public class PgVectorStoreService {
                     preview_text TEXT
                 );
             """);
+            jdbcTemplate.execute("ALTER TABLE rag_documentos ADD COLUMN IF NOT EXISTS pdf_bytes BYTEA;");
             jdbcTemplate.execute("""
                 CREATE TABLE IF NOT EXISTS rag_chunks (
                     id VARCHAR(64) PRIMARY KEY,
@@ -90,6 +91,13 @@ public class PgVectorStoreService {
      * Indexa un documento y sus chunks con vectores densos en pgvector.
      */
     public void indexDocumentWithVectors(RagDocumentInfo doc, List<DocumentChunk> chunks, List<float[]> embeddings) {
+        indexDocumentWithVectors(doc, chunks, embeddings, null);
+    }
+
+    /**
+     * Indexa un documento con sus chunks y persiste los bytes del PDF en la base de datos en la nube.
+     */
+    public void indexDocumentWithVectors(RagDocumentInfo doc, List<DocumentChunk> chunks, List<float[]> embeddings, byte[] pdfBytes) {
         // Guardar siempre en memoria como espejo
         fallbackMemoryStore.indexDocument(doc, chunks);
 
@@ -98,16 +106,17 @@ public class PgVectorStoreService {
         }
 
         try {
-            // 1. Guardar o actualizar documento
+            // 1. Guardar o actualizar documento incluyendo los bytes originales del PDF
             String sqlDoc = """
-                INSERT INTO rag_documentos (document_id, file_name, file_size_bytes, page_count, chunk_count, uploaded_at, preview_text)
-                VALUES (?, ?, ?, ?, ?, ?, ?)
+                INSERT INTO rag_documentos (document_id, file_name, file_size_bytes, page_count, chunk_count, uploaded_at, preview_text, pdf_bytes)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
                 ON CONFLICT (document_id) DO UPDATE SET
                     file_name = EXCLUDED.file_name,
                     file_size_bytes = EXCLUDED.file_size_bytes,
                     page_count = EXCLUDED.page_count,
                     chunk_count = EXCLUDED.chunk_count,
-                    preview_text = EXCLUDED.preview_text;
+                    preview_text = EXCLUDED.preview_text,
+                    pdf_bytes = COALESCE(EXCLUDED.pdf_bytes, rag_documentos.pdf_bytes);
             """;
 
             jdbcTemplate.update(sqlDoc,
@@ -117,7 +126,8 @@ public class PgVectorStoreService {
                     doc.getPageCount(),
                     doc.getChunkCount(),
                     Timestamp.valueOf(doc.getUploadedAt() != null ? doc.getUploadedAt() : LocalDateTime.now()),
-                    doc.getPreviewText()
+                    doc.getPreviewText(),
+                    pdfBytes
             );
 
             // 2. Eliminar chunks previos si existieran
@@ -151,6 +161,37 @@ public class PgVectorStoreService {
 
         } catch (Exception e) {
             log.error("Error al persistir chunks en pgvector: {}", e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Agrega un chunk individual (ej. diagrama decodificado) a la memoria y a pgvector.
+     */
+    public void addSingleChunkWithVector(DocumentChunk chunk, float[] embedding) {
+        fallbackMemoryStore.addSingleChunk(chunk);
+
+        if (!isPostgres) {
+            return;
+        }
+
+        try {
+            String sqlChunk = """
+                INSERT INTO rag_chunks (id, document_id, document_name, page_number, chunk_index, content, embedding)
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+            """;
+            PGvector pgVector = (embedding != null) ? new PGvector(embedding) : null;
+            jdbcTemplate.update(sqlChunk,
+                    chunk.getId(),
+                    chunk.getDocumentId(),
+                    chunk.getDocumentName(),
+                    chunk.getPageNumber(),
+                    chunk.getChunkIndex(),
+                    chunk.getContent(),
+                    pgVector
+            );
+            log.info("✅ Chunk individual (diagrama) persistido en pgvector para: {}", chunk.getDocumentName());
+        } catch (Exception e) {
+            log.error("Error al persistir chunk individual en pgvector: {}", e.getMessage(), e);
         }
     }
 
@@ -321,6 +362,25 @@ public class PgVectorStoreService {
             } catch (Exception e) {
                 log.error("Error al eliminar documento de PostgreSQL: {}", e.getMessage());
             }
+        }
+    }
+
+    /**
+     * Recupera los bytes crudos del PDF almacenados en la base de datos de Supabase.
+     */
+    public byte[] getDocumentPdfBytes(String documentId) {
+        if (!isPostgres || documentId == null) {
+            return null;
+        }
+        try {
+            return jdbcTemplate.queryForObject(
+                    "SELECT pdf_bytes FROM rag_documentos WHERE document_id = ?",
+                    byte[].class,
+                    documentId
+            );
+        } catch (Exception e) {
+            log.debug("No se encontraron pdf_bytes en BD para {}: {}", documentId, e.getMessage());
+            return null;
         }
     }
 }

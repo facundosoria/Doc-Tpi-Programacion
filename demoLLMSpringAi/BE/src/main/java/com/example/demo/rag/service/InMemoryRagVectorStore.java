@@ -248,6 +248,12 @@ public class InMemoryRagVectorStore {
         documentIdf.remove(docId);
     }
 
+    public synchronized void addSingleChunk(DocumentChunk chunk) {
+        if (chunk == null || chunk.getDocumentId() == null) return;
+        List<DocumentChunk> list = documentChunks.computeIfAbsent(chunk.getDocumentId(), k -> new ArrayList<>());
+        list.add(chunk);
+    }
+
     private Map<String, Integer> extractTermFrequencies(String text) {
         Map<String, Integer> frequencies = new HashMap<>();
         if (text == null || text.isBlank()) return frequencies;

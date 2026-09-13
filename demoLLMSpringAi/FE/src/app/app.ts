@@ -2,7 +2,7 @@ import { Component, signal, computed, inject, ElementRef, ViewChild, OnInit } fr
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { marked } from 'marked';
-import { RagService, RagDocumentInfo, DocumentChunk, RagFuenteDto } from './services/rag.service';
+import { RagService, RagDocumentInfo, DocumentChunk, RagFuenteDto, ImageDetectionDto, DiagramDecodedResultDto } from './services/rag.service';
 
 export interface ChatMessage {
   id: string;
@@ -50,6 +50,17 @@ export class App implements OnInit {
   readonly chunks = signal<DocumentChunk[]>([]);
   readonly validationAlert = signal<string | null>(null);
   readonly toasts = signal<ToastItem[]>([]);
+
+  // Pestañas y Vista de Inspección de Imágenes & Diagramas (Opción B: PDFBox sin IA)
+  readonly activeTab = signal<'chat' | 'images'>('chat');
+  readonly detectedImages = signal<ImageDetectionDto[]>([]);
+  readonly selectedImage = signal<ImageDetectionDto | null>(null);
+  readonly isDetectingImages = signal<boolean>(false);
+  readonly isDecodingImage = signal<boolean>(false);
+  readonly decodedResult = signal<DiagramDecodedResultDto | null>(null);
+  readonly isIndexingDiagram = signal<boolean>(false);
+  readonly imageSearchPerformed = signal<boolean>(false);
+  readonly imageDetectionError = signal<string | null>(null);
 
   // Input del chat
   queryText = '';
@@ -154,6 +165,10 @@ export class App implements OnInit {
           this.activeDocument.set(remaining.length > 0 ? remaining[0] : null);
           this.chunks.set([]);
           this.showChunks.set(false);
+          this.detectedImages.set([]);
+          this.selectedImage.set(null);
+          this.decodedResult.set(null);
+          this.imageSearchPerformed.set(false);
         }
         this.showToast('Fuente eliminada de la base de datos', 'info');
       },
@@ -178,6 +193,118 @@ export class App implements OnInit {
         this.showChunks.set(true);
       },
       error: () => this.showToast('No se pudieron obtener los fragmentos', 'warn')
+    });
+  }
+
+  // ==========================================
+  // PESTAÑAS E INSPECCIÓN DE IMÁGENES & DIAGRAMAS
+  // ==========================================
+
+  switchTab(tab: 'chat' | 'images'): void {
+    this.activeTab.set(tab);
+    if (tab === 'images' && !this.imageSearchPerformed() && (this.activeDocument() || this.sources().length > 0)) {
+      this.detectImagesForActiveDocument();
+    }
+  }
+
+  detectImagesForActiveDocument(): void {
+    let doc = this.activeDocument();
+    if (!doc && this.sources().length > 0) {
+      doc = this.sources()[0];
+      this.activeDocument.set(doc);
+    }
+
+    if (!doc) {
+      this.showToast('Primero debes cargar o seleccionar un documento PDF', 'warn');
+      return;
+    }
+
+    this.isDetectingImages.set(true);
+    this.imageSearchPerformed.set(true);
+    this.imageDetectionError.set(null);
+
+    this.ragService.getDocumentImages(doc.documentId).subscribe({
+      next: (images) => {
+        this.isDetectingImages.set(false);
+        this.imageDetectionError.set(null);
+        this.detectedImages.set(images);
+        if (images.length > 0) {
+          this.showToast(`Se detectaron ${images.length} imagen(es) en "${doc!.fileName}"`, 'success');
+          this.selectAndDecodeImage(images[0]);
+        } else {
+          this.selectedImage.set(null);
+          this.decodedResult.set(null);
+          this.showToast(`El documento "${doc!.fileName}" no contiene imágenes incrustadas`, 'info');
+        }
+      },
+      error: (err) => {
+        this.isDetectingImages.set(false);
+        const errorMsg = err.error?.error || 'Error al buscar imágenes en el PDF';
+        this.imageDetectionError.set(errorMsg);
+        this.showToast(errorMsg, 'error');
+      }
+    });
+  }
+
+  selectAndDecodeImage(img: ImageDetectionDto): void {
+    this.selectedImage.set(img);
+    const doc = this.activeDocument();
+    if (!doc) return;
+
+    this.isDecodingImage.set(true);
+    this.decodedResult.set(null);
+
+    this.ragService.decodeImage(doc.documentId, img.imageIndex).subscribe({
+      next: (result) => {
+        this.isDecodingImage.set(false);
+        this.decodedResult.set(result);
+        this.showToast(`Diagrama de pág. ${result.pageNumber} decodificado (${result.tipoDiagrama})`, 'success');
+      },
+      error: (err) => {
+        this.isDecodingImage.set(false);
+        this.showToast(err.error?.error || 'Error al decodificar la estructura del diagrama', 'error');
+      }
+    });
+  }
+
+  saveDiagramToRag(): void {
+    const doc = this.activeDocument();
+    const result = this.decodedResult();
+    if (!doc || !result) {
+      this.showToast('No hay resultado de decodificación para guardar', 'warn');
+      return;
+    }
+
+    this.isIndexingDiagram.set(true);
+    this.ragService.indexDiagramChunk(doc.documentId, result).subscribe({
+      next: (res) => {
+        this.isIndexingDiagram.set(false);
+        this.showToast(res.message || 'Diagrama indexado exitosamente en pgvector', 'success');
+
+        // Actualizar contador de chunks en el documento activo
+        this.sources.update((list) =>
+          list.map((d) => (d.documentId === doc.documentId ? { ...d, chunkCount: d.chunkCount + 1 } : d))
+        );
+        if (this.showChunks()) {
+          this.ragService.getDocumentChunks(doc.documentId).subscribe({
+            next: (chunks) => this.chunks.set(chunks)
+          });
+        }
+      },
+      error: (err) => {
+        this.isIndexingDiagram.set(false);
+        this.showToast(err.error?.error || 'Error al indexar el diagrama en pgvector', 'error');
+      }
+    });
+  }
+
+  copyToClipboard(text: string): void {
+    if (!navigator.clipboard) {
+      this.showToast('Portapapeles no disponible', 'warn');
+      return;
+    }
+    navigator.clipboard.writeText(text).then(() => {
+      this.showToast('Copiado al portapapeles', 'info');
     });
   }
 
@@ -261,6 +388,11 @@ export class App implements OnInit {
 
   private onDocumentReady(doc: RagDocumentInfo): void {
     this.activeDocument.set(doc);
+    this.detectedImages.set([]);
+    this.selectedImage.set(null);
+    this.decodedResult.set(null);
+    this.imageSearchPerformed.set(false);
+    this.imageDetectionError.set(null);
 
     // Actualizar lista de fuentes y seleccionarla
     this.sources.update((prev) => {
@@ -296,6 +428,10 @@ export class App implements OnInit {
     this.activeDocument.set(null);
     this.chunks.set([]);
     this.showChunks.set(false);
+    this.detectedImages.set([]);
+    this.selectedImage.set(null);
+    this.decodedResult.set(null);
+    this.imageSearchPerformed.set(false);
     this.showToast('Vista de fragmentos cerrada', 'info');
   }
 

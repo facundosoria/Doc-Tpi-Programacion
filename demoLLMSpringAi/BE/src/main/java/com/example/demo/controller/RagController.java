@@ -1,10 +1,14 @@
 package com.example.demo.controller;
 
+import com.example.demo.rag.dto.DiagramDecodedResultDto;
+import com.example.demo.rag.dto.ImageDetectionDto;
 import com.example.demo.rag.dto.RagChatRequest;
 import com.example.demo.rag.dto.RagChatResponse;
 import com.example.demo.rag.model.DocumentChunk;
 import com.example.demo.rag.model.RagDocumentInfo;
 import com.example.demo.rag.service.EmbeddingService;
+import com.example.demo.rag.service.FileStorageService;
+import com.example.demo.rag.service.PdfDiagramPositionService;
 import com.example.demo.rag.service.PdfTextExtractorService;
 import com.example.demo.rag.service.PgVectorStoreService;
 import com.example.demo.rag.service.TextChunkerService;
@@ -26,6 +30,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.LocalDateTime;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
@@ -43,17 +48,23 @@ public class RagController {
     private final PgVectorStoreService vectorStore;
     private final EmbeddingService embeddingService;
     private final TutorRagService tutorRagService;
+    private final PdfDiagramPositionService diagramPositionService;
+    private final FileStorageService fileStorageService;
 
     public RagController(PdfTextExtractorService pdfExtractor,
                           TextChunkerService textChunker,
                           PgVectorStoreService vectorStore,
                           EmbeddingService embeddingService,
-                          TutorRagService tutorRagService) {
+                          TutorRagService tutorRagService,
+                          PdfDiagramPositionService diagramPositionService,
+                          FileStorageService fileStorageService) {
         this.pdfExtractor = pdfExtractor;
         this.textChunker = textChunker;
         this.vectorStore = vectorStore;
         this.embeddingService = embeddingService;
         this.tutorRagService = tutorRagService;
+        this.diagramPositionService = diagramPositionService;
+        this.fileStorageService = fileStorageService;
     }
 
     @GetMapping("/documentos")
@@ -116,6 +127,7 @@ public class RagController {
     @Operation(summary = "Eliminar una fuente de la biblioteca y sus chunks de pgvector")
     public ResponseEntity<?> deleteDocument(@PathVariable String id) {
         vectorStore.deleteDocument(id);
+        fileStorageService.deletePdf(id);
         return ResponseEntity.ok(Map.of("message", "Documento eliminado correctamente.", "documentId", id));
     }
 
@@ -124,6 +136,87 @@ public class RagController {
     public ResponseEntity<List<DocumentChunk>> getDocumentChunks(@PathVariable String id) {
         List<DocumentChunk> chunks = vectorStore.getAllChunks(id);
         return ResponseEntity.ok(chunks);
+    }
+
+    @GetMapping("/documento/{id}/imagenes")
+    @Operation(summary = "Detectar e inspeccionar imágenes incrustadas dentro del PDF")
+    public ResponseEntity<?> getDocumentImages(@PathVariable String id) {
+        byte[] bytes = resolvePdfBytes(id);
+        if (bytes == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "El archivo PDF de este documento no está disponible en el servidor (fue registrado antes de habilitar la persistencia). Por favor vuelve a arrastrar o subir el archivo para inspeccionar sus imágenes."));
+        }
+        List<ImageDetectionDto> images = diagramPositionService.detectImages(bytes);
+        return ResponseEntity.ok(images);
+    }
+
+    @PostMapping("/documento/{id}/decodificar-imagen/{imageIndex}")
+    @Operation(summary = "Decodificar determinísticamente la estructura de una imagen del PDF sin IA")
+    public ResponseEntity<?> decodeImage(@PathVariable String id, @PathVariable int imageIndex) {
+        byte[] bytes = resolvePdfBytes(id);
+        if (bytes == null) {
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(Map.of("error", "No se encontró el archivo PDF para decodificar. Por favor vuelve a subir el documento."));
+        }
+        DiagramDecodedResultDto result = diagramPositionService.decodeDiagram(bytes, imageIndex);
+        return ResponseEntity.ok(result);
+    }
+
+    private byte[] resolvePdfBytes(String documentId) {
+        byte[] bytes = fileStorageService.loadPdf(documentId);
+        if (bytes == null) {
+            bytes = vectorStore.getDocumentPdfBytes(documentId);
+            if (bytes != null) {
+                try {
+                    fileStorageService.savePdf(documentId, bytes);
+                } catch (Exception ignored) {}
+            }
+        }
+        return bytes;
+    }
+
+    @PostMapping("/documento/{id}/indexar-diagrama")
+    @Operation(summary = "Persistir manualmente un diagrama decodificado como chunk semántico en pgvector")
+    public ResponseEntity<?> indexDiagramChunk(@PathVariable String id, @RequestBody DiagramDecodedResultDto result) {
+        var docOpt = vectorStore.getDocument(id);
+        if (docOpt.isEmpty()) {
+            return ResponseEntity.notFound().build();
+        }
+        var doc = docOpt.get();
+
+        String chunkId = UUID.randomUUID().toString();
+        String content = String.format(
+                "[Fuente: \"%s\" | Pág. %d | 📐 Figura/Diagrama: %s]\nTipo: %s\n\nInterpretación:\n%s\n\nEstructura:\n```mermaid\n%s\n```",
+                doc.getFileName(),
+                result.getPageNumber(),
+                result.getTituloDetectado(),
+                result.getTipoDiagrama(),
+                result.getInterpretacion() != null ? result.getInterpretacion() : "",
+                result.getMermaidCode() != null ? result.getMermaidCode() : ""
+        );
+
+        DocumentChunk chunk = DocumentChunk.builder()
+                .id(chunkId)
+                .documentId(id)
+                .documentName(doc.getFileName())
+                .pageNumber(result.getPageNumber())
+                .chunkIndex(doc.getChunkCount() + 1)
+                .content(content)
+                .similarityScore(1.0)
+                .build();
+
+        float[] embedding = null;
+        try {
+            List<float[]> embs = embeddingService.computeEmbeddings(List.of(content));
+            if (embs != null && !embs.isEmpty()) {
+                embedding = embs.get(0);
+            }
+        } catch (Exception e) {
+            log.warn("No se pudo generar vector para el diagrama: {}", e.getMessage());
+        }
+
+        vectorStore.addSingleChunkWithVector(chunk, embedding);
+        return ResponseEntity.ok(Map.of("message", "Diagrama indexado exitosamente como chunk en pgvector.", "chunkId", chunkId));
     }
 
     @PostMapping("/sample-pdf")
@@ -161,10 +254,47 @@ public class RagController {
         // 2. Generar identificador único para la fuente
         String docId = UUID.randomUUID().toString();
 
-        // 3. Segmentación en fragmentos semánticos con solapamiento
+        // 3. Persistir bytes en almacenamiento local para no perderlos tras reinicios
+        fileStorageService.savePdf(docId, bytes);
+
+        // 4. Segmentación en fragmentos semánticos con solapamiento
         List<DocumentChunk> chunks = textChunker.createChunks(docId, fileName, extractedPdf.pages());
 
-        // 4. Vista previa de texto
+        // 5. Detectar y auto-decodificar diagramas sin IA
+        try {
+            List<ImageDetectionDto> images = diagramPositionService.detectImages(bytes);
+            for (ImageDetectionDto img : images) {
+                DiagramDecodedResultDto decoded = diagramPositionService.decodeDiagram(bytes, img.getImageIndex());
+                if (decoded != null && !"DESCONOCIDO".equalsIgnoreCase(decoded.getTipoDiagrama())) {
+                    String diagChunkId = UUID.randomUUID().toString();
+                    String diagContent = String.format(
+                            "[Fuente: \"%s\" | Pág. %d | 📐 Figura/Diagrama: %s]\nTipo: %s\n\nInterpretación:\n%s\n\nEstructura:\n```mermaid\n%s\n```",
+                            fileName,
+                            decoded.getPageNumber(),
+                            decoded.getTituloDetectado(),
+                            decoded.getTipoDiagrama(),
+                            decoded.getInterpretacion() != null ? decoded.getInterpretacion() : "",
+                            decoded.getMermaidCode() != null ? decoded.getMermaidCode() : ""
+                    );
+
+                    DocumentChunk diagChunk = DocumentChunk.builder()
+                            .id(diagChunkId)
+                            .documentId(docId)
+                            .documentName(fileName)
+                            .pageNumber(decoded.getPageNumber())
+                            .chunkIndex(chunks.size() + img.getImageIndex() + 1)
+                            .content(diagContent)
+                            .similarityScore(1.0)
+                            .build();
+
+                    chunks.add(diagChunk);
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Aviso al auto-decodificar diagramas: {}", e.getMessage());
+        }
+
+        // 6. Vista previa de texto
         String preview = extractedPdf.fullText().length() > 250
                 ? extractedPdf.fullText().substring(0, 250) + "..."
                 : extractedPdf.fullText();
@@ -179,12 +309,12 @@ public class RagController {
                 .previewText(preview)
                 .build();
 
-        // 5. Cálculo de embeddings densos con Google AI Studio (text-embedding-004)
+        // 7. Cálculo de embeddings densos con Google AI Studio (text-embedding-004)
         List<String> chunkTexts = chunks.stream().map(DocumentChunk::getContent).toList();
         List<float[]> embeddings = embeddingService.computeEmbeddings(chunkTexts);
 
-        // 6. Indexación en PostgreSQL pgvector (con réplica en memoria)
-        vectorStore.indexDocumentWithVectors(docInfo, chunks, embeddings);
+        // 8. Indexación en PostgreSQL pgvector (con réplica en memoria y persistencia de PDF)
+        vectorStore.indexDocumentWithVectors(docInfo, chunks, embeddings, bytes);
 
         return docInfo;
     }
