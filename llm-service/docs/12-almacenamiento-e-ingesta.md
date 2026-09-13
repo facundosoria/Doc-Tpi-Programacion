@@ -218,6 +218,7 @@ una descripción de un diagrama.
 | **Tablas** | **Tabula-java** | Solo tablas con líneas. Para el resto, multimodal |
 | **OCR** | **Tess4J** (binding de Tesseract) | Requiere Tesseract instalado en el contenedor |
 | **Describir imágenes** | **Modelo multimodal** por el AI Gateway | Gemini Flash-Lite es multimodal y barato |
+| **Decodificación de diagramas sin IA** | **OpenCV + Tess4J + JGraphT** | Pipeline determinístico 100% sin IA (ver [31](31-spike-decodificacion-imagenes-y-rag-multifuente.md)) |
 | **DOCX / PPTX** | **Apache POI**, o Tika | Conservá la estructura de títulos |
 | **Objetos** | **MinIO Java SDK** (compatible S3) | |
 

@@ -1,0 +1,1057 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Moderación de Chat y Balanceo Round Robin — Tema 07</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&display=swap" />
+<style>
+  :root {
+    --bg: #0b0f19;
+    --card-bg: #131b2e;
+    --card-border: #232f4d;
+    --primary: #6366f1;
+    --primary-glow: rgba(99, 102, 241, 0.2);
+    --secondary: #38bdf8;
+    --accent: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --text-main: #f8fafc;
+    --text-muted: #94a3b8;
+    --text-faint: #64748b;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    background: var(--bg);
+    color: var(--text-main);
+    font-family: 'Inter', system-ui, sans-serif;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+  }
+  .stage {
+    width: 1280px;
+    height: 720px;
+    background: radial-gradient(circle at 85% 15%, rgba(56, 189, 248, 0.08) 0%, transparent 40%),
+                radial-gradient(circle at 15% 85%, rgba(99, 102, 241, 0.1) 0%, transparent 45%),
+                #0d1322;
+    border: 1px solid var(--card-border);
+    border-radius: 16px;
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+    overflow: hidden;
+  }
+  /* Top Bar */
+  header.bar {
+    height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 36px;
+    border-bottom: 1px solid var(--card-border);
+    background: rgba(13, 19, 34, 0.7);
+    backdrop-filter: blur(8px);
+  }
+  .bar-tag {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--secondary);
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  .bar-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--accent);
+    box-shadow: 0 0 8px var(--accent);
+  }
+  .bar-counter {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* Slide Viewport */
+  .viewport {
+    flex: 1;
+    position: relative;
+    overflow: hidden;
+  }
+  .slide {
+    position: absolute;
+    inset: 0;
+    padding: 48px 64px 40px;
+    display: flex;
+    flex-direction: column;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease, transform 0.3s ease;
+    transform: translateY(12px);
+  }
+  .slide.active {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateY(0);
+  }
+
+  /* Typography */
+  .category {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11.5px;
+    color: var(--secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-bottom: 8px;
+  }
+  h1.title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 40px;
+    font-weight: 700;
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    color: var(--text-main);
+  }
+  p.subtitle {
+    font-size: 16px;
+    line-height: 1.5;
+    color: var(--text-muted);
+    margin-top: 10px;
+    max-width: 800px;
+  }
+
+  /* Grids & Cards */
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; }
+  .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 24px; }
+  .grid-4 { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-top: 24px; }
+  
+  .card {
+    background: var(--card-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 22px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .card.highlight {
+    border-color: var(--primary);
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.08) 0%, rgba(19, 27, 46, 0.9) 100%);
+  }
+  .card-icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+  }
+  .card h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-main);
+  }
+  .card p {
+    font-size: 13.5px;
+    line-height: 1.5;
+    color: var(--text-muted);
+  }
+  .badge {
+    align-self: flex-start;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 10px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    background: rgba(56, 189, 248, 0.15);
+    color: var(--secondary);
+    border: 1px solid rgba(56, 189, 248, 0.3);
+    margin-bottom: 6px;
+  }
+
+  /* Architecture Diagram: Notificaciones vs llm-service */
+  .diagram-container {
+    margin-top: 16px;
+    background: #090e1a;
+    border: 1px solid var(--card-border);
+    border-radius: 14px;
+    padding: 20px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .ms-diagram-grid {
+    display: grid;
+    grid-template-columns: 1fr 140px 1fr;
+    gap: 14px;
+    align-items: stretch;
+  }
+  .ms-box {
+    background: #0e1628;
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 16px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .ms-box.notif {
+    border-color: rgba(245, 158, 11, 0.4);
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.05) 0%, rgba(14, 22, 40, 0.95) 100%);
+  }
+  .ms-box.llm {
+    border-color: rgba(99, 102, 241, 0.4);
+    background: linear-gradient(180deg, rgba(99, 102, 241, 0.05) 0%, rgba(14, 22, 40, 0.95) 100%);
+  }
+  .ms-header {
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding-bottom: 8px;
+  }
+  .ms-header h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    margin-top: 4px;
+    color: var(--text-main);
+  }
+  .ms-sub {
+    font-size: 11px;
+    color: var(--text-muted);
+  }
+  .ms-body {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+  }
+  .ms-step {
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    border-radius: 8px;
+    padding: 7px 10px;
+    font-size: 11.5px;
+    line-height: 1.35;
+    color: #cbd5e1;
+  }
+  .ms-step strong {
+    color: var(--text-main);
+    display: block;
+    font-size: 11.5px;
+    margin-bottom: 2px;
+  }
+  .ms-decision {
+    margin-top: auto;
+    border-radius: 8px;
+    padding: 8px 10px;
+    font-size: 11px;
+    line-height: 1.35;
+  }
+  .ms-decision.red {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid rgba(239, 68, 68, 0.3);
+    color: #fca5a5;
+  }
+  .ms-decision.green {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid rgba(16, 185, 129, 0.3);
+    color: #86efac;
+  }
+  .ms-connector {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 6px;
+    padding: 10px 0;
+  }
+  .connector-badge {
+    background: rgba(56, 189, 248, 0.15);
+    border: 1px solid rgba(56, 189, 248, 0.4);
+    color: var(--secondary);
+    font-size: 9.5px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 5px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .connector-text {
+    font-size: 11px;
+    color: var(--text-muted);
+    line-height: 1.25;
+  }
+  .connector-arrow-main {
+    font-size: 22px;
+    color: var(--secondary);
+  }
+  .connector-sub {
+    font-size: 9.5px;
+    color: var(--text-faint);
+    max-width: 120px;
+  }
+  .rr-mini-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    margin-top: 4px;
+  }
+  .rr-mini-pill {
+    background: rgba(99, 102, 241, 0.15);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 5px;
+    padding: 3px 5px;
+    font-size: 10px;
+    text-align: center;
+    color: #c7d2fe;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .diagram-footer {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11.5px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--card-border);
+    padding-top: 10px;
+  }
+
+  /* Navigation Footer */
+  footer.bar {
+    height: 52px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 36px;
+    border-top: 1px solid var(--card-border);
+    background: rgba(13, 19, 34, 0.7);
+  }
+  .controls {
+    display: flex;
+    gap: 8px;
+  }
+  button.nav-btn {
+    background: #1a243b;
+    border: 1px solid var(--card-border);
+    color: var(--text-main);
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  button.nav-btn:hover {
+    background: var(--primary);
+    border-color: var(--primary);
+  }
+  .progress-track {
+    flex: 1;
+    max-width: 280px;
+    height: 4px;
+    background: #1b2640;
+    border-radius: 2px;
+    overflow: hidden;
+    margin: 0 20px;
+  }
+  .progress-fill {
+    height: 100%;
+    width: 11.11%;
+    background: linear-gradient(90deg, var(--secondary), var(--primary));
+    transition: width 0.3s ease;
+  }
+  .card.accent {
+    border-color: var(--accent);
+    background: linear-gradient(180deg, rgba(16, 185, 129, 0.08) 0%, rgba(19, 27, 46, 0.9) 100%);
+  }
+  .card.warning {
+    border-color: var(--warning);
+    background: linear-gradient(180deg, rgba(245, 158, 11, 0.08) 0%, rgba(19, 27, 46, 0.9) 100%);
+  }
+  .badge.success {
+    background: rgba(16, 185, 129, 0.15);
+    color: var(--accent);
+    border-color: rgba(16, 185, 129, 0.3);
+  }
+  .badge.danger {
+    background: rgba(239, 68, 68, 0.15);
+    color: var(--danger);
+    border-color: rgba(239, 68, 68, 0.3);
+  }
+  .kpi-banner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(99, 102, 241, 0.1);
+    border: 1px solid rgba(99, 102, 241, 0.3);
+    border-radius: 10px;
+    padding: 10px 20px;
+    margin-top: 14px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px;
+  }
+  .kpi-banner strong {
+    color: var(--secondary);
+    font-size: 13.5px;
+  }
+  .price-highlight {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 26px;
+    font-weight: 700;
+    color: var(--secondary);
+    line-height: 1.1;
+    margin: 4px 0 2px;
+  }
+  .price-highlight span {
+    font-size: 12px;
+    color: var(--text-muted);
+    font-weight: 400;
+    font-family: 'JetBrains Mono', monospace;
+  }
+  .sub-rate {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+</style>
+</head>
+<body>
+
+<div class="stage">
+  <!-- Top Bar -->
+  <header class="bar">
+    <div class="bar-tag">
+      <div class="bar-dot"></div>
+      <span>Tema 07 · llm-service · Control de Costos, Cuotas y Moderación</span>
+    </div>
+    <div class="bar-counter" id="slideIndicator">Slide 1 / 10</div>
+  </header>
+
+  <!-- Viewport -->
+  <main class="viewport">
+
+    <!-- SLIDE 1: Portada Control de Costos -->
+    <section class="slide active">
+      <div class="category">Presupuesto y Control de Costos · Tema 07 · llm-service</div>
+      <h1 class="title">Presupuesto Fijo: USD 20 / Mes<br/>Modelos y Gasto Mensual</h1>
+      <p class="subtitle">Asignación de modelos económicos, gasto mensual por componente y arquitectura de cuotas de tokens para 180 alumnos activos.</p>
+
+      <div class="grid-3" style="margin-top: 32px;">
+        <div class="card highlight">
+          <div class="card-icon">💰</div>
+          <span class="badge success">Presupuesto Total</span>
+          <div class="price-highlight">USD 20,00 <span>/ mes</span></div>
+          <p>Techo financiero mensual cerrado. Cero riesgo de desbordes o facturas sorpresa (*Anti Denial-of-Wallet*).</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <span class="badge">Gasto por Función</span>
+          <h3 style="font-size:15px; margin-top:4px;">5 Funciones del Servicio</h3>
+          <p style="font-size:11.8px; line-height:1.45;">• Tutor: <strong>$14,00/mes</strong> (Flash-Lite)<br>• Evaluador: <strong>$3,50/mes</strong> (Haiku Batch)<br>• Desafíos: <strong>$2,50/mes</strong> (Flash-Lite Batch)<br>• Moderador: <strong>$0,00/mes</strong> (Free Tiers APIs)<br>• RAG Teórico: <strong>$0,00/mes</strong> (Postgres + pgvector)</p>
+        </div>
+        <div class="card accent">
+          <div class="card-icon">🎯</div>
+          <span class="badge">Capacidad Garantizada</span>
+          <h3 style="font-size:15px; margin-top:4px;">180 Alumnos Cubiertos</h3>
+          <p style="font-size:12.5px; line-height:1.4;">• ~38.800 consultas con el tutor al mes<br>• ~670 evaluaciones completas 5D<br>• ~3.200 desafíos personalizados<br>• 100% asignado a modelos ($20,00)</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 2: Catálogo de Modelos Baratos y Presupuesto USD 20 -->
+    <section class="slide">
+      <div class="category">Presupuesto Fijo USD 20,00 / Mes</div>
+      <h1 class="title">Presupuesto de USD 20: ¿Qué Modelo y Cuánto se Gasta por Mes?</h1>
+      <p class="subtitle">Desglose financiero exacto por funcionalidad: modelo asignado, tarifa de tokens y costo mensual proyectado:</p>
+
+      <div class="kpi-banner">
+        <span>PRESUPUESTO TOTAL: <strong>USD 20,00 / MES</strong></span>
+        <span>GASTO EN MODELOS: <strong>USD 20,00</strong></span>
+        <span>COHORTE: <strong>180 ALUMNOS</strong></span>
+        <span>COSTO / ALUMNO: <strong>USD 0,11 / MES</strong></span>
+      </div>
+
+      <div class="grid-4" style="margin-top: 16px;">
+        <div class="card highlight">
+          <span class="badge">Tutor Socrático</span>
+          <h3>Gemini 3.5 Flash-Lite</h3>
+          <div class="price-highlight">USD 14,00 <span>/ mes</span></div>
+          <div class="sub-rate">$0,15 in / $1,25 out (M tok) · Cache: $0,038</div>
+          <p><strong>Costo: ~$0,00036 / consulta</strong> con Prompt Caching. Rápido y seguro anti-fuga.</p>
+          <div style="margin-top:auto; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); font-size:12px; color:var(--accent);">
+            Capacidad: <strong>~38.800 consultas/mes</strong><br/>(~215 por alumno/mes)
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="badge">Evaluador 5D</span>
+          <h3>Claude Haiku 4.5</h3>
+          <div class="price-highlight">USD 3,50 <span>/ mes</span></div>
+          <div class="sub-rate">$0,50 in / $2,50 out (Batch -50%)</div>
+          <p><strong>Costo: ~$0,0052 / eval</strong> en Batch diferido. Máxima consistencia para pasar PAR-14.</p>
+          <div style="margin-top:auto; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); font-size:12px; color:var(--accent);">
+            Capacidad: <strong>~670 evaluaciones/mes</strong><br/>(100% de las entregas)
+          </div>
+        </div>
+
+        <div class="card">
+          <span class="badge">Desafíos Person.</span>
+          <h3>Gemini 3.5 Flash-Lite</h3>
+          <div class="price-highlight">USD 2,50 <span>/ mes</span></div>
+          <div class="sub-rate">$0,075 in / $0,625 out (Batch -50%)</div>
+          <p><strong>Costo: ~$0,00045 / reto</strong> con JSON Schema estructurado asíncrono.</p>
+          <div style="margin-top:auto; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); font-size:12px; color:var(--accent);">
+            Capacidad: <strong>~3.200 retos/mes</strong><br/>(~18 por alumno/mes)
+          </div>
+        </div>
+
+        <div class="card accent">
+          <span class="badge success">Moderación de Chat</span>
+          <h3>Clasificadores Free Tier</h3>
+          <div class="price-highlight" style="color:var(--accent);">USD 0,00 <span>/ mes</span></div>
+          <div class="sub-rate">omni-moderation + Perspective API</div>
+          <p>Endpoints oficiales gratuitos con Round Robin y filtro local en Java (Doc 37).</p>
+          <div style="margin-top:auto; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); font-size:12px; color:var(--accent);">
+            Capacidad: <strong>Chat en tiempo real</strong><br/>Latencia < 300 ms · 100% Gratis
+          </div>
+        </div>
+      </div>
+
+      <div class="card accent" style="margin-top: 14px; padding: 10px 18px; display:flex; align-items:center; justify-content:space-between; border-color: rgba(16, 185, 129, 0.3); background: rgba(16, 185, 129, 0.06);">
+        <span style="font-size:12.5px; color:#e2e8f0;">
+          🧩 <strong>RAG y Búsqueda Semántica:</strong> Base de datos propia <strong>PostgreSQL 16 + pgvector</strong>. Embeddings locales en CPU Java (ADR-006): <strong>USD 0,00 de costo</strong> y 100% de privacidad de apuntes.
+        </span>
+        <span class="badge success" style="margin-left:16px; white-space:nowrap;">Costo $0 · pgvector</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: Batch API: Qué es, Ejemplo, Roles y Responsable Lucas -->
+    <section class="slide">
+      <div style="display:flex; justify-content:space-between; align-items:center;">
+        <div class="category">Arquitectura Asíncrona y Ahorro · llm-service</div>
+        <span class="badge highlight" style="font-size:11px; padding:4px 10px; border-color:var(--primary); background:rgba(99,102,241,0.15); color:var(--secondary);">
+          👨‍💻 Responsable de Implementación: <strong>Lucas</strong>
+        </span>
+      </div>
+      <h1 class="title">Batch API: ¿Qué es, Cómo Ahorra 50% y Dónde se Usa?</h1>
+      <p class="subtitle">Estrategia técnica implementada por <strong>Lucas</strong> para procesar tareas en segundo plano con descuento masivo de tokens:</p>
+
+      <div class="grid-3" style="margin-top: 16px;">
+        <div class="card highlight">
+          <div class="card-icon">📦</div>
+          <span class="badge success">50% de Descuento</span>
+          <h3>¿Qué es la Batch API?</h3>
+          <p style="font-size:12.5px; line-height:1.45;">
+            • <strong>Procesamiento en lote:</strong> La IA resuelve tareas agrupadas en segundo plano.<br/>
+            • <strong>Descuento automático:</strong> <strong>50% menos en todos los tokens</strong> (Anthropic y Google).<br/>
+            • <strong>Ahorro directo:</strong> <strong>USD 6,00/mes</strong> en la factura.<br/>
+            • <strong>Cuándo se usa:</strong> En tareas desacopladas donde no hay un alumno esperando frente a la pantalla.
+          </p>
+          <div style="margin-top:auto; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); font-size:11.5px; color:var(--accent);">
+            ✅ Inferencia económica para procesos diferidos.
+          </div>
+        </div>
+
+        <div class="card accent">
+          <div class="card-icon">⚖️</div>
+          <span class="badge">Rol 1: Evaluación 5D</span>
+          <h3>Evaluador de Código</h3>
+          <p style="font-size:12.5px; line-height:1.45;">
+            • <strong>Modelo:</strong> Claude Haiku 4.5.<br/>
+            • <strong>Costo por entrega:</strong> <strong>$0,0052 USD</strong> (en vez de $0,0104 en tiempo real).<br/>
+            • <strong>Presupuesto:</strong> <strong>$3,50 / mes</strong> (cubre el 100% de las entregas de los 180 alumnos).<br/>
+            • <strong>Lógica:</strong> El alumno entrega el TP y la nota se calcula en diferido.
+          </p>
+          <div style="margin-top:auto; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); font-size:11.5px; color:var(--secondary);">
+            📌 Calificación justa con tolerancia PAR-14 al 50% de costo.
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <span class="badge">Rol 2: Práctica</span>
+          <h3>Generador de Desafíos</h3>
+          <p style="font-size:12.5px; line-height:1.45;">
+            • <strong>Modelo:</strong> Gemini 3.5 Flash-Lite.<br/>
+            • <strong>Costo por reto:</strong> <strong>$0,00045 USD</strong> (mitad de precio por inferencia en lote).<br/>
+            • <strong>Presupuesto:</strong> <strong>$2,50 / mes</strong> (~3.200 desafíos personalizados al mes).<br/>
+            • <strong>Lógica:</strong> Se cocinan de noche o fuera de hora pico.
+          </p>
+          <div style="margin-top:auto; padding-top:8px; border-top:1px solid rgba(255,255,255,0.08); font-size:11.5px; color:var(--warning);">
+            📌 Validación de JSON Schema en cola diferida.
+          </div>
+        </div>
+      </div>
+
+      <div class="card accent" style="margin-top: 24px; padding: 14px 22px; display:flex; align-items:center; justify-content:space-between; border-color: rgba(99, 102, 241, 0.35); background: rgba(99, 102, 241, 0.08);">
+        <span style="font-size:13px; color:#e2e8f0; line-height:1.45;">
+          💡 <strong>Arquitectura de Lucas:</strong> Solo el Evaluador y los Desafíos entran a la cola Batch en PostgreSQL (<code>SKIP LOCKED</code>), pagando la mitad de precio y ahorrando <strong>USD 6,00/mes</strong>.
+        </span>
+        <span class="badge success" style="margin-left:16px; white-space:nowrap; font-size:11px; padding:4px 10px;">50% Dto. Tokens</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Límites y Tipos de Límites -->
+    <section class="slide">
+      <div class="category">Gobernanza y Control · llm-service</div>
+      <h1 class="title">Límites y Tipos de Límites en 4 Capas</h1>
+      <p class="subtitle">Taxonomía de restricciones y guardarraíles: qué se limita, en qué nivel y qué tipo de control se aplica antes de llamar al LLM:</p>
+
+      <div class="grid-4" style="margin-top: 20px;">
+        <div class="card">
+          <span class="badge">Tipo 1: Red y Payload</span>
+          <h3>Límite por Mensaje</h3>
+          <p><strong>• Qué limita:</strong> Tamaño de consulta antes de enviar.<br><strong>• Regla:</strong> Máx. <strong>800 tokens</strong> / mensaje y <strong>5 req/min</strong>.<br><strong>• Corte:</strong> Se frena en la puerta (<code>400 Bad Request</code>) sin tocar la IA ni gastar tokens.</p>
+        </div>
+        <div class="card highlight">
+          <span class="badge">Tipo 2: Pedagógico</span>
+          <h3>Límite por Ejercicio</h3>
+          <p><strong>• Qué limita:</strong> Asistencia en el ejercicio.<br><strong>• Regla:</strong> <strong>10 mensajes</strong> o <strong>25.000 tokens</strong> acumulados.<br><strong>• Corte:</strong> Lo que ocurra primero; fomenta la autonomía y frena el pegado masivo.</p>
+        </div>
+        <div class="card">
+          <span class="badge">Tipo 3: Temporal</span>
+          <h3>Cuota Diaria por Alumno</h3>
+          <p><strong>• Qué limita:</strong> Consumo individual diario.<br><strong>• Regla:</strong> <strong>40 consultas/día</strong> y <strong>3 desafíos/día</strong> por estudiante.<br><strong>• Corte:</strong> Se reinicia a medianoche; un alumno nunca gasta la cuota de sus compañeros.</p>
+        </div>
+        <div class="card warning">
+          <span class="badge">Tipo 4: Control de Costos</span>
+          <h3>Techo Financiero</h3>
+          <p><strong>• Qué limita:</strong> Factura total mensual.<br><strong>• Regla:</strong> Techo fijo de <strong>USD 20,00</strong>.<br><strong>• Corte:</strong> Alerta al 70% ($14), modo ahorro al 90% ($18) y corte duro al 100% ($20).</p>
+        </div>
+      </div>
+
+      <div class="card accent" style="margin-top: 16px;">
+        <p style="font-size:12.5px; color:#e2e8f0;"><strong>Principio Rector:</strong> Ningún estudiante puede agotar el presupuesto de la cátedra de forma individual. Cada tipo de límite opera en una capa distinta, asegurando resiliencia defensiva frente a abusos involuntarios o scripts automatizados.</p>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Portada Moderación de Chat -->
+    <section class="slide">
+      <div class="category">Arquitectura de Software · Resumen Ejecutivo</div>
+      <h1 class="title" style="font-size: 46px; margin-top: 12px;">Moderación de Chat en Tiempo Real</h1>
+      <p class="subtitle" style="font-size: 20px; color: var(--secondary);">
+        Estrategia de Balanceo Round Robin con Modelos Gratuitos
+      </p>
+      
+      <div class="grid-3" style="margin-top: 48px;">
+        <div class="card">
+          <div class="card-icon">⚡</div>
+          <h3>Latencia < 300 ms</h3>
+          <p>El mensaje se modera en tiempo real antes de ser entregado al resto del canal.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🛡️</div>
+          <h3>Cero Alucinaciones</h3>
+          <p>Uso de clasificadores especializados que responden con scores y no con texto abierto.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">💰</div>
+          <h3>Costo $0 USD</h3>
+          <p>Balanceo inteligente entre capas gratuitas permanentes de múltiples proveedores cloud.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 5: El Desafío y Comparativa de Modelos -->
+    <section class="slide">
+      <div class="category">El Problema de Negocio · Latencias y Modelos</div>
+      <h1 class="title">¿Cómo Frenar el Acoso sin Pagar de Más?</h1>
+      <p class="subtitle">En un chat entre alumnos conviven dos tipos de agresiones con distinta dificultad:</p>
+
+      <div class="grid-2" style="margin-top: 18px;">
+        <div class="card">
+          <span class="badge">Filtro Rápido Local (&lt; 1 ms)</span>
+          <h3>1. Insultos y Groserías Directas</h3>
+          <p>Palabras prohibidas obvias o spam repetitivo. No hace falta usar IA: se frena con un diccionario en memoria del servidor en microsegundos (85% del tráfico).</p>
+        </div>
+        <div class="card highlight">
+          <span class="badge" style="color: var(--warning); border-color: rgba(245, 158, 11, 0.4); background: rgba(245, 158, 11, 0.1);">Análisis Semántico (60 - 180 ms)</span>
+          <h3>2. Acoso Contextual y Amenazas</h3>
+          <p>Frases como <em>"sé dónde vivís"</em> o <em>"cuidate a la salida"</em> no tienen malas palabras explícitas. Requieren detectar la intención dañina antes de entregar el mensaje.</p>
+        </div>
+      </div>
+
+      <!-- Comparativa Técnica: LLM vs Clasificador -->
+      <div class="grid-2" style="margin-top: 14px;">
+        <div class="card" style="border-color: rgba(239, 68, 68, 0.35); background: rgba(239, 68, 68, 0.04);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="badge danger">❌ Descartado para Chat</span>
+            <strong style="color: var(--danger); font-family:'JetBrains Mono', monospace; font-size:12.5px;">1.200 – 2.500 ms</strong>
+          </div>
+          <h3 style="font-size:14.5px; margin-top:6px;">LLM Conversacional / Generativo</h3>
+          <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:5px;">Modelos: <strong>GPT-4o, Claude Sonnet, Gemini Pro</strong></p>
+          <p style="font-size:11.5px; line-height:1.35;">
+            • <strong>Demasiado lento:</strong> Tardar 1,5 a 2,5 segundos frena la fluidez del chat.<br>
+            • <strong>Innecesariamente caro:</strong> Cobra por cada token de entrada y salida.<br>
+            • <strong>Riesgo de alucinación:</strong> Vulnerable a jailbreaks para dejar pasar insultos.
+          </p>
+        </div>
+
+        <div class="card" style="border-color: rgba(16, 185, 129, 0.4); background: rgba(16, 185, 129, 0.05);">
+          <div style="display:flex; justify-content:space-between; align-items:center;">
+            <span class="badge success">✅ Elegido: Clasificador</span>
+            <strong style="color: var(--accent); font-family:'JetBrains Mono', monospace; font-size:12.5px;">60 – 180 ms (promedio ~100 ms)</strong>
+          </div>
+          <h3 style="font-size:14.5px; margin-top:6px;">Clasificador Especializado de Toxicidad</h3>
+          <p style="font-size:11.5px; color:var(--text-muted); margin-bottom:5px;">Modelos: <strong>omni-moderation, Perspective API, Llama-Guard, RoBERTuito</strong></p>
+          <p style="font-size:11.5px; line-height:1.35;">
+            • <strong>Ultra rápido:</strong> Responde en ~100 ms; imperceptible para los alumnos.<br>
+            • <strong>Costo USD 0,00:</strong> Endpoints gratuitos oficiales provistos por la nube.<br>
+            • <strong>Cero alucinaciones:</strong> No genera texto; devuelve scores objetivos (0.0 a 1.0).
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3: El Diagrama de Flujo -->
+    <section class="slide">
+      <div class="category">Flujo de Integración y Arquitectura</div>
+      <h1 class="title">Separación: Notificaciones vs. llm-service</h1>
+      <p class="subtitle">El MS de Notificaciones filtra en memoria (&lt; 1 ms) y llm-service modera el acoso contextual con Round Robin:</p>
+
+      <div class="diagram-container">
+        <div class="ms-diagram-grid">
+          <!-- MS Notificaciones / Chat -->
+          <div class="ms-box notif">
+            <div class="ms-header">
+              <h3>MS Notificaciones / Chat</h3>
+              <span class="ms-sub">Capa Clásica Determinística (&lt; 1 ms en RAM)</span>
+            </div>
+            <div class="ms-body">
+              <div class="ms-step">
+                <strong>1. Pipeline de Normalización:</strong>
+                <span>Minúsculas, tildes (NFKD), leet speak (<code>p3l0tud0</code> &rarr; <code>pelotudo</code>), repeticiones.</span>
+              </div>
+              <div class="ms-step">
+                <strong>2. Detectores Clásicos en Memoria:</strong>
+                <span>Diccionario de insultos (Aho-Corasick), Base64, entropía y Token Bucket antispam.</span>
+              </div>
+              <div class="ms-decision red">
+                <strong style="display: block; margin-bottom: 2px;">⛔ ¿Insulto directo o spam detectado?</strong>
+                <span>&rarr; <strong>BLOQUEADO LOCALMENTE (&lt; 1 ms).</strong> No consume red ni llama a internet (85% del tráfico resuelto aquí).</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Conector HTTP entre microservicios -->
+          <div class="ms-connector">
+            <div class="connector-badge">Llamada HTTP</div>
+            <div class="connector-text">
+              <strong style="color: var(--text-main); font-size: 11px;">POST /api/llm/moderador</strong>
+              <span style="font-size: 10px; color: var(--accent); display: block; margin-top: 2px;">Solo el 15% contextual</span>
+            </div>
+            <div class="connector-arrow-main">&rarr;</div>
+            <div class="connector-sub">Texto limpio de insultos obvios</div>
+          </div>
+
+          <!-- llm-service (Tema 07) -->
+          <div class="ms-box llm">
+            <div class="ms-header">
+              <h3>Microservicio llm-service</h3>
+              <span class="ms-sub">Módulo M1 AI Gateway · Round Robin de APIs</span>
+            </div>
+            <div class="ms-body">
+              <div class="ms-step">
+                <strong>3. Round Robin Router (APIs Gratuitas):</strong>
+                <div class="rr-mini-grid">
+                  <span class="rr-mini-pill">1. OpenAI</span>
+                  <span class="rr-mini-pill">2. Groq</span>
+                  <span class="rr-mini-pill">3. Perspective</span>
+                  <span class="rr-mini-pill">4. RoBERTuito</span>
+                </div>
+              </div>
+              <div class="ms-step">
+                <strong>4. Clasificación de Acoso Contextual:</strong>
+                <span>Detecta hostigamiento sutil o amenazas veladas sin insultos (<em>"sé dónde vivís"</em>).</span>
+              </div>
+              <div class="ms-decision green">
+                <strong style="display: block; margin-bottom: 2px;">🎯 Veredicto de Moderación:</strong>
+                <span>• <strong>SÍ hay acoso:</strong> Bloqueado (severidad media/alta)<br>• <strong>NO hay acoso:</strong> 200 OK (Aprobado y entregado)</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="diagram-footer">
+          <span>⚡ <strong>Notificaciones / Chat:</strong> Resuelve el 85% de los mensajes en microsegundos sin tocar la red exterior.</span>
+          <span>🛡️ <strong>llm-service:</strong> Solo evalúa el 15% restante, garantizando que los Free Tiers alcancen con holgura.</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4: Qué es Round Robin -->
+    <section class="slide">
+      <div class="category">Estrategia de Balanceo</div>
+      <h1 class="title">Round Robin: ¿Qué es, Cómo Funciona y Para Qué?</h1>
+      <p class="subtitle">Estrategia de reparto circular y equitativo entre múltiples APIs gratuitas sin costo alguno:</p>
+
+      <div class="grid-4" style="margin-top: 24px;">
+        <div class="card">
+          <div class="card-icon">🔄</div>
+          <span class="badge" style="color: var(--secondary); border-color: var(--secondary);">Concepto</span>
+          <h3>1. ¿Qué es?</h3>
+          <p>Un algoritmo de <strong>distribución circular por turnos</strong>. Reparte peticiones de manera equitativa y ordenada entre una lista de servicios disponibles, sin saturar a ninguno.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">⚙️</div>
+          <span class="badge" style="color: var(--accent); border-color: var(--accent);">Mecánica</span>
+          <h3>2. ¿Cómo funciona?</h3>
+          <p>Funciona en secuencia cíclica:<br>
+          • <strong>Turno 1:</strong> OpenAI<br>
+          • <strong>Turno 2:</strong> Groq Llama-Guard<br>
+          • <strong>Turno 3:</strong> Google Perspective<br>
+          • <strong>Turno 4:</strong> RoBERTuito (HF)<br>
+          • <strong>Turno 5:</strong> Vuelve a OpenAI.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">🎯</div>
+          <span class="badge" style="color: var(--primary); border-color: var(--primary);">Uso en llm-service</span>
+          <h3>3. ¿Cómo lo usamos?</h3>
+          <p>Como un <strong>router inteligente</strong> en nuestro servicio. Cuando un mensaje supera el filtro de insultos, se le envía a la API externa que tiene el turno asignado en ese instante.</p>
+        </div>
+
+        <div class="card">
+          <div class="card-icon">💡</div>
+          <span class="badge" style="color: var(--success); border-color: var(--success);">Propósito</span>
+          <h3>4. ¿Para qué sirve?</h3>
+          <p>• <strong>Sumar cuotas:</strong> Obtenemos > 350 req/min gratis.<br>
+          • <strong>Cero costo:</strong> Sin pagar planes de pago.<br>
+          • <strong>Alta resiliencia:</strong> Si una API se agota o cae, salta a la siguiente sin trabar el chat.</p>
+        </div>
+      </div>
+
+      <div style="margin-top: 20px; padding: 12px 18px; background: rgba(99, 102, 241, 0.08); border: 1px solid rgba(99, 102, 241, 0.25); border-radius: 10px; display: flex; justify-content: space-between; align-items: center; font-size: 12.5px;">
+        <span>📌 <strong>En resumen:</strong> Convertimos límites individuales pequeños en un servicio de moderación robusto, ininterrumpido y 100% gratuito.</span>
+        <span style="font-family: 'JetBrains Mono', monospace; color: var(--accent);">Alta Disponibilidad · Cero Costos</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 8: Diagrama Visual de Round Robin -->
+    <section class="slide">
+      <div class="category">Arquitectura de Distribución · llm-service</div>
+      <h1 class="title">Diagrama del Balanceo Round Robin</h1>
+      <p class="subtitle">Visualización del flujo circular continuo entre el despachador central y los 4 clasificadores en la nube:</p>
+
+      <div style="display: grid; grid-template-columns: 280px 45px 330px 45px 1fr; align-items: center; margin-top: 22px;">
+        <!-- Columna 1: Mensajes Entrantes -->
+        <div class="card" style="display: flex; flex-direction: column; gap: 8px; padding: 16px;">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="badge" style="font-size: 10.5px;">1. Cola Entrante</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--text-muted);">POST /moderar</span>
+          </div>
+          <h3 style="font-size: 14.5px;">Mensajes de Alumnos</h3>
+          <div style="display: flex; flex-direction: column; gap: 6px; font-family: 'JetBrains Mono', monospace; font-size: 11px;">
+            <div style="background: rgba(99, 102, 241, 0.12); border: 1px solid rgba(99, 102, 241, 0.3); border-radius: 6px; padding: 5px 8px; display: flex; justify-content: space-between;">
+              <span>Msg #101</span> <strong style="color: var(--secondary);">&rarr; Turno 1</strong>
+            </div>
+            <div style="background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 6px; padding: 5px 8px; display: flex; justify-content: space-between;">
+              <span>Msg #102</span> <strong style="color: var(--accent);">&rarr; Turno 2</strong>
+            </div>
+            <div style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); border-radius: 6px; padding: 5px 8px; display: flex; justify-content: space-between;">
+              <span>Msg #103</span> <strong style="color: var(--warning);">&rarr; Turno 3</strong>
+            </div>
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 6px; padding: 5px 8px; display: flex; justify-content: space-between;">
+              <span>Msg #104</span> <strong style="color: var(--primary);">&rarr; Turno 4</strong>
+            </div>
+            <div style="background: rgba(255, 255, 255, 0.03); border: 1px dashed rgba(255, 255, 255, 0.15); border-radius: 6px; padding: 5px 8px; display: flex; justify-content: space-between; color: var(--text-muted);">
+              <span>Msg #105</span> <span>🔄 Vuelve a Turno 1</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Conector 1 -->
+        <div style="text-align: center; color: var(--secondary); font-size: 26px; line-height: 1;">&rarr;</div>
+
+        <!-- Columna 2: Router Despachador -->
+        <div class="card highlight" style="display: flex; flex-direction: column; gap: 8px; padding: 16px; border-color: rgba(99, 102, 241, 0.45);">
+          <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span class="badge success" style="font-size: 10.5px;">2. Despachador</span>
+            <span style="font-family: 'JetBrains Mono', monospace; font-size: 10px; color: var(--accent);">AtomicInteger</span>
+          </div>
+          <h3 style="font-size: 14.5px;">Router Round Robin (llm-service)</h3>
+          
+          <div style="background: #090e18; border: 1px solid var(--card-border); border-radius: 6px; padding: 8px 10px; font-family: 'JetBrains Mono', monospace; font-size: 11px; line-height: 1.45;">
+            <span style="color: var(--text-muted);">// Selección atómica de turno:</span><br>
+            <span style="color: var(--secondary);">int</span> turno = counter.getAndIncrement() % 4;<br>
+            <span style="color: var(--accent);">Provider</span> target = pool[turno];
+          </div>
+
+          <p style="font-size: 11.5px; line-height: 1.4; color: var(--text-muted); margin-top: 2px;">
+            • <strong>Reparto equitativo:</strong> 25% de carga para cada API.<br>
+            • <strong>Circuit Breaker:</strong> Si una API devuelve error o tarda &gt; 300 ms, salta a la siguiente de forma transparente.
+          </p>
+        </div>
+
+        <!-- Conector 2 -->
+        <div style="text-align: center; color: var(--accent); font-size: 26px; line-height: 1;">&rarr;</div>
+
+        <!-- Columna 3: Anillo de 4 Nodos Cloud -->
+        <div style="display: flex; flex-direction: column; gap: 8px;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+            <!-- Nodo 1 -->
+            <div class="card" style="padding: 10px 12px; border-color: rgba(99, 102, 241, 0.35);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="badge" style="font-size: 9.5px; padding: 2px 5px;">Turno 1</span>
+                <span style="font-size: 9.5px; color: var(--accent); font-family: 'JetBrains Mono', monospace;">250 req/m</span>
+              </div>
+              <strong style="font-size: 12.5px; display: block; margin-top: 3px; color: var(--text-main);">OpenAI</strong>
+              <span style="font-size: 11px; color: var(--text-muted); display: block;">omni-moderation</span>
+              <span style="font-size: 10.5px; color: var(--secondary); font-family: 'JetBrains Mono', monospace;">~90 ms</span>
+            </div>
+
+            <!-- Nodo 2 -->
+            <div class="card" style="padding: 10px 12px; border-color: rgba(56, 189, 248, 0.35);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="badge" style="font-size: 9.5px; padding: 2px 5px;">Turno 2</span>
+                <span style="font-size: 9.5px; color: var(--accent); font-family: 'JetBrains Mono', monospace;">30 req/m</span>
+              </div>
+              <strong style="font-size: 12.5px; display: block; margin-top: 3px; color: var(--text-main);">Groq Cloud</strong>
+              <span style="font-size: 11px; color: var(--text-muted); display: block;">Llama-Guard 3</span>
+              <span style="font-size: 10.5px; color: var(--secondary); font-family: 'JetBrains Mono', monospace;">~60 ms</span>
+            </div>
+
+            <!-- Nodo 3 -->
+            <div class="card" style="padding: 10px 12px; border-color: rgba(16, 185, 129, 0.35);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="badge" style="font-size: 9.5px; padding: 2px 5px;">Turno 3</span>
+                <span style="font-size: 9.5px; color: var(--accent); font-family: 'JetBrains Mono', monospace;">60 req/m</span>
+              </div>
+              <strong style="font-size: 12.5px; display: block; margin-top: 3px; color: var(--text-main);">Google / Jigsaw</strong>
+              <span style="font-size: 11px; color: var(--text-muted); display: block;">Perspective API</span>
+              <span style="font-size: 10.5px; color: var(--secondary); font-family: 'JetBrains Mono', monospace;">~110 ms</span>
+            </div>
+
+            <!-- Nodo 4 -->
+            <div class="card" style="padding: 10px 12px; border-color: rgba(245, 158, 11, 0.35);">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span class="badge" style="font-size: 9.5px; padding: 2px 5px;">Turno 4</span>
+                <span style="font-size: 9.5px; color: var(--accent); font-family: 'JetBrains Mono', monospace;">UBA/CONICET</span>
+              </div>
+              <strong style="font-size: 12.5px; display: block; margin-top: 3px; color: var(--text-main);">Hugging Face</strong>
+              <span style="font-size: 11px; color: var(--text-muted); display: block;">RoBERTuito (Arg)</span>
+              <span style="font-size: 10.5px; color: var(--secondary); font-family: 'JetBrains Mono', monospace;">~130 ms</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pie del Diagrama -->
+      <div class="card accent" style="margin-top: 14px; padding: 10px 18px; display: flex; align-items: center; justify-content: space-between; font-size: 12px; background: rgba(16, 185, 129, 0.06); border-color: rgba(16, 185, 129, 0.3);">
+        <span>🔄 <strong>Ciclo Continuo Infinito:</strong> La carga se divide en 4 partes iguales (25% cada una). Si un proveedor se satura o cae, el router salta al siguiente nodo en menos de 50 ms.</span>
+        <span class="badge success" style="font-family: 'JetBrains Mono', monospace; font-size: 11px; white-space: nowrap;">Costo $0 · Resiliencia Total</span>
+      </div>
+    </section>
+
+    <!-- SLIDE 9: Catálogo de Modelos Gratuitos -->
+    <section class="slide">
+      <div class="category">Ecosistema Cloud</div>
+      <h1 class="title">Los Proveedores Gratuitos Integrados</h1>
+      <p class="subtitle">Todos se consumen 100% como APIs en la nube mediante HTTP (cero descargas pesadas):</p>
+
+      <div class="grid-4" style="margin-top: 30px;">
+        <div class="card">
+          <span class="badge">OpenAI</span>
+          <h3>Omni-Moderation</h3>
+          <p>Endpoint gratuito oficial (250 req/min). Clasifica acoso y amenazas con gran precisión en español.</p>
+        </div>
+        <div class="card">
+          <span class="badge">Google / Jigsaw</span>
+          <h3>Perspective API</h3>
+          <p>Creada por Google para comunidades. Evalúa toxicidad e insultos de forma determinística.</p>
+        </div>
+        <div class="card">
+          <span class="badge">Groq Cloud</span>
+          <h3>Llama-Guard 3</h3>
+          <p>Modelo de seguridad de Meta ejecutado en chips ultraveloces (< 150 ms) con cuota generosa.</p>
+        </div>
+        <div class="card">
+          <span class="badge">Hugging Face</span>
+          <h3>RoBERTuito</h3>
+          <p>Entrenado en Argentina (UBA/CONICET). Entiende el lunfardo local y modismos de estudiantes.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6: Conclusiones -->
+    <section class="slide">
+      <div class="category">Resultados y Valor</div>
+      <h1 class="title">Resumen de Beneficios</h1>
+      <p class="subtitle">Una solución simple, robusta y económica para la plataforma de aprendizaje:</p>
+
+      <div class="grid-3" style="margin-top: 36px;">
+        <div class="card highlight">
+          <div class="card-icon">💎</div>
+          <h3>$0 de Factura</h3>
+          <p>El chat de convivencia de toda la facultad corre con costo cero combinando cuotas gratuitas oficiales.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🚀</div>
+          <h3>0 GB en Servidor</h3>
+          <p>Tu backend en Spring Boot es liviano; no requiere GPUs ni descargar archivos de 10 a 65 GB.</p>
+        </div>
+        <div class="card">
+          <div class="card-icon">🤝</div>
+          <h3>Chat Seguro</h3>
+          <p>Los insultos y amenazas se neutralizan antes de que el mensaje aparezca en pantalla.</p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Navigation Bar -->
+  <footer class="bar">
+    <span style="font-size: 12px; color: var(--text-faint);">Usa ⬅️ ➡️ o Espacio para navegar</span>
+    <div class="progress-track">
+      <div class="progress-fill" id="progressFill"></div>
+    </div>
+    <div class="controls">
+      <button class="nav-btn" id="prevBtn">Anterior</button>
+      <button class="nav-btn" id="nextBtn">Siguiente</button>
+    </div>
+  </footer>
+</div>
+
+<script>
+  const slides = document.querySelectorAll('.slide');
+  const indicator = document.getElementById('slideIndicator');
+  const progressFill = document.getElementById('progressFill');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  let currentSlide = 0;
+
+  function updateSlide(index) {
+    slides.forEach((s, i) => s.classList.toggle('active', i === index));
+    currentSlide = index;
+    indicator.textContent = `Slide ${index + 1} / ${slides.length}`;
+    progressFill.style.width = `${((index + 1) / slides.length) * 100}%`;
+  }
+
+  function next() {
+    if (currentSlide < slides.length - 1) updateSlide(currentSlide + 1);
+  }
+  function prev() {
+    if (currentSlide > 0) updateSlide(currentSlide - 1);
+  }
+
+  nextBtn.addEventListener('click', next);
+  prevBtn.addEventListener('click', prev);
+
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+      e.preventDefault();
+      next();
+    } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+      e.preventDefault();
+      prev();
+    }
+  });
+</script>
+</body>
+</html>

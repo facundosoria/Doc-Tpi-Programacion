@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Prompt Caching & Batch API — Tema 07</title>
+<style>
+:root{--bg:#08111f;--panel:#101b35;--panel2:#0c162c;--line:#273657;--text:#f4f7ff;--muted:#b7c3dc;--blue:#6ed8ff;--purple:#b38cff;--green:#62e59a;--yellow:#ffd166;--red:#ff7b8b}
+*{box-sizing:border-box}body{margin:0;font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:radial-gradient(circle at 15% 0,rgba(110,216,255,.11),transparent 28%),radial-gradient(circle at 85% 8%,rgba(179,140,255,.12),transparent 28%),linear-gradient(180deg,#08111f,#07101d 70%);color:var(--text);line-height:1.48}
+.wrap{max-width:1180px;margin:auto;padding:28px 20px 64px}.hero,.card{border:1px solid var(--line);background:linear-gradient(180deg,rgba(16,27,53,.97),rgba(12,22,44,.98));border-radius:24px;box-shadow:0 14px 38px rgba(0,0,0,.22)}
+.hero{padding:30px;background:linear-gradient(135deg,rgba(110,216,255,.08),rgba(179,140,255,.08))}
+h1{font-size:clamp(2.5rem,5vw,4.7rem);line-height:.98;margin:.35rem 0 1rem}h2{font-size:clamp(1.5rem,3vw,2.25rem);margin:0 0 .65rem}h3{margin:.1rem 0 .45rem}
+p{color:var(--muted);margin:.4rem 0}.lead{font-size:1.08rem;max-width:900px;color:#dfe7fb}.eyebrow{text-transform:uppercase;letter-spacing:.12em;font-size:.8rem;font-weight:800;color:var(--blue)}
+.section{margin-top:24px}.grid{display:grid;gap:18px}.g2{grid-template-columns:repeat(2,minmax(0,1fr))}.g3{grid-template-columns:repeat(3,minmax(0,1fr))}@media(max-width:900px){.g2,.g3{grid-template-columns:1fr}}
+.card{padding:20px}.chip{display:inline-block;border:1px solid var(--line);border-radius:999px;padding:6px 10px;font-size:.82rem;font-weight:800;margin-bottom:10px}
+.blue{color:var(--blue)}.purple{color:var(--purple)}.green{color:var(--green)}.yellow{color:var(--yellow)}.red{color:var(--red)}
+.flow{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}.node{min-width:140px;padding:12px 14px;border:1px solid var(--line);background:#0c1731;border-radius:16px;text-align:center;font-weight:800}.node small{display:block;color:var(--muted);font-weight:500;margin-top:3px}.arrow{font-size:1.45rem;color:var(--blue);font-weight:900}
+.band{display:grid;grid-template-columns:2fr 1fr;border:1px solid var(--line);border-radius:16px;overflow:hidden;margin-top:12px}.fixed{padding:14px;background:rgba(110,216,255,.10)}.variable{padding:14px;background:rgba(179,140,255,.11)}.fixed b,.variable b{display:block;margin-bottom:3px}
+.code{background:#081226;border:1px solid var(--line);border-radius:16px;padding:14px 16px;color:#dce6ff;font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;white-space:pre-wrap}
+.note{margin-top:14px;padding:12px 14px;background:#0d1933;border-left:4px solid var(--blue);border-radius:10px;color:#c8d5ef}.note.green{border-left-color:var(--green)}.note.yellow{border-left-color:var(--yellow)}
+.timeline{display:grid;gap:10px}.step{display:grid;grid-template-columns:40px 1fr;gap:12px}.num{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;background:#0b1831;border:1px solid var(--line);color:var(--blue);font-weight:900}
+table{width:100%;border-collapse:collapse}th,td{padding:12px 13px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}th{background:#0c1731}td{color:var(--muted)}tr:last-child td{border-bottom:none}
+.pills{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}.pill{border:1px solid var(--line);border-radius:999px;padding:6px 10px;background:#111f3f;font-size:.84rem}
+.callout{padding:17px;border:1px solid var(--line);border-radius:18px;background:linear-gradient(90deg,rgba(110,216,255,.08),rgba(179,140,255,.08));font-size:1.08rem}
+svg{max-width:100%;height:auto}.footer{margin-top:28px;padding:16px;border:1px dashed var(--line);border-radius:16px;color:#aebbd7}
+</style>
+</head>
+<body><div class="wrap">
+<header class="hero">
+<div class="eyebrow">Tema 07 · llm-service · resumen visual</div>
+<h1>Prompt Caching <span class="blue">+</span> Batch API</h1>
+<p class="lead">Dos optimizaciones distintas para llamadas a LLM. <b>Prompt Caching</b> evita reprocesar contexto repetido. <b>Batch API</b> agrupa trabajos no urgentes para procesarlos de forma asíncrona y más barata.</p>
+<div class="pills"><span class="pill">Tutor → síncrono</span><span class="pill">Evaluador / Corrector / Generador → asíncronos</span><span class="pill">Redis ≠ Prompt Cache</span></div>
+</header>
+
+<section class="section grid g2">
+<div class="card"><span class="chip blue">1 · Prompt Caching</span><h2>Reutilizar contexto repetido</h2><p>Muchas requests comparten una parte grande del prompt: <b>system prompt + rúbrica + contexto del curso</b>. Solo cambia la parte específica del alumno.</p><div class="band"><div class="fixed"><b class="blue">Prefijo estable</b>system + rúbrica + contexto</div><div class="variable"><b class="purple">Parte variable</b>transcripción / input</div></div></div>
+<div class="card"><span class="chip purple">2 · Batch API</span><h2>Procesar trabajos no urgentes en lote</h2><p>Si nadie necesita la respuesta ya, varias tareas se agrupan y se envían juntas al proveedor.</p><div class="flow"><div class="node">Job A</div><div class="node">Job B</div><div class="node">Job C</div><div class="arrow">→</div><div class="node">Batch</div><div class="arrow">→</div><div class="node">Proveedor</div></div></div>
+</section>
+
+<section class="section">
+<div class="card">
+<span class="chip blue">Prompt Caching · problema</span>
+<h2>¿Qué viene a resolver?</h2>
+<p>En el evaluador, por ejemplo, podemos tener 100 alumnos. Las transcripciones cambian, pero el prompt del evaluador, la rúbrica y gran parte del contexto son iguales. Sin caching, esa parte se procesa una y otra vez.</p>
+<div class="code">Alumno A:
+[system prompt]
+[rúbrica]
+[contexto del curso]
+[transcripción A]
+
+Alumno B:
+[system prompt]
+[rúbrica]
+[contexto del curso]
+[transcripción B]</div>
+<div class="note">Sin Prompt Caching <b>la IA sigue funcionando</b>. El problema es que pagamos y procesamos repetidamente contenido idéntico.</div>
+</div>
+</section>
+
+<section class="section grid g2">
+<div class="card"><h3>¿Qué se cachea?</h3><p>Se reutiliza el procesamiento de una parte repetida del <b>prompt de entrada</b>. No significa guardar la respuesta final.</p><div class="band"><div class="fixed"><b>Cacheable</b>system prompt<br>rúbrica<br>contexto estable</div><div class="variable"><b>Variable</b>transcripción<br>datos del alumno</div></div></div>
+<div class="card"><h3>¿Dónde vive el Prompt Cache?</h3><div class="flow"><div class="node">llm-service<small>nuestro backend</small></div><div class="arrow">→</div><div class="node">Proveedor LLM<small>Anthropic / Google / OpenAI</small></div><div class="arrow">→</div><div class="node">Prompt Cache<small>infra del proveedor</small></div></div><p>Nosotros armamos el prompt para que tenga una parte estable. El proveedor administra el mecanismo de caché.</p></div>
+</section>
+
+<section class="section grid g3">
+<div class="card"><h3 class="green">Ganancia</h3><p>Menor costo sobre tokens repetidos y potencialmente menor latencia.</p></div>
+<div class="card"><h3 class="yellow">Cuidado</h3><p>No meter timestamps, IDs aleatorios o datos variables antes del prefijo estable porque disminuye la reutilización.</p></div>
+<div class="card"><h3 class="red">No confundir</h3><p>Prompt Caching ≠ response caching. Redis podría guardar otros datos, pero no es el Prompt Cache del proveedor.</p></div>
+</section>
+
+<section class="section">
+<div class="card">
+<span class="chip purple">Batch API · problema</span>
+<h2>¿Qué viene a resolver?</h2>
+<p>Tenemos funciones donde nadie está esperando una respuesta inmediata: <b>Evaluador, Corrector y Generador</b>. Hacer una llamada normal por cada job funciona, pero puede ser más caro y menos eficiente.</p>
+<div class="code">Sin Batch:
+job 1 → API normal → resultado
+job 2 → API normal → resultado
+job 3 → API normal → resultado
+
+Con Batch:
+jobs 1..N → lote → Batch API → procesamiento async → resultados después</div>
+<div class="note green">Batch ahorra porque aceptamos <b>esperar</b>. El proveedor puede procesar el lote con menos urgencia.</div>
+</div>
+</section>
+
+<section class="section grid g2">
+<div class="card"><h3>¿Qué significa asíncrono?</h3><p>El usuario no queda bloqueado esperando la respuesta. La tarea puede completarse después.</p><div class="flow"><div class="node">Alumno entrega</div><div class="arrow">→</div><div class="node">Entrega aceptada</div><div class="arrow">→</div><div class="node">Evaluación pendiente</div></div></div>
+<div class="card"><h3>Worker ≠ Batch API</h3><p>Un <b>worker</b> es un proceso de fondo que toma trabajos de una cola. Puede hacer llamadas normales una por una. Eso ya es async, pero todavía no es Batch.</p><div class="code">Async sin Batch:
+cola → worker → API normal
+
+Async con Batch:
+cola → worker agrupa N jobs → Batch API</div></div>
+</section>
+
+<section class="section">
+<div class="card">
+<h2>Flujo Batch completo en nuestro llm-service</h2>
+<div class="timeline">
+<div class="step"><div class="num">1</div><div><b>Se genera un job</b><p>Ej.: se cerró un intento y hay que evaluarlo.</p></div></div>
+<div class="step"><div class="num">2</div><div><b>El job entra a una cola</b><p>Queda pendiente sin bloquear al alumno.</p></div></div>
+<div class="step"><div class="num">3</div><div><b>Un worker toma varios jobs</b><p>Idealmente compatibles por función, proveedor y modelo.</p></div></div>
+<div class="step"><div class="num">4</div><div><b>Se crea el batch</b><p>El adapter llama a la Batch API específica del proveedor.</p></div></div>
+<div class="step"><div class="num">5</div><div><b>El proveedor devuelve un batch_id</b><p>Ese ID nos permite seguir el estado del lote.</p></div></div>
+<div class="step"><div class="num">6</div><div><b>El lote se procesa</b><p>Mientras tanto nuestro sistema puede seguir funcionando.</p></div></div>
+<div class="step"><div class="num">7</div><div><b>Consultamos el estado</b><p>Cuando termina, recuperamos los resultados.</p></div></div>
+<div class="step"><div class="num">8</div><div><b>Mapeamos cada resultado</b><p>Cada respuesta vuelve al job/alumno correcto y se guarda o publica.</p></div></div>
+</div>
+</div>
+</section>
+
+<section class="section grid g2">
+<div class="card"><h3 class="green">Ventajas</h3><p>Menor costo, mejor aprovechamiento para picos de evaluaciones y separación clara entre tareas urgentes y diferidas.</p></div>
+<div class="card"><h3 class="red">Complejidad extra</h3><p>Hay que manejar estados, batch_id, errores, reintentos, duplicados y relación entre cada respuesta y su job original.</p><div class="pills"><span class="pill">PENDING</span><span class="pill">BATCHED</span><span class="pill">PROCESSING</span><span class="pill">COMPLETED</span><span class="pill">FAILED</span></div></div>
+</section>
+
+<section class="section">
+<div class="card">
+<h2>Diagrama visual de Batch API</h2>
+<svg viewBox="0 0 1100 320" aria-label="Batch API">
+<rect x="25" y="80" width="145" height="170" rx="18" fill="#0d1730" stroke="#273657"/>
+<text x="98" y="112" text-anchor="middle" fill="#fff" font-size="18" font-weight="700">Cola</text>
+<text x="98" y="148" text-anchor="middle" fill="#b7c3dc" font-size="14">job A</text>
+<text x="98" y="174" text-anchor="middle" fill="#b7c3dc" font-size="14">job B</text>
+<text x="98" y="200" text-anchor="middle" fill="#b7c3dc" font-size="14">job C</text>
+<line x1="170" y1="165" x2="300" y2="165" stroke="#b38cff" stroke-width="3"/><polygon points="300,165 286,157 286,173" fill="#b38cff"/>
+<rect x="310" y="105" width="165" height="120" rx="18" fill="#0d1730" stroke="#273657"/>
+<text x="393" y="145" text-anchor="middle" fill="#fff" font-size="18" font-weight="700">Worker</text>
+<text x="393" y="180" text-anchor="middle" fill="#b7c3dc" font-size="14">agrupa jobs</text>
+<line x1="475" y1="165" x2="600" y2="165" stroke="#b38cff" stroke-width="3"/><polygon points="600,165 586,157 586,173" fill="#b38cff"/>
+<rect x="610" y="100" width="175" height="130" rx="18" fill="#171436" stroke="#b38cff"/>
+<text x="698" y="142" text-anchor="middle" fill="#fff" font-size="18" font-weight="700">Batch API</text>
+<text x="698" y="177" text-anchor="middle" fill="#b7c3dc" font-size="14">batch_id</text>
+<text x="698" y="201" text-anchor="middle" fill="#b7c3dc" font-size="14">procesamiento async</text>
+<line x1="785" y1="165" x2="910" y2="165" stroke="#b38cff" stroke-width="3"/><polygon points="910,165 896,157 896,173" fill="#b38cff"/>
+<rect x="920" y="90" width="155" height="150" rx="18" fill="#0d1730" stroke="#273657"/>
+<text x="998" y="126" text-anchor="middle" fill="#fff" font-size="18" font-weight="700">Resultados</text>
+<text x="998" y="164" text-anchor="middle" fill="#b7c3dc" font-size="14">A</text>
+<text x="998" y="190" text-anchor="middle" fill="#b7c3dc" font-size="14">B</text>
+<text x="998" y="216" text-anchor="middle" fill="#b7c3dc" font-size="14">C</text>
+</svg>
+</div>
+</section>
+
+<section class="section">
+<div class="card">
+<h2>Comparación directa</h2>
+<table>
+<thead><tr><th></th><th>Prompt Caching</th><th>Batch API</th></tr></thead>
+<tbody>
+<tr><td><b>Problema</b></td><td>Repetimos contexto idéntico.</td><td>Tenemos muchos trabajos no urgentes.</td></tr>
+<tr><td><b>Qué optimiza</b></td><td>Procesamiento del prefijo del prompt.</td><td>Procesamiento de muchas requests en lote.</td></tr>
+<tr><td><b>Beneficio principal</b></td><td>Menor costo del contexto repetido; posible menor latencia.</td><td>Menor costo al aceptar procesamiento diferido.</td></tr>
+<tr><td><b>Qué hacemos nosotros</b></td><td>Mantener un prefijo estable y medir hits.</td><td>Agrupar jobs, enviar batch, guardar batch_id y recuperar resultados.</td></tr>
+<tr><td><b>En nuestro proyecto</b></td><td>System prompt + rúbrica + contexto del curso.</td><td>Evaluador, Corrector y Generador.</td></tr>
+</tbody>
+</table>
+</div>
+</section>
+
+<section class="section">
+<div class="card">
+<h2>Cómo pueden convivir</h2>
+<p>Una evaluación puede ir por Batch y, al mismo tiempo, aprovechar Prompt Caching porque comparte un prefijo estable con otras evaluaciones.</p>
+<div class="flow"><div class="node">Jobs async</div><div class="arrow">→</div><div class="node">Worker</div><div class="arrow">→</div><div class="node">Batch API</div><div class="arrow">→</div><div class="node">Proveedor LLM<small>Prompt Cache cuando aplica</small></div></div>
+<div class="callout"><b>Frase para acordarse:</b><br><span class="blue">Prompt Caching</span> ahorra porque <b>repetimos contexto</b>.<br><span class="purple">Batch API</span> ahorra porque <b>aceptamos esperar</b>.</div>
+</div>
+</section>
+
+<div class="footer"><b>Contexto Tema 07:</b> la documentación actual ubica Prompt Caching del lado del proveedor LLM y Batch API para las funciones asíncronas. Redis queda para cuotas, caché de retrieval y eventualmente colas; no es el Prompt Cache del proveedor.</div>
+</div></body></html>

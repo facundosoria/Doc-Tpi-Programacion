@@ -1,0 +1,657 @@
+<!-- NAVBAR -->
+<header class="navbar">
+  <div class="brand">
+    <div class="brand-icon">
+      <i class="fa-solid fa-graduation-cap"></i>
+    </div>
+    <div>
+      <h1>Tutor IA Pedagógico <span class="badge-rag">Angular 21 + NotebookLM RAG</span></h1>
+      <p class="subtitle">Spring AI • PostgreSQL Cloud (Supabase) + pgvector • Multi-document Context • Guardrails & Token Saver</p>
+    </div>
+  </div>
+  <div class="header-actions">
+    <div class="token-saver-pill" title="Tokens ahorrados por filtros locales, guardrails y caché">
+      <i class="fa-solid fa-bolt"></i>
+      <span>Ahorro de Tokens: <strong>{{ tokensSaved() }}</strong></span>
+    </div>
+    <a href="http://localhost:8080/swagger-ui.html" target="_blank" class="btn-swagger">
+      <i class="fa-solid fa-code"></i> API Docs
+    </a>
+  </div>
+</header>
+
+<!-- SPLIT CONTAINER -->
+<main class="split-container">
+
+  <!-- PANEL IZQUIERDO: RAG MULTI-DOCUMENTO (NOTEBOOKLM STYLE) -->
+  <section class="panel-left">
+    <div class="panel-header">
+      <div class="panel-title">
+        <i class="fa-solid fa-layer-group"></i>
+        <h2>Fuentes de Información</h2>
+      </div>
+      <span class="status-indicator" [class.active]="selectedSourcesCount() > 0">
+        <span class="status-dot"></span>
+        <span>{{ selectedSourcesCount() }} / {{ sources().length }} activa{{ sources().length === 1 ? '' : 's' }}</span>
+      </span>
+    </div>
+
+    <!-- ZONA DRAG & DROP MULTI-PDF -->
+    <div
+      class="drop-zone"
+      [class.dragover]="isDragOver()"
+      (dragover)="onDragOver($event)"
+      (dragleave)="onDragLeave($event)"
+      (drop)="onDrop($event)"
+      (click)="fileInputHidden.click()"
+    >
+      <input #fileInputHidden type="file" accept=".pdf" multiple class="file-input-hidden" (change)="onFileSelected($event)" />
+
+      @if (isUploading()) {
+        <div class="drop-content">
+          <div class="drop-icon"><i class="fa-solid fa-spinner fa-spin"></i></div>
+          <h3>{{ uploadProgressText() }}</h3>
+          <p>Indexación con Apache PDFBox y almacenamiento pgvector</p>
+        </div>
+      } @else {
+        <div class="drop-content">
+          <div class="drop-icon"><i class="fa-solid fa-cloud-arrow-up"></i></div>
+          <h3>Arrastra uno o varios PDFs aquí</h3>
+          <p>O haz clic para seleccionar de tu equipo</p>
+          <div class="drop-specs">
+            <span><i class="fa-regular fa-file"></i> Multi-PDF (.pdf)</span>
+            <span><i class="fa-solid fa-database"></i> Supabase pgvector</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- BOTÓN DE PRUEBA RÁPIDA -->
+    <div class="sample-action-box">
+      <button class="btn-sample" (click)="loadSamplePdf()" [disabled]="isUploading()">
+        <i class="fa-solid fa-wand-magic-sparkles"></i> Cargar PDF de Prueba (PRD Gamificado)
+      </button>
+    </div>
+
+    <!-- LISTA DE FUENTES CON CHECKBOXES ESTILO NOTEBOOKLM -->
+    @if (sources().length > 0) {
+      <div class="sources-panel-toolbar">
+        <span class="sources-counter-label">
+          <i class="fa-solid fa-book-bookmark"></i> Fuentes disponibles ({{ sources().length }})
+        </span>
+        <div class="toolbar-actions">
+          <button class="btn-pill-action" (click)="selectAllSources()" [disabled]="isAllSelected()" title="Seleccionar todas las fuentes">
+            <i class="fa-regular fa-square-check"></i> Todas
+          </button>
+          <button class="btn-pill-action" (click)="deselectAllSources()" [disabled]="selectedSourcesCount() === 0" title="Deseleccionar todas">
+            <i class="fa-regular fa-square"></i> Ninguna
+          </button>
+        </div>
+      </div>
+
+      <div class="sources-list">
+        @for (src of sources(); track src.documentId) {
+          <div class="source-card" [class.selected]="isSourceSelected(src.documentId)">
+            <div class="source-card-main" (click)="toggleSource(src.documentId)">
+              <label class="custom-checkbox" (click)="$event.stopPropagation()">
+                <input
+                  type="checkbox"
+                  [checked]="isSourceSelected(src.documentId)"
+                  (change)="toggleSource(src.documentId)"
+                />
+                <span class="checkmark"></span>
+              </label>
+
+              <div class="source-pdf-icon">
+                <i class="fa-solid fa-file-pdf"></i>
+              </div>
+
+              <div class="source-details">
+                <h4 [title]="src.fileName">{{ src.fileName }}</h4>
+                <div class="source-chips">
+                  <span><i class="fa-solid fa-book-open"></i> {{ src.pageCount }} págs</span>
+                  <span><i class="fa-solid fa-cubes-stacked"></i> {{ src.chunkCount }} chunks</span>
+                  <span>{{ formatBytes(src.fileSizeBytes) }}</span>
+                </div>
+              </div>
+            </div>
+
+            <div class="source-card-actions">
+              <button
+                class="btn-icon-subtle"
+                (click)="inspectChunks(src, $event)"
+                [title]="showChunks() && activeDocument()?.documentId === src.documentId ? 'Ocultar fragmentos' : 'Inspeccionar fragmentos'"
+              >
+                <i class="fa-solid fa-layer-group"></i>
+              </button>
+              <button
+                class="btn-icon-subtle"
+                (click)="activeDocument.set(src); switchTab('images'); detectImagesForActiveDocument(); $event.stopPropagation()"
+                title="Inspeccionar imágenes y diagramas de este PDF"
+              >
+                <i class="fa-solid fa-diagram-project"></i>
+              </button>
+              <button
+                class="btn-icon-danger"
+                (click)="deleteSource(src.documentId, $event)"
+                title="Eliminar fuente de la base de datos"
+              >
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- DRAWER / ACORDEÓN DE FRAGMENTOS INSPECCIONADOS -->
+    @if (showChunks() && activeDocument()) {
+      <div class="chunks-drawer">
+        <div class="chunks-drawer-header">
+          <div class="chunks-drawer-title">
+            <i class="fa-solid fa-layer-group"></i>
+            <h4>Fragmentos de <em>{{ activeDocument()?.fileName }}</em></h4>
+          </div>
+          <button class="btn-icon-subtle" (click)="removeDocument()" title="Cerrar vista de fragmentos">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+        <div class="chunks-list">
+          @for (chunk of chunks(); track chunk.id) {
+            <div class="chunk-item">
+              <div class="chunk-item-header">
+                <span>Página {{ chunk.pageNumber }} • Fragmento #{{ chunk.chunkIndex + 1 }}</span>
+                <span>{{ chunk.content.length }} caracteres</span>
+              </div>
+              <div class="chunk-item-body">{{ chunk.content }}</div>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- GUARDRAILS & TOKEN SAVER INFO -->
+    <div class="security-card">
+      <h3><i class="fa-solid fa-shield-cat"></i> Guardrails & Token Economy</h3>
+      <ul class="security-list">
+        <li><i class="fa-solid fa-check text-green"></i> <strong>Multi-fuente NotebookLM:</strong> Combina y filtra fuentes por checkbox.</li>
+        <li><i class="fa-solid fa-check text-green"></i> <strong>Supabase pgvector:</strong> Embeddings 768d con búsqueda HNSW.</li>
+        <li><i class="fa-solid fa-check text-green"></i> <strong>Filtro de malas palabras:</strong> Bloqueo pre-LLM (0 tokens).</li>
+        <li><i class="fa-solid fa-check text-green"></i> <strong>Anti-Prompt Injection:</strong> Blindaje de rol inalterable.</li>
+        <li><i class="fa-solid fa-check text-green"></i> <strong>Caché en memoria:</strong> Consultas repetidas con 0 tokens.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- PANEL DERECHO: CHATBOT TUTOR PEDAGÓGICO / INSPECTOR DE IMÁGENES -->
+  <section class="panel-right">
+    
+    <!-- BARRA SUPERIOR DE PESTAÑAS (TABS) -->
+    <div class="panel-tabs-bar">
+      <div class="panel-tabs">
+        <button
+          class="panel-tab-btn"
+          [class.active]="activeTab() === 'chat'"
+          (click)="switchTab('chat')"
+        >
+          <i class="fa-solid fa-comments"></i>
+          <span>Chat Tutor Pedagógico</span>
+        </button>
+
+        <button
+          class="panel-tab-btn"
+          [class.active]="activeTab() === 'images'"
+          (click)="switchTab('images')"
+        >
+          <i class="fa-solid fa-diagram-project"></i>
+          <span>Inspector de Imágenes & Diagramas</span>
+          @if (detectedImages().length > 0) {
+            <span class="tab-badge">{{ detectedImages().length }}</span>
+          }
+        </button>
+      </div>
+
+      <div class="tab-context-info">
+        @if (activeDocument()) {
+          <span class="active-doc-badge" [title]="activeDocument()?.fileName">
+            <i class="fa-solid fa-file-pdf"></i> {{ activeDocument()?.fileName }}
+          </span>
+        }
+      </div>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- PESTAÑA 1: CHAT TUTOR PEDAGÓGICO -->
+    <!-- ========================================== -->
+    @if (activeTab() === 'chat') {
+      <div class="chat-tab-container">
+        <!-- CABECERA DEL CHAT -->
+        <div class="chat-header">
+          <div class="tutor-profile">
+            <div class="tutor-avatar">
+              <i class="fa-solid fa-chalkboard-user"></i>
+              <span class="online-indicator"></span>
+            </div>
+            <div>
+              <h3>{{ tutorRole() }}</h3>
+              <p>
+                @if (selectedSourcesCount() > 0) {
+                  <span class="text-source-active"><i class="fa-solid fa-circle-check"></i> Consultando en {{ selectedSourcesCount() }} fuente{{ selectedSourcesCount() === 1 ? '' : 's' }} seleccionada{{ selectedSourcesCount() === 1 ? '' : 's' }}</span>
+                } @else {
+                  <span class="text-warn"><i class="fa-solid fa-triangle-exclamation"></i> Sin fuentes seleccionadas — marca al menos una en el panel</span>
+                }
+              </p>
+            </div>
+          </div>
+          <div class="chat-header-actions">
+            <button class="btn-ghost" (click)="clearChat()" title="Limpiar conversación">
+              <i class="fa-solid fa-broom"></i> Limpiar
+            </button>
+          </div>
+        </div>
+
+        <!-- MENSAJES -->
+        <div class="chat-messages" #messagesContainer>
+          @for (msg of messages(); track msg.id) {
+            <div
+              class="message"
+              [class.student-message]="msg.sender === 'student'"
+              [class.tutor-message]="msg.sender === 'tutor'"
+            >
+              <div class="msg-avatar">
+                @if (msg.sender === 'student') {
+                  <i class="fa-solid fa-user-graduate"></i>
+                } @else {
+                  <i class="fa-solid fa-chalkboard-user"></i>
+                }
+              </div>
+
+              <div class="msg-body">
+                <div class="msg-header" [style.justify-content]="msg.sender === 'student' ? 'flex-end' : 'flex-start'">
+                  <span class="msg-author">{{ msg.sender === 'student' ? 'Estudiante' : (msg.rolTutor || tutorRole()) }}</span>
+                  @if (msg.sender === 'tutor') {
+                    <span class="badge-role">Pedagógico</span>
+                  }
+                </div>
+
+                <div
+                  class="msg-content"
+                  [class.guardrail-blocked]="msg.status === 'BLOCKED_PROFANITY'"
+                  [class.guardrail-injection]="msg.status === 'BLOCKED_INJECTION'"
+                >
+                  <!-- BADGES DE GUARDRAILS -->
+                  @if (msg.status === 'BLOCKED_PROFANITY') {
+                    <div class="blocked-badge">
+                      <i class="fa-solid fa-hand"></i> Lenguaje Inapropiado Interceptado (0 Tokens)
+                    </div>
+                  }
+                  @if (msg.status === 'BLOCKED_INJECTION') {
+                    <div class="blocked-badge" style="background:rgba(139,92,246,0.2); color:#c4b5fd; border-color:rgba(139,92,246,0.4);">
+                      <i class="fa-solid fa-shield-halved"></i> Intento de Manipulación Neutralizado (0 Tokens)
+                    </div>
+                  }
+                  @if (msg.status === 'BLOCKED_NO_SOURCE') {
+                    <div class="blocked-badge" style="background:rgba(245,158,11,0.2); color:#fcd34d; border-color:rgba(245,158,11,0.4);">
+                      <i class="fa-solid fa-filter"></i> Sin fuentes activas (0 Tokens)
+                    </div>
+                  }
+                  @if (msg.cached) {
+                    <div class="blocked-badge" style="background:rgba(16,185,129,0.2); color:#6ee7b7; border-color:rgba(16,185,129,0.4);">
+                      <i class="fa-solid fa-bolt"></i> Respuesta de Caché en Memoria (0 Tokens)
+                    </div>
+                  }
+
+                  <!-- CONTENIDO HTML RENDERIZADO -->
+                  <div [innerHTML]="msg.htmlContent"></div>
+
+                  <!-- FUENTES CITADAS ESTILO NOTEBOOKLM -->
+                  @if (msg.fuentes && msg.fuentes.length > 0) {
+                    <div class="msg-sources-box">
+                      <button class="sources-toggle-btn" (click)="toggleMessageSources(msg)">
+                        <i class="fa-solid fa-book-bookmark"></i> Fuentes citadas ({{ msg.fuentes.length }})
+                        <i class="fa-solid" [class.fa-chevron-down]="!msg.showSources" [class.fa-chevron-up]="msg.showSources" style="font-size:0.7em;"></i>
+                      </button>
+
+                      @if (msg.showSources) {
+                        <div class="sources-content">
+                          @for (fuente of msg.fuentes; track fuente.chunkIndex) {
+                            <div class="source-item">
+                              <div class="source-badge">
+                                <i class="fa-solid fa-file-lines"></i>
+                                <strong>{{ fuente.documentName || 'Documento' }}</strong>
+                                <span>• Pág. {{ fuente.pageNumber }}</span>
+                                <span>• Relevancia: {{ (fuente.score * 100) | number:'1.0-0' }}%</span>
+                              </div>
+                              <div class="source-text">"{{ fuente.textoExtracto }}"</div>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+
+          <!-- INDICADOR DE ESCRITURA (THINKING) -->
+          @if (isThinking()) {
+            <div class="message tutor-message">
+              <div class="msg-avatar"><i class="fa-solid fa-chalkboard-user"></i></div>
+              <div class="msg-body">
+                <div class="msg-header"><span class="msg-author">{{ tutorRole() }}</span></div>
+                <div class="msg-content">
+                  <div class="typing-dots">
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                    <span class="typing-dot"></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+
+        <!-- SUGERENCIAS RÁPIDAS (CHIPS) -->
+        @if (selectedSourcesCount() > 0) {
+          <div class="quick-prompts">
+            <span class="quick-title"><i class="fa-regular fa-lightbulb"></i> Preguntas sugeridas:</span>
+            <button class="chip-btn" (click)="useQuickPrompt('¿Cuál es el tema principal de los documentos seleccionados?')">Tema principal</button>
+            <button class="chip-btn" (click)="useQuickPrompt('Compara y sintetiza los puntos clave de las fuentes seleccionadas.')">Comparar fuentes</button>
+            <button class="chip-btn" (click)="useQuickPrompt('¿Podrías hacerme una pregunta para evaluar si entendí el contenido?')">Evaluar comprensión</button>
+          </div>
+        }
+
+        <!-- ÁREA DE ENTRADA -->
+        <div class="chat-input-area">
+          <!-- TAGS DE FUENTES ACTIVAS EN LA CONSULTA -->
+          @if (selectedSourcesCount() > 0) {
+            <div class="active-sources-bar">
+              <span class="active-sources-label"><i class="fa-solid fa-filter"></i> Contexto:</span>
+              @for (src of sources(); track src.documentId) {
+                @if (isSourceSelected(src.documentId)) {
+                  <span class="active-source-tag" (click)="toggleSource(src.documentId)" title="Clic para excluir de la consulta">
+                    <i class="fa-solid fa-file-lines"></i> {{ src.fileName }}
+                    <i class="fa-solid fa-xmark"></i>
+                  </span>
+                }
+              }
+            </div>
+          }
+
+          <!-- ALERTA DE VALIDACIÓN PRE-LLM -->
+          @if (validationAlert()) {
+            <div class="validation-alert">
+              <i class="fa-solid fa-circle-exclamation"></i>
+              <span>{{ validationAlert() }}</span>
+            </div>
+          }
+
+          <div class="chat-form">
+            <div class="input-wrapper">
+              <textarea
+                [(ngModel)]="queryText"
+                (input)="onInputChange()"
+                (keydown)="onKeyDown($event)"
+                rows="1"
+                placeholder="Haz una consulta sobre las fuentes seleccionadas..."
+                maxlength="600"
+              ></textarea>
+
+              <div class="input-footer">
+                <span class="char-counter" [class.limit-warn]="isCharLimitWarn()">{{ charCount() }} / 600</span>
+                <span class="concise-hint"><i class="fa-solid fa-feather-pointed"></i> Respuestas concisas con citas exactas</span>
+              </div>
+            </div>
+
+            <button class="btn-send" (click)="sendQuery()" [disabled]="isThinking() || selectedSourcesCount() === 0" title="Enviar pregunta (Enter)">
+              <i class="fa-solid fa-paper-plane"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- ========================================== -->
+    <!-- PESTAÑA 2: INSPECTOR DE IMÁGENES & DIAGRAMAS -->
+    <!-- ========================================== -->
+    @if (activeTab() === 'images') {
+      <div class="inspector-container">
+        
+        <!-- TOOLBAR DE ACCIONES -->
+        <div class="inspector-toolbar">
+          <div class="inspector-toolbar-left">
+            <div class="inspector-title">
+              <i class="fa-solid fa-microscope"></i>
+              <div>
+                <h3>Decodificación Determinística sin IA</h3>
+                <p>Extracción nativa con Apache PDFBox • Interpretación contextual del documento • Diagrama Mermaid</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="inspector-toolbar-actions">
+            <button
+              class="btn-detect-images"
+              (click)="detectImagesForActiveDocument()"
+              [disabled]="isDetectingImages() || (!activeDocument() && sources().length === 0)"
+            >
+              @if (isDetectingImages()) {
+                <i class="fa-solid fa-spinner fa-spin"></i>
+                <span>Analizando PDF...</span>
+              } @else {
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
+                <span>Detectar / Procesar Imágenes del Documento</span>
+              }
+            </button>
+          </div>
+        </div>
+
+        <!-- ESTADO 1: SIN DOCUMENTOS CARGADOS -->
+        @if (!activeDocument() && sources().length === 0) {
+          <div class="inspector-empty-state">
+            <div class="empty-icon"><i class="fa-solid fa-file-circle-question"></i></div>
+            <h4>No hay ningún documento seleccionado</h4>
+            <p>Carga un archivo PDF en el panel izquierdo (o usa el botón "Cargar PDF de Prueba") para comenzar la detección de diagramas.</p>
+          </div>
+        }
+        
+        <!-- ESTADO ERROR: ARCHIVO NO DISPONIBLE O ERROR DE SERVIDOR -->
+        @else if (imageDetectionError()) {
+          <div class="inspector-empty-state warning-state">
+            <div class="empty-icon"><i class="fa-solid fa-cloud-arrow-up" style="color: var(--accent-amber);"></i></div>
+            <h4>Se requiere volver a cargar el PDF</h4>
+            <p>{{ imageDetectionError() }}</p>
+            <p style="font-size: 0.8rem; color: var(--text-dim); margin-top: 4px;">
+              Arrastra o vuelve a subir este archivo PDF en el panel izquierdo para sincronizar sus páginas e imágenes en el servidor.
+            </p>
+          </div>
+        }
+
+        <!-- ESTADO 2: SE BUSCÓ Y NO HAY IMÁGENES (VALIDACIÓN) -->
+        @else if (imageSearchPerformed() && detectedImages().length === 0 && !isDetectingImages()) {
+          <div class="inspector-empty-state warning-state">
+            <div class="empty-icon"><i class="fa-solid fa-file-circle-xmark"></i></div>
+            <h4>Validación completada: Sin imágenes incrustadas</h4>
+            <p>El documento <strong>"{{ activeDocument()?.fileName }}"</strong> no contiene objetos de imagen incrustados (<code>PDImageXObject</code>). Es un documento exclusivamente textual.</p>
+            <button class="btn-secondary" (click)="detectImagesForActiveDocument()">
+              <i class="fa-solid fa-rotate-right"></i> Volver a verificar
+            </button>
+          </div>
+        }
+
+        <!-- ESTADO 3: AÚN NO SE HA DETECTADO -->
+        @else if (!imageSearchPerformed() && !isDetectingImages()) {
+          <div class="inspector-empty-state">
+            <div class="empty-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <h4>Listo para analizar imágenes de "{{ activeDocument()?.fileName }}"</h4>
+            <p>Presiona el botón superior <strong>"Detectar / Procesar Imágenes del Documento"</strong> para escanear las páginas del PDF en busca de figuras, arquitecturas y diagramas de capas.</p>
+            <button class="btn-sample" (click)="detectImagesForActiveDocument()">
+              <i class="fa-solid fa-play"></i> Iniciar Detección Determinística
+            </button>
+          </div>
+        }
+
+        <!-- ESTADO 4: IMÁGENES ENCONTRADAS -->
+        @else if (detectedImages().length > 0) {
+          <!-- CARRUSEL / GALERÍA DE MINIATURAS -->
+          <div class="images-gallery-section">
+            <div class="gallery-header">
+              <span class="gallery-title">
+                <i class="fa-solid fa-images"></i> Figuras encontradas ({{ detectedImages().length }})
+              </span>
+              <span class="gallery-hint">Haz clic en una miniatura para inspeccionar su decodificación</span>
+            </div>
+
+            <div class="images-strip">
+              @for (img of detectedImages(); track img.imageIndex) {
+                <div
+                  class="image-thumbnail-card"
+                  [class.active]="selectedImage()?.imageIndex === img.imageIndex"
+                  (click)="selectAndDecodeImage(img)"
+                >
+                  <div class="thumb-wrapper">
+                    <img [src]="img.base64Data" [alt]="'Imagen ' + (img.imageIndex + 1)" />
+                    <span class="page-badge">Pág. {{ img.pageNumber }}</span>
+                  </div>
+                  <div class="thumb-meta">
+                    <strong>Figura #{{ img.imageIndex + 1 }}</strong>
+                    <span>{{ img.width }}x{{ img.height }} px</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <!-- COMPARATIVA LADO A LADO: IMAGEN VS DECODIFICACIÓN -->
+          @if (selectedImage()) {
+            <div class="comparison-split-view">
+              
+              <!-- COLUMNA IZQUIERDA: IMAGEN ORIGINAL -->
+              <div class="split-col original-image-col">
+                <div class="split-col-header">
+                  <div class="col-title">
+                    <i class="fa-solid fa-image"></i>
+                    <h4>Imagen Original del PDF</h4>
+                  </div>
+                  <div class="col-badges">
+                    <span class="badge-col-info">Página {{ selectedImage()?.pageNumber }}</span>
+                    <span class="badge-col-info">{{ selectedImage()?.width }} x {{ selectedImage()?.height }} px</span>
+                    <span class="badge-col-info">{{ selectedImage()?.format | uppercase }}</span>
+                  </div>
+                </div>
+
+                <div class="image-viewport">
+                  <img [src]="selectedImage()?.base64Data" [alt]="'Figura pág ' + selectedImage()?.pageNumber" />
+                </div>
+
+                @if (selectedImage()?.pageTitle) {
+                  <div class="image-caption-box">
+                    <i class="fa-solid fa-quote-left"></i>
+                    <span>{{ selectedImage()?.pageTitle }}</span>
+                  </div>
+                }
+              </div>
+
+              <!-- COLUMNA DERECHA: DECODIFICACIÓN DETERMINÍSTICA SIN IA -->
+              <div class="split-col decoded-data-col">
+                <div class="split-col-header">
+                  <div class="col-title">
+                    <i class="fa-solid fa-microchip"></i>
+                    <h4>Decodificación Determinística (100% PDFBox)</h4>
+                  </div>
+
+                  @if (decodedResult()) {
+                    <div class="col-badges">
+                      <span class="badge-diagram-type">
+                        <i class="fa-solid fa-network-wired"></i> {{ decodedResult()?.tipoDiagrama }}
+                      </span>
+                    </div>
+                  }
+                </div>
+
+                <div class="decoded-content-scroll">
+                  @if (isDecodingImage()) {
+                    <div class="decoding-loading-state">
+                      <div class="spinner-large"><i class="fa-solid fa-gear fa-spin"></i></div>
+                      <h4>Extrayendo contexto y entidades de la figura...</h4>
+                      <p>Analizando epígrafe, párrafos del documento y generando diagrama Mermaid</p>
+                    </div>
+                  } @else if (decodedResult()) {
+                    
+                    <!-- TÍTULO / EPÍGRAFE DETECTADO -->
+                    <div class="decoded-section">
+                      <label class="section-label"><i class="fa-solid fa-heading"></i> Identificación de la Figura:</label>
+                      <h3 class="decoded-title">{{ decodedResult()?.tituloDetectado }}</h3>
+                    </div>
+
+                    <!-- INTERPRETACIÓN Y CONTEXTO DEL DOCUMENTO -->
+                    @if (decodedResult()?.interpretacion) {
+                      <div class="decoded-section">
+                        <label class="section-label"><i class="fa-solid fa-book-open-reader"></i> Interpretación y Contexto del Documento:</label>
+                        <div class="markdown-preview-box" [innerHTML]="renderMarkdown(decodedResult()!.interpretacion)"></div>
+                      </div>
+                    }
+
+                    <!-- DIAGRAMA MERMAID.JS GENERADO -->
+                    @if (decodedResult()?.mermaidCode) {
+                      <div class="decoded-section">
+                        <div class="section-label-row">
+                          <label class="section-label"><i class="fa-solid fa-diagram-project"></i> Diagrama Mermaid.js Generado:</label>
+                          <button class="btn-copy-code" (click)="copyToClipboard(decodedResult()!.mermaidCode)" title="Copiar código Mermaid">
+                            <i class="fa-regular fa-copy"></i> Copiar
+                          </button>
+                        </div>
+                        <pre class="mermaid-code-box"><code>{{ decodedResult()?.mermaidCode }}</code></pre>
+                      </div>
+                    }
+
+                    <!-- BOTÓN DE ACCIÓN: GUARDAR EN RAG / PGVECTOR -->
+                    <div class="decoded-actions-footer">
+                      <button
+                        class="btn-save-to-rag"
+                        (click)="saveDiagramToRag()"
+                        [disabled]="isIndexingDiagram()"
+                        title="Indexar este diagrama como fragmento semántico en Supabase pgvector"
+                      >
+                        @if (isIndexingDiagram()) {
+                          <i class="fa-solid fa-spinner fa-spin"></i>
+                          <span>Indexando en pgvector...</span>
+                        } @else {
+                          <i class="fa-solid fa-cloud-arrow-up"></i>
+                          <span>Guardar en RAG como Chunk Semántico</span>
+                        }
+                      </button>
+                      <p class="rag-sync-hint">
+                        <i class="fa-solid fa-circle-info"></i> Al guardarlo, el Tutor Pedagógico en el Chat podrá responder dudas citando exactamente las capas y relaciones de esta figura.
+                      </p>
+                    </div>
+
+                  }
+                </div>
+              </div>
+
+            </div>
+          }
+        }
+
+      </div>
+    }
+
+  </section>
+</main>
+
+<!-- TOASTS DE NOTIFICACIÓN -->
+<div class="toast-container">
+  @for (toast of toasts(); track toast.id) {
+    <div class="toast" [ngClass]="toast.type">
+      <i class="fa-solid" [ngClass]="{
+        'fa-circle-check': toast.type === 'success',
+        'fa-circle-exclamation': toast.type === 'error',
+        'fa-triangle-exclamation': toast.type === 'warn',
+        'fa-circle-info': toast.type === 'info'
+      }"></i>
+      <span>{{ toast.message }}</span>
+    </div>
+  }
+</div>
