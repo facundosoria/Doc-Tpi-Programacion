@@ -5,11 +5,11 @@ services:
 
   workbench:
     build:
-      context: ../llm-workbench
+      context: ./llm-workbench
       dockerfile: Dockerfile.dev
     ports: ["4200:4200"]
     volumes:
-      - ../llm-workbench:/workspace
+      - ./llm-workbench:/workspace
       - workbench_node_modules:/workspace/node_modules
     depends_on:
       llm-service:
