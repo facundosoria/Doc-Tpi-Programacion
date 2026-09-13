@@ -5,17 +5,12 @@
   @if (editorRoute) { <nav class="editor-breadcrumb" aria-label="Ubicación en Rúbricas"><a [href]="rubricsPath()">Rúbricas</a><span aria-hidden="true">›</span><strong>{{ creatingRoute ? 'Nueva rúbrica' : 'Editar borrador' }}</strong></nav> }
 </header>
 
-@if (publishSuccess()) {
-  <section class="saved-banner" role="status">
-    <strong>{{ publishSuccess() }}</strong>
-    <button type="button" class="small" (click)="publishSuccess.set('')">Descartar</button>
-  </section>
-}
-
-@if (publishError()) {
-  <section class="error" role="alert">
-    <strong>{{ publishError() }}</strong>
-    <button type="button" class="small" (click)="publishError.set('')">Descartar</button>
+@if (returningToRubrics()) {
+  <section class="returning-overlay" role="status" aria-live="polite" aria-label="Regresando a Rúbricas">
+    <div class="returning-card">
+      <span class="spinner" aria-hidden="true"></span>
+      <strong>Regresando a Rúbricas…</strong>
+    </div>
   </section>
 }
 
@@ -23,8 +18,23 @@
   <section class="empty editor-route" aria-labelledby="rubric-route-title">
     @if (creatingRoute) {
       <h2 id="rubric-route-title">Crear borrador de rúbrica</h2>
-      <p>La versión se abrirá para editar sus cinco dimensiones antes de publicarla.</p>
-      <button type="button" (click)="createFirstDraft()" [disabled]="creating()">{{ creating() ? 'Creando borrador…' : 'Crear borrador' }}</button>
+      <p>Partí de una plantilla institucional aprobada. Después podrás adaptar criterios, ejemplos y pesos para tu curso.</p>
+      <label>
+        <span class="field-label" tabindex="0">Nombre de la rúbrica * <span class="field-tooltip" role="tooltip">Elegí un título claro para identificar esta rúbrica dentro del curso.</span></span>
+        <input type="text" [value]="newRubricName()" (input)="setNewRubricName($event)" maxlength="160" required autocomplete="off" />
+      </label>
+      <label>
+        <span class="field-label" tabindex="0">Plantilla institucional * <span class="field-tooltip" role="tooltip">Elegí la guía institucional aprobada que vas a adaptar para este curso.</span></span>
+        <select [value]="templateVersionId()" (change)="selectTemplate($event)" required>
+          <option value="">Seleccioná una plantilla</option>
+          @for (template of templates.value().items; track template.id) {
+            <option [value]="template.id">{{ template.name }} · v{{ template.version }}</option>
+          }
+        </select>
+      </label>
+      @if (templates.isLoading()) { <p role="status">Cargando plantillas aprobadas…</p> }
+      @if (!templates.isLoading() && !templates.value().items.length) { <p class="notice">Todavía no hay una plantilla institucional publicada. Pedí a ADMIN que publique una antes de crear la rúbrica.</p> }
+      <button type="button" (click)="createFirstDraft()" [disabled]="creating()">{{ creating() ? 'Creando borrador…' : 'Crear borrador desde plantilla' }}</button>
     } @else {
       <p id="rubric-route-title" role="status">Cargando el borrador de rúbrica…</p>
     }
@@ -41,8 +51,8 @@
 } @else if (!editorRoute && !rubrics.value().items.length) {
   <section class="empty">
     <h2>Aún no hay rúbricas</h2>
-    <p>Creá un borrador con las cinco dimensiones para preparar la primera calibración del curso.</p>
-    <button type="button" (click)="createFirstDraft()" [disabled]="creating()">{{ creating() ? 'Creando borrador…' : 'Crear rúbrica de práctica' }}</button>
+    <p>Creá un borrador desde una plantilla institucional para preparar la primera calibración del curso.</p>
+    <a [href]="rubricsPath() + '/new'" class="button-link">Elegir plantilla institucional</a>
   </section>
 } @else if (!editorRoute) {
   <section class="table-wrap">
@@ -136,50 +146,85 @@
       </div>
       <button type="button" class="secondary" (click)="closeEditor()">Cerrar editor</button>
     </div>
-    <p class="hint">Los campos con * son obligatorios. Las dimensiones están fijadas para mantener una evaluación consistente.</p>
+    <p class="hint">Los campos con * son obligatorios. Las dimensiones técnicas se mantienen para asegurar consistencia; podés adaptar el contenido pedagógico a tu curso.</p>
+    <a class="guide-link" href="#guia-calibracion" (click)="scrollToCalibrationGuide($event)">¿Necesitás una referencia? Ver guía de calibración ↓</a>
     <form [formGroup]="form" (ngSubmit)="save()" novalidate>
-      <label>
-        Nombre de la rúbrica *
-        <input formControlName="name" required [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched" />
-      </label>
-      @if (form.controls.name.touched && form.controls.name.invalid) {
-        <p class="field-error">Ingresá un nombre para la rúbrica.</p>
-      }
+      <div class="rubric-header">
+        <div class="rubric-title-field">
+          <label>
+            <span class="field-label" tabindex="0">Nombre de la rúbrica * <span class="field-tooltip" role="tooltip">Usá un nombre que identifique el criterio evaluativo de este curso.</span></span>
+            <input formControlName="name" required [attr.aria-invalid]="form.controls.name.invalid && form.controls.name.touched" />
+          </label>
+          @if (form.controls.name.touched && form.controls.name.invalid) {
+            <p class="field-error">Ingresá un nombre para la rúbrica.</p>
+          }
+        </div>
+        <aside class="rubric-summary" aria-label="Resumen de la rúbrica">
+          <div class="summary-row">
+            <p class="weights" [class.invalid]="dimensions.invalid && dimensions.touched">
+              <span>Peso total</span>
+              <strong>{{ totalWeight() }} %</strong>
+            </p>
+            <button class="save summary-save" type="submit" [disabled]="saving()" aria-label="Guardar borrador">
+              {{ saving() ? 'Guardando…' : 'Guardar' }}
+            </button>
+          </div>
+          @if (dimensions.touched && dimensions.hasError('weightsTotal')) {
+            <p class="field-error">Los pesos deben sumar 100 %.</p>
+          } @else {
+            <p class="summary-help">La suma de las cinco dimensiones debe ser 100 %.</p>
+          }
+        </aside>
+      </div>
 
-      <p class="weights" [class.invalid]="dimensions.invalid && dimensions.touched">Peso total: {{ totalWeight() }} %</p>
-      @if (dimensions.touched && dimensions.hasError('weightsTotal')) {
-        <p class="field-error">Los cinco pesos deben sumar exactamente 100 %.</p>
-      }
+      <nav class="dimension-tabs" aria-label="Dimensiones de la rúbrica">
+        <p>Elegí una dimensión para editar</p>
+        <div [class.active-tab-0]="activeDimensionIndex() === 0" [class.active-tab-1]="activeDimensionIndex() === 1" [class.active-tab-2]="activeDimensionIndex() === 2" [class.active-tab-3]="activeDimensionIndex() === 3" [class.active-tab-4]="activeDimensionIndex() === 4">
+          @for (dimension of dimensions.controls; track dimension.controls.key.value; let i = $index) {
+            <button type="button" [class.active]="activeDimensionIndex() === i" [attr.aria-pressed]="activeDimensionIndex() === i" [attr.aria-label]="'Editar dimensión ' + dimension.controls.label.value" (click)="selectDimension(i)">
+              <span>{{ dimension.controls.label.value }}</span>
+            </button>
+          }
+          <span class="dimension-tab-indicator" aria-hidden="true"></span>
+        </div>
+      </nav>
 
       <div formArrayName="dimensions">
         @for (dimension of dimensions.controls; track dimension.controls.key.value; let i = $index) {
-          <fieldset [formGroupName]="i">
+          @if (activeDimensionIndex() === i) {
+          <fieldset [formGroupName]="i" class="dimension-panel">
             <legend>{{ dimension.controls.label.value }}</legend>
-            <p class="dimension-key">Dimensión obligatoria: {{ dimension.controls.key.value }}</p>
+            <label class="dimension-weight">
+              <span class="field-label" tabindex="0">Peso * <span class="field-tooltip" role="tooltip">Define cuánto aporta esta dimensión al resultado final. Los cinco pesos deben sumar 100 %.</span></span>
+              <input formControlName="weight" type="number" min="0" max="100" step="0.01" required [attr.aria-invalid]="dimension.controls.weight.invalid && dimension.controls.weight.touched" />
+              <span aria-hidden="true">%</span>
+            </label>
             <label>
-              Criterio *
+              <span class="field-label" tabindex="0">Criterio * <span class="field-tooltip" role="tooltip">Explicá qué se observa en esta dimensión al evaluar la interacción.</span></span>
               <textarea formControlName="criterion" rows="3" required></textarea>
             </label>
-            <label>
-              Anclas (JSON) *
-              <textarea formControlName="anchors" rows="4" required [attr.aria-invalid]="dimension.controls.anchors.invalid && dimension.controls.anchors.touched" [attr.aria-describedby]="'anchors-help-' + i"></textarea>
-              <span id="anchors-help-{{ i }}" class="hint">Incluí <code>low</code>, <code>medium</code> y <code>high</code> como textos.</span>
-            </label>
+            <fieldset formGroupName="anchors" class="anchors-editor">
+              <legend><span class="field-label" tabindex="0">Guía de calibración * <span class="field-tooltip" role="tooltip">No son prompts ni exámenes: son tres casos breves que muestran qué puntaje corresponde a cada nivel.</span></span></legend>
+              <p class="hint">Imaginá que tres docentes corrigen la misma conversación. Estos tres ejemplos les muestran qué merece un puntaje bajo, medio o alto. El evaluador automático usa esa misma guía para ser consistente.</p>
+              <div class="anchor-cards">
+                @for (level of ['low', 'medium', 'high']; track level) {
+                  <fieldset [formGroupName]="level" class="anchor-card" [class.low]="level === 'low'" [class.medium]="level === 'medium'" [class.high]="level === 'high'">
+                    <legend>{{ level === 'low' ? 'Ejemplo de puntaje bajo' : level === 'medium' ? 'Ejemplo de puntaje medio' : 'Ejemplo de puntaje alto' }}</legend>
+                    <label><span class="field-label" tabindex="0">¿Qué hace el estudiante? * <span class="field-tooltip" role="tooltip">Describí una acción o patrón verificable del estudiante, no una impresión general.</span></span><textarea formControlName="behavior" rows="2" required></textarea></label>
+                    <label><span class="field-label" tabindex="0">¿Cuánto puntúa este ejemplo? * <span class="field-tooltip" role="tooltip">Indicá el puntaje humano que debería recibir este caso, entre 0 y 100. Debe crecer de bajo a alto.</span></span><input formControlName="referenceScore" type="number" min="0" max="100" required /></label>
+                    <label><span class="field-label" tabindex="0">¿Cómo se vería en una conversación? * <span class="field-tooltip" role="tooltip">Escribí una frase o situación corta que ilustre ese nivel.</span></span><textarea formControlName="example" rows="3" required></textarea></label>
+                  </fieldset>
+                }
+              </div>
+            </fieldset>
             @if (dimension.controls.anchors.touched && dimension.controls.anchors.invalid) {
-              <p class="field-error">Las anclas deben ser un JSON con low, medium y high.</p>
+              <p class="field-error">Completá las tres anclas y asegurá puntajes crecientes: bajo &lt; medio &lt; alto.</p>
             }
-            <label>
-              Prompt del evaluador *
-              <textarea formControlName="evaluatorPrompt" rows="3" required></textarea>
-            </label>
-            <label>
-              Peso (%) *
-              <input formControlName="weight" type="number" min="0" max="100" step="0.01" required [attr.aria-invalid]="dimension.controls.weight.invalid && dimension.controls.weight.touched" />
-            </label>
             @if (dimension.controls.weight.touched && dimension.controls.weight.invalid) {
               <p class="field-error">El peso debe estar entre 0 y 100.</p>
             }
           </fieldset>
+          }
         }
       </div>
 
@@ -189,7 +234,39 @@
       @if (saved()) {
         <p class="saved" role="status">Borrador guardado. Revisión {{ selected()!.revision }}.</p>
       }
-      <button class="save" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar borrador' }}</button>
     </form>
+    <section id="guia-calibracion" class="anchor-onboarding footer-guide" aria-labelledby="anchor-onboarding-title" tabindex="-1">
+      <div>
+        <p class="eyebrow">GUÍA RÁPIDA</p>
+        <h3 id="anchor-onboarding-title">Guía de calibración</h3>
+        <p>Imaginá que tres docentes corrigen la misma conversación. Estos tres ejemplos les muestran qué merece un puntaje bajo, medio o alto. El evaluador automático usa esa misma guía para ser consistente.</p>
+      </div>
+      <ol class="anchor-steps">
+        <li><strong>Qué hizo:</strong> describí una conducta del estudiante que se pueda comprobar.</li>
+        <li><strong>Cómo se ve:</strong> escribí una frase o situación corta de una conversación realista.</li>
+        <li><strong>Cuánto vale:</strong> indicá el puntaje que ese caso debería recibir.</li>
+      </ol>
+      <details class="anchor-worked-example">
+        <summary>Ver un ejemplo completo con la dimensión «Claridad»</summary>
+        <p><strong>Esto no es un examen ni un caso del Golden Set.</strong> Es una pequeña guía que enseña cómo asignar puntajes a una dimensión.</p>
+        <div class="anchor-example-grid">
+          <article class="anchor-example low">
+            <p class="anchor-example-level">BAJO · 25 puntos</p>
+            <p><strong>Qué hizo:</strong> formula una consulta vaga, sin contexto.</p>
+            <p><strong>Cómo se vería:</strong> “No me funciona el código”.</p>
+          </article>
+          <article class="anchor-example medium">
+            <p class="anchor-example-level">MEDIO · 60 puntos</p>
+            <p><strong>Qué hizo:</strong> describe el problema, pero deja información relevante afuera.</p>
+            <p><strong>Cómo se vería:</strong> “Al hacer <code>pop</code> mi pila da un error”.</p>
+          </article>
+          <article class="anchor-example high">
+            <p class="anchor-example-level">ALTO · 90 puntos</p>
+            <p><strong>Qué hizo:</strong> aporta contexto, resultado esperado y lo que ya probó.</p>
+            <p><strong>Cómo se vería:</strong> “En <code>pop()</code> espero quitar el último nodo; recibo una excepción y ya verifiqué que la pila no está vacía”.</p>
+          </article>
+        </div>
+      </details>
+    </section>
   </section>
 }

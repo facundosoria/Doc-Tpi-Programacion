@@ -26,6 +26,7 @@ llm:
   gateway:
     trusted-service: admin-service
     required-scope: llm.golden-set.manage
+    template-required-scope: llm.rubric-template.manage
   tutor:
     trusted-service: practice-service
     required-scope: llm.tutor.interact

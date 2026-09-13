@@ -1,453 +1,51 @@
-<header>
-  <p class="eyebrow">GOLDEN SET</p>
+<header class="page-header">
+  <p class="eyebrow">GOLDEN SET · REFERENCIA HUMANA</p>
   <h1>Conversaciones de referencia</h1>
-  <p>Cada caso conserva su autor y revisión humana. Las puntuaciones representan el uso de IA, no una calificación académica.</p>
+  <p>Registrá de tres a cinco conversaciones alumno–IA y puntuá cada una con la rúbrica vigente.</p>
 </header>
-
-@if (importSuccess()) {
-  <section class="saved-banner" role="status">
-    <strong>{{ importSuccess() }}</strong>
-  </section>
-}
-@if (importError()) {
-  <section class="error" role="alert"><strong>{{ importError() }}</strong></section>
-}
 
 @if (goldenSets.isLoading()) {
   <p role="status">Cargando Golden Sets…</p>
 } @else if (goldenSets.error()) {
-  <section class="error" role="alert">
-    <strong>No se pudieron cargar los Golden Sets.</strong>
-    <button type="button" (click)="goldenSets.reload()">Reintentar</button>
-  </section>
-} @else if (!editorRoute && !goldenSets.value().items.length) {
-  <section class="empty">
-    <h2>No hay versiones para este curso</h2>
-    <p>Cuando crees o copies un Golden Set, sus casos de referencia aparecerán aquí.</p>
-    <a [href]="goldenSetListPath() + '/new'" class="button-link">Crear Golden Set de práctica</a>
-    @if (saveError()) { <p class="error" role="alert">{{ saveError() }}</p> }
-  </section>
-} @else if (!editorRoute) {
-  <section id="versioning" class="versioning-actions" aria-label="Versionado del Golden Set">
-    <button type="button" class="secondary" (click)="createNextVersionFromNavigation()">Crear nueva versión</button>
-    <p class="hint">Crea un borrador a partir de la versión publicada más reciente.</p>
-  </section>
-  @for (set of goldenSets.value().items; track set.id) {
-    <section class="set">
-      <div class="set-heading">
-        <div>
-          <h2>{{ set.name }} <span>v{{ set.version }}</span></h2>
-          <p><span class="state" [class.published]="set.state === 'PUBLISHED'">{{ stateLabel(set.state) }}</span> {{ set.cases.length }} caso(s)</p>
-        </div>
-        @if(set.state === 'DRAFT'){
-          <div class="draft-actions">
-            <a [href]="editorPath(set.id)" class="button-link">Editar Golden Set</a>
-            @if (set.cases.length > 0) {
-              <button type="button" class="save-button" (click)="publishVersion(set)">Publicar versión</button>
-            }
-            <button type="button" class="secondary danger" (click)="deleteUnusedDraft(set)">Eliminar Golden Set</button>
-          </div>
-        }
-      </div>
-    </section>
-  }
-}
-
-@if (creatingGoldenSetRoute && !draft()) {
-  <section class="editor-route" aria-labelledby="editor-route-title">
-    <nav class="editor-breadcrumb" aria-label="Ubicación en Golden Set"><a [href]="goldenSetListPath()">Golden Set</a><span aria-hidden="true">›</span><strong>{{ creatingGoldenSetRoute ? 'Nuevo Golden Set' : 'Editar Golden Set' }}</strong></nav>
-    @if (creatingGoldenSetRoute) {
-      <h1 id="editor-route-title">Nuevo Golden Set</h1>
-      <p>Creá el borrador antes de incorporar conversaciones de referencia. No se mezclará con las versiones existentes.</p>
-      <button type="button" (click)="createDraft()" [disabled]="creatingDraft()">{{ creatingDraft() ? 'Creando borrador…' : 'Crear borrador' }}</button>
-    }
-  </section>
-}
-
-@if (draft(); as set) {
-  <section class="set editor" aria-labelledby="case-editor-title">
-    <div class="set-heading">
-      <div><nav class="editor-breadcrumb" aria-label="Ubicación en Golden Set"><a [href]="goldenSetListPath()">Golden Set</a><span aria-hidden="true">›</span><strong>{{ creatingGoldenSetRoute ? 'Nuevo Golden Set' : 'Editar Golden Set' }}</strong></nav><p class="eyebrow">BORRADOR v{{ set.version }}</p><h2 id="case-editor-title">Nueva conversación · {{ set.name }}</h2></div>
-      <div class="draft-actions"><button type="button" class="secondary" (click)="startImport(set)">Agregar varias</button><button type="button" class="secondary" (click)="startRealInteraction(set)">Interacción real</button><button type="button" class="secondary" (click)="startSyntheticGeneration(set)">Generar sintéticos</button><a [href]="goldenSetListPath()" class="button-link secondary">Volver al listado</a></div>
-    </div>
-    <p class="hint">Todos los puntajes son referencias humanas enteras entre 0 y 100. Una interacción real debe haberse anonimizado antes de incorporarla.</p>
-    <form [formGroup]="form" (ngSubmit)="saveCase()" novalidate>
-      <fieldset>
-        <legend>Conversación</legend>
-        <div class="field-control">
-          <label for="transcript-text">Transcripción completa *</label>
-          <span class="field-help"><button type="button" class="field-help-trigger" aria-label="Ayuda sobre la transcripción">?</button><span class="field-help-tooltip" role="tooltip">Pegá el intercambio completo. Cada bloque debe empezar con <strong>Estudiante:</strong> o <strong>Tutor IA:</strong>; las líneas siguientes pertenecen al mismo mensaje. El sistema guarda los roles automáticamente porque necesita el contexto del Tutor IA para evaluar el uso que hizo el estudiante.</span></span>
-          <textarea id="transcript-text" class="full-width-textarea" formControlName="transcriptText" rows="12" required placeholder="Estudiante: ¿Cómo valido el tope de la pila?&#10;Tutor IA: ¿Qué condición indica que la pila está llena?&#10;Estudiante: Entonces comparo el tamaño actual con la capacidad." [attr.aria-invalid]="form.controls.transcriptText.invalid && form.controls.transcriptText.touched"></textarea>
-        </div>
-        <p class="hint">Una conversación completa equivale a un caso del Golden Set. Para cargar varias, usá “Agregar varias conversaciones”.</p>
-        @if (transcriptStatus().messages.length) {
-          <section class="transcript-preview" aria-label="Vista previa de mensajes detectados">
-            <strong>{{ transcriptStatus().messages.length }} mensajes detectados</strong>
-            @for (message of transcriptStatus().messages; track $index) {
-              <p class="preview-msg" [class.student]="message.role === 'STUDENT'"><strong>{{ message.role === 'STUDENT' ? 'Estudiante' : 'Tutor IA' }}</strong><br>{{ message.content }}</p>
-            }
-          </section>
-        }
-        @if(form.controls.transcriptText.invalid && form.controls.transcriptText.touched){<p class="field-error">{{ transcriptStatus().error }}</p>}
-      </fieldset>
-      <fieldset>
-        <legend>Contexto del desafío</legend>
-        <div class="activity-filters" aria-label="Filtros de actividades">
-          <label>Tipo de actividad
-            <select [value]="activityTypeFilter()" (change)="setActivityTypeFilter($event)">
-              <option value="ALL">Desafíos y exámenes</option>
-              <option value="CHALLENGE">Desafíos</option>
-              <option value="EXAM">Exámenes</option>
-            </select>
-          </label>
-        </div>
-        <div class="field-control">
-          <label for="activity-id">Desafío o examen *</label>
-          <span class="field-help"><button type="button" class="field-help-trigger" aria-label="Ayuda sobre el desafío o examen">?</button><span class="field-help-tooltip" role="tooltip">Elegí la actividad a la que pertenece la conversación. La lista es temporal y está ordenada de más reciente a menos reciente; al elegir una, cargamos su contexto automáticamente.</span></span>
-          <select id="activity-id" formControlName="externalChallengeId" required (change)="selectActivity($event)" [attr.aria-invalid]="form.controls.externalChallengeId.invalid && form.controls.externalChallengeId.touched">
-            <option value="">Seleccioná una actividad</option>
-            @for (activity of filteredActivities(); track activity.id) {
-              <option [value]="activity.id">{{ activity.type === 'CHALLENGE' ? 'Desafío' : 'Examen' }} · {{ activity.title }} · {{ activity.createdAt | date:'dd/MM/yyyy' }}</option>
-            }
-          </select>
-        </div>
-        <p class="hint" role="status">{{ filteredActivities().length }} actividades disponibles, ordenadas de más reciente a menos reciente.</p>
-        @if(form.controls.externalChallengeId.invalid && form.controls.externalChallengeId.touched){<p class="field-error">Seleccioná el desafío o examen de origen.</p>}
-        <div class="field-control">
-          <label for="challenge-statement">Enunciado o contexto del desafío *</label>
-          <span class="field-help"><button type="button" class="field-help-trigger" aria-label="Ayuda sobre el contexto del desafío">?</button><span class="field-help-tooltip" role="tooltip">Incluí la consigna o el contexto que el estudiante tenía al conversar. Sale del desafío original o de la situación pedagógica que simulás.</span></span>
-          <textarea id="challenge-statement" class="full-width-textarea" formControlName="statement" rows="3" required [attr.aria-invalid]="form.controls.statement.invalid && form.controls.statement.touched"></textarea>
-        </div>
-        @if(form.controls.statement.invalid && form.controls.statement.touched){<p class="field-error">Ingresá el contexto que tuvo la conversación.</p>}
-        <div class="field-control">
-          <label for="case-metadata">Metadatos (opcional)</label>
-          <span class="field-help"><button type="button" class="field-help-trigger" aria-label="Ayuda sobre los metadatos">?</button><span class="field-help-tooltip" role="tooltip">Agregá etiquetas útiles para revisión, como tema o dificultad. Sale de tu clasificación docente; nunca incluyas nombre, legajo ni contacto del estudiante.</span></span>
-          <textarea id="case-metadata" class="full-width-textarea" formControlName="metadata" rows="2" aria-describedby="metadata-help"></textarea>
-          <span id="metadata-help" class="hint">Registrá tema, dificultad o etiquetas; no incluyas datos que identifiquen al alumno.</span>
-        </div>
-        <div class="field-control">
-          <label for="case-author">Autor *</label>
-          <span class="field-help"><button type="button" class="field-help-trigger" aria-label="Ayuda sobre el autor">?</button><span class="field-help-tooltip" role="tooltip">Indicá quién revisó y fijó los puntajes humanos, por ejemplo <em>Prof. Ana Pérez</em>. No es el estudiante ni el autor del código.</span></span>
-          <input id="case-author" formControlName="author" required />
-        </div>
-      </fieldset>
-      <fieldset>
-        <legend>Puntuaciones humanas de referencia</legend>
-        <div class="scores score-grid">
-          @for(key of scoreKeys;track key){
-            <div class="field-control">
-              <label [for]="'score-' + key">{{ scoreLabel(key) }} *</label>
-              <span class="field-help"><button type="button" class="field-help-trigger" [attr.aria-label]="'Ayuda sobre la puntuación de ' + scoreLabel(key)">?</button><span class="field-help-tooltip" role="tooltip">Es la referencia humana acordada por quien revisa el caso: un entero entre 0 y 100. No copies una nota académica ni una puntuación generada por el modelo.</span></span>
-              <input [id]="'score-' + key" [formControlName]="key" type="number" min="0" max="100" step="1" required [attr.aria-invalid]="scoreInvalid(key)" />
-              @if(scoreInvalid(key)){<p class="field-error">Usá un entero entre 0 y 100.</p>}
-            </div>
-          }
-        </div>
-      </fieldset>
-      <details>
-        <summary>Justificaciones por dimensión (opcionales)</summary>
-        <p class="hint">Ayudan a explicar la referencia humana durante la calibración.</p>
-        <div class="justifications">
-          @for(key of scoreKeys;track key){
-            <div class="field-control">
-              <label [for]="'justification-' + key">{{ scoreLabel(key) }}</label>
-              <span class="field-help"><button type="button" class="field-help-trigger" [attr.aria-label]="'Ayuda sobre la justificación de ' + scoreLabel(key)">?</button><span class="field-help-tooltip" role="tooltip">Explicá brevemente por qué se asignó ese puntaje. Es opcional, pero ayuda a revisar resultados de calibración.</span></span>
-              <textarea [id]="'justification-' + key" [formControlName]="justificationControl(key)" rows="2"></textarea>
-            </div>
-          }
-        </div>
-      </details>
-      @if(saveError()){<p class="error save-error" role="alert">{{ saveError() }}</p>}
-      @if(saved()){<p class="saved" role="status">Caso guardado en el borrador.</p>}
-      <button class="save" type="submit" [disabled]="saving()">{{ saving() ? 'Guardando…' : 'Guardar caso' }}</button>
-    </form>
-  </section>
-}
-
-@if (importDraft(); as set) {
-  <section class="set editor" aria-labelledby="import-title">
-    <div class="set-heading">
-      <div>
-        <p class="eyebrow">STAGING DE IMPORTACIÓN · v{{ set.version }}</p>
-        <h2 id="import-title">Importar casos · {{ set.name }}</h2>
-      </div>
-      <button type="button" class="secondary" (click)="cancelImport()">Cancelar</button>
-    </div>
-    <p class="hint">Cargá un archivo .json o .csv o pegá su contenido. El staging permite validar cada fila, editar errores y confirmar el lote completo (DEC-18, DEC-19).</p>
-
-    <div class="import-controls">
-      <label class="file-label">
-        Archivo (.json o .csv)
-        <input type="file" accept=".json,.csv,text/csv,application/json" (change)="onFileSelected($event)" />
-      </label>
-      <div class="raw-input-wrap">
-        <label>O pegá contenido estructurado JSON o CSV
-          <textarea rows="4" placeholder="[{ &quot;transcript&quot;: [...], ... }] o CSV con encabezados..." [value]="rawInput()" (input)="onRawInput($event)"></textarea>
-        </label>
-        <button type="button" class="secondary" (click)="processRawInput()">Procesar filas</button>
-      </div>
-    </div>
-
-    @if (stagingRows().length > 0) {
-      <div class="staging-summary">
-        <p>
-          Total filas: <strong>{{ stagingRows().length }}</strong> |
-          Válidas: <span class="badge valid">{{ validCount() }}</span> |
-          Con errores: <span class="badge invalid">{{ errorCount() }}</span>
-          @if (activeBatch(); as batch) {
-            | Estado lote backend: <strong [class.badge-ready]="batch.state === 'READY'">{{ batch.state }}</strong>
-          }
-        </p>
-      </div>
-
-      @if (editingRow(); as row) {
-        <fieldset class="row-editor">
-          <legend>Editar fila {{ row.rowNumber }}</legend>
-          <div class="edit-fields">
-            <label>Autor * <input [value]="row.payload.author" (input)="updateEditField('author', $event)" /></label>
-            <label>Enunciado desafío * <input [value]="row.payload.challengeContext.statement" (input)="updateEditField('statement', $event)" /></label>
-            <label>ID desafío <input [value]="row.payload.challengeContext.externalChallengeId" (input)="updateEditField('externalChallengeId', $event)" /></label>
-          </div>
-          <div class="scores-edit">
-            @for (k of scoreKeys; track k) {
-              <label>{{ scoreLabel(k) }} (0-100) *
-                <input type="number" min="0" max="100" [value]="row.payload.referenceScores[k]" (input)="updateEditScore(k, $event)" />
-              </label>
-            }
-          </div>
-          <div class="edit-actions">
-            <button type="button" (click)="saveRowEdit()">Guardar cambios de fila</button>
-            <button type="button" class="secondary" (click)="cancelRowEdit()">Cancelar edición</button>
-          </div>
-        </fieldset>
-      }
-
-      <div class="table-wrap">
-        <table class="staging-table">
-          <caption>Filas en staging ({{ stagingRows().length }})</caption>
-          <thead>
-            <tr>
-              <th scope="col">#</th>
-              <th scope="col">Estado</th>
-              <th scope="col">Autor</th>
-              <th scope="col">Enunciado</th>
-              <th scope="col">Puntajes (Aut/Cla/Pro/Cum/Efi)</th>
-              <th scope="col">Mensajes</th>
-              <th scope="col">Acciones</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (r of stagingRows(); track r.rowNumber) {
-              <tr [class.has-error]="r.errors.length > 0">
-                <th scope="row">{{ r.rowNumber }}</th>
-                <td>
-                  @if (r.errors.length === 0) {
-                    <span class="status-valid">Válida</span>
-                  } @else {
-                    <span class="status-error" [title]="r.errors.join(', ')">Con errores ({{ r.errors.length }})</span>
-                  }
-                </td>
-                <td>{{ r.payload.author || '—' }}</td>
-                <td>{{ r.payload.challengeContext.statement || '—' }}</td>
-                <td>
-                  {{ r.payload.referenceScores['AUTONOMY'] ?? '—' }}/{{ r.payload.referenceScores['CLARITY'] ?? '—' }}/{{ r.payload.referenceScores['PROGRESSION'] ?? '—' }}/{{ r.payload.referenceScores['COMPLIANCE'] ?? '—' }}/{{ r.payload.referenceScores['EFFICIENCY'] ?? '—' }}
-                </td>
-                <td>{{ r.payload.transcript.length }} msg(s)</td>
-                <td>
-                  <button type="button" class="secondary small" (click)="startEditRow(r.rowNumber)">Editar</button>
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <div class="import-actions">
-        @if (!activeBatch() || activeBatch()?.state === 'FAILED' || activeBatch()?.state === 'DRAFT') {
-          <button type="button" (click)="uploadAndValidateBatch()" [disabled]="importing()">
-            {{ importing() ? 'Subiendo y validando…' : 'Subir a staging y validar' }}
-          </button>
-        }
-        <button type="button" class="save" [disabled]="importing() || errorCount() > 0 || activeBatch()?.state !== 'READY'" (click)="commitBatch()">
-          {{ importing() ? 'Confirmando…' : 'Confirmar lote e incorporar' }}
-        </button>
-        @if (activeBatch() && activeBatch()?.state !== 'READY') {
-          <p class="notice">El lote solo se puede confirmar cuando todas sus filas son válidas y el backend responde READY (DEC-19).</p>
-        }
-      </div>
-    }
-
-    @if (importError()) {
-      <p class="error save-error" role="alert">{{ importError() }}</p>
-    }
-  </section>
-}
-
-@if (realInteractionDraft(); as set) {
-  <section class="set editor" aria-labelledby="real-interaction-title">
-    <div class="set-heading">
-      <div>
-        <p class="eyebrow">INTERACCIÓN REAL ANONIMIZADA · v{{ set.version }}</p>
-        <h2 id="real-interaction-title">Seleccionar interacción de alumno · {{ set.name }}</h2>
-      </div>
-      <button type="button" class="secondary" (click)="cancelRealInteraction()">Cancelar</button>
-    </div>
-    <p class="hint">Las interacciones se anonimizan de forma irreversible (redactando emails, IDs y teléfonos) antes de incorporarse al Golden Set.</p>
-
-    @if (loadingEligible()) {
-      <p role="status">Cargando interacciones reales elegibles…</p>
-    } @else if (!eligibleList().length) {
-      <p class="notice">No se encontraron interacciones elegibles para este curso.</p>
+  <section class="notice error" role="alert"><strong>No se pudo cargar el Golden Set.</strong><button type="button" (click)="goldenSets.reload()">Reintentar</button></section>
+} @else if (!draft()) {
+  <section class="start-card" aria-labelledby="start-title">
+    @if (creating) {
+      <p class="eyebrow">PASO 1 DE 2</p><h2 id="start-title">Prepará tus casos de referencia</h2>
+      <p>El borrador conserva cada caso que guardes. Antes de publicarlo necesitás tres; podés sumar hasta cinco.</p>
+      <button type="button" class="primary" (click)="createDraft()" [disabled]="creatingDraft()">{{ creatingDraft() ? 'Creando borrador…' : 'Crear Golden Set' }}</button>
     } @else {
-      <div class="eligible-list">
-        <h3>Interacciones disponibles</h3>
-        @for (item of eligibleList(); track item.id) {
-          <div class="eligible-card">
-            <div>
-              <strong>{{ item.statement }}</strong> <span class="badge">{{ item.externalChallengeId }}</span>
-              <p class="hint">{{ item.preview }}</p>
-            </div>
-            <button type="button" (click)="previewAnonymization(set, item)">Ver y anonimizar</button>
-          </div>
-        }
-      </div>
-    }
+      <p class="eyebrow">GOLDEN SET</p><h2 id="start-title">Todavía no seleccionaste un Golden Set</h2>
+      <p>Creá un borrador para registrar entre tres y cinco conversaciones de referencia y sus puntuaciones humanas.</p>
+      <a class="primary button-link" [href]="listPath() + '/new'">Crear Golden Set</a>
 
-    @if (anonymizedPreview(); as preview) {
-      <div class="anonymized-panel">
-        <h3>Vista previa anonimizada</h3>
-        <p class="notice">Verificá que cualquier dato identificatorio ha sido sustituido por marcas irreversibles [REDACTED_*].</p>
-        <div class="preview-transcript">
-          @for (msg of preview.transcript; track $index) {
-            <div class="preview-msg" [class.student]="msg.role === 'STUDENT'">
-              <strong>{{ msg.role === 'STUDENT' ? 'Estudiante' : 'Tutor' }}:</strong>
-              <p>{{ msg.content }}</p>
-            </div>
+      @if (goldenSets.value().items.length) {
+        <div class="draft-list" aria-labelledby="drafts-title">
+          <h3 id="drafts-title">Versiones existentes</h3>
+          @for (item of goldenSets.value().items; track item.id) {
+            <article class="draft-item">
+              <div><strong>{{ item.name }}</strong><span>Versión {{ item.version }} · {{ item.cases.length }} caso(s) · {{ item.state === 'DRAFT' ? 'Borrador' : 'Publicado' }}</span></div>
+              @if (item.state === 'DRAFT') { <a [href]="listPath() + '/' + item.id + '/edit'">Continuar</a> }
+            </article>
           }
-        </div>
-
-        <form [formGroup]="realCaseForm" (ngSubmit)="saveRealCase(set)" novalidate>
-          <fieldset>
-            <legend>Puntuaciones humanas de referencia para este caso real</legend>
-            <label>Autor de la referencia * <input formControlName="author" required /></label>
-            <div class="scores">
-              @for (key of scoreKeys; track key) {
-                <div>
-                  <label>{{ scoreLabel(key) }} * <input [formControlName]="key" type="number" min="0" max="100" required /></label>
-                </div>
-              }
-            </div>
-          </fieldset>
-          @if (realCaseError()) {
-            <p class="error save-error" role="alert">{{ realCaseError() }}</p>
-          }
-          <button type="submit" class="save" [disabled]="savingReal()">
-            {{ savingReal() ? 'Incorporando…' : 'Incorporar caso real al Golden Set' }}
-          </button>
-        </form>
-      </div>
-    }
-  </section>
-}
-
-@if (syntheticDraft(); as set) {
-  <section class="set editor" aria-labelledby="synthetic-generator-title">
-    <div class="set-heading">
-      <div>
-        <p class="eyebrow">PROPUESTA ASISTIDA v{{ set.version }}</p>
-        <h2 id="synthetic-generator-title">Casos sintéticos propuestos por IA · {{ set.name }}</h2>
-      </div>
-      <button type="button" class="secondary" (click)="cancelSyntheticGeneration()">Cerrar</button>
-    </div>
-    <p class="notice">
-      <strong>Revisión docente obligatoria:</strong> El modelo propone conversaciones sintéticas de tutoría pedagógica.
-      El evaluador o LLM nunca produce la referencia humana definitiva. Debe revisar el diálogo pedagógico y asignar personalmente
-      los puntajes de referencia en las cinco dimensiones antes de incorporar el caso al Golden Set.
-    </p>
-
-    @if (generatingSynthetic()) {
-      <p>Generando propuestas de casos sintéticos con IA…</p>
-    }
-
-    @if (syntheticProposals().length) {
-      <div class="eligible-list">
-        @for (item of syntheticProposals(); track item.id; let i = $index) {
-          <div class="eligible-card" [class.has-error]="selectedSyntheticCase()?.id === item.id">
-            <div>
-              <strong>Propuesta #{{ i + 1 }} · {{ item.challengeContext?.statement }}</strong>
-              <p>ID desafío: {{ item.challengeContext?.externalChallengeId }} · Mensajes: {{ item.transcript?.length }}</p>
-            </div>
-            <button type="button" class="secondary small" (click)="selectSyntheticCase(item)">
-              {{ selectedSyntheticCase()?.id === item.id ? 'Revisando' : 'Revisar y puntuar' }}
-            </button>
-          </div>
-        }
-      </div>
-    }
-
-    @if (selectedSyntheticCase(); as selected) {
-      <div class="anonymized-panel">
-        <h3>Diálogo propuesto para evaluación humana</h3>
-        <div class="preview-transcript">
-          @for (msg of selected.transcript; track $index) {
-            <div class="preview-msg" [class.student]="msg.role === 'STUDENT'">
-              <strong>{{ msg.role === 'STUDENT' ? 'Estudiante' : 'Tutor' }}:</strong>
-              <p>{{ msg.content }}</p>
-            </div>
-          }
-        </div>
-
-        <form [formGroup]="syntheticCaseForm" (ngSubmit)="saveSyntheticCase(set)" novalidate>
-          <fieldset>
-            <legend>Evaluación pedagógica de referencia (Revisión Docente)</legend>
-            <label>Docente evaluador * <input formControlName="author" required /></label>
-            <div class="scores">
-              @for (key of scoreKeys; track key) {
-                <div>
-                  <label>{{ scoreLabel(key) }} (0–100) * <input [formControlName]="key" type="number" min="0" max="100" required /></label>
-                </div>
-              }
-            </div>
-          </fieldset>
-          @if (syntheticError()) {
-            <p class="error save-error" role="alert">{{ syntheticError() }}</p>
-          }
-          <button type="submit" class="save" [disabled]="savingSynthetic() || syntheticCaseForm.invalid">
-            {{ savingSynthetic() ? 'Incorporando…' : 'Aprobar e incorporar caso sintético revisado' }}
-          </button>
-        </form>
-      </div>
-    }
-  </section>
-}
-
-@if (!editorRoute && !goldenSets.isLoading() && goldenSets.value().items.length) {
-  <section class="set">
-    <h2>Detalle de casos</h2>
-    @for (set of goldenSets.value().items; track set.id) {
-      @if (set.cases.length) {
-        <div class="table-wrap">
-          <table>
-            <caption>Casos de {{ set.name }}</caption>
-            <thead>
-              <tr>
-                <th scope="col">Orden</th>
-                <th scope="col">Autor</th>
-                <th scope="col">Revisión</th>
-              </tr>
-            </thead>
-            <tbody>
-              @for (case of set.cases; track case.id) {
-                <tr>
-                  <th scope="row">{{ case.order + 1 }}</th>
-                  <td>{{ case.author }}</td>
-                  <td>{{ reviewLabel(case.reviewState) }}</td>
-                </tr>
-              }
-            </tbody>
-          </table>
         </div>
       }
     }
+  </section>
+} @else if (draft(); as set) {
+  <section class="workspace" aria-labelledby="editor-title">
+    <div class="workspace-top"><div><p class="eyebrow">BORRADOR · V{{ set.version }}</p><h2 id="editor-title">{{ set.name }}</h2></div><a [href]="listPath()">Volver al listado</a></div>
+    <section class="progress-card" aria-label="Progreso del Golden Set"><div><strong>{{ completeCount() }} de 3 casos obligatorios</strong><span>Hasta 5 casos en total</span></div><div class="progress-track" aria-hidden="true"><i [style.width.%]="progressPercent()"></i></div></section>
+    <div class="case-tabs" role="tablist" aria-label="Casos del Golden Set" (keydown)="onTabKeydown($event)">
+      @for (slot of slots(); track slot) { <button type="button" role="tab" [id]="'case-tab-' + slot" [attr.aria-selected]="activeIndex() === slot" [attr.aria-controls]="'case-panel-' + slot" [tabindex]="activeIndex() === slot ? 0 : -1" [class.active]="activeIndex() === slot" (click)="selectSlot(slot)"><span>Caso {{ slot + 1 }}</span><small>{{ slot < caseCount() ? 'Completo' : 'Pendiente' }}</small></button> }
+      @if (canAddOptional()) { <button type="button" class="add-case" (click)="addOptionalCase()">+ Agregar opcional</button> }
+    </div>
+    <form [formGroup]="form" (ngSubmit)="saveCase()" novalidate role="tabpanel" [id]="'case-panel-' + activeIndex()" [attr.aria-labelledby]="'case-tab-' + activeIndex()">
+      <fieldset><legend>Conversación</legend><label for="transcript">Transcripción completa <span aria-hidden="true">*</span></label><p class="field-hint">Cada mensaje comienza con “Estudiante:” o “Tutor IA:”. No incluyas identidad personal.</p><textarea id="transcript" formControlName="transcriptText" rows="13" placeholder="Estudiante: Tengo dudas con la pila…&#10;Tutor IA: ¿Qué condición indica que está llena?"></textarea></fieldset>
+      <fieldset><legend>Puntuaciones humanas</legend><p class="field-hint">Ingresá un entero de 0 a 100 por dimensión. El total ponderado se calcula automáticamente.</p><div class="score-list">@for (key of scoreKeys; track key) { <section class="score-row"><div><label [for]="'score-' + key">{{ scoreLabel(key) }} <span aria-hidden="true">*</span></label><details><summary>Ver criterio</summary><p>{{ criterion(key) }}</p></details></div><input [id]="'score-' + key" [formControlName]="key" type="number" min="0" max="100" step="1" required /></section> }</div><p class="weighted" role="status">Puntaje ponderado: <strong>{{ weightedScore() }} / 100</strong></p></fieldset>
+      @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> } @if (message()) { <p class="notice success" role="status">{{ message() }}</p> }
+      <div class="actions"><button type="submit" class="secondary" [disabled]="saving()">{{ saving() ? 'Guardando…' : editingCaseId() ? 'Guardar cambios' : 'Guardar caso' }}</button><button type="button" class="primary" (click)="saveAndNext()" [disabled]="saving()">Guardar y siguiente</button></div>
+    </form>
+    <section class="review" aria-labelledby="review-title"><div><h2 id="review-title">Revisión final</h2><p>{{ caseCount() }} caso(s) guardado(s). La publicación requiere entre 3 y 5.</p></div><button type="button" class="primary" (click)="publish()" [disabled]="saving()">Publicar Golden Set</button></section>
   </section>
 }

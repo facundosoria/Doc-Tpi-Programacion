@@ -24,9 +24,10 @@ public class RubricDraftService {
       .orElseThrow(() -> new IllegalStateException("La rúbrica no existe en el curso")); }
 
   @Transactional
-  public RubricVersion create(UUID courseId, RubricInput input, CallerIdentity actor) {
-    validate(input);
-    return rubrics.createDraft(courseId, input, actor.delegatedUserId());
+  public RubricVersion createFromTemplate(UUID courseId, UUID templateVersionId, String name, CallerIdentity actor) {
+    if (name == null || name.isBlank()) throw new IllegalArgumentException("El nombre de la rúbrica es obligatorio");
+    return rubrics.createDraftFromPublishedTemplate(courseId, templateVersionId, name.trim(), actor.delegatedUserId())
+        .orElseThrow(() -> new IllegalArgumentException("La plantilla institucional publicada no existe"));
   }
 
   @Transactional
@@ -41,6 +42,7 @@ public class RubricDraftService {
     if (!rubrics.advanceRevision(courseId, versionId, expectedRevision)) {
       throw new OptimisticLockException("El borrador fue actualizado en otro dispositivo; recargá antes de guardar");
     }
+    rubrics.updateVersionName(courseId, versionId, input.name().trim());
     rubrics.replaceDimensions(versionId, input.dimensions());
     return get(courseId, versionId);
   }
@@ -53,7 +55,10 @@ public class RubricDraftService {
   }
 
   public record RubricInput(String name, List<DimensionInput> dimensions) {}
-  public record DimensionInput(Dimension key, String label, String criterion, String anchors, String evaluatorPrompt, BigDecimal weight) {}
-  public record RubricVersion(UUID id, UUID familyId, int version, String name, String state, long revision, List<DimensionInput> dimensions) {}
+  public record Anchor(String behavior, Integer referenceScore, String example) {}
+  public record Anchors(Anchor low, Anchor medium, Anchor high) {}
+  public record DimensionInput(Dimension key, String label, String criterion, Anchors anchors, BigDecimal weight) {}
+  public record RubricVersion(UUID id, UUID familyId, int version, String name, String state, long revision,
+      UUID templateOriginVersionId, List<DimensionInput> dimensions) {}
   public static class OptimisticLockException extends RuntimeException { public OptimisticLockException(String message) { super(message); } }
 }

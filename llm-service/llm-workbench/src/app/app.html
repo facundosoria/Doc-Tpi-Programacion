@@ -3,7 +3,11 @@
     <span class="brand-mark" aria-hidden="true">GS</span>
     <span><b>TUP</b><strong>Golde-Set</strong></span>
   </a>
-  <span class="workspace-label">Panel docente · Evaluador pedagógico</span>
+  @if (currentCourse(); as course) {
+    <span class="workspace-label"><strong>{{ course.name }}</strong><small>{{ course.subtitle }}</small></span>
+  } @else {
+    <span class="workspace-label">Panel docente · Evaluador pedagógico</span>
+  }
   <nav aria-label="Navegación principal">
     <a routerLink="/docente">Mis cursos</a>
   </nav>

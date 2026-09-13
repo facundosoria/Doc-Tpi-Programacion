@@ -3,6 +3,9 @@
   min-height: 100vh;
 }
 .topbar {
+  position: sticky;
+  z-index: 30;
+  top: 0;
   min-height: 4.5rem;
   padding: .8rem clamp(1rem, 3vw, 2.5rem);
   background: #075797;
@@ -32,7 +35,9 @@
   font: 800 .75rem var(--mono);
   letter-spacing: -.06em;
 }
-.workspace-label { color: rgb(255 255 255 / 72%); font-size: .85rem; }
+.workspace-label { display: grid; color: rgb(255 255 255 / 72%); font-size: .78rem; line-height: 1.25; }
+.workspace-label strong { color: #fff; font-size: .88rem; }
+.workspace-label small { font-size: .7rem; }
 .topbar nav {
   display: flex;
   margin-left: auto;

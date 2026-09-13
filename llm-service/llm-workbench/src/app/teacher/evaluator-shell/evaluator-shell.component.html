@@ -5,18 +5,23 @@
   </ol>
 </nav>
 
-<section class="course-context" aria-label="Estado de calibración del curso">
+@if (toast.message(); as message) {
+  <aside class="toast" [class.error]="message.kind === 'error'" role="status" aria-live="polite">
+    <span aria-hidden="true">{{ message.kind === 'success' ? '✓' : '!' }}</span>
+    <p>{{ message.text }}</p>
+    <button type="button" (click)="toast.dismiss()" aria-label="Cerrar aviso">×</button>
+  </aside>
+}
+
+<section class="course-context" aria-labelledby="section-title">
   <div>
-    <p class="eyebrow">TUP-GOLDE-SET · ESPACIO DOCENTE</p>
-    <p class="course-name">{{ course()?.name ?? 'Curso autorizado' }}</p>
-    <p class="course-subtitle">{{ course()?.subtitle }}</p>
+    <p class="eyebrow">{{ sectionContent().label }}</p>
+    <h1 id="section-title" class="course-name">{{ sectionContent().title }}</h1>
+    <p class="course-subtitle">{{ sectionContent().description }}</p>
   </div>
   <div class="calibration-status" [class.ready]="hasActiveCalibration()">
     <span class="status-dot" aria-hidden="true"></span>
-    <div>
-      <strong>{{ calibrationLabel() }}</strong>
-      <p>{{ calibrationDescription() }}</p>
-    </div>
+    <strong>{{ calibrationLabel() }}</strong>
   </div>
 </section>
 
@@ -33,7 +38,7 @@
 <div class="course-layout">
   <label class="mobile-section-picker">Sección del curso
     <select [value]="currentSection()" (change)="navigateSection($event)">
-      <option value="resumen">Resumen</option><option value="rubricas">Rúbricas</option><option value="golden-set">Golden Set</option><option value="calibraciones">Calibraciones</option><option value="asignaciones">Asignaciones</option><option value="como-usar">Cómo usar</option>
+      <option value="resumen">Resumen</option><option value="rubricas">Rúbricas</option><option value="golden-set">Golden Set</option><option value="calibraciones">Calibraciones</option><option value="llm-api-keys">LLM API keys</option><option value="asignaciones">Asignaciones</option><option value="como-usar">Cómo usar</option>
     </select>
   </label>
   <nav class="course-nav" aria-label="Secciones del evaluador">
@@ -45,6 +50,7 @@
       <p class="nav-breadcrumb"><span>Golden Set</span><b aria-hidden="true">›</b>{{ goldenSetBreadcrumb() }}</p>
     }
     <a routerLink="calibraciones" routerLinkActive="current"><span aria-hidden="true">◌</span>Calibraciones</a>
+    <a routerLink="llm-api-keys" routerLinkActive="current"><span aria-hidden="true">⌁</span>LLM API keys</a>
     <a routerLink="asignaciones" routerLinkActive="current"><span aria-hidden="true">⌘</span>Asignaciones</a>
     <a routerLink="como-usar" routerLinkActive="current"><span aria-hidden="true">?</span>Cómo usar</a>
     <div class="nav-footer"><span class="footer-dot" aria-hidden="true"></span><small>Servicio de evaluación</small><strong>Conectado</strong></div>

@@ -15,6 +15,6 @@ public class WorkbenchCorsConfiguration implements WebMvcConfigurer {
         // Angular's proxy preserves Origin when the workbench is opened from a LAN device.
         // DELETE is required for the logical draft deletion endpoint.
         .allowedMethods("GET", "POST", "PATCH", "DELETE", "OPTIONS")
-        .allowedHeaders("Content-Type", "Idempotency-Key", "X-Request-Id");
+        .allowedHeaders("Content-Type", "Idempotency-Key", "X-Request-Id", "traceparent");
   }
 }
