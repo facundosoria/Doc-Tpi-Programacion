@@ -52,19 +52,19 @@ S1 es un sprint de arranque: **casi todo es habilitador técnico**. Solo **H05�
 
 ## Índice
 
-| ID | Título | Tipo | Épica | Pareja | Dep. | h | Ficha · Tareas |
-| --- | --- | --- | --- | --- | --- | --: | --- |
-| LLM-S01-H01 | ADR de arquitectura y convenciones técnicas | Tarea (habilitador) | EP-01 | P1 | — | 16 | [ficha](../historias/ep-01/h01.md) · [tareas](../tareas/ep-01/h01.md) |
-| LLM-S01-H02 | Entorno reproducible con un comando | Tarea (habilitador) | EP-01 | P1 | H01 | 30 | [ficha](../historias/ep-01/h02.md) · [tareas](../tareas/ep-01/h02.md) |
-| LLM-S01-H03 | Esqueleto transversal del servicio | Tarea (habilitador) | EP-01 | P1 | H02 | 34 | [ficha](../historias/ep-01/h03.md) · [tareas](../tareas/ep-01/h03.md) |
-| LLM-S01-H04 | Esquema inicial versionado con auditoría | Tarea (habilitador) | EP-01 | P1 | H03 | 38 | [ficha](../historias/ep-01/h04.md) · [tareas](../tareas/ep-01/h04.md) |
-| LLM-S01-H05 | Alta de golden set y carga de entradas | **HU** | EP-03 | P5 | H04 | 24 | [ficha](../historias/ep-03/h05.md) · [tareas](../tareas/ep-03/h05.md) |
-| LLM-S01-H06 | Consulta del golden set que sobrevive al reinicio | **HU** *(canónica)* | EP-03 | P5 | H04 | 14 | [ficha](../historias/ep-03/h06.md) · [tareas](../tareas/ep-03/h06.md) |
-| LLM-S01-H07 | Pantalla docente mínima del golden set | **HU** | EP-03 | P5 | H05, H06 | 24 | [ficha](../historias/ep-03/h07.md) · [tareas](../tareas/ep-03/h07.md) |
-| LLM-S01-H08 | Contrato OpenAPI y mock del golden set publicados | Tarea (habilitador) | EP-01 | P1 | H03 | 10 | [ficha](../historias/ep-01/h08.md) · [tareas](../tareas/ep-01/h08.md) |
-| LLM-S01-H09 | Suite de pruebas y guía de demo de S1 | Tarea (habilitador) | EP-01 | todos | H04–H07 | 18 | [ficha](../historias/ep-01/h09.md) · [tareas](../tareas/ep-01/h09.md) |
-| LLM-S01-H10 | Puerto del proveedor de modelos (AI Gateway) y fake para pruebas | Tarea (habilitador) | EP-02 | P2 | H01 | 32 | [ficha](../historias/ep-02/h10.md) · [tareas](../tareas/ep-02/h10.md) |
-| | | | | | **Total** | **240** | |
+| ID          | Título                                                           | Tipo                | Épica | Pareja | Dep.      |       h | Ficha · Tareas                                                        |
+| ----------- | ---------------------------------------------------------------- | ------------------- | ----- | ------ | --------- | ------: | --------------------------------------------------------------------- |
+| LLM-S01-H01 | ADR de arquitectura y convenciones técnicas                      | Tarea (habilitador) | EP-01 | P1     | —         |      16 | [ficha](../historias/ep-01/h01.md) · [tareas](../tareas/ep-01/h01.md) |
+| LLM-S01-H02 | Entorno reproducible con un comando                              | Tarea (habilitador) | EP-01 | P1     | H01       |      30 | [ficha](../historias/ep-01/h02.md) · [tareas](../tareas/ep-01/h02.md) |
+| LLM-S01-H03 | Esqueleto transversal del servicio                               | Tarea (habilitador) | EP-01 | P1     | H02       |      34 | [ficha](../historias/ep-01/h03.md) · [tareas](../tareas/ep-01/h03.md) |
+| LLM-S01-H04 | Esquema inicial versionado con auditoría                         | Tarea (habilitador) | EP-01 | P1     | H03       |      38 | [ficha](../historias/ep-01/h04.md) · [tareas](../tareas/ep-01/h04.md) |
+| LLM-S01-H05 | Alta de golden set y carga de entradas                           | **HU**              | EP-03 | P5     | H04       |      24 | [ficha](../historias/ep-03/h05.md) · [tareas](../tareas/ep-03/h05.md) |
+| LLM-S01-H06 | Consulta del golden set que sobrevive al reinicio                | **HU** *(canónica)* | EP-03 | P5     | H04       |      14 | [ficha](../historias/ep-03/h06.md) · [tareas](../tareas/ep-03/h06.md) |
+| LLM-S01-H07 | Pantalla docente mínima del golden set                           | **HU**              | EP-03 | P5     | H05, H06  |      24 | [ficha](../historias/ep-03/h07.md) · [tareas](../tareas/ep-03/h07.md) |
+| LLM-S01-H08 | Contrato OpenAPI y mock del golden set publicados                | Tarea (habilitador) | EP-01 | P1     | H03       |      10 | [ficha](../historias/ep-01/h08.md) · [tareas](../tareas/ep-01/h08.md) |
+| LLM-S01-H09 | Suite de pruebas y guía de demo de S1                            | Tarea (habilitador) | EP-01 | todos  | H04–H07   |      18 | [ficha](../historias/ep-01/h09.md) · [tareas](../tareas/ep-01/h09.md) |
+| LLM-S01-H10 | Puerto del proveedor de modelos (AI Gateway) y fake para pruebas | Tarea (habilitador) | EP-02 | P2     | H01       |      32 | [ficha](../historias/ep-02/h10.md) · [tareas](../tareas/ep-02/h10.md) |
+|             |                                                                  |                     |       |        | **Total** | **240** |                                                                       |
 
 > **H10 es una incorporación de la reprogramación a 8 semanas.** Se adelanta desde S3
 > porque no depende del golden set publicado, sólo del ADR (H01), y corre en paralelo con
