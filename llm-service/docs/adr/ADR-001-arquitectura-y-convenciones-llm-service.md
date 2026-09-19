@@ -23,6 +23,7 @@ configuración compartidas y verificables.
 | `infrastructure` | Adaptadores: persistencia JDBC, proveedores de IA, gateway, RAG. |
 | `security` | Autorización por scopes/roles a partir de la identidad del Gateway. |
 | `configuration` | Beans, filtros (`GatewayIdentityFilter`), `SecurityConfig`, propiedades. |
+| `messaging.kafka` | Esqueleto de mensajería transversal (outbox, relay, consumidor idempotente); ver [ADR-002](ADR-002-mensajeria-kafka-outbox-y-dedup.md). |
 
 El módulo `moderation` replica el mismo esquema (`api/application/domain/infrastructure`) dentro de su propio paquete.
 
@@ -56,10 +57,11 @@ Toda variable nueva debe agregarse acá y a `.env.example` en el mismo PR; la re
 | `TRUST_UNSIGNED_BEARER` | `false` | Solo dev/tests (ver §3) |
 | `GROQ_API_KEY` / `GROQ_MODEL` / `GROQ_BASE_URL` | vacío / ver `.env.example` | Proveedor LLM |
 | `LLM_MODERATION_CONTEXTUAL_URL` / `_API_KEY` / `_MODEL` | — | Clasificador contextual de moderación |
+| `KAFKA_BOOTSTRAP_SERVERS` / `LLM_KAFKA_ENABLED` / `LLM_KAFKA_OUTBOX_POLL_MS` | `localhost:9092` / `false` / `2000` | Broker Kafka; el relay y los consumidores solo corren con `LLM_KAFKA_ENABLED=true` (ver ADR-002) |
 | `MODERATION_RETENTION_ENABLED` / `_CRON` / `_DAYS` / `_REVERSED_DAYS` / `_UNRESOLVED_TIMEOUT_DAYS` | ver `application.yml` | Retención de moderación |
 
 ## Consecuencias
 
 - Las parejas arrancan con la misma estructura; las desviaciones se detectan en revisión.
 - La independencia del dominio queda protegida por un test, no por convención.
-- Kafka (H07) todavía no está en el stack; cuando entre, se documenta en un ADR nuevo.
+- Kafka (H07) entró al stack el 2026-09-18 y se documenta en [ADR-002](ADR-002-mensajeria-kafka-outbox-y-dedup.md).
