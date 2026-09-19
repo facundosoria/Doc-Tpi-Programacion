@@ -2,6 +2,7 @@
 # ==============================================================================
 # test-compose-restart.sh — Prueba automatizada de reinicio de Compose (H06 / T4)
 # Traza: CA3 (persistencia tras reinicio) y CA6 (fallo bloqueante ante pérdida)
+#        + H07·CA5 (el registro de idempotencia de eventos Kafka persiste tras el reinicio)
 # ==============================================================================
 set -euo pipefail
 
@@ -51,6 +52,7 @@ wait_for_health
 
 COMMON_HEADERS=(
   -H "Content-Type: application/json"
+  -H "X-Principal-Type: service"
   -H "X-Service-Id: admin-service"
   -H "X-Service-Scopes: llm.golden-set.manage"
   -H "X-Delegated-User: $TEACHER_ID"
@@ -114,6 +116,15 @@ if ! echo "$LIST_BEFORE" | grep -q "$VERSION_ID"; then
 fi
 echo "   Confirmado: Golden Set presente previo al reinicio."
 
+EVENT_ID="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen | tr 'A-Z' 'a-z')"
+psql_llm() {
+  docker compose -f compose.yaml -f compose.debug.yaml -p "$PROJECT_NAME" exec -T postgres psql -U llm -d llm -tAc "$1"
+}
+if [ "$SKIP_COMPOSE_MANAGE" != "true" ]; then
+  echo "4b. [H07·CA5] Registrando eventId $EVENT_ID en kafka_consumed_events antes del reinicio..."
+  psql_llm "insert into llm.kafka_consumed_events (event_id, topic, event_type, consumer_group) values ('$EVENT_ID', 'practice-events', 'ATTEMPT-CLOSED', 'llm-service')" > /dev/null
+fi
+
 if [ "$SKIP_COMPOSE_MANAGE" != "true" ]; then
   echo "5. Ejecutando reinicio de Compose (docker compose restart)..."
   docker compose -f compose.yaml -f compose.debug.yaml -p "$PROJECT_NAME" restart
@@ -134,6 +145,16 @@ if ! echo "$LIST_AFTER" | grep -q "$VERSION_ID"; then
   echo " Se detectó pérdida de datos en la base. Bloqueando Review de S1."
   echo "=================================================================="
   exit 1
+fi
+
+if [ "$SKIP_COMPOSE_MANAGE" != "true" ]; then
+  echo "7. [H07·CA5] Verificando que el registro de idempotencia persiste tras el reinicio..."
+  FOUND="$(psql_llm "select count(*) from llm.kafka_consumed_events where event_id = '$EVENT_ID'")"
+  if [ "$FOUND" != "1" ]; then
+    echo " [FALLO H07·CA5] El eventId $EVENT_ID NO persiste tras el reinicio: se reprocesarían eventos duplicados."
+    exit 1
+  fi
+  echo "   Confirmado: el eventId sigue registrado (dedup intacta)."
 fi
 
 echo "=================================================================="

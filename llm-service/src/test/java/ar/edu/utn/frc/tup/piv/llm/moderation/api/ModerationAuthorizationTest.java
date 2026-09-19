@@ -50,13 +50,26 @@ class ModerationAuthorizationTest {
     }
 
     @Test
-    void allowsTeacherWithAssignedCourseViaJwt() {
+    void allowsTeacherWithAssignedCourseViaUnsignedJwtOnlyWhenTrustFlagIsOn() {
+        authorization.setTrustUnsignedBearer(true);
         String jwt = createTeacherJwt("prof-10", "curso-42");
         HttpHeaders headers = new HttpHeaders();
         headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
 
         authorization.requireTeacherCourse("curso-42", headers);
         assertThat(authorization.resolveUserId(headers)).isEqualTo("prof-10");
+    }
+
+    @Test
+    void ignoresUnsignedJwtWhenTrustFlagIsOff() {
+        String jwt = createTeacherJwt("prof-10", "curso-42");
+        HttpHeaders headers = new HttpHeaders();
+        headers.set(HttpHeaders.AUTHORIZATION, "Bearer " + jwt);
+
+        assertThat(authorization.resolveUserId(headers)).isNull();
+        assertThatThrownBy(() -> authorization.requireTeacherCourse("curso-42", headers))
+                .isInstanceOf(ResponseStatusException.class)
+                .satisfies(ex -> assertThat(((ResponseStatusException) ex).getStatusCode()).isEqualTo(HttpStatus.UNAUTHORIZED));
     }
 
     @Test

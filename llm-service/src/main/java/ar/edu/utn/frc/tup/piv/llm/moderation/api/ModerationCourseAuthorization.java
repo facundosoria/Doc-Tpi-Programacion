@@ -29,7 +29,19 @@ public class ModerationCourseAuthorization {
     @Value("${llm.workbench.enabled:false}")
     private boolean workbench;
 
+    /** Mismo flag que GatewayIdentityFilter: solo dev/tests. Con false, un Bearer sin firma nunca aporta identidad, roles ni cursos. */
+    @Value("${app.security.trust-unsigned-bearer:false}")
+    private boolean trustUnsignedBearer;
+
     private final ObjectMapper objectMapper = new ObjectMapper();
+
+    public void setTrustUnsignedBearer(boolean trustUnsignedBearer) {
+        this.trustUnsignedBearer = trustUnsignedBearer;
+    }
+
+    private boolean isTrustedBearer(String authHeader) {
+        return trustUnsignedBearer && authHeader != null && authHeader.regionMatches(true, 0, "Bearer ", 0, 7);
+    }
 
     /**
      * Valida que el llamador autenticado sea docente del curso especificado.
@@ -78,7 +90,7 @@ public class ModerationCourseAuthorization {
 
         if (headers != null) {
             String authHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);
-            if (authHeader != null && authHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            if (isTrustedBearer(authHeader)) {
                 String sub = extractClaimFromJwt(authHeader.substring(7).trim(), "sub");
                 if (sub != null && !sub.isBlank()) {
                     return sub.trim();
@@ -122,7 +134,7 @@ public class ModerationCourseAuthorization {
 
         if (headers != null) {
             String authHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);
-            if (authHeader != null && authHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            if (isTrustedBearer(authHeader)) {
                 roles.addAll(extractListFromJwt(authHeader.substring(7).trim(), "roles"));
             }
         }
@@ -145,7 +157,7 @@ public class ModerationCourseAuthorization {
 
         if (headers != null) {
             String authHeader = headers.getFirst(HttpHeaders.AUTHORIZATION);
-            if (authHeader != null && authHeader.regionMatches(true, 0, "Bearer ", 0, 7)) {
+            if (isTrustedBearer(authHeader)) {
                 String token = authHeader.substring(7).trim();
                 courses.addAll(extractListFromJwt(token, "teacher_course_ids"));
                 courses.addAll(extractListFromJwt(token, "courses"));

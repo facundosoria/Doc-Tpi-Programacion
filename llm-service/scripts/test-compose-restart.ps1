@@ -46,6 +46,7 @@ function Wait-ForHealth {
 
 $headers = @{
   "Content-Type" = "application/json"
+  "X-Principal-Type" = "service"
   "X-Service-Id" = "admin-service"
   "X-Service-Scopes" = "llm.golden-set.manage"
   "X-Delegated-User" = $TeacherId
