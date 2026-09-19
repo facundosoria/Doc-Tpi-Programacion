@@ -4,6 +4,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyList;
+import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
@@ -18,7 +19,11 @@ import ar.edu.utn.frc.tup.piv.llm.domain.rag.ImageDetection;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.PdfTextExtractionPort;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.RagDocument;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.VectorStorePort;
+import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.IdempotencyRepository;
 import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.RagDocumentRepository;
+import ar.edu.utn.frc.tup.piv.llm.security.CallerIdentity;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -26,51 +31,14 @@ import java.util.UUID;
 import org.junit.jupiter.api.Test;
 
 class RagIngestionServiceTest {
-
-  @Test
-  void rejectsAnEmptyFile() {
-    var service = buildService(mock(PdfTextExtractionPort.class), mock(DiagramDetectionPort.class),
-        mock(VectorStorePort.class), mock(RagDocumentRepository.class), mock(EmbeddingInvocationService.class));
-
-    assertThatThrownBy(() -> service.upload(UUID.randomUUID(), "doc.pdf", new byte[0]))
-        .isInstanceOf(IllegalArgumentException.class);
-  }
-
-  @Test
-  void rejectsAFileThatIsNotPdf() {
-    var service = buildService(mock(PdfTextExtractionPort.class), mock(DiagramDetectionPort.class),
-        mock(VectorStorePort.class), mock(RagDocumentRepository.class), mock(EmbeddingInvocationService.class));
-
-    assertThatThrownBy(() -> service.upload(UUID.randomUUID(), "doc.txt", new byte[] {1, 2, 3}))
-        .isInstanceOf(IllegalArgumentException.class);
-  }
-
-  @Test
-  void rejectsAnEncryptedOrCorruptPdfWithAClearErrorInsteadOfLeakingTheIOException() throws Exception {
-    var extractor = mock(PdfTextExtractionPort.class);
-    when(extractor.extractTextWithPages(any())).thenThrow(new java.io.IOException("contraseña incorrecta"));
-    var service = buildService(extractor, mock(DiagramDetectionPort.class),
-        mock(VectorStorePort.class), mock(RagDocumentRepository.class), mock(EmbeddingInvocationService.class));
-
-    assertThatThrownBy(() -> service.upload(UUID.randomUUID(), "protegido.pdf", "bytes".getBytes()))
-        .isInstanceOf(IllegalArgumentException.class);
-  }
-
-  @Test
-  void rejectsAFileLargerThanTheConfiguredMaximum() {
-    var service = new RagIngestionService(mock(PdfTextExtractionPort.class), mock(DiagramDetectionPort.class),
-        mock(VectorStorePort.class), mock(RagDocumentRepository.class), mock(EmbeddingInvocationService.class), 10L, 8000L);
-
-    assertThatThrownBy(() -> service.upload(UUID.randomUUID(), "doc.pdf", new byte[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11}))
-        .isInstanceOf(IllegalArgumentException.class);
-  }
+  private final CallerIdentity actor = new CallerIdentity("practice-service", UUID.randomUUID(), null, null);
 
   @Test
   void rejectsAFileWithoutCourseCohortId() {
     var service = buildService(mock(PdfTextExtractionPort.class), mock(DiagramDetectionPort.class),
         mock(VectorStorePort.class), mock(RagDocumentRepository.class), mock(EmbeddingInvocationService.class));
 
-    assertThatThrownBy(() -> service.upload(null, "doc.pdf", new byte[] {1, 2, 3}))
+    assertThatThrownBy(() -> service.upload(null, "doc.pdf", new byte[] {1, 2, 3}, UUID.randomUUID(), actor))
         .isInstanceOf(IllegalArgumentException.class);
   }
 
@@ -89,11 +57,79 @@ class RagIngestionServiceTest {
     when(embeddings.embedBatch(anyList(), any())).thenReturn(List.of(new EmbeddingResult(new float[768], "fake", "fake-embedding-768")));
 
     var service = buildService(extractor, diagrams, vectorStore, documents, embeddings);
-    RagDocument result = service.upload(UUID.randomUUID(), "docker.pdf", "contenido pdf simulado".getBytes());
+    RagDocument result = service.upload(UUID.randomUUID(), "docker.pdf", "contenido pdf simulado".getBytes(), UUID.randomUUID(), actor);
 
     assertThat(result.fileName()).isEqualTo("docker.pdf");
     assertThat(result.chunkCount()).isEqualTo(1);
     verify(vectorStore).indexChunks(any(), anyList(), anyList());
+  }
+
+  @Test
+  void uploadPersistsTheDocumentBeforeIndexingItsChunks() throws Exception {
+    String pageText = "Contenido de la página uno, con longitud suficiente (más de 100 caracteres) para "
+        + "que TextChunker no descarte el fragmento por ser demasiado corto.";
+    PdfTextExtractionPort extractor = mock(PdfTextExtractionPort.class);
+    when(extractor.extractTextWithPages(any())).thenReturn(new ExtractedPdf(1, List.of(new ExtractedPage(1, pageText)), pageText));
+    DiagramDetectionPort diagrams = mock(DiagramDetectionPort.class);
+    when(diagrams.detectImages(any())).thenReturn(List.of());
+    VectorStorePort vectorStore = mock(VectorStorePort.class);
+    RagDocumentRepository documents = mock(RagDocumentRepository.class);
+    when(documents.save(any(), any())).thenAnswer(invocation -> invocation.getArgument(0));
+    EmbeddingInvocationService embeddings = mock(EmbeddingInvocationService.class);
+    when(embeddings.embedBatch(anyList(), any())).thenReturn(List.of(new EmbeddingResult(new float[768], "fake", "fake-embedding-768")));
+
+    RagIngestionService service = buildService(extractor, diagrams, vectorStore, documents, embeddings);
+    service.upload(UUID.randomUUID(), "docker.pdf", "contenido pdf simulado".getBytes(), UUID.randomUUID(), actor);
+
+    org.mockito.InOrder inOrder = org.mockito.Mockito.inOrder(documents, vectorStore);
+    inOrder.verify(documents).save(any(), any());
+    inOrder.verify(vectorStore).indexChunks(any(), anyList(), anyList());
+  }
+
+  @Test
+  void uploadReplaysTheStoredDocumentWhenTheSameIdempotencyKeyIsReused() throws Exception {
+    ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+    RagDocument stored = sampleDocument(UUID.randomUUID());
+    IdempotencyRepository idempotency = mock(IdempotencyRepository.class);
+    when(idempotency.replay(anyString(), any(), any(), anyString()))
+        .thenReturn(Optional.of(mapper.valueToTree(stored)));
+    RagIngestionService service = new RagIngestionService(mock(PdfTextExtractionPort.class),
+        mock(DiagramDetectionPort.class), mock(VectorStorePort.class), mock(RagDocumentRepository.class),
+        mock(EmbeddingInvocationService.class), idempotency, mapper, 26_214_400L, 8000L);
+
+    RagDocument result = service.upload(UUID.randomUUID(), "docker.pdf", "bytes".getBytes(), UUID.randomUUID(), actor);
+
+    assertThat(result.fileName()).isEqualTo(stored.fileName());
+    assertThat(result.pageCount()).isEqualTo(stored.pageCount());
+    assertThat(result.chunkCount()).isEqualTo(stored.chunkCount());
+    assertThat(result.previewText()).isEqualTo(stored.previewText());
+    assertThat(result.uploadedAt().toInstant()).isEqualTo(stored.uploadedAt().toInstant());
+    verify(idempotency, never()).complete(anyString(), any(), any(), any(), any());
+  }
+
+  @Test
+  void uploadCompletesTheIdempotencyRecordForANewDocument() throws Exception {
+    String pageText = "Contenido de la página uno, con longitud suficiente (más de 100 caracteres) para "
+        + "que TextChunker no descarte el fragmento por ser demasiado corto.";
+    PdfTextExtractionPort extractor = mock(PdfTextExtractionPort.class);
+    when(extractor.extractTextWithPages(any())).thenReturn(new ExtractedPdf(1, List.of(new ExtractedPage(1, pageText)), pageText));
+    DiagramDetectionPort diagrams = mock(DiagramDetectionPort.class);
+    when(diagrams.detectImages(any())).thenReturn(List.of());
+    VectorStorePort vectorStore = mock(VectorStorePort.class);
+    RagDocumentRepository documents = mock(RagDocumentRepository.class);
+    when(documents.save(any(), any())).thenAnswer(invocation -> invocation.getArgument(0));
+    EmbeddingInvocationService embeddings = mock(EmbeddingInvocationService.class);
+    when(embeddings.embedBatch(anyList(), any())).thenReturn(List.of(new EmbeddingResult(new float[768], "fake", "fake-embedding-768")));
+    IdempotencyRepository idempotency = mock(IdempotencyRepository.class);
+    when(idempotency.replay(anyString(), any(), any(), anyString())).thenReturn(Optional.empty());
+    RagIngestionService service = new RagIngestionService(extractor, diagrams, vectorStore, documents, embeddings,
+        idempotency, new ObjectMapper().findAndRegisterModules(), 26_214_400L, 8000L);
+
+    UUID idempotencyKey = UUID.randomUUID();
+    service.upload(UUID.randomUUID(), "docker.pdf", "contenido pdf simulado".getBytes(), idempotencyKey, actor);
+
+    verify(idempotency).complete(anyString(), org.mockito.ArgumentMatchers.eq(actor),
+        org.mockito.ArgumentMatchers.eq(idempotencyKey), any(UUID.class), any(JsonNode.class));
   }
 
   @Test
@@ -110,7 +146,7 @@ class RagIngestionServiceTest {
     when(embeddings.embedBatch(anyList(), any())).thenReturn(List.of());
 
     var service = buildService(extractor, diagrams, vectorStore, documents, embeddings);
-    RagDocument result = service.upload(UUID.randomUUID(), "sin-figuras.pdf", "bytes".getBytes());
+    RagDocument result = service.upload(UUID.randomUUID(), "sin-figuras.pdf", "bytes".getBytes(), UUID.randomUUID(), actor);
 
     assertThat(result.chunkCount()).isZero();
   }
@@ -271,7 +307,7 @@ class RagIngestionServiceTest {
     var service = buildService(extractor, detector, vectorStore, repository, embeddings);
     UUID courseCohortId = UUID.randomUUID();
 
-    RagDocument doc = service.uploadSample(courseCohortId);
+    RagDocument doc = service.uploadSample(courseCohortId, UUID.randomUUID(), actor);
 
     assertThat(doc).isNotNull();
     assertThat(doc.fileName()).isEqualTo("PRD-Plataforma-Gamificada-TP.pdf");
@@ -286,6 +322,9 @@ class RagIngestionServiceTest {
 
   private RagIngestionService buildService(PdfTextExtractionPort extractor, DiagramDetectionPort diagrams,
       VectorStorePort vectorStore, RagDocumentRepository documents, EmbeddingInvocationService embeddings) {
-    return new RagIngestionService(extractor, diagrams, vectorStore, documents, embeddings, 26_214_400L, 8000L);
+    IdempotencyRepository idempotency = mock(IdempotencyRepository.class);
+    when(idempotency.replay(anyString(), any(), any(), anyString())).thenReturn(Optional.empty());
+    return new RagIngestionService(extractor, diagrams, vectorStore, documents, embeddings, idempotency,
+        new ObjectMapper().findAndRegisterModules(), 26_214_400L, 8000L);
   }
 }

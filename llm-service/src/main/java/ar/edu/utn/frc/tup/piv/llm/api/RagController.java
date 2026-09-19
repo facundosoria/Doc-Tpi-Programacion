@@ -6,6 +6,8 @@ import ar.edu.utn.frc.tup.piv.llm.domain.rag.DiagramDecodeResult;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.DocumentChunk;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.ImageDetection;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.RagDocument;
+import ar.edu.utn.frc.tup.piv.llm.security.CallerIdentity;
+import ar.edu.utn.frc.tup.piv.llm.security.CourseAuthorization;
 import ar.edu.utn.frc.tup.piv.llm.security.RagGatewayAuthorization;
 import java.io.IOException;
 import java.util.List;
@@ -34,35 +36,39 @@ public class RagController {
   private final RagIngestionService ingestion;
   private final RagChatService chat;
   private final RagGatewayAuthorization authorization;
+  private final CourseAuthorization courseAuthorization;
 
-  public RagController(RagIngestionService ingestion, RagChatService chat, RagGatewayAuthorization authorization) {
+  public RagController(RagIngestionService ingestion, RagChatService chat, RagGatewayAuthorization authorization,
+      CourseAuthorization courseAuthorization) {
     this.ingestion = ingestion;
     this.chat = chat;
     this.authorization = authorization;
+    this.courseAuthorization = courseAuthorization;
   }
 
   @GetMapping("/documents")
   public List<RagDocument> listDocuments(@RequestParam UUID courseCohortId, @RequestHeader HttpHeaders headers) {
-    authorization.require(headers);
+    CallerIdentity actor = authorization.require(headers);
+    courseAuthorization.requireTeacher(courseCohortId, actor, headers);
     return ingestion.list(courseCohortId);
   }
 
   @PostMapping("/documents")
   public ResponseEntity<RagDocument> uploadDocument(@RequestParam UUID courseCohortId,
-      @RequestParam("file") MultipartFile file, @RequestHeader HttpHeaders headers) throws IOException {
-    authorization.require(headers);
-    if (file.isEmpty()) {
-      throw new IllegalArgumentException("El archivo PDF está vacío.");
-    }
-    RagDocument document = ingestion.upload(courseCohortId, file.getOriginalFilename(), file.getBytes());
+      @RequestParam("file") MultipartFile file, @RequestHeader("Idempotency-Key") UUID idempotencyKey,
+      @RequestHeader HttpHeaders headers) throws IOException {
+    CallerIdentity actor = authorization.require(headers);
+    courseAuthorization.requireTeacher(courseCohortId, actor, headers);
+    RagDocument document = ingestion.upload(courseCohortId, file.getOriginalFilename(), file.getBytes(),
+        idempotencyKey, actor);
     return ResponseEntity.status(HttpStatus.CREATED).body(document);
   }
 
   @PostMapping("/documents/sample")
   public ResponseEntity<RagDocument> uploadSample(@RequestParam UUID courseCohortId,
-      @RequestHeader HttpHeaders headers) {
-    authorization.require(headers);
-    RagDocument document = ingestion.uploadSample(courseCohortId);
+      @RequestHeader("Idempotency-Key") UUID idempotencyKey, @RequestHeader HttpHeaders headers) throws IOException {
+    CallerIdentity actor = authorization.require(headers);
+    RagDocument document = ingestion.uploadSample(courseCohortId, idempotencyKey, actor);
     return ResponseEntity.status(HttpStatus.CREATED).body(document);
   }
 

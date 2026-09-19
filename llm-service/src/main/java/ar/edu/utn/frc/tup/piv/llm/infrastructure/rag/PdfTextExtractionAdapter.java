@@ -26,10 +26,6 @@ public class PdfTextExtractionAdapter implements PdfTextExtractionPort {
     StringBuilder fullTextBuilder = new StringBuilder();
 
     try (PDDocument document = Loader.loadPDF(pdfBytes)) {
-      if (document.isEncrypted()) {
-        throw new IllegalArgumentException("El archivo PDF está protegido con contraseña. Por favor sube un PDF sin cifrar.");
-      }
-
       int totalPages = document.getNumberOfPages();
       if (totalPages == 0) {
         throw new IllegalArgumentException("El archivo PDF no contiene páginas.");

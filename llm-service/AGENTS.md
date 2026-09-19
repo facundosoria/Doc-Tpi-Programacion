@@ -238,10 +238,12 @@ export class BadEditorComponent {
 2. **Inyección por Constructor:** Prohibido el uso de `@Autowired` sobre campos (`field injection`). Usar constructores explícitos o constructores canónicos de `record`.
 3. **Pattern Matching y Switch Expressions:** Aprovechar el `switch` con pattern matching exhaustivo de Java 21 para estados de dominio o resolución de estrategias.
 4. **Manejo Centralizado de Errores:** Controlar excepciones con `@RestControllerAdvice` retornando RFC 7807 (`ProblemDetail`), sin filtrar stacktraces ni datos sensibles.
-5. **Arquitectura Hexagonal / Puertos y Adaptadores:**
-   - `domain`: Reglas de negocio puras; **prohibido importar Spring, JPA o Kafka**.
-   - `application`: Casos de uso y orquestación.
-   - `infrastructure`: Adaptadores Web (`@RestController`), Persistencia (JPA/Flyway), Mensajería (Kafka) y AI Gateway (`langchain4j`).
+5. **Arquitectura DDD (Domain-Driven Design) — Capas y Tácticas de Dominio:**
+   - `api` (capa de interfaz): `@RestController` que traduce HTTP ↔ casos de uso. **Sin reglas de negocio ni acceso a persistencia.**
+   - `application`: Servicios de aplicación (casos de uso) y orquestación de repositorios y servicios de dominio.
+   - `domain`: Modelo de dominio puro — entidades (raíces de agregado), value objects, servicios de dominio y repositorios como **contratos**; **prohibido importar Spring, JPA o Kafka**.
+   - `infrastructure`: Implementaciones concretas de repositorios y servicios de dominio (JDBC/Flyway, PDFBox, Mensajería Kafka, AI Gateway `langchain4j`).
+   - Lenguaje ubicuo y tácticas DDD: toda regla que comprometa invariantes del agregado se define en `domain` (ej. "una Fuente se persiste antes que sus chunks"). Los nombres heredados `*Port`/`*Adapter` del repo son contratos de dominio / implementaciones de infraestructura; se tratan con rol DDD.
 
 #### Ejemplo Backend (Java 21):
 
@@ -276,7 +278,7 @@ package ar.edu.utn.frc.tup.piiv.llmservice.api.controllers;
 
 import ar.edu.utn.frc.tup.piiv.llmservice.api.dto.CalibrarCursoRequest;
 import ar.edu.utn.frc.tup.piiv.llmservice.api.dto.CalibracionResponse;
-import ar.edu.utn.frc.tup.piiv.llmservice.application.port.in.CalibrarCursoUseCase;
+import ar.edu.utn.frc.tup.piiv.llmservice.application.CalibrarCursoUseCase;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -308,7 +310,7 @@ public class CalibracionController {
 @RestController
 public class BadController {
     @Autowired 
-    private JdbcTemplate jdbcTemplate; // ❌ Acoplamiento indebido y sin puerto
+    private JdbcTemplate jdbcTemplate; // ❌ Regla de negocio y persistencia directa en la capa de interfaz
 
     @PostMapping("/calibrar")
     public Object calibrar(@RequestBody Map<String, Object> body) {

@@ -10,20 +10,29 @@ import ar.edu.utn.frc.tup.piv.llm.domain.rag.PdfTextExtractionPort;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.RagDocument;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.TextChunker;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.VectorStorePort;
+import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.IdempotencyRepository;
 import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.RagDocumentRepository;
+import ar.edu.utn.frc.tup.piv.llm.security.CallerIdentity;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.Duration;
 import java.time.OffsetDateTime;
 import java.util.ArrayList;
+import java.util.HexFormat;
 import java.util.List;
-import java.util.Locale;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 /** Casos de uso de `/api/llm/rag/documents/**` (EP-09, alta/inspección de fuentes): sube y
  * procesa un PDF (extracción de texto, chunking, detección y auto-decodificación de diagramas,
@@ -33,18 +42,22 @@ import org.springframework.stereotype.Service;
 @Service
 public class RagIngestionService {
   private static final int PREVIEW_LENGTH = 250;
+  private static final String OPERATION = "rag.document.upload";
 
   private final PdfTextExtractionPort textExtractor;
   private final DiagramDetectionPort diagramDetector;
   private final VectorStorePort vectorStore;
   private final RagDocumentRepository documents;
   private final EmbeddingInvocationService embeddings;
+  private final IdempotencyRepository idempotency;
+  private final ObjectMapper mapper;
   private final TextChunker chunker = new TextChunker();
   private final long maxUploadBytes;
   private final Duration embeddingTimeout;
 
   public RagIngestionService(PdfTextExtractionPort textExtractor, DiagramDetectionPort diagramDetector,
       VectorStorePort vectorStore, RagDocumentRepository documents, EmbeddingInvocationService embeddings,
+      IdempotencyRepository idempotency, ObjectMapper mapper,
       @Value("${llm.rag.max-upload-bytes:26214400}") long maxUploadBytes,
       @Value("${llm.rag.embedding-timeout-ms:8000}") long embeddingTimeoutMs) {
     this.textExtractor = textExtractor;
@@ -52,27 +65,27 @@ public class RagIngestionService {
     this.vectorStore = vectorStore;
     this.documents = documents;
     this.embeddings = embeddings;
+    this.idempotency = idempotency;
+    this.mapper = mapper;
     this.maxUploadBytes = maxUploadBytes;
     this.embeddingTimeout = Duration.ofMillis(embeddingTimeoutMs);
   }
 
-  public RagDocument upload(UUID courseCohortId, String fileName, byte[] bytes) {
+  @Transactional
+  public RagDocument upload(UUID courseCohortId, String fileName, byte[] bytes,
+      UUID idempotencyKey, CallerIdentity actor) throws IOException {
     if (courseCohortId == null) {
       throw new IllegalArgumentException("courseCohortId es obligatorio");
     }
-    if (bytes == null || bytes.length == 0) {
-      throw new IllegalArgumentException("El archivo PDF está vacío.");
-    }
-    if (bytes.length > maxUploadBytes) {
-      throw new IllegalArgumentException("El archivo supera el tamaño máximo permitido de "
-          + (maxUploadBytes / (1024 * 1024)) + "MB.");
-    }
-    if (fileName == null || !fileName.toLowerCase(Locale.ROOT).endsWith(".pdf")) {
-      throw new IllegalArgumentException("Solo se admiten documentos en formato PDF (.pdf).");
+
+    String hash = hash(courseCohortId, fileName, bytes);
+    Optional<JsonNode> replay = idempotency.replay(OPERATION, actor, idempotencyKey, hash);
+    if (replay.isPresent()) {
+      return parse(replay.get());
     }
 
     UUID documentId = UUID.randomUUID();
-    ExtractedPdf extracted = extractOrFail(bytes);
+    ExtractedPdf extracted = textExtractor.extractTextWithPages(bytes);
     List<DocumentChunk> chunks = new ArrayList<>(chunker.createChunks(documentId, fileName, extracted.pages()));
 
     appendDiagramChunks(documentId, fileName, bytes, chunks);
@@ -95,21 +108,29 @@ public class RagIngestionService {
       documents.deactivate(documentId); // no dejar un documento activo sin fragmentos
       throw failure;
     }
+    idempotency.complete(OPERATION, actor, idempotencyKey, saved.id(), mapper.valueToTree(saved));
     return saved;
   }
 
-  /** `Loader.loadPDF` (dentro de {@link PdfTextExtractionPort}) lanza `InvalidPasswordException`
-   * (una `IOException`) para un PDF cifrado con contraseña **antes** de que el adaptador llegue a
-   * chequear `document.isEncrypted()` — mismo comportamiento que ya tenía
-   * `demoLLMSpringAi/.../PdfTextExtractorService.java`, no es un bug introducido acá. Sin este
-   * try/catch esa `IOException` escaparía sin manejar hasta el cliente como `500`, en vez del
-   * `422` con mensaje claro que pide la historia (CA3: "archivo cifrado o corrupto se rechaza"). */
-  private ExtractedPdf extractOrFail(byte[] bytes) {
+  private RagDocument parse(JsonNode node) {
     try {
-      return textExtractor.extractTextWithPages(bytes);
-    } catch (IOException exception) {
-      throw new IllegalArgumentException(
-          "No se pudo procesar el PDF: puede estar protegido con contraseña, corrupto o no ser un PDF válido.", exception);
+      return mapper.treeToValue(node, RagDocument.class);
+    } catch (Exception exception) {
+      throw new IllegalStateException("No se pudo leer la respuesta idempotente de la fuente", exception);
+    }
+  }
+
+  private String hash(UUID courseCohortId, String fileName, byte[] bytes) {
+    try {
+      MessageDigest digest = MessageDigest.getInstance("SHA-256");
+      digest.update(courseCohortId.toString().getBytes(StandardCharsets.UTF_8));
+      digest.update((byte) '|');
+      digest.update(fileName.getBytes(StandardCharsets.UTF_8));
+      digest.update((byte) '|');
+      digest.update(bytes);
+      return HexFormat.of().formatHex(digest.digest());
+    } catch (NoSuchAlgorithmException exception) {
+      throw new IllegalStateException(exception);
     }
   }
 
@@ -189,10 +210,11 @@ public class RagIngestionService {
 
   /** Carga y auto-indexa el PDF de demostración PRD en la base de datos para la cohorte indicada.
    * Portado de `RagController.loadSamplePdf` de la demo. */
-  public RagDocument uploadSample(UUID courseCohortId) {
-    try (var is = getClass().getResourceAsStream("/fuentes/PRD-Plataforma-Gamificada-TP.pdf")) {
+  public RagDocument uploadSample(UUID courseCohortId, UUID idempotencyKey, CallerIdentity actor) throws IOException {
+    try (InputStream is = getClass().getResourceAsStream("/fuentes/PRD-Plataforma-Gamificada-TP.pdf")) {
       if (is != null) {
-        return upload(courseCohortId, "PRD-Plataforma-Gamificada-TP.pdf", is.readAllBytes());
+        byte[] bytes = is.readAllBytes();
+        return upload(courseCohortId, "PRD-Plataforma-Gamificada-TP.pdf", bytes, idempotencyKey, actor);
       }
     } catch (IOException ignored) {}
 
@@ -206,9 +228,9 @@ public class RagIngestionService {
       if (Files.exists(path)) {
         try {
           byte[] bytes = Files.readAllBytes(path);
-          return upload(courseCohortId, "PRD-Plataforma-Gamificada-TP.pdf", bytes);
-        } catch (IOException e) {
-          throw new IllegalStateException("Error al leer el archivo de muestra: " + path, e);
+          return upload(courseCohortId, "PRD-Plataforma-Gamificada-TP.pdf", bytes, idempotencyKey, actor);
+        } catch (IOException exception) {
+          throw new IllegalStateException("Error al leer el archivo de muestra: " + path, exception);
         }
       }
     }

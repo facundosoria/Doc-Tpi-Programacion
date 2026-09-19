@@ -31,3 +31,6 @@ mañana*.html
 .env.*
 !.env.example
 node_modules/
+demoLLMSpringAi/FE/node_modules/
+  
+ 
