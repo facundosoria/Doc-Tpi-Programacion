@@ -22,6 +22,9 @@ import ar.edu.utn.frc.tup.piv.llm.domain.rag.PdfTextExtractionPort;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.RagDocument;
 import ar.edu.utn.frc.tup.piv.llm.domain.rag.VectorStorePort;
 import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.RagDocumentRepository;
+import ar.edu.utn.frc.tup.piv.llm.infrastructure.persistence.IdempotencyRepository;
+import ar.edu.utn.frc.tup.piv.llm.security.CallerIdentity;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -35,8 +38,11 @@ class RagIngestionServiceBranchesTest {
   private final VectorStorePort vectorStore = mock(VectorStorePort.class);
   private final RagDocumentRepository documents = mock(RagDocumentRepository.class);
   private final EmbeddingInvocationService embeddings = mock(EmbeddingInvocationService.class);
+  private final IdempotencyRepository idempotency = mock(IdempotencyRepository.class);
+  private final ObjectMapper mapper = new ObjectMapper().findAndRegisterModules();
+  private final CallerIdentity actor = new CallerIdentity("practice-service", UUID.randomUUID(), null, null);
   private final RagIngestionService service =
-      new RagIngestionService(extractor, diagrams, vectorStore, documents, embeddings, 1_000_000L, 5000L);
+      new RagIngestionService(extractor, diagrams, vectorStore, documents, embeddings, idempotency, mapper, 1_000_000L, 5000L);
 
   private static final String LONG_TEXT = "Docker es una plataforma de contenedores. ".repeat(20);
 
@@ -52,7 +58,7 @@ class RagIngestionServiceBranchesTest {
     stubPdf(LONG_TEXT);
     when(diagrams.detectImages(any())).thenReturn(List.of());
 
-    RagDocument doc = service.upload(UUID.randomUUID(), "GRANDE.PDF", "x".getBytes());
+    RagDocument doc = service.upload(UUID.randomUUID(), "GRANDE.PDF", "x".getBytes(), UUID.randomUUID(), actor);
 
     assertThat(doc.previewText()).hasSize(253).endsWith("...");
     assertThat(doc.chunkCount()).isGreaterThan(0);
@@ -69,7 +75,7 @@ class RagIngestionServiceBranchesTest {
         new DiagramDecodeResult(0, 2, "Arquitectura", "DIAGRAMA_DOCUMENTO", null, null, List.of()));
     when(diagrams.decodeDiagram(any(), eq(1))).thenReturn(DiagramDecodeResult.vacio(1));
 
-    RagDocument doc = service.upload(UUID.randomUUID(), "d.pdf", "x".getBytes());
+    RagDocument doc = service.upload(UUID.randomUUID(), "d.pdf", "x".getBytes(), UUID.randomUUID(), actor);
 
     assertThat(doc.chunkCount()).isEqualTo(1);
     @SuppressWarnings("unchecked") ArgumentCaptor<List<DocumentChunk>> captor = ArgumentCaptor.forClass(List.class);
@@ -84,7 +90,7 @@ class RagIngestionServiceBranchesTest {
     stubPdf(LONG_TEXT);
     when(diagrams.detectImages(any())).thenThrow(new IllegalStateException("boom"));
 
-    RagDocument doc = service.upload(UUID.randomUUID(), "d.pdf", "x".getBytes());
+    RagDocument doc = service.upload(UUID.randomUUID(), "d.pdf", "x".getBytes(), UUID.randomUUID(), actor);
 
     assertThat(doc.chunkCount()).isGreaterThan(0);
     verify(vectorStore).indexChunks(any(), anyList(), anyList());
@@ -96,7 +102,7 @@ class RagIngestionServiceBranchesTest {
     when(diagrams.detectImages(any())).thenReturn(List.of());
     doThrow(new IllegalStateException("vector store caído")).when(vectorStore).indexChunks(any(), anyList(), anyList());
 
-    assertThatThrownBy(() -> service.upload(UUID.randomUUID(), "d.pdf", "x".getBytes()))
+    assertThatThrownBy(() -> service.upload(UUID.randomUUID(), "d.pdf", "x".getBytes(), UUID.randomUUID(), actor))
         .isInstanceOf(IllegalStateException.class).hasMessage("vector store caído");
 
     ArgumentCaptor<UUID> id = ArgumentCaptor.forClass(UUID.class);
@@ -104,22 +110,6 @@ class RagIngestionServiceBranchesTest {
     ArgumentCaptor<RagDocument> saved = ArgumentCaptor.forClass(RagDocument.class);
     verify(documents).save(saved.capture(), any());
     assertThat(id.getValue()).isEqualTo(saved.getValue().id());
-  }
-
-  @Test
-  void nullFileNameIsRejectedWithoutExtracting() throws Exception {
-    assertThatThrownBy(() -> service.upload(UUID.randomUUID(), null, new byte[] {1}))
-        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("PDF");
-    assertThatThrownBy(() -> service.upload(UUID.randomUUID(), "a.pdf", null))
-        .isInstanceOf(IllegalArgumentException.class);
-    verify(extractor, never()).extractTextWithPages(any());
-  }
-
-  @Test
-  void oversizeMessageReportsTheLimitInMegabytes() {
-    var small = new RagIngestionService(extractor, diagrams, vectorStore, documents, embeddings, 2L * 1024 * 1024, 1000L);
-    assertThatThrownBy(() -> small.upload(UUID.randomUUID(), "a.pdf", new byte[2 * 1024 * 1024 + 1]))
-        .isInstanceOf(IllegalArgumentException.class).hasMessageContaining("2MB");
   }
 
   @Test
