@@ -166,9 +166,8 @@
                   <limit>
                     <counter>INSTRUCTION</counter>
                     <value>COVEREDRATIO</value>
-                    <!-- Objetivo normativo: 0.90 (AGENTS.md, Doc 24). Hoy el total ronda 59 %: este piso es un
-                         "ratchet" para que no baje; subirlo a medida que se cubran persistence/gateway/config/api. -->
-                    <minimum>0.55</minimum>
+                    <!-- Objetivo normativo: 0.90 (AGENTS.md, Doc 24). Medido con unit + ITs: ~93 %. -->
+                    <minimum>0.90</minimum>
                   </limit>
                 </limits>
               </rule>

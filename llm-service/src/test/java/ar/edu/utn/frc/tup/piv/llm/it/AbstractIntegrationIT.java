@@ -16,7 +16,11 @@ import org.testcontainers.utility.DockerImageName;
 @SpringBootTest(properties = {
     "llm.credentials.master-key=MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=",
     "app.jwks-refresh-ms=3600000",
-    "spring.task.scheduling.enabled=false"
+    "spring.task.scheduling.enabled=false",
+    // spring.task.scheduling.enabled no apaga @Scheduled: espaciamos los workers para que no le
+    // roben corridas/evaluaciones en cola a los tests que las manejan a mano.
+    "llm.calibrations.dispatch-delay-ms=3600000",
+    "llm.evaluations.resume-delay-ms=3600000"
 })
 @AutoConfigureMockMvc
 @ActiveProfiles("test")
