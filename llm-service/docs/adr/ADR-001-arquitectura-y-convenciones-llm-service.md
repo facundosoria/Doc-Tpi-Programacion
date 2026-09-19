@@ -1,6 +1,6 @@
 # ADR-001 — Arquitectura y convenciones técnicas de `llm-service`
 
-- **Estado:** Aceptado (pendiente de mergear vía PR con revisión, CA1 de `LLM-EP01-H01`)
+- **Estado:** Aceptado el 2026-09-19 por Facundo Soria (revisión y aprobación directa en la sesión de trabajo, sin PR formal)
 - **Fecha:** 2026-09-18
 - **Autores:** equipo G03 (pareja P1)
 - **Historia:** LLM-EP01-H01

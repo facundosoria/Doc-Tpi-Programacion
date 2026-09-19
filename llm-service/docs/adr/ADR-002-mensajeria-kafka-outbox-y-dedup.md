@@ -1,6 +1,6 @@
 # ADR-002 — Mensajería Kafka: outbox transaccional y deduplicación por `eventId`
 
-- **Estado:** Aceptado (pendiente de mergear vía PR con revisión)
+- **Estado:** Aceptado el 2026-09-19 por Facundo Soria (revisión y aprobación directa en la sesión de trabajo, sin PR formal)
 - **Fecha:** 2026-09-18
 - **Historia:** LLM-EP01-H07
 - **Contrato de plataforma:** [`KAFKA_EVENT_STANDARD.md`](../contracts/KAFKA_EVENT_STANDARD.md); eventos del servicio en [`llm-service-v1.asyncapi.yaml`](../contracts/llm-service-v1.asyncapi.yaml) (v2.0.0).

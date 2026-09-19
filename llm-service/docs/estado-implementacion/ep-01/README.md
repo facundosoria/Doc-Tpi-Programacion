@@ -13,7 +13,7 @@
 
 | ID | Título | Estado | Nota en una línea |
 |---|---|---|---|
-| H01 | ADR y convenciones | 🟡 | ADR escrito en [`../../adr/ADR-001-...`](../../adr/ADR-001-arquitectura-y-convenciones-llm-service.md) (falta PR con revisión); ArchUnit (7 reglas) ya existe |
+| H01 | ADR y convenciones | 🟢 | [ADR-001](../../adr/ADR-001-arquitectura-y-convenciones-llm-service.md) y [ADR-002](../../adr/ADR-002-mensajeria-kafka-outbox-y-dedup.md) aceptados el 2026-09-19 por Facundo Soria (sin PR formal); ArchUnit (7 reglas) ya existe |
 | H02 | Entorno con un comando | 🟢 | Corregidos puertos de health (8087) en smoke, restart, README y Dockerfile; `.env.example` completo |
 | H03 | Esqueleto transversal | 🟢 | Eureka, 401/403 `problem+json` y `X-*` del Gateway OK; Bearer sin firma apagado por defecto (`app.security.trust-unsigned-bearer`). `ModerationCourseAuthorization` ahora respeta el mismo flag: sin `trust-unsigned-bearer` ignora el Bearer sin firma (identidad, roles y cursos) — cerrado 2026-09-19 |
 | H04 | Esquema versionado | 🟢 | Triggers append-only e idempotencia en V1; `V13` duplicada renombrada a `V13_1` (ya commiteada; Flyway aplica V13 y luego V13_1) |
