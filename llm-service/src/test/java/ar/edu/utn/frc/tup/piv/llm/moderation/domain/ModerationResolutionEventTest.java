@@ -7,8 +7,12 @@ import ar.edu.utn.frc.tup.piv.llm.moderation.domain.port.ModerationAppealReposit
 import ar.edu.utn.frc.tup.piv.llm.moderation.domain.port.ModerationEventPublisherPort;
 import ar.edu.utn.frc.tup.piv.llm.moderation.domain.port.ModerationIncidentRepositoryPort;
 import ar.edu.utn.frc.tup.piv.llm.moderation.domain.port.ModerationResolutionRepositoryPort;
+import ar.edu.utn.frc.tup.piv.llm.messaging.kafka.KafkaEventProducer;
+import ar.edu.utn.frc.tup.piv.llm.messaging.kafka.KafkaTopics;
 import ar.edu.utn.frc.tup.piv.llm.moderation.infrastructure.messaging.ModerationEventPublisher;
+import ar.edu.utn.frc.tup.piv.llm.moderation.infrastructure.messaging.ModerationNotificationClient;
 import java.time.OffsetDateTime;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import org.junit.jupiter.api.BeforeEach;
@@ -82,7 +86,7 @@ class ModerationResolutionEventTest {
         assertThat(event.getEventId()).isNotNull();
         assertThat(event.getVersion()).isEqualTo("1.0");
         assertThat(event.getProducer()).isEqualTo("llm-service");
-        assertThat(event.getEventType()).isEqualTo("mensaje_desbloqueado.v1");
+        assertThat(event.getEventType()).isEqualTo("MESSAGE-UNBLOCKED");
         assertThat(event.getMessageId()).isEqualTo(messageId);
         assertThat(event.getIncidentId()).isEqualTo(incidentId);
         assertThat(event.getCourseId()).isEqualTo(courseId);
@@ -125,7 +129,9 @@ class ModerationResolutionEventTest {
     @Test
     void moderationEventPublisherDispatchesToSpringApplicationEventPublisher() {
         ApplicationEventPublisher springPublisher = mock(ApplicationEventPublisher.class);
-        ModerationEventPublisher publisher = new ModerationEventPublisher(springPublisher);
+        ModerationNotificationClient notificationClient = mock(ModerationNotificationClient.class);
+        KafkaEventProducer kafkaEventProducer = mock(KafkaEventProducer.class);
+        ModerationEventPublisher publisher = new ModerationEventPublisher(springPublisher, notificationClient, kafkaEventProducer);
 
         ModerationResolutionDomainEvent event = ModerationResolutionDomainEvent.ofReversed(
                 "msg-1", UUID.randomUUID(), "curso-42", "user-1", "prof-1", "Motivo de prueba con más de veinte caracteres"
@@ -134,5 +140,49 @@ class ModerationResolutionEventTest {
         publisher.publishMessageUnblocked(event);
 
         verify(springPublisher).publishEvent(event);
+    }
+
+    @Test
+    void moderationEventPublisherAlsoNotifiesStudentThroughNotificationsService() {
+        ApplicationEventPublisher springPublisher = mock(ApplicationEventPublisher.class);
+        ModerationNotificationClient notificationClient = mock(ModerationNotificationClient.class);
+        KafkaEventProducer kafkaEventProducer = mock(KafkaEventProducer.class);
+        ModerationEventPublisher publisher = new ModerationEventPublisher(springPublisher, notificationClient, kafkaEventProducer);
+
+        ModerationResolutionDomainEvent event = ModerationResolutionDomainEvent.ofReversed(
+                "msg-2", UUID.randomUUID(), "curso-42", "user-2", "prof-1", "Motivo de prueba con más de veinte caracteres"
+        );
+
+        publisher.publishMessageUnblocked(event);
+
+        verify(notificationClient).notifyMessageUnblocked(event);
+    }
+
+    @Test
+    void moderationEventPublisherEnqueuesKafkaEventOnModerationEventsTopicKeyedByCourse() {
+        ApplicationEventPublisher springPublisher = mock(ApplicationEventPublisher.class);
+        ModerationNotificationClient notificationClient = mock(ModerationNotificationClient.class);
+        KafkaEventProducer kafkaEventProducer = mock(KafkaEventProducer.class);
+        ModerationEventPublisher publisher = new ModerationEventPublisher(springPublisher, notificationClient, kafkaEventProducer);
+
+        ModerationResolutionDomainEvent event = ModerationResolutionDomainEvent.ofReversed(
+                "msg-3", UUID.randomUUID(), "curso-42", "user-3", "prof-1", "Motivo de prueba con más de veinte caracteres"
+        );
+
+        publisher.publishMessageUnblocked(event);
+
+        @SuppressWarnings("unchecked")
+        ArgumentCaptor<Map<String, Object>> payloadCaptor = ArgumentCaptor.forClass(Map.class);
+        verify(kafkaEventProducer).enqueue(
+                org.mockito.ArgumentMatchers.eq(KafkaTopics.MODERATION_EVENTS),
+                org.mockito.ArgumentMatchers.eq("curso-42"),
+                org.mockito.ArgumentMatchers.eq("MESSAGE-UNBLOCKED"),
+                org.mockito.ArgumentMatchers.eq(1),
+                payloadCaptor.capture());
+
+        Map<String, Object> payload = payloadCaptor.getValue();
+        assertThat(payload.get("messageId")).isEqualTo("msg-3");
+        assertThat(payload.get("courseId")).isEqualTo("curso-42");
+        assertThat(payload.get("resolution")).isEqualTo("REVERSED");
     }
 }

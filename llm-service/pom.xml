@@ -44,6 +44,9 @@
     <!-- EP-09 (RAG): binding tipado para la columna vector(768) de pgvector. -->
     <dependency><groupId>com.pgvector</groupId><artifactId>pgvector</artifactId><version>0.1.6</version></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
+    <!-- LLM-EP01-H07: productor/consumidor Kafka del esqueleto de mensajería (outbox + dedup). -->
+    <dependency><groupId>org.springframework.kafka</groupId><artifactId>spring-kafka</artifactId></dependency>
+    <dependency><groupId>org.springframework.kafka</groupId><artifactId>spring-kafka-test</artifactId><scope>test</scope></dependency>
     <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
     <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-test</artifactId><scope>test</scope></dependency>
     <dependency><groupId>org.testcontainers</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
@@ -88,6 +91,24 @@
   </dependencies>
   <build><plugins>
     <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>
+    <!-- Corre los *IT.java (Testcontainers) en integration-test/verify. Antes no había failsafe
+         configurado y surefire (que solo mira **/*Test.java) los dejaba afuera de `mvn verify`:
+         ni CI ni el gate de JaCoCo ejecutaban nunca esos tests de integración. -->
+    <plugin>
+      <groupId>org.apache.maven.plugins</groupId>
+      <artifactId>maven-failsafe-plugin</artifactId>
+      <configuration>
+        <argLine>@{failsafeArgLine}</argLine>
+      </configuration>
+      <executions>
+        <execution>
+          <goals>
+            <goal>integration-test</goal>
+            <goal>verify</goal>
+          </goals>
+        </execution>
+      </executions>
+    </plugin>
     <!-- Mide la cobertura que AGENTS.md y Doc 24 exigen (mínimo 90%) — genera reportes y activa gate en CI. -->
     <plugin>
       <groupId>org.jacoco</groupId>
@@ -101,14 +122,23 @@
           <id>prepare-agent</id>
           <goals><goal>prepare-agent</goal></goals>
         </execution>
+        <!-- Instrumenta también los *IT.java, acumulando en el mismo jacoco.exec que los unit tests. -->
+        <execution>
+          <id>prepare-agent-integration</id>
+          <phase>pre-integration-test</phase>
+          <goals><goal>prepare-agent-integration</goal></goals>
+          <configuration>
+            <propertyName>failsafeArgLine</propertyName>
+          </configuration>
+        </execution>
         <execution>
           <id>report</id>
-          <phase>test</phase>
+          <phase>verify</phase>
           <goals><goal>report</goal></goals>
         </execution>
         <execution>
           <id>check</id>
-          <phase>test</phase>
+          <phase>verify</phase>
           <goals><goal>check</goal></goals>
           <configuration>
             <skip>${jacoco.skip}</skip>

@@ -35,8 +35,12 @@ services:
       GATEWAY_URL: ${GATEWAY_URL:-http://api-gateway:8080}
       APP_CLIENT_ID: llm-service
       APP_CLIENT_SECRET: ${APP_CLIENT_SECRET:-}
+      KAFKA_BOOTSTRAP_SERVERS: kafka:9092
+      LLM_KAFKA_ENABLED: ${LLM_KAFKA_ENABLED:-true}
     depends_on:
       postgres:
+        condition: service_healthy
+      kafka:
         condition: service_healthy
     healthcheck:
       test: ["CMD-SHELL", "wget -qO- http://localhost:8087/actuator/health | grep -q UP"]
@@ -64,20 +68,25 @@ services:
   #   volumes:
   #     - llm-redis-data:/data
 
-  # kafka:
-  #   # Bus de eventos de la plataforma (Tema 11) — "no lo operamos" en producción real
-  #   # (docs/26 Parte 3); un broker local sirve para probar la publicación de
-  #   # `score_de_ia_calculado.v1` (docs/18) antes de integrar con el broker de cátedra.
-  #   # Diferido a S6 (docs/25): recién ahí el servicio tiene outbox/workers que
-  #   # publican algo. Sin `spring-kafka` en el pom.xml todavía.
-  #   image: apache/kafka:3.8.0
-  #   environment:
-  #     KAFKA_NODE_ID: 1
-  #     KAFKA_PROCESS_ROLES: broker,controller
-  #     KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
-  #     KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
-  #     KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
-  #     KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+  kafka:
+    # Bus de eventos de la plataforma (Tema 11) — "no lo operamos" en producción real (docs/26
+    # Parte 3); un broker local sirve para probar la publicación de `moderation-events`
+    # (LLM-EP01-H07) antes de integrar con el broker de cátedra. KRaft mode, sin Zookeeper.
+    image: apache/kafka:3.8.0
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://:9092,CONTROLLER://:9093
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: ["CMD-SHELL", "/opt/kafka/bin/kafka-broker-api-versions.sh --bootstrap-server localhost:9092"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
 
   # minio:
   #   # Almacenamiento de objetos para los PDF originales — "solo si nadie más los

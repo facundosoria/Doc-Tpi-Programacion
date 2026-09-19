@@ -24,6 +24,18 @@ spring:
         default_schema: llm
   jackson:
     default-property-inclusion: non_null
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+    consumer:
+      group-id: llm-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
 management:
   server:
     port: ${MANAGEMENT_PORT:8087}
@@ -78,6 +90,12 @@ llm:
       reversed-days: ${MODERATION_RETENTION_REVERSED_DAYS:90}
       unresolved-timeout-days: ${MODERATION_RETENTION_UNRESOLVED_TIMEOUT_DAYS:90}
       cron: ${MODERATION_RETENTION_CRON:0 0 3 * * *}
+  kafka:
+    # Desactivado por defecto: todavía no hay un broker Kafka operado por la cátedra para S1.
+    # El outbox (KafkaEventProducer) siempre escribe; el relay y los @KafkaListener solo se activan
+    # con LLM_KAFKA_ENABLED=true (ver compose.yaml, servicio "kafka").
+    enabled: ${LLM_KAFKA_ENABLED:false}
+    outbox-poll-ms: ${LLM_KAFKA_OUTBOX_POLL_MS:2000}
 resilience4j:
   circuitbreaker:
     instances:
@@ -117,6 +135,9 @@ app:
   gateway-url: ${GATEWAY_URL:http://api-gateway:8080}
   jwks-url: ${JWKS_URL:http://users-service:8082/.well-known/jwks.json}
   jwks-refresh-ms: ${JWKS_REFRESH_MS:300000}
+  notifications:
+    # Ruta del Gateway hacia notifications-service para eventos de moderación (LLM-S12-H02 / CA5).
+    moderation-events-path: ${NOTIFICATIONS_MODERATION_EVENTS_PATH:/api/notifications/v1/moderation-events}
   security:
     # El Bearer se decodifica SIN verificar firma; solo para dev/tests (ver GatewayIdentityFilter).
     trust-unsigned-bearer: ${TRUST_UNSIGNED_BEARER:false}

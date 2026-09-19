@@ -61,7 +61,7 @@ public final class ModerationResolutionDomainEvent {
                 "1.0",
                 OffsetDateTime.now(),
                 "llm-service",
-                "mensaje_desbloqueado.v1",
+                "MESSAGE-UNBLOCKED",
                 messageId,
                 incidentId,
                 courseId,

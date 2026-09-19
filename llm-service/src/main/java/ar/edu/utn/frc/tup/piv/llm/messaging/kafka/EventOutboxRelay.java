@@ -1,0 +1,71 @@
+package ar.edu.utn.frc.tup.piv.llm.messaging.kafka;
+
+import java.util.List;
+import java.util.concurrent.CompletableFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.Message;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.stereotype.Component;
+
+/**
+ * Relay asíncrono del outbox (CA1 de LLM-EP01-H07): hace polling de eventos pendientes y los
+ * publica a Kafka con {@code traceparent}/{@code X-Request-Id} como headers del mensaje (nunca en
+ * el body, {@code .skill-hub/request-correlation-across-http-and-kafka.md}).
+ *
+ * <p>Deshabilitado por defecto ({@code llm.kafka.enabled=false}) porque todavía no hay un broker
+ * operado por la cátedra para S1 — activar con {@code LLM_KAFKA_ENABLED=true} cuando el servicio
+ * `kafka` de compose esté levantado.
+ */
+@Component
+@ConditionalOnProperty(prefix = "llm.kafka", name = "enabled", havingValue = "true")
+public class EventOutboxRelay {
+
+  private static final Logger log = LoggerFactory.getLogger(EventOutboxRelay.class);
+  private static final int BATCH_SIZE = 50;
+
+  private final EventOutboxRepository outboxRepository;
+  private final KafkaTemplate<String, String> kafkaTemplate;
+
+  public EventOutboxRelay(EventOutboxRepository outboxRepository, KafkaTemplate<String, String> kafkaTemplate) {
+    this.outboxRepository = outboxRepository;
+    this.kafkaTemplate = kafkaTemplate;
+  }
+
+  @Scheduled(fixedDelayString = "${llm.kafka.outbox-poll-ms:2000}")
+  public void publishPending() {
+    List<EventOutboxRepository.OutboxRow> pending = outboxRepository.findUnpublished(BATCH_SIZE);
+    for (EventOutboxRepository.OutboxRow row : pending) {
+      publishOne(row);
+    }
+  }
+
+  private void publishOne(EventOutboxRepository.OutboxRow row) {
+    Message<String> message = MessageBuilder
+        .withPayload(row.payloadJson())
+        .setHeader(KafkaHeaders.TOPIC, row.topic())
+        .setHeader(KafkaHeaders.KEY, row.messageKey())
+        .setHeader("eventId", row.eventId().toString())
+        .setHeader("eventType", row.eventType())
+        .setHeader("eventVersion", String.valueOf(row.eventVersion()))
+        .setHeader("traceparent", row.traceparent() == null ? "" : row.traceparent())
+        .setHeader("X-Request-Id", row.requestId() == null ? "" : row.requestId())
+        .build();
+
+    CompletableFuture<?> future = kafkaTemplate.send(message);
+    future.whenComplete((result, exception) -> {
+      if (exception == null) {
+        outboxRepository.markPublished(row.eventId());
+        log.info("Evento publicado [eventId={}, topic={}, eventType={}]", row.eventId(), row.topic(), row.eventType());
+      } else {
+        outboxRepository.recordAttemptFailure(row.eventId());
+        log.warn("No se pudo publicar el evento [eventId={}, topic={}], reintentará en el próximo poll",
+            row.eventId(), row.topic(), exception);
+      }
+    });
+  }
+}
