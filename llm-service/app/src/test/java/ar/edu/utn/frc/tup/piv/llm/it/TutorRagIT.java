@@ -42,25 +42,25 @@ class TutorRagIT extends AbstractIntegrationIT {
   void tutorConversationKeepsTheHistory() throws Exception {
     UUID cohort = UUID.randomUUID();
     UUID learner = UUID.randomUUID();
-    String convId = body(mvc.perform(practice(post("/api/llm/tutor/conversations"))
+    String convId = body(mvc.perform(practiceAs(learner, post("/api/llm/tutor/conversations"))
         .header("Idempotency-Key", UUID.randomUUID().toString())
         .content("{\"courseCohortId\":\"" + cohort + "\",\"learnerId\":\"" + learner + "\",\"challengeId\":\""
             + UUID.randomUUID() + "\",\"titulo\":\"Duda\"}")).andExpect(status().isCreated())).path("id").asText();
-    assertThat(body(mvc.perform(practice(get("/api/llm/tutor/conversations")).param("learnerId", learner.toString()))
+    assertThat(body(mvc.perform(practiceAs(learner, get("/api/llm/tutor/conversations")).param("learnerId", learner.toString()))
         .andExpect(status().isOk())).size()).isEqualTo(1);
 
     String interaction = "{\"attemptId\":\"" + UUID.randomUUID() + "\",\"challengeId\":\"" + UUID.randomUUID()
         + "\",\"courseCohortId\":\"" + cohort + "\",\"learnerId\":\"" + learner
         + "\",\"message\":\"¿Cómo empiezo?\",\"riskLevel\":\"low\",\"conversacionId\":\"" + convId + "\"}";
     String key = UUID.randomUUID().toString();
-    var first = body(mvc.perform(practice(post("/api/llm/tutor/interactions")).header("Idempotency-Key", key).content(interaction))
+    var first = body(mvc.perform(practiceAs(learner, post("/api/llm/tutor/interactions")).header("Idempotency-Key", key).content(interaction))
         .andExpect(status().isOk()));
     assertThat(first.path("state").asText()).isEqualTo("completed");
     // La misma Idempotency-Key devuelve la respuesta ya calculada.
-    var replay = body(mvc.perform(practice(post("/api/llm/tutor/interactions")).header("Idempotency-Key", key).content(interaction))
+    var replay = body(mvc.perform(practiceAs(learner, post("/api/llm/tutor/interactions")).header("Idempotency-Key", key).content(interaction))
         .andExpect(status().isOk()));
     assertThat(replay.path("message").asText()).isEqualTo(first.path("message").asText());
-    assertThat(body(mvc.perform(practice(get("/api/llm/tutor/conversations/" + convId + "/messages")))
+    assertThat(body(mvc.perform(practiceAs(learner, get("/api/llm/tutor/conversations/" + convId + "/messages")))
         .andExpect(status().isOk())).size()).isGreaterThanOrEqualTo(2);
   }
 
