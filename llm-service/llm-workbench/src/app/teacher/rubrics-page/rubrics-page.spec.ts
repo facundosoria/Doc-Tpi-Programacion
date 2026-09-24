@@ -10,6 +10,7 @@ describe('RubricsPage', () => {
   async function createPage() {
     await TestBed.configureTestingModule({ imports: [RubricsPage], providers: [provideHttpClient(), provideHttpClientTesting()] }).compileComponents();
     const fixture = TestBed.createComponent(RubricsPage); fixture.componentRef.setInput('courseId', courseId); fixture.detectChanges();
+    TestBed.inject(HttpTestingController).expectOne('/api/llm/rubric-templates').flush({ items: [] });
     return fixture;
   }
 
@@ -39,7 +40,7 @@ describe('RubricsPage', () => {
     http.expectOne(`/api/llm/courses/${courseId}/rubrics`).flush({ items: [{ id: 'rubric-1', familyId: 'family-1', name: 'Uso responsable', version: 1, state: 'DRAFT', revision: 3, dimensions }] });
     await fixture.whenStable(); fixture.detectChanges(); fixture.componentInstance.editDraft({ id: 'rubric-1', familyId: 'family-1', name: 'Uso responsable', version: 1, state: 'DRAFT', revision: 3, dimensions });
     fixture.componentInstance.dimensions.at(0).controls.weight.setValue(19); fixture.componentInstance.dimensions.at(1).controls.anchors.controls.high.controls.referenceScore.setValue(40); fixture.componentInstance.save(); fixture.detectChanges();
-    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Los pesos deben sumar 100 %.'); expect((fixture.nativeElement as HTMLElement).textContent).toContain('Completá las tres anclas y asegurá puntajes crecientes');
+    expect((fixture.nativeElement as HTMLElement).textContent).toContain('Los pesos deben sumar 100 %.'); expect((fixture.nativeElement as HTMLElement).textContent).toContain('Completá los campos obligatorios y verificá que los pesos sumen 100 %.');
     http.expectNone(`/api/llm/courses/${courseId}/rubrics/rubric-1`);
   });
 
@@ -63,9 +64,9 @@ describe('RubricsPage', () => {
     publishReq.flush({});
     fixture.detectChanges();
     http.expectOne(`/api/llm/courses/${courseId}/rubrics`).flush({ items: [{ id: 'rubric-1', familyId: 'family-1', name: 'Uso pedagógico', version: 1, state: 'PUBLISHED', revision: 2, dimensions }] });
-    fixture.detectChanges();
+    await fixture.whenStable(); fixture.detectChanges();
 
-    expect(fixture.componentInstance.comparingRubric()).toBeNull();
+    expect(fixture.componentInstance.rubrics.value().items[0].state).toBe('PUBLISHED');
   });
 
   it('creates next version from a published rubric and reloads versions', async () => {
@@ -85,7 +86,7 @@ describe('RubricsPage', () => {
       { id: 'rubric-1', familyId: 'family-1', name: 'Uso pedagógico', version: 1, state: 'PUBLISHED', revision: 2, dimensions },
       { id: 'rubric-2', familyId: 'family-1', name: 'Uso pedagógico', version: 2, state: 'DRAFT', revision: 0, dimensions }
     ] });
-    fixture.detectChanges();
+    await fixture.whenStable(); fixture.detectChanges();
 
     expect(fixture.componentInstance.rubrics.value().items).toHaveLength(2);
   });

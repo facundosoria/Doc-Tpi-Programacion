@@ -1,0 +1,38 @@
+<div class="challenge-selector">
+  <label class="field-label" for="challenge-filter">Elegí un desafío</label>
+  <input
+    id="challenge-filter"
+    type="text"
+    role="combobox"
+    aria-expanded="{{ open() }}"
+    aria-autocomplete="list"
+    aria-controls="challenge-listbox"
+    [value]="query()"
+    (input)="onQuery($event)"
+    (keydown)="onKeydown($event)"
+    (focus)="open.set(true)"
+    placeholder="{{ placeholder() }}"
+    autocomplete="off"
+  />
+  @if (open()) {
+    <ul id="challenge-listbox" role="listbox" aria-label="Desafíos disponibles">
+      @for (exercise of filtered(); track exercise.id; let i = $index) {
+        <li
+          role="option"
+          [attr.aria-selected]="i === activeIndex()"
+          [class.active]="i === activeIndex()"
+          (mousedown)="pick(exercise)"
+          (mouseenter)="activeIndex.set(i)"
+        >
+          <span class="challenge-type" [class.fe]="exercise.type === 'FE'">{{ exercise.type }}</span>
+          <span class="challenge-title">{{ exercise.title }}</span>
+          <span class="challenge-id">{{ exercise.id }}</span>
+        </li>
+      }
+      @if (!filtered().length) {
+        <li class="empty" role="option" aria-disabled="true">Sin resultados para “{{ query() }}”</li>
+      }
+    </ul>
+  }
+  <p class="hint">Escribí para filtrar, usá las flechas y Enter para elegir.</p>
+</div>

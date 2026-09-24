@@ -1,0 +1,136 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <parent><groupId>ar.edu.utn.frc.tup.piv</groupId><artifactId>llm-service-parent</artifactId><version>0.0.1-SNAPSHOT</version></parent>
+  <artifactId>llm-service</artifactId>
+  <properties>
+    <argLine></argLine>
+    <failsafeArgLine></failsafeArgLine>
+  </properties>
+  <dependencies>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-validation</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-jdbc</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-actuator</artifactId></dependency>
+    <dependency><groupId>org.springframework.kafka</groupId><artifactId>spring-kafka</artifactId></dependency>
+    <dependency><groupId>org.springframework.cloud</groupId><artifactId>spring-cloud-starter-netflix-eureka-client</artifactId></dependency>
+    <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-database-postgresql</artifactId></dependency>
+    <!-- Scope compile, no runtime: PGvector (EP-09) extiende org.postgresql.util.PGobject,
+         así que PgVectorStoreAdapter necesita esa clase en tiempo de compilación. -->
+    <dependency><groupId>org.postgresql</groupId><artifactId>postgresql</artifactId></dependency>
+    <dependency><groupId>ar.edu.utn.frc.tup.piv</groupId><artifactId>llm-provider-spi</artifactId><version>${project.version}</version></dependency>
+    <dependency><groupId>ar.edu.utn.frc.tup.piv</groupId><artifactId>llm-provider-openai-compatible</artifactId><version>${project.version}</version></dependency>
+    <dependency><groupId>ar.edu.utn.frc.tup.piv</groupId><artifactId>llm-provider-anthropic</artifactId><version>${project.version}</version></dependency>
+    <dependency><groupId>ar.edu.utn.frc.tup.piv</groupId><artifactId>llm-provider-gemini</artifactId><version>${project.version}</version></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.testcontainers</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-testcontainers</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.testcontainers</groupId><artifactId>postgresql</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.testcontainers</groupId><artifactId>kafka</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>com.tngtech.archunit</groupId><artifactId>archunit-junit5</artifactId><version>1.4.1</version><scope>test</scope></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-data-jpa</artifactId></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
+    <!-- EP-09 (RAG): extracción de texto de PDF, portado de demoLLMSpringAi. -->
+    <dependency><groupId>org.apache.pdfbox</groupId><artifactId>pdfbox</artifactId><version>3.0.1</version></dependency>
+    <!-- EP-09 (RAG): binding tipado para la columna vector(768) de pgvector. -->
+    <dependency><groupId>com.pgvector</groupId><artifactId>pgvector</artifactId><version>0.1.6</version></dependency>
+    <!-- EP-08 (H02): moderación determinista en memoria (Aho-Corasick y diccionarios con pesos). -->
+    <dependency><groupId>org.ahocorasick</groupId><artifactId>ahocorasick</artifactId><version>0.6.3</version></dependency>
+    <dependency><groupId>com.modernmt.text</groupId><artifactId>profanity-filter</artifactId><version>1.0.1</version></dependency>
+    <!-- EP-08 / LLM-S13-H01: resiliencia con Resilience4j (circuit breaker y rate limiter). -->
+    <dependency><groupId>io.github.resilience4j</groupId><artifactId>resilience4j-spring-boot3</artifactId><version>2.2.0</version></dependency>
+    <dependency><groupId>io.github.resilience4j</groupId><artifactId>resilience4j-micrometer</artifactId><version>2.2.0</version></dependency>
+    <dependency><groupId>org.springframework.kafka</groupId><artifactId>spring-kafka-test</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-test</artifactId><scope>test</scope></dependency>
+    <dependency><groupId>org.wiremock</groupId><artifactId>wiremock-standalone</artifactId><version>3.10.0</version><scope>test</scope></dependency>
+  </dependencies>
+  <build>
+    <plugins>
+      <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>
+      <!-- Corre los *IT.java (Testcontainers) en integration-test/verify. Sin failsafe, surefire
+           (que solo mira **/*Test.java) los deja afuera de `mvn verify`. -->
+      <plugin>
+        <groupId>org.apache.maven.plugins</groupId>
+        <artifactId>maven-failsafe-plugin</artifactId>
+        <configuration>
+          <argLine>@{failsafeArgLine}</argLine>
+        </configuration>
+        <executions>
+          <execution>
+            <goals>
+              <goal>integration-test</goal>
+              <goal>verify</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <!-- Mide la cobertura que AGENTS.md y Doc 24 exigen (mínimo 90%) — genera reportes y activa el gate. -->
+      <plugin>
+        <groupId>org.jacoco</groupId>
+        <artifactId>jacoco-maven-plugin</artifactId>
+        <version>0.8.12</version>
+        <configuration>
+          <skip>${skipTests}</skip>
+        </configuration>
+        <executions>
+          <execution>
+            <id>prepare-agent</id>
+            <goals><goal>prepare-agent</goal></goals>
+          </execution>
+          <!-- Instrumenta también los *IT.java, acumulando en el mismo jacoco.exec que los unit tests. -->
+          <execution>
+            <id>prepare-agent-integration</id>
+            <phase>pre-integration-test</phase>
+            <goals><goal>prepare-agent-integration</goal></goals>
+            <configuration>
+              <propertyName>failsafeArgLine</propertyName>
+              <destFile>${project.build.directory}/jacoco.exec</destFile>
+              <append>true</append>
+            </configuration>
+          </execution>
+          <execution>
+            <id>report</id>
+            <phase>verify</phase>
+            <goals><goal>report</goal></goals>
+          </execution>
+          <execution>
+            <id>check</id>
+            <phase>verify</phase>
+            <goals><goal>check</goal></goals>
+            <configuration>
+              <skip>${jacoco.skip}</skip>
+              <rules>
+                <rule>
+                  <element>PACKAGE</element>
+                  <includes>
+                    <!-- Reglas de dominio puras (H06·T1) -->
+                    <include>ar.edu.utn.frc.tup.piv.llm.domain</include>
+                    <include>ar.edu.utn.frc.tup.piv.llm.domain.rag</include>
+                  </includes>
+                  <limits>
+                    <limit>
+                      <counter>INSTRUCTION</counter>
+                      <value>COVEREDRATIO</value>
+                      <minimum>0.90</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+                <rule>
+                  <element>BUNDLE</element>
+                  <limits>
+                    <limit>
+                      <counter>INSTRUCTION</counter>
+                      <value>COVEREDRATIO</value>
+                      <!-- Objetivo normativo: 0.90 (AGENTS.md, Doc 24). -->
+                      <minimum>0.90</minimum>
+                    </limit>
+                  </limits>
+                </rule>
+              </rules>
+            </configuration>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>

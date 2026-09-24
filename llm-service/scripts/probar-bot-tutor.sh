@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prueba el tutor de llm-service con el bot (proveedor "fake"), por HTTP.
 # Es la misma tanda de casos de la seccion 3 de
-# docsV2/contracts/equipos/llm-service-contrato-para-desafios-practicos.md.
+# docs/contracts/equipos/llm-service-contrato-para-desafios-practicos.md.
 #
 # Uso (con el compose de llm-service arriba y el overlay compose.debug.yaml, que publica 8086):
 #   bash scripts/probar-bot-tutor.sh

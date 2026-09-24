@@ -1,0 +1,167 @@
+.overlay-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+h3 {
+  margin: 0;
+  font: 600 1.15rem / 1.3 'Roboto', sans-serif;
+  color: #203b40;
+}
+
+.hint {
+  margin: 0;
+  color: #52666a;
+  font-size: 0.85rem;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem;
+  align-items: flex-end;
+}
+
+.filters label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.filter-search { flex: 1 1 16rem; }
+.filter-state { flex: 0 0 10rem; }
+
+.field-label {
+  color: #185c65;
+  font: 500 0.72rem / 1.4 'Roboto', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+input[type='text'],
+select {
+  box-sizing: border-box;
+  border: 1px solid #b9d3d5;
+  border-radius: 0.4rem;
+  background: #fffefa;
+  color: #203b40;
+  font: 0.95rem / 1.5 'Roboto', sans-serif;
+  padding: 0.5rem 0.6rem;
+  width: 100%;
+}
+
+.table-wrap {
+  border: 1px solid #b9d3d5;
+  border-radius: 0.6rem;
+  background: #fffefa;
+  overflow-x: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font: 0.92rem / 1.5 'Roboto', sans-serif;
+}
+
+caption {
+  text-align: left;
+  font-weight: 600;
+  padding: 0.8rem 1rem;
+}
+
+th,
+td {
+  text-align: left;
+  padding: 0.6rem 0.8rem;
+  border-top: 1px solid #e6eeef;
+}
+
+thead th {
+  background: #edf5fc;
+  color: #36516a;
+}
+
+.state {
+  display: inline-block;
+  border-radius: 0.35rem;
+  background: #f0f0ec;
+  color: #52666a;
+  font-size: 0.78rem;
+  font-weight: 600;
+  padding: 0.15rem 0.5rem;
+}
+
+.state.published {
+  background: #dcefe1;
+  color: #2e7d43;
+}
+
+.state.draft {
+  background: #fdf1de;
+  color: #8a5a12;
+}
+
+.empty {
+  margin: 0;
+  border: 1px solid #b9d3d5;
+  border-radius: 0.6rem;
+  background: #fffefa;
+  padding: 1rem 1.2rem;
+  color: #52666a;
+}
+
+.error {
+  border: 1px solid #e2b6b0;
+  border-radius: 0.6rem;
+  background: #fdf1ef;
+  padding: 1rem 1.2rem;
+  margin: 0;
+}
+
+.error strong { display: block; margin-bottom: 0.6rem; }
+
+.pagination {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.page-info {
+  margin-left: 0.4rem;
+  color: #52666a;
+  font-size: 0.82rem;
+}
+
+.pagination span,
+.pagination button {
+  font: 600 0.9rem / 1.2 'Roboto', sans-serif;
+}
+
+button {
+  border: 0;
+  border-radius: 0.4rem;
+  padding: 0.45rem 0.7rem;
+  cursor: pointer;
+}
+
+button.secondary {
+  background: #e2f0f1;
+  color: #185c65;
+}
+
+button.page-number {
+  min-width: 2.1rem;
+  background: #eef5f6;
+  color: #185c65;
+}
+
+button.page-number.current {
+  background: #185c65;
+  color: #fff;
+}
+
+button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}

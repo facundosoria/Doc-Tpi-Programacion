@@ -1,6 +1,6 @@
 {
-  "/api/llm": {
-    "target": "http://llm-service:8080",
+  "/api": {
+    "target": "http://gateway-mock:8080",
     "secure": false,
     "changeOrigin": true
   }

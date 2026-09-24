@@ -10,9 +10,21 @@ param(
   [switch]$SkipComposeManage
 )
 
-if (-not $BaseUrl) { $BaseUrl = "http://localhost:8086" }
+# gateway-mock (Nginx, :8080) inyecta la identidad docente y enruta /api/courses al courses-mock; sin él, crear un golden set
+# da 503 "Courses no está disponible" (validación de membresía contra courses-service desde la integración main→dev).
+if (-not $BaseUrl) { $BaseUrl = "http://localhost:8080" }
 if (-not $HealthUrl) { $HealthUrl = "http://localhost:8087" }
 if (-not $ProjectName) { $ProjectName = "llm-s1-restart-test" }
+
+$ComposeFiles = @("-f", "compose.yaml", "-f", "compose.workbench.yaml", "-f", "compose.debug.yaml", "-p", $ProjectName)
+$Services = @("llm-service", "gateway-mock", "courses-mock")
+
+# La clave AES de credenciales es obligatoria (compose.yaml); si no viene del entorno ni de .env, se genera una descartable.
+if (-not $env:LLM_CREDENTIALS_MASTER_KEY) {
+  $bytes = New-Object byte[] 32
+  [System.Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+  $env:LLM_CREDENTIALS_MASTER_KEY = [Convert]::ToBase64String($bytes)
+}
 
 $CourseId = "22222222-2222-2222-2222-222222222222"
 $TeacherId = "11111111-1111-1111-1111-111111111111"
@@ -60,7 +72,7 @@ $headers = @{
 try {
   if (-not $SkipComposeManage) {
     Write-Host "1. Levantando stack con Docker Compose (proyecto: $ProjectName)..."
-    docker compose -f compose.yaml -f compose.debug.yaml -p $ProjectName up -d --build --wait
+    docker compose @ComposeFiles up -d --build --wait @Services
   }
 
   $healthy = Wait-ForHealth -Url $HealthUrl
@@ -116,7 +128,7 @@ try {
 
   if (-not $SkipComposeManage) {
     Write-Host "5. Ejecutando reinicio de Compose (docker compose restart)..."
-    docker compose -f compose.yaml -f compose.debug.yaml -p $ProjectName restart
+    docker compose @ComposeFiles restart
     Write-Host "   Reinicio completado. Verificando recuperacion del servicio..."
     $healthyAfter = Wait-ForHealth -Url $HealthUrl
     if (-not $healthyAfter) { exit 1 }
@@ -145,6 +157,6 @@ try {
 } finally {
   if (-not $SkipComposeManage) {
     Write-Host "Limpiando entorno Compose de prueba..."
-    docker compose -f compose.yaml -f compose.debug.yaml -p $ProjectName down --volumes --remove-orphans 2>$null
+    docker compose @ComposeFiles down --volumes --remove-orphans 2>$null
   }
 }

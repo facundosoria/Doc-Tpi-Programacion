@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: ar.edu.utn.frc.tup.piv.llm.application.RubricVersioningServiceTest
--------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.067 s -- in ar.edu.utn.frc.tup.piv.llm.application.RubricVersioningServiceTest

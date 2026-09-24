@@ -1,0 +1,15 @@
+-- LLM-S03-H01: conecta la calibración con el puerto de invocación de LLM-S01-H10.
+-- Semilla de la función 'evaluator' en la tabla función->proveedor+modelo (V13), mismo patrón
+-- que la semilla de 'tutor'.
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- Integración main↔dev (2026-09-21): la V26 (provider_spi_modular_architecture)
+-- elimina function_model_config.provider / model_id / model_version y exige
+-- model_deployment_id NOT NULL contra un despliegue real. Esta migración corre
+-- DESPUÉS de la V26, así que la semilla original con el proveedor 'fake' ya no
+-- es representable: la función se asigna ahora por el endpoint de administración
+-- (PUT /api/llm/admin/model-assignments/{function}) sobre un despliegue creado
+-- desde una credencial. Se conserva el ensanche del CHECK, que sigue siendo
+-- necesario para la función 'embedding' de EP-09.
+-- ─────────────────────────────────────────────────────────────────────────────
+-- (semilla 'evaluator' con proveedor fake retirada por la V26)

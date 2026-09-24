@@ -20,7 +20,7 @@ services:
 
   llm-service:
     build: .
-    container_name: tpi-llm
+    container_name: llm-service
     expose:
       - "8086"
       - "8087"
@@ -39,6 +39,10 @@ services:
       # de este compose; si la plataforma está levantada en la red tpi-platform, apuntar a event-bus:29092.
       KAFKA_BOOTSTRAP: ${KAFKA_BOOTSTRAP:-kafka-local:29092}
       LLM_KAFKA_ENABLED: ${LLM_KAFKA_ENABLED:-true}
+      # The base stack has no Courses mock. These defaults make configuration
+      # explicit so Spring can start; deployments must override both values.
+      LLM_COURSES_BASE_URL: ${LLM_COURSES_BASE_URL:-http://host.docker.internal:4300}
+      LLM_COURSES_SERVICE_TOKEN: ${LLM_COURSES_SERVICE_TOKEN:-local-gateway-m2m-token}
     depends_on:
       postgres:
         condition: service_healthy
@@ -58,12 +62,12 @@ services:
   # ---------------------------------------------------------------------------------
   # Todavía sin código que los use (sin dependencia en pom.xml, sin cliente instanciado).
   # Quedan preparados y apagados acá para no perder tiempo de config el día que hagan
-  # falta. Detalle de cada uno y qué lo activaría: docs/39-servicios-docker.md.
+  # falta. Detalle de cada uno y qué lo activaría: docs/02-arquitectura-y-plataforma/05-servicios-docker.md.
   # ---------------------------------------------------------------------------------
 
   # redis:
-  #   # Cola/caché/cuotas (docs/12 §3). Descartado a propósito para S1: "a 120 usuarios
-  #   # probablemente no haga falta Redis" (docs/06 Parte 2) — la cola interna usa
+  #   # Cola/caché/cuotas (docs/02-arquitectura-y-plataforma/05-servicios-docker.md). Descartado a
+  #   # propósito para S1: "a 120 usuarios probablemente no haga falta Redis" — la cola interna usa
   #   # Postgres SKIP LOCKED. Revisar si el volumen de trabajos crece.
   #   image: redis:7-alpine
   #   command: ["redis-server", "--appendonly", "yes"]
@@ -93,8 +97,9 @@ services:
 
   # minio:
   #   # Almacenamiento de objetos para los PDF originales — "solo si nadie más los
-  #   # tiene" (docs/12 §1). Hoy el PDF se guarda como BYTEA en rag_documents, decisión
-  #   # explícita (docs/estado-implementacion/ep-09/ingesta.md, "Qué NO se portó").
+  #   # tiene" (docs/03-capacidades-de-ia/rag-e-ingesta/01-almacenamiento-e-ingesta.md). Hoy el PDF
+  #   # se guarda como BYTEA en rag_documents, decisión explícita
+  #   # (docs/06-operacion-calidad-y-pruebas/04-estado-de-implementacion/ep-09/ingesta.md, "Qué NO se portó").
   #   image: minio/minio:latest
   #   command: server /data --console-address ":9001"
   #   environment:
@@ -103,7 +108,8 @@ services:
   #   volumes:
   #     - llm-minio-data:/data
 
-  # Eureka y API Gateway NO están acá, ni siquiera comentados: docs/25 registra que "no
+  # Eureka y API Gateway NO están acá, ni siquiera comentados:
+  # docs/06-operacion-calidad-y-pruebas/03-matriz-de-pruebas-de-infraestructura.md registra que "no
   # existe un servidor Eureka/Gateway ejecutable en este repositorio" y que esa suite se
   # prueba "junto con los módulos reales, no como simulación local" — los pone el Tema
   # 01/11. `spring-cloud-starter-netflix-eureka-client` ya está en el pom.xml del lado

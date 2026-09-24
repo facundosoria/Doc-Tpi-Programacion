@@ -1,4 +1,11 @@
-# Variables de entorno y secretos locales
+**/target/
+**/.DS_Store
+.idea/
+*.iml
 .env
 .env.*
 !.env.example
+*.bak
+llm-workbench/node_modules/
+llm-workbench/dist/
+llm-workbench/.angular/

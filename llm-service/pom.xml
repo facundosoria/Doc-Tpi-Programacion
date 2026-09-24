@@ -8,14 +8,18 @@
     <relativePath/>
   </parent>
   <groupId>ar.edu.utn.frc.tup.piv</groupId>
-  <artifactId>llm-service</artifactId>
+  <artifactId>llm-service-parent</artifactId>
   <version>0.0.1-SNAPSHOT</version>
-  <name>llm-service</name>
+  <name>llm-service parent</name>
+  <packaging>pom</packaging>
   <properties>
     <java.version>21</java.version>
     <spring-cloud.version>2025.0.0</spring-cloud.version>
+    <langchain4j.version>1.20.0</langchain4j.version>
     <!-- 1.21.4+ habla con Docker Engine 29 (API mínima 1.44); 1.21.0 recibe 400 y no arranca. -->
     <testcontainers.version>1.21.4</testcontainers.version>
+    <argLine></argLine>
+    <failsafeArgLine></failsafeArgLine>
   </properties>
   <dependencyManagement>
     <dependencies>
@@ -26,155 +30,20 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <groupId>dev.langchain4j</groupId>
+        <artifactId>langchain4j-bom</artifactId>
+        <version>${langchain4j.version}</version>
+        <type>pom</type>
+        <scope>import</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
-  <dependencies>
-    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-web</artifactId></dependency>
-    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-validation</artifactId></dependency>
-    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-jdbc</artifactId></dependency>
-    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-data-jpa</artifactId></dependency>
-    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-actuator</artifactId></dependency>
-    <dependency><groupId>org.springframework.cloud</groupId><artifactId>spring-cloud-starter-netflix-eureka-client</artifactId></dependency>
-    <dependency><groupId>org.flywaydb</groupId><artifactId>flyway-database-postgresql</artifactId></dependency>
-    <!-- Scope ampliado de runtime a compile: PGvector (EP-09) extiende org.postgresql.util.PGobject,
-         así que PgVectorStoreAdapter necesita esa clase en tiempo de compilación, no solo en runtime. -->
-    <dependency><groupId>org.postgresql</groupId><artifactId>postgresql</artifactId></dependency>
-    <!-- EP-09 (RAG): extracción de texto de PDF, portado de demoLLMSpringAi. -->
-    <dependency><groupId>org.apache.pdfbox</groupId><artifactId>pdfbox</artifactId><version>3.0.1</version></dependency>
-    <!-- EP-09 (RAG): binding tipado para la columna vector(768) de pgvector. -->
-    <dependency><groupId>com.pgvector</groupId><artifactId>pgvector</artifactId><version>0.1.6</version></dependency>
-    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-security</artifactId></dependency>
-    <!-- LLM-EP01-H07: productor/consumidor Kafka del esqueleto de mensajería (outbox + dedup). -->
-    <dependency><groupId>org.springframework.kafka</groupId><artifactId>spring-kafka</artifactId></dependency>
-    <dependency><groupId>org.springframework.kafka</groupId><artifactId>spring-kafka-test</artifactId><scope>test</scope></dependency>
-    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-starter-test</artifactId><scope>test</scope></dependency>
-    <dependency><groupId>org.springframework.security</groupId><artifactId>spring-security-test</artifactId><scope>test</scope></dependency>
-    <dependency><groupId>org.testcontainers</groupId><artifactId>junit-jupiter</artifactId><scope>test</scope></dependency>
-    <dependency><groupId>org.testcontainers</groupId><artifactId>postgresql</artifactId><scope>test</scope></dependency>
-    <!-- ADR-016: langchain4j en adapters de LLM (H02: proveedor real, sin capas de agentes). -->
-    <dependency>
-      <groupId>dev.langchain4j</groupId>
-      <artifactId>langchain4j-open-ai</artifactId>
-      <version>0.36.2</version>
-    </dependency>
-    <!-- EP-08 (H02): moderación determinista en memoria (Aho-Corasick y diccionarios con pesos). -->
-    <dependency>
-      <groupId>org.ahocorasick</groupId>
-      <artifactId>ahocorasick</artifactId>
-      <version>0.6.3</version>
-    </dependency>
-    <dependency>
-      <groupId>com.modernmt.text</groupId>
-      <artifactId>profanity-filter</artifactId>
-      <version>1.0.1</version>
-    </dependency>
-    <!-- EP-08 / LLM-S13-H01: Resiliencia con Resilience4j (Circuit Breaker y Rate Limiter) -->
-    <dependency>
-      <groupId>io.github.resilience4j</groupId>
-      <artifactId>resilience4j-spring-boot3</artifactId>
-      <version>2.2.0</version>
-    </dependency>
-    <dependency>
-      <groupId>io.github.resilience4j</groupId>
-      <artifactId>resilience4j-micrometer</artifactId>
-      <version>2.2.0</version>
-    </dependency>
-    <!-- ADR-019: prueba de arquitectura que hace cumplir las fronteras de paquete (T4 de LLM-EP01-H01). -->
-    <dependency><groupId>com.tngtech.archunit</groupId><artifactId>archunit-junit5</artifactId><version>1.5.0</version><scope>test</scope></dependency>
-    <!-- WireMock para tests de adaptadores externos y simulación de fallas/timeout (LLM-S13-H01 / Doc 26) -->
-    <dependency>
-      <groupId>org.wiremock</groupId>
-      <artifactId>wiremock-standalone</artifactId>
-      <version>3.10.0</version>
-      <scope>test</scope>
-    </dependency>
-  </dependencies>
-  <build><plugins>
-    <plugin><groupId>org.springframework.boot</groupId><artifactId>spring-boot-maven-plugin</artifactId></plugin>
-    <!-- Corre los *IT.java (Testcontainers) en integration-test/verify. Antes no había failsafe
-         configurado y surefire (que solo mira **/*Test.java) los dejaba afuera de `mvn verify`:
-         ni CI ni el gate de JaCoCo ejecutaban nunca esos tests de integración. -->
-    <plugin>
-      <groupId>org.apache.maven.plugins</groupId>
-      <artifactId>maven-failsafe-plugin</artifactId>
-      <configuration>
-        <argLine>@{failsafeArgLine}</argLine>
-      </configuration>
-      <executions>
-        <execution>
-          <goals>
-            <goal>integration-test</goal>
-            <goal>verify</goal>
-          </goals>
-        </execution>
-      </executions>
-    </plugin>
-    <!-- Mide la cobertura que AGENTS.md y Doc 24 exigen (mínimo 90%) — genera reportes y activa gate en CI. -->
-    <plugin>
-      <groupId>org.jacoco</groupId>
-      <artifactId>jacoco-maven-plugin</artifactId>
-      <version>0.8.12</version>
-      <configuration>
-        <skip>${skipTests}</skip>
-      </configuration>
-      <executions>
-        <execution>
-          <id>prepare-agent</id>
-          <goals><goal>prepare-agent</goal></goals>
-        </execution>
-        <!-- Instrumenta también los *IT.java, acumulando en el mismo jacoco.exec que los unit tests. -->
-        <execution>
-          <id>prepare-agent-integration</id>
-          <phase>pre-integration-test</phase>
-          <goals><goal>prepare-agent-integration</goal></goals>
-          <configuration>
-            <propertyName>failsafeArgLine</propertyName>
-            <destFile>${project.build.directory}/jacoco.exec</destFile>
-            <append>true</append>
-          </configuration>
-        </execution>
-        <execution>
-          <id>report</id>
-          <phase>verify</phase>
-          <goals><goal>report</goal></goals>
-        </execution>
-        <execution>
-          <id>check</id>
-          <phase>verify</phase>
-          <goals><goal>check</goal></goals>
-          <configuration>
-            <skip>${jacoco.skip}</skip>
-            <rules>
-              <rule>
-                <element>PACKAGE</element>
-                <includes>
-                  <!-- Reglas de dominio puras (H06·T1) -->
-                  <include>ar.edu.utn.frc.tup.piv.llm.domain</include>
-                  <include>ar.edu.utn.frc.tup.piv.llm.domain.rag</include>
-                </includes>
-                <limits>
-                  <limit>
-                    <counter>INSTRUCTION</counter>
-                    <value>COVEREDRATIO</value>
-                    <minimum>0.90</minimum>
-                  </limit>
-                </limits>
-              </rule>
-              <rule>
-                <element>BUNDLE</element>
-                <limits>
-                  <limit>
-                    <counter>INSTRUCTION</counter>
-                    <value>COVEREDRATIO</value>
-                    <!-- Objetivo normativo: 0.90 (AGENTS.md, Doc 24). Medido con unit + ITs: ~93 %. -->
-                    <minimum>0.90</minimum>
-                  </limit>
-                </limits>
-              </rule>
-            </rules>
-          </configuration>
-        </execution>
-      </executions>
-    </plugin>
-  </plugins></build>
+  <modules>
+    <module>provider-spi</module>
+    <module>provider-openai-compatible</module>
+    <module>provider-anthropic</module>
+    <module>provider-gemini</module>
+    <module>app</module>
+  </modules>
 </project>

@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: ar.edu.utn.frc.tup.piv.llm.application.AgentMentionServiceTest
--------------------------------------------------------------------------------
-Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 5.768 s -- in ar.edu.utn.frc.tup.piv.llm.application.AgentMentionServiceTest

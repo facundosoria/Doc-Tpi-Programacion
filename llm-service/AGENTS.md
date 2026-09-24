@@ -65,8 +65,9 @@ docker compose -f llm-service/compose.yaml logs -f llm-service
   - Todas las rutas privadas atienden bajo `/api/llm/**`.
   - La única puerta de entrada es el **API Gateway** corporativo (regla no negociable de plataforma). Ningún puerto de servicio se expone directamente a internet.
   - No hay comunicación directa HTTP entre microservicios; todo flujo síncrono pasa por el API Gateway.
-- **Backend:** Java 21 LTS, Spring Boot 3.x, Spring Data JPA, Flyway, Resilience4j, `langchain4j`.
-- **Persistencia:** PostgreSQL 16 con extensión `pgvector` en **base de datos propia y exclusiva**.
+- **Backend:** Java 21 LTS, Spring Boot 3.x, Spring JDBC, Flyway y los módulos `provider-*`.
+- **Persistencia:** PostgreSQL 16 en **base de datos propia y exclusiva**. No asumir `pgvector`:
+  sólo se incorpora cuando una migración y el módulo RAG real lo requieran.
 - **Mensajería Asíncrona:** Apache Kafka (bus de eventos de plataforma proveído por Tema 11) + cola interna con PostgreSQL (`SKIP LOCKED`) para workers diferidos.
 - **Frontend:** Monolito compartido Angular 21 (Septiembre 2026), TypeScript estricto, servido por Nginx en el borde.
 - **AI Gateway Interno (Módulo M1):** Componente Java interno que envuelve toda interacción con modelos de lenguaje. **Ningún controller, worker o servicio frontend llama a un proveedor LLM de forma directa.**
@@ -238,12 +239,12 @@ export class BadEditorComponent {
 2. **Inyección por Constructor:** Prohibido el uso de `@Autowired` sobre campos (`field injection`). Usar constructores explícitos o constructores canónicos de `record`.
 3. **Pattern Matching y Switch Expressions:** Aprovechar el `switch` con pattern matching exhaustivo de Java 21 para estados de dominio o resolución de estrategias.
 4. **Manejo Centralizado de Errores:** Controlar excepciones con `@RestControllerAdvice` retornando RFC 7807 (`ProblemDetail`), sin filtrar stacktraces ni datos sensibles.
-5. **Arquitectura DDD (Domain-Driven Design) — Capas y Tácticas de Dominio:**
-   - `api` (capa de interfaz): `@RestController` que traduce HTTP ↔ casos de uso. **Sin reglas de negocio ni acceso a persistencia.**
-   - `application`: Servicios de aplicación (casos de uso) y orquestación de repositorios y servicios de dominio.
-   - `domain`: Modelo de dominio puro — entidades (raíces de agregado), value objects, servicios de dominio y repositorios como **contratos**; **prohibido importar Spring, JPA o Kafka**.
-   - `infrastructure`: Implementaciones concretas de repositorios y servicios de dominio (JDBC/Flyway, PDFBox, Mensajería Kafka, AI Gateway `langchain4j`).
-   - Lenguaje ubicuo y tácticas DDD: toda regla que comprometa invariantes del agregado se define en `domain` (ej. "una Fuente se persiste antes que sus chunks"). Los nombres heredados `*Port`/`*Adapter` del repo son contratos de dominio / implementaciones de infraestructura; se tratan con rol DDD.
+5. **Arquitectura Hexagonal / Puertos y Adaptadores:**
+   - `domain`: Reglas de negocio puras; **prohibido importar Spring, JPA o Kafka**.
+   - `application`: Casos de uso y orquestación (`application/service`, `application/port/out`, `application/worker`).
+   - `adapter`: Entradas Web/mensajería (`adapter/in/**`) y salidas HTTP, persistencia JDBC, mensajería y proveedores (`adapter/out/**`).
+   - Lenguaje ubicuo: toda regla que comprometa invariantes del agregado se define en `domain` (ej. "una Fuente se persiste antes que sus chunks"). Los nombres `*Port`/`*Adapter` son contratos de aplicación / implementaciones de adaptador.
+   - El árbol vigente está en [`docs/02-arquitectura-y-plataforma/04-estructura-del-backend.md`](docs/02-arquitectura-y-plataforma/04-estructura-del-backend.md); `llm-service/src` ya no existe, todo vive en el módulo `app` y los `provider-*`.
 
 #### Ejemplo Backend (Java 21):
 

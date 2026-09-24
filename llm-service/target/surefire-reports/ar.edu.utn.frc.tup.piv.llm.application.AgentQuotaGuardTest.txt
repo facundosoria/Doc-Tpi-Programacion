@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: ar.edu.utn.frc.tup.piv.llm.application.AgentQuotaGuardTest
--------------------------------------------------------------------------------
-Tests run: 0, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 0.578 s -- in ar.edu.utn.frc.tup.piv.llm.application.AgentQuotaGuardTest

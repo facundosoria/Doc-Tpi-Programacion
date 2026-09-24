@@ -23,10 +23,9 @@ export class SummaryPage {
     { defaultValue: { items: [] } }
   );
 
-  readonly baseProposals = httpResource<{ items: any[] }>(
-    () => this.courseId() ? `/api/llm/courses/${this.courseId()}/base-update-proposals` : undefined,
-    { defaultValue: { items: [] } }
-  );
+  readonly hasActiveCalibration = computed(() => this.activeCalibration.hasValue() && !!this.activeCalibration.value());
+  readonly pendingCount = computed(() => this.pendingEvaluations.value().items.length);
+  readonly hasBaseProposal = computed(() => false);
 
   readonly rubrics = httpResource<{ items: RubricItem[] }>(
     () => this.courseId() ? `/api/llm/courses/${this.courseId()}/rubrics` : undefined,
@@ -42,10 +41,6 @@ export class SummaryPage {
     () => this.courseId() ? `/api/llm/courses/${this.courseId()}/calibrations` : undefined,
     { defaultValue: { items: [] } }
   );
-
-  readonly hasActiveCalibration = computed(() => !!this.activeCalibration.value());
-  readonly pendingCount = computed(() => this.pendingEvaluations.value().items.length);
-  readonly hasBaseProposal = computed(() => this.baseProposals.value().items.length > 0);
 
   readonly draftRubrics = computed(() =>
     this.rubrics.value().items.filter(r => r.state === 'DRAFT')

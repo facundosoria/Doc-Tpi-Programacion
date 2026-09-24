@@ -5,13 +5,13 @@
     Valida la concordancia del evaluador de tutoría pedagógica contra el estándar PAR-14.
     Requiere una rúbrica y un Golden Set publicados. No califica código ni soluciones académicas.
   </p>
-  @if (activeEvaluator.hasValue()) {
-    <p class="active-badge" role="status"><strong>Modelo evaluador activo:</strong> {{ activeEvaluator.value().provider }} / {{ activeEvaluator.value().modelId }}</p>
+  @if (activeEvaluator.value(); as evaluator) {
+    <p class="active-badge" role="status"><strong>Modelo evaluador activo:</strong> {{ evaluator.provider }} / {{ evaluator.modelId }}</p>
   } @else if (!activeEvaluator.isLoading()) {
     <p class="warning-banner" role="status">No hay modelo evaluador global activo. Un admin debe activar un candidato que haya aprobado PAR-14.</p>
   }
-  @if (calibrationTarget.hasValue()) {
-    <p class="active-badge" role="status"><strong>Modelo candidato para esta calibración:</strong> {{ calibrationTarget.value().provider }} / {{ calibrationTarget.value().modelId }}</p>
+  @if (calibrationTarget.value(); as target) {
+    <p class="active-badge" role="status"><strong>Modelo candidato para esta calibración:</strong> {{ target.provider }} / {{ target.modelId }}</p>
   }
 </header>
 
@@ -31,35 +31,41 @@
 
 <!-- GS-0540 & GS-0541: Crear ejecución con resumen previo -->
 <section class="card editor" aria-labelledby="new-run-heading">
-  <h2 id="new-run-heading">Nueva ejecución de calibración</h2>
-  <p class="hint">Seleccioná las versiones publicadas. El modelo activo se informa en tiempo real y no se elige desde este formulario.</p>
+  <h2 id="new-run-heading">Nueva calibración de estabilidad</h2>
+  <p class="hint">La ejecución realiza tres corridas con política institucional para verificar estabilidad. El modelo candidato se informa en tiempo real.</p>
 
   <form [formGroup]="runForm" (ngSubmit)="startCalibration()" novalidate>
     <div class="form-grid">
       <label>
         Rúbrica publicada *
-        <select formControlName="rubricVersionId" required>
+        <div class="input-with-button">
+          <select formControlName="rubricVersionId" required>
           <option value="">-- Seleccionar rúbrica --</option>
           @for (rub of publishedRubrics(); track rub.id) {
             <option [value]="rub.id">{{ rub.name }} (v{{ rub.version }})</option>
           }
         </select>
+          <button type="button" class="secondary" [disabled]="!selectedRubric()" (click)="rubricModal.showModal()">Ver detalle</button>
+        </div>
       </label>
 
       <label>
         Golden Set publicado *
-        <select formControlName="goldenSetVersionId" required>
+        <div class="input-with-button">
+          <select formControlName="goldenSetVersionId" required>
           <option value="">-- Seleccionar Golden Set --</option>
           @for (gs of publishedGoldenSets(); track gs.id) {
             <option [value]="gs.id">{{ gs.name }} (v{{ gs.version }}) · {{ gs.cases.length }} casos</option>
           }
         </select>
+          <button type="button" class="secondary" [disabled]="!selectedGoldenSet()" (click)="gsModal.showModal()">Ver detalle</button>
+        </div>
       </label>
 
     </div>
 
     <!-- GS-0541 Resumen previo con versiones exactas y cantidad de casos -->
-    @if (selectedRubric() || selectedGoldenSet() || calibrationTarget.hasValue()) {
+    @if (selectedRubric() || selectedGoldenSet() || calibrationTarget.value()) {
       <div class="preview-box">
         <h3>Resumen previo de la calibración</h3>
         <ul class="preview-list">
@@ -73,7 +79,7 @@
           </li>
           <li>
             <strong>Modelo:</strong>
-            {{ calibrationTarget.hasValue() ? calibrationTarget.value().provider + ' / ' + calibrationTarget.value().modelId : 'No hay candidato seleccionado por el admin' }}
+            {{ calibrationTarget.value() ? calibrationTarget.value()!.provider + ' / ' + calibrationTarget.value()!.modelId : 'No hay candidato seleccionado por el admin' }}
           </li>
           <li>
             <strong>Criterio PAR-14:</strong>
@@ -87,9 +93,9 @@
       <button
         type="submit"
         class="save-button"
-        [disabled]="runForm.invalid || launching() || !selectedRubric() || !selectedGoldenSet() || !calibrationTarget.hasValue()"
+        [disabled]="runForm.invalid || launching() || !selectedRubric() || !selectedGoldenSet() || !calibrationTarget.value()"
       >
-        {{ launching() ? 'Iniciando calibración…' : 'Lanzar calibración PAR-14' }}
+        {{ launching() ? 'Iniciando calibración…' : 'Lanzar calibración de estabilidad (3 corridas)' }}
       </button>
     </div>
   </form>
@@ -175,10 +181,12 @@
       <div class="activation-action">
         @if (activeCalibration.value()?.calibrationRunId === run.id) {
           <p class="saved">Esta calibración es la que actualmente se encuentra ACTIVA para el curso.</p>
-        } @else {
+        } @else if (isStableRun(run)) {
           <button type="button" class="save-button" (click)="startActivationPreview(run)">
             Activar esta calibración para el curso
           </button>
+        } @else {
+          <p class="hint">Esta corrida aprobó PAR-14, pero todavía no pertenece a un grupo de estabilidad aprobado.</p>
         }
       </div>
     }
@@ -235,7 +243,29 @@
   </section>
 }
 
-<!-- GS-0546: Historial comparable y motivo de calibración -->
+<section class="card" aria-labelledby="stability-heading">
+  <h2 id="stability-heading">Estabilidad de calibraciones</h2>
+  <p class="hint">Una calibración es activable sólo si las tres corridas aprueban PAR-14 y su dispersión MAE es ≤ 1.00.</p>
+  @if (stabilityGroups.isLoading()) {
+    <p class="loading">Cargando grupos de estabilidad…</p>
+  } @else if (!stabilityGroups.value().items.length) {
+    <p class="hint">No hay grupos de estabilidad registrados.</p>
+  } @else {
+    @for (group of stabilityGroups.value().items; track group.id) {
+      <article class="run-card" [class.running]="group.state === 'RUNNING'">
+        <div class="run-header"><strong>Grupo <code>{{ shortId(group.id) }}</code></strong><span class="state" [class.published]="group.state === 'STABLE_PASSED'" [class.state-failed]="group.state === 'FAILED'">{{ group.state === 'STABLE_PASSED' ? 'ESTABLE Y APROBADA' : group.state === 'FAILED' ? 'RECHAZADA' : 'EN EJECUCIÓN' }}</span></div>
+        <p class="hint">Dispersión MAE: {{ group.maeSpread !== null && group.maeSpread !== undefined ? (group.maeSpread | number:'1.2-2') : 'pendiente' }} / 1.00.</p>
+        <ul class="preview-list">
+          @for (run of group.runs; track run.id) {
+            <li>Corrida {{ $index + 1 }}: {{ run.state }} · MAE {{ run.maeFinal !== null && run.maeFinal !== undefined ? (run.maeFinal | number:'1.2-2') : 'pendiente' }} · {{ run.progress }}%</li>
+          }
+        </ul>
+      </article>
+    }
+  }
+</section>
+
+<!-- GS-0546: Historial legacy comparable y motivo de calibración -->
 <section class="card" aria-labelledby="history-heading">
   <h2 id="history-heading">Historial de calibraciones</h2>
   @if (calibrations.isLoading()) {
@@ -285,3 +315,43 @@
     </div>
   }
 </section>
+
+<!-- Modals for details -->
+<dialog #rubricModal class="native-modal">
+  @if (selectedRubric(); as rub) {
+    <div class="modal-header">
+      <h2>{{ rub.name }} (v{{ rub.version }})</h2>
+      <button type="button" class="close-btn" (click)="rubricModal.close()" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="modal-content">
+      <p class="hint">Esta rúbrica contiene {{ rub.dimensions?.length || 0 }} dimensiones evaluativas.</p>
+      <div class="dimension-grid">
+        @for (dim of rub.dimensions; track dim.key) {
+          <div class="dimension-card">
+            <h4>{{ dim.label }} <span class="weight-badge">{{ dim.weight }}%</span></h4>
+            <p>{{ dim.criterion }}</p>
+          </div>
+        }
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="secondary" (click)="rubricModal.close()">Cerrar detalles</button>
+    </div>
+  }
+</dialog>
+
+<dialog #gsModal class="native-modal">
+  @if (selectedGoldenSet(); as gs) {
+    <div class="modal-header">
+      <h2>{{ gs.name }} (v{{ gs.version }})</h2>
+      <button type="button" class="close-btn" (click)="gsModal.close()" aria-label="Cerrar">&times;</button>
+    </div>
+    <div class="modal-content">
+      <p class="hint">Este Golden Set contiene {{ gs.cases?.length || 0 }} casos de referencia.</p>
+      <p>Los casos de prueba del Golden Set son utilizados para evaluar empíricamente la concordancia de los modelos de IA contra la rúbrica seleccionada.</p>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="secondary" (click)="gsModal.close()">Cerrar detalles</button>
+    </div>
+  }
+</dialog>

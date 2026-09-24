@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: ar.edu.utn.frc.tup.piv.llm.api.RagControllerTest
--------------------------------------------------------------------------------
-Tests run: 13, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.344 s -- in ar.edu.utn.frc.tup.piv.llm.api.RagControllerTest

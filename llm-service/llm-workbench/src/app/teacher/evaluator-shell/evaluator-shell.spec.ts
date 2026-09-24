@@ -14,7 +14,7 @@ describe('EvaluatorShell', () => {
     fixture.componentRef.setInput('courseId', '00000000-0000-0000-0000-000000000010');
     fixture.detectChanges();
     TestBed.inject(HttpTestingController)
-      .expectOne('/api/llm/courses')
+      .expectOne('/api/courses/me/course-cohorts')
       .flush({ items: [{ id: '00000000-0000-0000-0000-000000000010', name: 'Programación III' }] });
     TestBed.inject(HttpTestingController)
       .expectOne('/api/llm/courses/00000000-0000-0000-0000-000000000010/active-calibration')
@@ -34,6 +34,6 @@ describe('EvaluatorShell', () => {
     expect(page.textContent).toContain('Sin calibración activa');
     expect(page.querySelector('[role="alert"]')?.textContent).toContain('Hay 1 evaluación(es) de uso de IA en cola');
     expect([...page.querySelectorAll('.course-nav a')].map((link) => link.textContent?.trim()))
-      .toEqual(['⌂Resumen', '▤Rúbricas', '✦Golden Set', '◌Calibraciones', '⌘Asignaciones', '?Cómo usar']);
+      .toEqual(['⌂Resumen', '▤Rúbricas', '◇Rúbrica por desafío', '✦Golden Set', '◌Calibraciones', '⌁LLM API keys', '⌘Asignaciones', '?Cómo usar', '◆Tutor + RAG']);
   });
 });

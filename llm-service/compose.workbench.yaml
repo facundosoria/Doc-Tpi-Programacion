@@ -5,7 +5,28 @@ services:
     # application-workbench.yml. No se usa en la integración real: ahí el API Gateway
     # valida la sesión y agrega los headers M2M que el servicio exige.
     environment:
-      SPRING_PROFILES_ACTIVE: workbench
+      # The application stays in its normal runtime profile. The browser never
+      # reaches it directly; only gateway-mock can supply delegated identity.
+      LLM_COURSES_BASE_URL: http://gateway-mock:8080
+      LLM_COURSES_SERVICE_TOKEN: ${LLM_COURSES_SERVICE_TOKEN:-local-gateway-m2m-token}
+
+  gateway-mock:
+    image: nginx:1.25-alpine
+    ports: ["8080:8080"]
+    volumes:
+      - ./lab/gateway/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      llm-service:
+        condition: service_healthy
+      courses-mock:
+        condition: service_started
+
+  courses-mock:
+    image: mockserver/mockserver:mockserver-5.15.0
+    environment:
+      MOCKSERVER_INITIALIZATION_JSON_PATH: /config/expectations.json
+    volumes:
+      - ./lab/courses/expectations.json:/config/expectations.json:ro
 
   workbench:
     build:
@@ -16,8 +37,8 @@ services:
       - ./llm-workbench:/workspace
       - workbench_node_modules:/workspace/node_modules
     depends_on:
-      llm-service:
-        condition: service_healthy
+      gateway-mock:
+        condition: service_started
 
 volumes:
   workbench_node_modules:

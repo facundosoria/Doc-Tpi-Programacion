@@ -5,6 +5,7 @@
     "ng": "ng",
     "start": "ng serve",
     "start:local": "ng serve --proxy-config proxy.local.json",
+    "gateway:simulator": "node scripts/local-gateway-simulator.mjs",
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",

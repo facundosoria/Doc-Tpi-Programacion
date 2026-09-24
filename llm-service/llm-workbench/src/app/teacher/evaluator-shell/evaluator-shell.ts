@@ -25,10 +25,10 @@ export class EvaluatorShell {
     const url = this.currentUrl();
     return url.includes('/golden-set/new') ? 'Nuevo Golden Set' : '';
   });
-  readonly activeCalibration = httpResource<ActiveCalibration>(() => {
+  readonly activeCalibration = httpResource<ActiveCalibration | null>(() => {
     const courseId = this.courseId();
     return courseId ? `/api/llm/courses/${courseId}/active-calibration` : undefined;
-  });
+  }, { defaultValue: null });
   readonly assignments = httpResource<AssignmentPage>(() => {
     const courseId = this.courseId();
     return courseId ? `/api/llm/courses/${courseId}/challenge-calibration-assignments` : undefined;
@@ -37,17 +37,20 @@ export class EvaluatorShell {
     const courseId = this.courseId();
     return courseId ? `/api/llm/courses/${courseId}/pending-evaluations` : undefined;
   }, { defaultValue: { items: [] } });
-  readonly hasActiveCalibration = computed(() => this.activeCalibration.hasValue());
-  readonly hasNoActiveCalibration = computed(() => {
-    const error = this.activeCalibration.error();
-    return error instanceof HttpErrorResponse && error.status === 404;
+  readonly hasActiveCalibration = computed(() => this.activeCalibration.hasValue() && !!this.activeCalibration.value());
+  readonly calibrationLabel = computed(() => {
+    if (this.activeCalibration.isLoading()) return 'Consultando calibración…';
+    if (this.hasActiveCalibration()) return 'Calibración activa';
+    const error = this.activeCalibration.error() as HttpErrorResponse | null;
+    if (error && error.status !== 404) return 'No se pudo consultar la calibración';
+    return 'Sin calibración activa';
   });
-  readonly calibrationLabel = computed(() => this.activeCalibration.isLoading() ? 'Consultando calibración…' : this.hasActiveCalibration() ? 'Calibración activa' : this.hasNoActiveCalibration() ? 'Sin calibración activa' : this.activeCalibration.error() ? 'No se pudo consultar la calibración' : 'Sin calibración activa');
   readonly sectionContent = computed(() => {
     const url = this.currentUrl();
     if (url.includes('/rubricas/new')) return { label: 'RÚBRICAS', title: 'Nueva rúbrica', description: 'Partí de una plantilla institucional aprobada y adaptala a las necesidades del curso.' };
     if (/\/rubricas\/[^/]+\/edit/.test(url)) return { label: 'RÚBRICAS', title: 'Editar rúbrica', description: 'Ajustá criterios, ejemplos y pesos antes de publicar una nueva versión.' };
     if (url.includes('/rubricas')) return { label: 'RÚBRICAS', title: 'Rúbricas versionadas', description: 'Administrá los criterios que orientan la evaluación pedagógica del curso.' };
+    if (url.includes('/desafios/rubricas')) return { label: 'RÚBRICA POR DESAFÍO', title: 'Overlay por desafío', description: 'Configurá dimensiones propias de evaluación para cada desafío.' };
     if (url.includes('/golden-set/new')) return { label: 'GOLDEN SET', title: 'Nuevo Golden Set', description: 'Prepará casos de referencia para validar el evaluador.' };
     if (/\/golden-set\/[^/]+\/edit/.test(url)) return { label: 'GOLDEN SET', title: 'Editar Golden Set', description: 'Actualizá los casos de referencia de esta versión borrador.' };
     if (url.includes('/golden-set')) return { label: 'GOLDEN SET', title: 'Conversaciones de referencia', description: 'Gestioná los casos que calibran el uso pedagógico de IA.' };

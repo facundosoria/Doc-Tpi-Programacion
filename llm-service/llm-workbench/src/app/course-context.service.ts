@@ -8,12 +8,15 @@ export interface AuthorizedCourse {
   subtitle?: string;
 }
 
-/** Single source of course context. Business data never comes from browser storage. */
+/**
+ * Course context is owned by courses-service and delivered through the Gateway. The workbench
+ * never asks llm-service to manufacture a course list.
+ */
 @Injectable({ providedIn: 'root' })
 export class CourseContextService {
   private readonly http = inject(HttpClient);
   private readonly authorizedCourses$ = this.http
-    .get<AuthorizedCourse[] | { items: AuthorizedCourse[] }>('/api/llm/courses')
+    .get<AuthorizedCourse[] | { items: AuthorizedCourse[] }>('/api/courses/me/course-cohorts')
     .pipe(
       map((response) => Array.isArray(response) ? response : response.items ?? []),
       catchError(() => of([])),

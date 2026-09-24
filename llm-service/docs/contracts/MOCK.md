@@ -2,7 +2,7 @@
 
 > **Historia:** `LLM-EP01-H05` (ex-H08) — Contrato OpenAPI y mock del golden set publicados (10 h).  
 > **Criterio de Aceptación CA2:** El simulador se levanta con un comando documentado y responde según el contrato.  
-> **Contrato de referencia:** [`llm-service-v2-golden-set.openapi.yaml`](llm-service-v2-golden-set.openapi.yaml).  
+> **Contrato de referencia:** [`llm-service.openapi.yaml`](llm-service.openapi.yaml).  
 > **Propósito:** Permite a `admin-service` y otros consumidores de la plataforma avanzar en su desarrollo e integración desacoplada sin depender del despliegue real del servicio.
 
 ---
@@ -17,16 +17,18 @@ Disponer de Node.js (npx se incluye por defecto) o Docker.
 ### Comando para levantar el mock (desde la raíz del repo)
 
 ```bash
-npx --yes @stoplight/prism-cli mock docs/contracts/llm-service-v2-golden-set.openapi.yaml --port 4010
+npx --yes @stoplight/prism-cli mock llm-service/docs/contracts/llm-service.openapi.yaml --port 4010
 ```
 
-El simulador queda disponible en:  
-`http://localhost:4010/api/llm`
+El simulador queda disponible en `http://localhost:4010`, **sin** el prefijo `/api/llm`: Prism ignora el
+`servers.url` relativo del contrato, así que `GET /api/llm/admin/rubric-templates` del servicio real es
+`GET http://localhost:4010/admin/rubric-templates` en el mock. Verificado el 2026-09-21: devuelve `200` con
+cuerpo conforme al esquema y `401` sin `Authorization` (el contrato exige `serviceJwt`).
 
 ### Alternativa con Docker (sin requerir Node local)
 
 ```bash
-docker run --rm -p 4010:4010 -v "${PWD}/docs/contracts:/tmp/contracts" stoplight/prism:4 mock /tmp/contracts/llm-service-v2-golden-set.openapi.yaml --host 0.0.0.0
+docker run --rm -p 4010:4010 -v "${PWD}/llm-service/docs/contracts:/tmp/contracts" stoplight/prism:4 mock /tmp/contracts/llm-service.openapi.yaml --host 0.0.0.0
 ```
 
 ---
@@ -43,8 +45,18 @@ docker compose -f compose.yaml -f compose.workbench.yaml up
 
 ### Características del modo Workbench
 - Activa `SPRING_PROFILES_ACTIVE=workbench`.
-- Habilita `WorkbenchDemoCatalog` con cursos preconfigurados (Programación III, Paradigmas de Programación).
+- Los cursos del laboratorio los sirve el `courses-mock` (MockServer, `lab/courses/expectations.json`), no el
+  backend: `llm-service` los resuelve con `GatewayCoursesMembershipClient` igual que contra courses-service real.
+  El catálogo en memoria `WorkbenchDemoCatalog` se borró en la [integración del 2026-09-21](../registro/2026-09-21-integracion-main-a-dev.md).
+- Siembra rúbrica y golden set de prueba con `WorkbenchCalibrationSeed` (perfil `workbench`, idempotente).
 - Simula la identidad del docente sin requerir el API Gateway real ni un Identity Provider M2M.
+- Levanta además `gateway-mock` (Nginx) en `localhost:8080` como único punto HTTP del laboratorio:
+  enruta `/api/llm/**` al `llm-service` real y `/api/courses/**` al `courses-mock` (MockServer, que
+  reemplaza a `courses-service`). El navegador usa rutas relativas y no construye headers de
+  identidad ni tokens M2M: Nginx descarta los headers sensibles que mande el cliente, inyecta la
+  identidad delegada de desarrollo, `traceparent` y `X-Request-Id`, y conserva el path completo.
+- El mock de integración **no reemplaza al backend**: `llm-service` y PostgreSQL corren de verdad;
+  solo se simulan las fronteras que pertenecen a otros equipos.
 
 ---
 
@@ -101,30 +113,3 @@ curl -s -X POST http://localhost:4010/api/llm/courses/${COURSE_ID}/golden-sets/$
 | **Idempotencia** | No verifica unicidad de `Idempotency-Key` | Valida clave y rechaza duplicados |
 | **Autorización** | Acepta cualquier Bearer token sintético | Valida JWT M2M con scopes y tenancy en Gateway |
 | **Calibración** | Retorna estado QUEUED/RUNNING de ejemplo | Ejecuta runner asíncrono con métricas PAR-14 |
-
----
-
-## 5. Mock de Moderación de chat (EP-08)
-
-**Contrato:** [`llm-service-v1-moderacion.openapi.yaml`](llm-service-v1-moderacion.openapi.yaml) (v1.1.0). Para `chat-service` y `notification-service`: integran sin depender del `llm-service` real.
-
-```bash
-npx --yes @stoplight/prism-cli mock docs/contracts/llm-service-v1-moderacion.openapi.yaml --port 4011
-```
-
-Con Docker: `docker run --rm -p 4011:4010 -v "${PWD}/docs/contracts:/tmp/contracts" stoplight/prism:4 mock /tmp/contracts/llm-service-v1-moderacion.openapi.yaml --host 0.0.0.0`
-
-Se elige la respuesta con `Prefer: example=<nombre>` (o `Prefer: code=<status>`):
-
-```bash
-H=(-H 'X-Principal-Type: service' -H 'X-Service-Id: chat-service' -H 'X-Service-Scopes: moderation:decide' -H 'Content-Type: application/json')
-BODY='{"message_id":"m-1","course_id":"curso-42","sender_id":"alumno-1","sender_role":"student","text":"hola"}'
-
-curl -s -X POST localhost:4011/moderation/v1/decisions "${H[@]}" -H 'Prefer: example=allow' -d "$BODY"                  # ALLOW
-curl -s -X POST localhost:4011/moderation/v1/decisions "${H[@]}" -H 'Prefer: example=block' -d "$BODY"                  # BLOCK + incident_id
-curl -s -X POST localhost:4011/moderation/v1/decisions "${H[@]}" -H 'Prefer: example=pendingReviewDegradado' -d "$BODY" # PENDING_REVIEW (contextual caído)
-curl -s -X POST localhost:4011/moderation/v1/decisions "${H[@]}" -H 'Prefer: example=pendingTimeout' -d "$BODY"         # PENDING (timeout 800 ms)
-curl -s -X POST localhost:4011/moderation/v1/appeals -H 'X-Principal-Type: user' -H 'X-User-Id: alumno-1' -H 'Content-Type: application/json' -H 'Prefer: code=409' -d '{"incident_id":"eee5cf4d-2903-42dd-bcc8-fead34b06450","appeal_reason":"Era un mensaje legitimo con enlaces."}'
-```
-
-Diferencia con el real: el mock es stateless (no detecta spam ni crea incidentes; devuelve el ejemplo elegido) y **no valida identidad**. El servicio real se prueba con el runbook `docs/sprints/sprint-4/runbook-verificacion-moderacion.md`.

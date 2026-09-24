@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # Prueba el evaluador de llm-service con el bot (proveedor "fake"), por Kafka.
 # Es la misma tanda de casos de la seccion 6 de
-# docsV2/contracts/equipos/llm-service-contrato-para-desafios-practicos.md.
+# docs/contracts/equipos/llm-service-contrato-para-desafios-practicos.md.
 #
 # Uso (con el compose de llm-service arriba; usa el broker local `kafka-local` de ese mismo compose):
 #   bash scripts/probar-bot-evaluador.sh

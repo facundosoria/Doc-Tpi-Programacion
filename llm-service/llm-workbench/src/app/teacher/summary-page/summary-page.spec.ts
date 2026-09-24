@@ -30,7 +30,6 @@ describe('SummaryPage', () => {
       activatedAt: '2026-09-01T12:00:00Z',
     });
     http.expectOne(`/api/llm/courses/${COURSE_ID}/pending-evaluations`).flush({ items: [] });
-    http.expectOne(`/api/llm/courses/${COURSE_ID}/base-update-proposals`).flush({ items: [] });
     http.expectOne(`/api/llm/courses/${COURSE_ID}/rubrics`).flush({
       items: [
         { id: 'rub-1', name: 'Rúbrica de Tutoría', version: 1, state: 'DRAFT' },
@@ -81,9 +80,6 @@ describe('SummaryPage', () => {
     http.expectOne(`/api/llm/courses/${COURSE_ID}/pending-evaluations`).flush({
       items: [{ id: 'p-1', attemptId: 'att-1' }, { id: 'p-2', attemptId: 'att-2' }],
     });
-    http.expectOne(`/api/llm/courses/${COURSE_ID}/base-update-proposals`).flush({
-      items: [{ id: 'prop-1', baseVersion: 2 }],
-    });
     http.expectOne(`/api/llm/courses/${COURSE_ID}/rubrics`).flush({ items: [] });
     http.expectOne(`/api/llm/courses/${COURSE_ID}/golden-sets`).flush({ items: [] });
     http.expectOne(`/api/llm/courses/${COURSE_ID}/calibrations`).flush({
@@ -98,14 +94,13 @@ describe('SummaryPage', () => {
     const comp = fixture.componentInstance;
     expect(comp.hasActiveCalibration()).toBe(false);
     expect(comp.pendingCount()).toBe(2);
-    expect(comp.hasBaseProposal()).toBe(true);
+    expect(comp.hasBaseProposal()).toBe(false);
     expect(comp.hasRecentFailedCalibration()).toBe(true);
 
     const text = fixture.nativeElement.textContent;
     expect(text).toContain('Servicio suspendido');
     expect(text).toContain('Sin calibración activa para el curso');
     expect(text).toContain('2 evaluación(es) en cola');
-    expect(text).toContain('Nueva versión de Golden Set base disponible');
     expect(text).toContain('Última calibración rechazada');
   });
 });

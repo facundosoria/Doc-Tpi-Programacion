@@ -1,4 +1,0 @@
-llm:
-  workbench:
-    enabled: true
-    user-id: ${LLM_WORKBENCH_USER_ID:11111111-1111-1111-1111-111111111111}

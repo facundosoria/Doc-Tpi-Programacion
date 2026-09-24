@@ -1,0 +1,178 @@
+server:
+  port: ${SERVER_PORT:8086}
+spring:
+  application:
+    name: llm-service
+  cloud:
+    inetutils:
+      preferred-networks:
+        - "100."
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://localhost:5432/llm}
+    username: ${SPRING_DATASOURCE_USERNAME:llm}
+    password: ${SPRING_DATASOURCE_PASSWORD:llm}
+  flyway:
+    schemas: llm
+    default-schema: llm
+    create-schemas: true
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: none
+    properties:
+      hibernate:
+        default_schema: llm
+  jackson:
+    default-property-inclusion: non_null
+  servlet:
+    multipart:
+      # Red de seguridad del limite de 25MB de la ingesta RAG (#669): corta en el borde, antes de
+      # que el archivo llegue al controller. El limite de negocio con su mensaje propio vive en
+      # PdfUploadValidator (llm.rag.max-upload-bytes); este es el mismo valor mas el overhead del
+      # encabezado multipart.
+      max-file-size: 25MB
+      max-request-size: 26MB
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP:event-bus:29092}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+      acks: all
+    consumer:
+      group-id: llm-service
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+management:
+  server:
+    port: ${MANAGEMENT_PORT:8087}
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  endpoint:
+    health:
+      probes:
+        enabled: true
+      show-details: never
+llm:
+  gateway:
+    trusted-service: admin-service
+    required-scope: llm.golden-set.manage
+    template-required-scope: llm.rubric-template.manage
+    institutional-required-scope: llm.institutional-calibration.manage
+    # EP-02·H03: política del AI Gateway (reintentos + circuit breaker por proveedor) y precios
+    # por 1k tokens (input + output) usados para estimar el costo. Sin estas claves rigen los defaults.
+    resilience:
+      max-attempts: ${LLM_GATEWAY_MAX_ATTEMPTS:3}
+      backoff-ms: ${LLM_GATEWAY_BACKOFF_MS:200}
+      breaker-min-calls: ${LLM_GATEWAY_BREAKER_MIN_CALLS:5}
+      breaker-failure-rate: ${LLM_GATEWAY_BREAKER_FAILURE_RATE:50}
+      breaker-open-wait-s: ${LLM_GATEWAY_BREAKER_OPEN_WAIT_S:30}
+    pricing:
+      usd-per-1k-tokens:
+        groq: 0.0002
+        fake: 0.0
+  provider:
+    groq:
+      api-key: ${GROQ_API_KEY:}
+      base-url: ${GROQ_BASE_URL:https://api.groq.com/openai/v1}
+      model: ${GROQ_MODEL:openai/gpt-oss-20b}
+  evaluation:
+    # Evaluación de intentos cerrados (ATTEMPT_CLOSED de practice-events → SCORE_* en evaluation-events).
+    # Sin mapa cohorte→curso, la rúbrica sale de acá: por defecto la plantilla institucional sembrada (V14).
+    rubric-version-id: ${LLM_EVALUATION_RUBRIC_VERSION_ID:10000000-0000-0000-0000-000000000002}
+    timeout-ms: ${LLM_EVALUATION_TIMEOUT_MS:8000}
+    retry-after-minutes: ${LLM_EVALUATION_RETRY_AFTER_MINUTES:30}
+  tutor:
+    trusted-service: practice-service
+    required-scope: llm.tutor.interact
+    invocation-timeout-ms: 8000
+  courses:
+    base-url: ${LLM_COURSES_BASE_URL}
+    service-token: ${LLM_COURSES_SERVICE_TOKEN}
+  rag:
+    trusted-service: practice-service
+    required-scope: llm.rag.query
+    embedding-timeout-ms: 8000
+    max-upload-bytes: 26214400
+  moderation:
+    trusted-service: chat-service
+    required-scope: moderation:decide
+    timeout-ms: 800
+    contextual:
+      base-url: ${LLM_MODERATION_CONTEXTUAL_URL:https://api.openai.com}
+      api-key: ${LLM_MODERATION_CONTEXTUAL_API_KEY:}
+      model: ${LLM_MODERATION_CONTEXTUAL_MODEL:omni-moderation-latest}
+      timeout-ms: 300
+    offensive:
+      default-threshold: 0.70
+    obfuscation:
+      entropy-threshold: 4.5
+    spam:
+      max-distinct-urls-short-text: 3
+      short-text-max-chars: 200
+      max-token-repetition: 5
+    retention:
+      enabled: ${MODERATION_RETENTION_ENABLED:true}
+      days: ${MODERATION_RETENTION_DAYS:30}
+      reversed-days: ${MODERATION_RETENTION_REVERSED_DAYS:90}
+      unresolved-timeout-days: ${MODERATION_RETENTION_UNRESOLVED_TIMEOUT_DAYS:90}
+      cron: ${MODERATION_RETENTION_CRON:0 0 3 * * *}
+  kafka:
+    # Desactivado por defecto hasta que Notificaciones asigne los tópicos definitivos (KAFKA_EVENT_STANDARD.md §4).
+    # El outbox (KafkaEventProducer) siempre escribe; el relay y los @KafkaListener solo se activan
+    # con LLM_KAFKA_ENABLED=true (ver compose.yaml, servicio "kafka-local"; bus real: event-bus:29092).
+    enabled: ${LLM_KAFKA_ENABLED:false}
+    outbox-poll-ms: ${LLM_KAFKA_OUTBOX_POLL_MS:2000}
+resilience4j:
+  circuitbreaker:
+    instances:
+      contextualModeration:
+        sliding-window-type: TIME_BASED
+        sliding-window-size: 60
+        failure-rate-threshold: 50
+        slow-call-rate-threshold: 50
+        slow-call-duration-threshold: 300ms
+        minimum-number-of-calls: 5
+        wait-duration-in-open-state: 60s
+        permitted-number-of-calls-in-half-open-state: 3
+        automatic-transition-from-open-to-half-open-enabled: true
+  ratelimiter:
+    instances:
+      contextualModeration:
+        limit-for-period: 200
+        limit-refresh-period: 60s
+        timeout-duration: 0ms
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://localhost:8761/eureka/}
+    register-with-eureka: true
+    fetch-registry: false   # llm-service nunca resuelve otros servicios por Eureka (todo pasa por el Gateway)
+    healthcheck:
+      enabled: true         # Actuator reporta el estado real al servidor Eureka; evita que el Gateway rutee al servicio cuando la DB está caída
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+app:
+  api:
+    public-path: /api/llm/public
+    private-path: /api/llm
+  client-id: ${APP_CLIENT_ID:llm-service}
+  client-secret: ${APP_CLIENT_SECRET:}
+  gateway-url: ${GATEWAY_URL:http://api-gateway:8080}
+  jwks-url: ${JWKS_URL:http://users-service:8082/.well-known/jwks.json}
+  jwks-refresh-ms: ${JWKS_REFRESH_MS:300000}
+  notifications:
+    # false = mock (solo log) hasta que notifications-service acuerde el contrato; true = POST real vía Gateway.
+    enabled: ${NOTIFICATIONS_ENABLED:true}
+    # Ruta del Gateway hacia notifications-service para eventos de moderación (LLM-S12-H02 / CA5).
+    moderation-events-path: ${NOTIFICATIONS_MODERATION_EVENTS_PATH:/api/notifications/v1/moderation-events}
+  security:
+    # El Bearer se decodifica SIN verificar firma; solo para dev/tests (ver GatewayIdentityFilter).
+    trust-unsigned-bearer: ${TRUST_UNSIGNED_BEARER:false}
+logging:
+  pattern:
+    level: "%5p [${spring.application.name},%X{traceId:-},%X{requestId:-}]"

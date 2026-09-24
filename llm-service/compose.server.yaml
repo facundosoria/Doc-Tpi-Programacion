@@ -58,7 +58,7 @@ services:
   llm-service:
     # Imagen publicada. Fijar siempre un tag exacto (v1, v2, ...): nada de latest.
     image: iwachito/llm-service:${LLM_IMAGE_TAG:-v1}
-    container_name: tpi-llm
+    container_name: llm-service
     # Comparte el namespace de red del sidecar Tailscale:
     # SIN ports:, SIN networks:, SIN dns:, SIN extra_hosts:.
     network_mode: "service:mesh-client"
@@ -79,6 +79,9 @@ services:
       EUREKA_URL: "${EUREKA_URL:-http://tpi-plataforma.tail767776.ts.net:8761/eureka/}"
       EUREKA_CLIENT_SERVICEURL_DEFAULTZONE: "${EUREKA_URL:-http://tpi-plataforma.tail767776.ts.net:8761/eureka/}"
       GATEWAY_URL: "${GATEWAY_URL:-http://tpi-plataforma.tail767776.ts.net:8080}"
+      # courses-service vía Gateway: obligatorias sin el perfil workbench (el servicio no arranca sin ellas).
+      LLM_COURSES_BASE_URL: "${LLM_COURSES_BASE_URL:-${GATEWAY_URL:-http://tpi-plataforma.tail767776.ts.net:8080}}"
+      LLM_COURSES_SERVICE_TOKEN: "${LLM_COURSES_SERVICE_TOKEN:?falta LLM_COURSES_SERVICE_TOKEN en .env (token M2M de la plataforma)}"
       # JWKS a través del API Gateway (nunca a users-service directo)
       JWKS_URL: "${JWKS_URL:-http://tpi-plataforma.tail767776.ts.net:8080/.well-known/jwks.json}"
       APP_CLIENT_ID: "${APP_CLIENT_ID:-llm-service}"
@@ -97,5 +100,8 @@ services:
       start_period: 40s
 
 volumes:
+  # Nombre configurable: si el volumen tiene un historial de Flyway incompatible con el código,
+  # apuntar LLM_PG_VOLUME (en .env) a uno nuevo evita borrar el viejo. Default = el nombre de siempre.
   llm-postgres-data:
+    name: ${LLM_PG_VOLUME:-llm-service_llm-postgres-data}
   mesh_state:

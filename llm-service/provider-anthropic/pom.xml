@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0">
+  <modelVersion>4.0.0</modelVersion>
+  <parent><groupId>ar.edu.utn.frc.tup.piv</groupId><artifactId>llm-service-parent</artifactId><version>0.0.1-SNAPSHOT</version></parent>
+  <artifactId>llm-provider-anthropic</artifactId>
+  <dependencies>
+    <dependency><groupId>ar.edu.utn.frc.tup.piv</groupId><artifactId>llm-provider-spi</artifactId><version>${project.version}</version></dependency>
+    <dependency><groupId>org.springframework.boot</groupId><artifactId>spring-boot-autoconfigure</artifactId></dependency>
+    <dependency><groupId>com.fasterxml.jackson.core</groupId><artifactId>jackson-databind</artifactId></dependency>
+    <dependency><groupId>dev.langchain4j</groupId><artifactId>langchain4j-anthropic</artifactId></dependency>
+  </dependencies>
+</project>

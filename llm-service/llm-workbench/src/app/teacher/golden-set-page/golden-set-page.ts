@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, si
 import { NonNullableFormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { CourseContextService } from '../../course-context.service';
 import { createIdempotencyKey } from '../../course-api.service';
 
 const SCORE_KEYS = ['AUTONOMY', 'CLARITY', 'PROGRESSION', 'COMPLIANCE', 'EFFICIENCY'] as const;
@@ -26,12 +28,14 @@ export function parseTranscriptText(text: string): TranscriptParseResult {
 
 @Component({ selector: 'app-golden-set-page', imports: [ReactiveFormsModule], changeDetection: ChangeDetectionStrategy.OnPush, templateUrl: './golden-set-page.component.html', styleUrl: './golden-set-page.component.scss' })
 export class GoldenSetPage {
-  private readonly http = inject(HttpClient); private readonly fb = inject(NonNullableFormBuilder); private readonly route = inject(ActivatedRoute, { optional: true });
+  private readonly http = inject(HttpClient); private readonly fb = inject(NonNullableFormBuilder); private readonly route = inject(ActivatedRoute, { optional: true }); private readonly context = inject(CourseContextService);
   readonly courseId = input(''); readonly scoreKeys = SCORE_KEYS;
   readonly routePath = this.route?.snapshot.routeConfig?.path ?? 'golden-set'; readonly creating = this.routePath === 'golden-set/new'; readonly versionId = this.route?.snapshot.paramMap.get('versionId') ?? null;
   readonly listPath = computed(() => `/docente/cursos/${this.courseId()}/evaluador/golden-set`);
   readonly goldenSets = httpResource<GoldenSetPageResponse>(() => this.courseId() ? `/api/llm/courses/${this.courseId()}/golden-sets` : undefined, { defaultValue: { items: [] } });
   readonly rubrics = httpResource<RubricPage>(() => this.courseId() ? `/api/llm/courses/${this.courseId()}/rubrics` : undefined, { defaultValue: { items: [] } });
+  readonly coursesContext = toSignal(this.context.courses(), { initialValue: [] });
+  readonly currentCourse = computed(() => this.coursesContext().find((course) => course.id === this.courseId()));
   readonly draft = signal<GoldenSetDetail | null>(null); readonly activeIndex = signal(0); readonly saving = signal(false); readonly creatingDraft = signal(false); readonly message = signal(''); readonly error = signal(''); readonly editingCaseId = signal<string | null>(null);
   readonly form = this.fb.group({ transcriptText: ['', Validators.required], AUTONOMY: [0, [Validators.min(0), Validators.max(100), Validators.pattern(/^\d+$/)]], CLARITY: [0, [Validators.min(0), Validators.max(100), Validators.pattern(/^\d+$/)]], PROGRESSION: [0, [Validators.min(0), Validators.max(100), Validators.pattern(/^\d+$/)]], COMPLIANCE: [0, [Validators.min(0), Validators.max(100), Validators.pattern(/^\d+$/)]], EFFICIENCY: [0, [Validators.min(0), Validators.max(100), Validators.pattern(/^\d+$/)]] });
   readonly caseCount = computed(() => this.draft()?.cases.length ?? 0); readonly completeCount = computed(() => this.caseCount()); readonly visibleSlots = computed(() => this.caseCount() < 3 ? 3 : Math.min(5, this.caseCount() + 1)); readonly slots = computed(() => Array.from({ length: this.visibleSlots() }, (_, index) => index)); readonly canAddOptional = computed(() => this.caseCount() >= 3 && this.caseCount() < 5); readonly canPublish = computed(() => this.caseCount() >= 3 && this.caseCount() <= 5);
@@ -50,6 +54,9 @@ export class GoldenSetPage {
   scoreLabel(key: ScoreKey): string { return ({ AUTONOMY: 'Autonomía', CLARITY: 'Claridad', PROGRESSION: 'Progresión', COMPLIANCE: 'Cumplimiento', EFFICIENCY: 'Eficiencia' })[key]; }
   criterion(key: ScoreKey): string { return this.rubric()?.dimensions.find(dimension => dimension.key === key)?.criterion ?? 'Consultá la rúbrica vigente del curso.'; }
   private formatTranscript(messages: TranscriptMessage[]): string { return messages.map(message => `${message.role === 'STUDENT' ? 'Estudiante' : 'Tutor IA'}: ${message.content}`).join('\n'); }
-  private describeError(error: HttpErrorResponse, fallback: string): string { return error.error?.detail ?? fallback; }
+  private describeError(error: HttpErrorResponse, fallback: string): string {
+    if (error.status === 403) return `No autorizado: ${error.error?.detail ?? 'no sos docente del curso y no podés ver este Golden Set.'}`;
+    return error.error?.detail ?? fallback;
+  }
 }
 interface GoldenSetPageResponse { items: GoldenSetListItem[]; } interface GoldenSetListItem { id: string; name: string; version: number; state: string; cases: { id: string }[]; } interface GoldenSetDetail { id: string; name: string; version: number; state: string; cases: GoldenSetCase[]; } interface GoldenSetCase { id: string; order: number; transcript: TranscriptMessage[]; referenceScores: Record<ScoreKey, number>; } interface RubricPage { items: RubricVersion[]; } interface RubricVersion { state: string; dimensions: { key: ScoreKey; criterion: string }[]; }

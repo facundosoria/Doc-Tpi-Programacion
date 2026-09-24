@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: ar.edu.utn.frc.tup.piv.llm.application.RagIngestionServiceBranchesTest
--------------------------------------------------------------------------------
-Tests run: 6, Failures: 0, Errors: 0, Skipped: 0, Time elapsed: 1.048 s -- in ar.edu.utn.frc.tup.piv.llm.application.RagIngestionServiceBranchesTest

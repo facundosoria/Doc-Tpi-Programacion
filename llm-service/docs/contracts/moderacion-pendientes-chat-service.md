@@ -40,14 +40,14 @@ Autenticación: principal de **servicio** con scope `moderation:decide` (headers
 | C2 | ¿Cómo manejan `PENDING` / `PENDING_REVIEW` en la UI del alumno (spinner, "en revisión", reintento)? | Definir si reintentan con el mismo `message_id` (recomendado, es idempotente). |
 | C3 | ¿Qué hace chat si el timeout de 800 ms vence del lado de ellos (sin respuesta nuestra)? | Debe tratarlo como `PENDING`, no publicar. Confirmar. |
 | C4 | ¿Quién reintenta y cuántas veces si `llm-service` responde 5xx? | Evitar duplicados: siempre reusar `message_id`. |
-| C5 | ¿Escuchan el evento `MESSAGE-UNBLOCKED` (topic `moderation-events`, key `courseId`) para publicar el mensaje tras una reversión docente? | Al revertir, chat es quien debe publicar/mostrar el mensaje. Definir si consumen Kafka o prefieren callback HTTP. |
+| C5 | ¿Escuchan el evento `MESSAGE_UNBLOCKED` (topic `moderation-events`, key `courseId`) para publicar el mensaje tras una reversión docente? | Al revertir, chat es quien debe publicar/mostrar el mensaje. Definir si consumen Kafka o prefieren callback HTTP. |
 | C6 | ¿Retirar un mensaje ya publicado? | Un `ALLOW` no se puede retirar sin revisión explícita. Si chat necesita retirar mensajes, debe pasar por moderación: `DELETE /moderation/v1/decisions/{message_id}` responde `409 PROTOCOL_VIOLATION` para un `ALLOW` o sin revisión previa. |
 
 ## 4. Pendiente con `notifications-service` (otro equipo)
 
 `llm-service` ya publica hacia notificaciones cuando el docente resuelve `REVERSED`, con dos canales reales:
 POST HTTP por el Gateway a `/api/notifications/v1/moderation-events` (ruta **supuesta**, configurable con
-`NOTIFICATIONS_MODERATION_EVENTS_PATH`) y evento Kafka `MESSAGE-UNBLOCKED`. Falta que ese equipo confirme:
+`NOTIFICATIONS_MODERATION_EVENTS_PATH`) y evento Kafka `MESSAGE_UNBLOCKED`. Falta que ese equipo confirme:
 
 | # | Pregunta |
 |---|---|

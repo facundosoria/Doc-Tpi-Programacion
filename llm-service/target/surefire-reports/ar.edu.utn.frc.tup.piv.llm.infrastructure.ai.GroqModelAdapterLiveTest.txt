@@ -1,4 +1,0 @@
--------------------------------------------------------------------------------
-Test set: ar.edu.utn.frc.tup.piv.llm.infrastructure.ai.GroqModelAdapterLiveTest
--------------------------------------------------------------------------------
-Tests run: 2, Failures: 0, Errors: 0, Skipped: 2, Time elapsed: 0.703 s -- in ar.edu.utn.frc.tup.piv.llm.infrastructure.ai.GroqModelAdapterLiveTest

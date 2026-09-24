@@ -5,6 +5,7 @@ import { AbstractControl, FormArray, FormControl, FormGroup, NonNullableFormBuil
 import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
 import { ToastService } from '../toast.service';
+import { CourseOverlayList } from '../course-overlay-list/course-overlay-list';
 
 type AnchorLevel = 'low' | 'medium' | 'high';
 interface Anchor { behavior: string; referenceScore: number; example: string; }
@@ -24,7 +25,7 @@ const weightsTotal100: ValidatorFn = (control: AbstractControl): ValidationError
 
 @Component({
   selector: 'app-rubrics-page',
-  imports: [ReactiveFormsModule],
+  imports: [ReactiveFormsModule, CourseOverlayList],
   changeDetection: ChangeDetectionStrategy.OnPush,
   templateUrl: './rubrics-page.component.html',
   styleUrl: './rubrics-page.component.scss',
@@ -35,6 +36,7 @@ export class RubricsPage {
   private readonly route = inject(ActivatedRoute, { optional: true }); private readonly router = inject(Router, { optional: true });
   private readonly toast = inject(ToastService); private readonly destroyRef = inject(DestroyRef);
   readonly courseId = input(''); readonly rubrics = httpResource<RubricPage>(() => this.courseId() ? `/api/llm/courses/${this.courseId()}/rubrics` : undefined, { defaultValue: { items: [] } });
+  readonly view = signal<'course' | 'challenges'>('course');
   readonly editorRoutePath = this.route?.snapshot.routeConfig?.path ?? 'rubricas';
   readonly editorRoute = this.editorRoutePath !== 'rubricas';
   readonly creatingRoute = this.editorRoutePath === 'rubricas/new';

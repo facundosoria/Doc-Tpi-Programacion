@@ -6,10 +6,19 @@
 # ==============================================================================
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-http://localhost:8086}"
+# gateway-mock (Nginx, puerto 8080): simula el borde del Gateway, inyecta la identidad docente y enruta /api/courses al courses-mock.
+# Desde la integración main→dev, crear un golden set valida la pertenencia al curso contra courses-service: sin courses-mock
+# el servicio responde 503 "Courses no está disponible". El frontend Angular del workbench no se levanta.
+BASE_URL="${BASE_URL:-http://localhost:8080}"
 HEALTH_URL="${HEALTH_URL:-http://localhost:8087}"   # actuator en el puerto de management
 PROJECT_NAME="${PROJECT_NAME:-llm-s1-restart-test}"
 SKIP_COMPOSE_MANAGE="${SKIP_COMPOSE_MANAGE:-false}"
+
+COMPOSE=(docker compose -f compose.yaml -f compose.workbench.yaml -f compose.debug.yaml -p "$PROJECT_NAME")
+SERVICES=(llm-service gateway-mock courses-mock)
+
+# La clave AES de credenciales es obligatoria (compose.yaml); si no viene del entorno ni de .env, se genera una descartable.
+export LLM_CREDENTIALS_MASTER_KEY="${LLM_CREDENTIALS_MASTER_KEY:-$(openssl rand -base64 32)}"
 
 COURSE_ID="22222222-2222-2222-2222-222222222222"
 TEACHER_ID="11111111-1111-1111-1111-111111111111"
@@ -38,14 +47,14 @@ wait_for_health() {
 cleanup() {
   if [ "$SKIP_COMPOSE_MANAGE" != "true" ]; then
     echo "Limpiando entorno Compose de prueba..."
-    docker compose -f compose.yaml -f compose.debug.yaml -p "$PROJECT_NAME" down --volumes --remove-orphans || true
+    "${COMPOSE[@]}" down --volumes --remove-orphans || true
   fi
 }
 trap cleanup EXIT
 
 if [ "$SKIP_COMPOSE_MANAGE" != "true" ]; then
   echo "1. Levantando stack con Docker Compose (proyecto: $PROJECT_NAME)..."
-  docker compose -f compose.yaml -f compose.debug.yaml -p "$PROJECT_NAME" up -d --build --wait
+  "${COMPOSE[@]}" up -d --build --wait "${SERVICES[@]}"
 fi
 
 wait_for_health
@@ -118,7 +127,7 @@ echo "   Confirmado: Golden Set presente previo al reinicio."
 
 EVENT_ID="$(cat /proc/sys/kernel/random/uuid 2>/dev/null || uuidgen | tr 'A-Z' 'a-z')"
 psql_llm() {
-  docker compose -f compose.yaml -f compose.debug.yaml -p "$PROJECT_NAME" exec -T postgres psql -U llm -d llm -tAc "$1"
+  "${COMPOSE[@]}" exec -T postgres psql -U llm -d llm -tAc "$1"
 }
 if [ "$SKIP_COMPOSE_MANAGE" != "true" ]; then
   echo "4b. [H07·CA5] Registrando eventId $EVENT_ID en kafka_consumed_events antes del reinicio..."
@@ -127,7 +136,7 @@ fi
 
 if [ "$SKIP_COMPOSE_MANAGE" != "true" ]; then
   echo "5. Ejecutando reinicio de Compose (docker compose restart)..."
-  docker compose -f compose.yaml -f compose.debug.yaml -p "$PROJECT_NAME" restart
+  "${COMPOSE[@]}" restart
   echo "   Reinicio completado. Verificando recuperación del servicio..."
   wait_for_health
 else

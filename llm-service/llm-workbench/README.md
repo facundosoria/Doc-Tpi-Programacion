@@ -7,16 +7,22 @@ Frontend Angular temporal para desarrollar y probar golden sets en S1. No reempl
 La ruta `/docente` (también la página inicial) permite gestionar lotes de exámenes,
 presets completos de rúbricas y calibraciones. `/golden-sets` conserva la integración S1.
 
-Para ejecutarlo sin backend:
+Para ejecutar el workbench contra el backend real en local:
 
 ```bash
-cd llm-workbench
-npm ci
-npm start -- --port 4201 --prebundle=false
+cd ../llm-service
+docker compose -f compose.yaml -f compose.workbench.yaml up --build
 ```
 
-Abrir `http://localhost:4201/docente`. La opción `--prebundle=false` evita reutilizar
-la caché de Vite que puede haber sido creada por root en Docker.
+Abrir `http://localhost:4200/docente`. El backend, PostgreSQL y Flyway son reales. El navegador
+usa sólo `/api/**` y el proxy de desarrollo lo envía al Gateway mock, nunca directamente a
+`llm-service`.
+
+El Gateway mock representa exclusivamente la frontera de plataforma: entrega la identidad
+delegada de desarrollo, borra headers de identidad falsificados y propaga correlación. Cursos es
+un MockServer externo; no contiene rutas ni respuestas de `llm-service`. Por lo tanto cada llamada
+`/api/llm/**` ejercita los controllers, autorización, casos de uso, persistencia y migraciones
+reales.
 
 ### Recorrido de prueba
 
@@ -104,7 +110,7 @@ plataforma — es, igual que el resto de `llm-workbench`, un banco de pruebas.
 
 - **Sin proveedor real de IA:** tanto la respuesta del tutor como los embeddings de búsqueda son
   simulados (`FakeModelAdapter`/`FakeEmbeddingAdapter`, ver
-  [`docs/estado-implementacion/ep-09/`](../docs/estado-implementacion/ep-09/README.md)) — la
+  [`docs/estado-implementacion/ep-09/`](../docs/06-operacion-calidad-y-pruebas/04-estado-de-implementacion/ep-09/README.md)) — la
   calidad de la respuesta no refleja un proveedor real todavía.
 - **`learnerId` de prueba:** no hay identidad real de alumno en el workbench; se genera un UUID
   estable por pestaña del navegador (`sessionStorage`, clave
@@ -123,8 +129,8 @@ cd ../llm-service
 docker compose -f compose.yaml -f compose.workbench.yaml up --build
 ```
 
-Abrir `http://localhost:4200`. El código fuente se monta en el contenedor y Angular recarga los cambios. El navegador llama siempre a `/api/llm/**`; `proxy.workbench.json` reenvía esas solicitudes al backend demo por la red de Docker.
+Abrir `http://localhost:4200`. El código fuente se monta en el contenedor y Angular recarga los cambios. El navegador llama siempre a `/api/**`; `proxy.workbench.json` reenvía esas solicitudes al Gateway mock por la red de Docker.
 
 ## Integración futura
 
-El monolito final conserva la misma ruta relativa `/api/llm/**`. Cuando API Gateway exista, el host del frontend debe enrutarla hacia el Gateway. `proxy.gateway.example.json` muestra la configuración equivalente para desarrollo. No se modifican componentes ni servicios Angular y el navegador no fabrica headers de identidad.
+El monolito final conserva las mismas rutas relativas `/api/llm/**` y `/api/courses/**`. Cuando API Gateway exista, el host del frontend debe enrutar ambas hacia el Gateway. `proxy.gateway.example.json` muestra la configuración equivalente para desarrollo. No se modifican componentes ni servicios Angular y el navegador no fabrica headers de identidad.

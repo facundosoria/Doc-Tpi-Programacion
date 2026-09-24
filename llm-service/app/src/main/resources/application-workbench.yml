@@ -1,0 +1,5 @@
+llm:
+  courses:
+    # Local Gateway simulator: external integration boundary, never an internal service fake.
+    base-url: ${LLM_COURSES_BASE_URL:http://localhost:4300}
+    service-token: ${LLM_COURSES_SERVICE_TOKEN:local-gateway-m2m-token}

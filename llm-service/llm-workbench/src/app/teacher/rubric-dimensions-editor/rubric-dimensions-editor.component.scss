@@ -1,0 +1,241 @@
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  border: 1px solid #b9d3d5;
+  border-radius: 0.75rem;
+  background: #fffefa;
+  padding: 1.2rem;
+}
+
+.editor-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.eyebrow {
+  margin: 0 0 0.25rem;
+  color: #185c65;
+  font: 500 0.7rem / 1.4 'Roboto', sans-serif;
+  letter-spacing: 0.1em;
+}
+
+h2 {
+  margin: 0;
+  font: 600 1.35rem / 1.25 'Roboto', sans-serif;
+}
+
+.rubric-summary {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  border: 1px dashed #b9d3d5;
+  border-radius: 0.5rem;
+  padding: 0.7rem 1rem;
+}
+
+.weights {
+  margin: 0;
+  color: #185c65;
+}
+
+.weights strong {
+  font-size: 1.2rem;
+  margin-left: 0.4rem;
+}
+
+.weights.invalid strong {
+  color: #a33;
+}
+
+.field-error {
+  margin: 0;
+  color: #a33;
+  font-size: 0.82rem;
+}
+
+.summary-help {
+  margin: 0;
+  color: #52666a;
+  font-size: 0.82rem;
+}
+
+.dimension-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.dimension-panel {
+  border: 1px solid #b9d3d5;
+  border-radius: 0.5rem;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.dimension-panel.collapsed .dimension-body {
+  padding-bottom: 0.5rem;
+}
+
+.dimension-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem 0.4rem 0.6rem;
+}
+
+.collapse-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex: 1 1 auto;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  color: #203b40;
+  font: 600 0.95rem / 1.4 'Roboto', sans-serif;
+  padding: 0.3rem 0.2rem;
+  cursor: pointer;
+  text-align: left;
+}
+
+.collapse-toggle:focus {
+  outline: 2px solid #185c65;
+  outline-offset: 1px;
+}
+
+.chevron {
+  flex: none;
+  color: #185c65;
+  font-size: 0.9rem;
+}
+
+.collapse-weight {
+  margin-left: auto;
+  margin-right: 0.4rem;
+  border-radius: 0.35rem;
+  background: #d8e8ea;
+  color: #185c65;
+  font: 600 0.72rem / 1.4 'Roboto', sans-serif;
+  padding: 0.1rem 0.45rem;
+}
+
+.dimension-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  padding: 0.2rem 1rem 0.9rem;
+}
+
+.remove {
+  border: 0;
+  background: transparent;
+  color: #a33;
+  font-size: 1.1rem;
+  cursor: pointer;
+  padding: 0.2rem 0.4rem;
+}
+
+.dimension-weight {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.dimension-weight input {
+  width: 5rem;
+}
+
+.field-label {
+  display: block;
+  color: #185c65;
+  font: 500 0.72rem / 1.4 'Roboto', sans-serif;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  margin-bottom: 0.25rem;
+}
+
+label textarea,
+label input[type='number'],
+label input[type='text'] {
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid #b9d3d5;
+  border-radius: 0.4rem;
+  background: #fffefa;
+  color: #203b40;
+  font: 0.95rem / 1.5 'Roboto', sans-serif;
+  padding: 0.5rem 0.6rem;
+}
+
+.anchors-editor {
+  border: 0;
+  margin: 0;
+  padding: 0;
+}
+
+.anchor-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+  gap: 0.8rem;
+}
+
+.anchor-card {
+  border: 1px solid #b9d3d5;
+  border-radius: 0.5rem;
+  padding: 0.7rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.anchor-card.low { border-left: 4px solid #c9882e; }
+.anchor-card.medium { border-left: 4px solid #185c65; }
+.anchor-card.high { border-left: 4px solid #2e7d43; }
+
+.editor-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  align-items: center;
+}
+
+.validation-message {
+  margin: 0;
+  color: #a33;
+  font-size: 0.82rem;
+}
+
+button {
+  border: 0;
+  border-radius: 0.45rem;
+  font: 600 0.9rem / 1.2 'Roboto', sans-serif;
+  padding: 0.6rem 1rem;
+  cursor: pointer;
+}
+
+button.save {
+  background: #185c65;
+  color: #fff;
+}
+
+button.save:disabled {
+  background: #9bb6ba;
+  cursor: not-allowed;
+}
+
+button.secondary {
+  background: #e2f0f1;
+  color: #185c65;
+}
+
+button:focus {
+  outline: 2px solid #185c65;
+  outline-offset: 1px;
+}

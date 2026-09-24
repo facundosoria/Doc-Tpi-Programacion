@@ -1,0 +1,888 @@
+openapi: 3.1.0
+info:
+  title: LLM Service HTTP API
+  version: 2.0.0
+  license: {name: UNLICENSED, identifier: UNLICENSED}
+  description: Contrato HTTP canónico de la implementación actual. Evalúa uso de IA; no expone corrección académica ni soluciones esperadas.
+servers:
+  - url: /api/llm
+security:
+  - serviceJwt: []
+paths:
+  /admin/rubric-templates:
+    get:
+      summary: List institutional rubric templates
+      operationId: listRubricTemplates
+      responses: {'200': {$ref: '#/components/responses/RubricPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Create institutional rubric template draft
+      operationId: createRubricTemplateDraft
+      requestBody: {$ref: '#/components/requestBodies/RubricInput'}
+      responses: {'201': {$ref: '#/components/responses/RubricVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/rubric-templates/{rubricVersionId}:
+    get:
+      summary: Get an institutional rubric template version
+      operationId: getRubricTemplate
+      parameters: [{$ref: '#/components/parameters/RubricVersionId'}]
+      responses: {'200': {$ref: '#/components/responses/RubricVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+    patch:
+      summary: Update institutional rubric template draft
+      operationId: updateRubricTemplateDraft
+      parameters: [{$ref: '#/components/parameters/RubricVersionId'}, {$ref: '#/components/parameters/IfMatch'}]
+      requestBody: {$ref: '#/components/requestBodies/RubricInput'}
+      responses: {'200': {$ref: '#/components/responses/RubricVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/rubric-templates/{rubricVersionId}/publish:
+    post:
+      summary: Publish an institutional rubric template
+      operationId: publishRubricTemplate
+      parameters: [{$ref: '#/components/parameters/RubricVersionId'}]
+      responses: {'200': {description: Template published}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/rubric-templates/{rubricVersionId}/next-version:
+    post:
+      summary: Create the next editable template version
+      operationId: createNextRubricTemplateVersion
+      parameters: [{$ref: '#/components/parameters/RubricVersionId'}]
+      responses: {'201': {$ref: '#/components/responses/RubricVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /rubric-templates:
+    get:
+      summary: List published rubric templates available to teachers
+      operationId: listPublishedRubricTemplates
+      responses: {'200': {$ref: '#/components/responses/RubricPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/rubrics:
+    get:
+      summary: List Rubrics
+      operationId: listRubrics
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses: {'200': {$ref: '#/components/responses/RubricPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Create Rubric Draft
+      operationId: createRubricDraft
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [templateVersionId, name], properties: {templateVersionId: {type: string, format: uuid}, name: {type: string, minLength: 1, maxLength: 160}}}}}}
+      responses: {'201': {$ref: '#/components/responses/RubricVersion'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/rubrics/{rubricVersionId}:
+    get:
+      summary: Get Rubric Version
+      operationId: getRubricVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RubricVersionId'}]
+      responses: {'200': {$ref: '#/components/responses/RubricVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+    patch:
+      summary: Update Rubric Draft
+      operationId: updateRubricDraft
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RubricVersionId'}, {$ref: '#/components/parameters/IfMatch'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/RubricInput'}
+      responses: {'200': {$ref: '#/components/responses/RubricVersion'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/rubrics/{rubricVersionId}/publish:
+    post:
+      summary: Publish Rubric Version
+      operationId: publishRubricVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RubricVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'200': {$ref: '#/components/responses/RubricVersion'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/rubrics/{rubricVersionId}/next-version:
+    post:
+      summary: Create Next Rubric Version
+      operationId: createNextRubricVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RubricVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'201': {$ref: '#/components/responses/RubricVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/rubric-overlays:
+    get:
+      summary: List all per-challenge rubric overlays of the course
+      operationId: listCourseRubricOverlays
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/CourseOverlayPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenges/{challengeId}/rubric-overlay:
+    get:
+      summary: List overlay versions of a challenge
+      operationId: listChallengeRubricOverlayVersions
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}]
+      responses: {'200': {$ref: '#/components/responses/CourseOverlayPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Create a challenge overlay draft anchored to a published course rubric
+      operationId: createChallengeRubricOverlayDraft
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CreateOverlayDraftRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/OverlayVersion'}, '403': {$ref: '#/components/responses/Problem'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenges/{challengeId}/rubric-overlay/{versionId}:
+    get:
+      summary: Get a challenge overlay version
+      operationId: getChallengeRubricOverlayVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/OverlayVersionId'}]
+      responses: {'200': {$ref: '#/components/responses/OverlayVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+    patch:
+      summary: Update a challenge overlay draft (autosave custom dimensions)
+      operationId: updateChallengeRubricOverlayDraft
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/OverlayVersionId'}, {$ref: '#/components/parameters/IfMatch'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/OverlayInput'}}}}
+      responses: {'200': {$ref: '#/components/responses/OverlayVersion'}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenges/{challengeId}/rubric-overlay/{versionId}/publish:
+    post:
+      summary: Publish a challenge overlay draft
+      operationId: publishChallengeRubricOverlay
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/OverlayVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'204': {description: Overlay published}, '403': {$ref: '#/components/responses/Problem'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenges/{challengeId}/rubric-overlay/{versionId}/next-version:
+    post:
+      summary: Clone a published overlay into a new editable draft
+      operationId: createNextChallengeRubricOverlayVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/OverlayVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'201': {$ref: '#/components/responses/OverlayVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenges/{challengeId}/rubric-overlay/{versionId}/effective:
+    get:
+      summary: Get the effective evaluation profile of an overlay
+      operationId: getChallengeRubricOverlayEffectiveProfile
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/OverlayVersionId'}]
+      responses: {'200': {$ref: '#/components/responses/EffectiveProfile'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets/copy-from-base/{baseVersionId}:
+    post:
+      summary: Copy Published Platform Golden Set into Course
+      operationId: copyGoldenSetBaseToCourse
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {name: baseVersionId, in: path, required: true, schema: {type: string, format: uuid}}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'201': {$ref: '#/components/responses/GoldenSetVersion'}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets:
+    get:
+      summary: List Golden Sets
+      operationId: listGoldenSets
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/Page'}, {$ref: '#/components/parameters/Size'}]
+      responses: {'200': {$ref: '#/components/responses/CourseGoldenSetPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Create Golden Set Draft
+      operationId: createGoldenSetDraft
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/GoldenSetInput'}
+      responses: {'201': {$ref: '#/components/responses/GoldenSetVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets/{goldenSetVersionId}/cases:
+    post:
+      summary: Create Golden Set Case
+      operationId: createGoldenSetCase
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/GoldenSetVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/GoldenSetCaseInput'}
+      responses: {'201': {$ref: '#/components/responses/GoldenSetCaseSummary'}, '409': {$ref: '#/components/responses/Problem'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets/{goldenSetVersionId}/publish:
+    post:
+      summary: Publish Golden Set Version
+      operationId: publishGoldenSetVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/GoldenSetVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'200': {$ref: '#/components/responses/GoldenSetVersion'}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets/{goldenSetVersionId}/next-version:
+    post:
+      summary: Create the next editable version of a Golden Set
+      operationId: createNextGoldenSetVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/GoldenSetVersionId'}]
+      responses: {'201': {$ref: '#/components/responses/GoldenSetVersion'}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets/{goldenSetVersionId}/cases/{caseId}:
+    patch:
+      summary: Update a case in a draft Golden Set
+      operationId: updateGoldenSetCase
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/GoldenSetVersionId'}, {name: caseId, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {$ref: '#/components/requestBodies/GoldenSetCaseInput'}
+      responses: {'200': {$ref: '#/components/responses/GoldenSetCaseSummary'}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-sets/{goldenSetVersionId}:
+    get:
+      summary: Get Golden Set Version Detail
+      operationId: getGoldenSetVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/GoldenSetVersionId'}]
+      responses: {'200': {$ref: '#/components/responses/GoldenSetVersion'}, '403': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}}
+    delete:
+      summary: Logically delete an unused draft Golden Set family
+      operationId: deleteUnusedGoldenSet
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/GoldenSetVersionId'}]
+      responses: {'204': {description: Golden Set logically deleted}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-set-update-proposals:
+    get:
+      summary: List pending Golden Set base update proposals
+      operationId: listGoldenSetUpdateProposals
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetUpdateProposalPage'}}}}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-set-imports:
+    post:
+      summary: Create Golden Set Import
+      operationId: createGoldenSetImport
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/ImportInput'}
+      responses: {'201': {$ref: '#/components/responses/ImportBatch'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-set-imports/{batchId}/validate:
+    post:
+      summary: Validate Golden Set Import
+      operationId: validateGoldenSetImport
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/BatchId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'200': {$ref: '#/components/responses/ImportBatch'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-set-imports/{batchId}/rows/{rowNumber}:
+    patch:
+      summary: Replace a staged Golden Set import row
+      operationId: replaceGoldenSetImportRow
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/BatchId'}, {name: rowNumber, in: path, required: true, schema: {type: integer, minimum: 1}}]
+      requestBody: {$ref: '#/components/requestBodies/GoldenSetCaseInput'}
+      responses: {'204': {description: Fila reemplazada}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/golden-set-imports/{batchId}/commit:
+    post:
+      summary: Commit Golden Set Import
+      operationId: commitGoldenSetImport
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/BatchId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'201': {$ref: '#/components/responses/ImportBatch'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/eligible-interactions:
+    get:
+      summary: List Eligible Interactions
+      operationId: listEligibleInteractions
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/EligibleInteractionPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/eligible-interactions/{interactionId}/anonymize-preview:
+    post:
+      summary: Preview Interaction Anonymization
+      operationId: previewInteractionAnonymization
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/InteractionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'200': {$ref: '#/components/responses/GoldenSetCase'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/synthetic-golden-set-cases:
+    post:
+      summary: Propose Synthetic Golden Set Cases
+      operationId: proposeSyntheticGoldenSetCases
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [count], properties: {count: {type: integer, minimum: 1, maximum: 20}}}}}}
+      responses: {'202': {$ref: '#/components/responses/Job'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/calibrations:
+    get:
+      summary: List Calibration Runs
+      operationId: listCalibrationRuns
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/CalibrationPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Create Calibration Run
+      operationId: createCalibrationRun
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/CalibrationInput'}
+      responses: {'202': {$ref: '#/components/responses/CalibrationRun'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/calibrations/{runId}:
+    get:
+      summary: Get Calibration Run
+      operationId: getCalibrationRun
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RunId'}]
+      responses: {'200': {$ref: '#/components/responses/CalibrationRun'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/calibrations/stability-groups:
+    get:
+      summary: List stability groups for a course
+      operationId: listCalibrationStabilityGroups
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/ApiPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/calibrations/{runId}/activate-preview:
+    post:
+      summary: Preview Calibration Activation
+      operationId: previewCalibrationActivation
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RunId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'200': {$ref: '#/components/responses/ActivationPreview'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/calibrations/{runId}/activate:
+    post:
+      summary: Activate Calibration
+      operationId: activateCalibration
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RunId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {$ref: '#/components/requestBodies/ActivationInput'}
+      responses: {'200': {$ref: '#/components/responses/ActiveCalibration'}, '409': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/active-calibration:
+    get:
+      summary: Get Active Calibration
+      operationId: getActiveCalibration
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/ActiveCalibration'}, '404': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenge-calibration-assignments:
+    get:
+      summary: List Challenge Calibration Assignments
+      operationId: listChallengeCalibrationAssignments
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/AssignmentPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/pending-evaluations:
+    get:
+      summary: List pending evaluations
+      operationId: listPendingEvaluations
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/PendingEvaluationPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/model-deployments:
+    get:
+      summary: List enabled model deployments available to a course
+      operationId: listCourseModelDeployments
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/ApiPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/model-adapters:
+    get:
+      summary: List Model Adapters
+      operationId: listModelAdapters
+      responses: {'200': {$ref: '#/components/responses/ModelAdapterPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/institutional-calibration/profile:
+    get:
+      summary: Get the institutional calibration profile
+      operationId: getInstitutionalCalibrationProfile
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Configure the institutional calibration profile
+      operationId: configureInstitutionalCalibrationProfile
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [goldenSetVersionId, rubricVersionId], properties: {goldenSetVersionId: {type: string, format: uuid}, rubricVersionId: {type: string, format: uuid}}}}}}
+      responses: {'204': {description: Profile configured}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/institutional-calibration/runs:
+    get:
+      summary: List institutional calibration runs
+      operationId: listInstitutionalCalibrationRuns
+      responses: {'200': {$ref: '#/components/responses/ApiPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Start an institutional calibration with the server-selected target
+      operationId: createInstitutionalCalibrationRun
+      responses: {'202': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}, '422': {$ref: '#/components/responses/Problem'}}
+  /admin/institutional-calibration/runs/{runId}:
+    get:
+      summary: Get an institutional calibration run with its per-dimension errors
+      operationId: getInstitutionalCalibrationRun
+      parameters: [{name: runId, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}, '404': {$ref: '#/components/responses/Problem'}}
+  /admin/providers:
+    get:
+      summary: List installed LLM providers
+      operationId: listProviders
+      responses: {'200': {$ref: '#/components/responses/ApiPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/provider-credentials:
+    get:
+      summary: List credential summaries without secret material
+      operationId: listProviderCredentials
+      responses: {'200': {$ref: '#/components/responses/ApiPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Store an encrypted provider credential
+      operationId: createProviderCredential
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ProviderCredentialInput'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '400': {$ref: '#/components/responses/Problem'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/provider-credentials/{credentialId}:
+    delete:
+      summary: Disable a provider credential
+      operationId: disableProviderCredential
+      parameters: [{name: credentialId, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {'204': {description: Credential disabled}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/provider-credentials/{credentialId}/discover-models:
+    post:
+      summary: Discover models available through a credential
+      operationId: discoverProviderModels
+      parameters: [{name: credentialId, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {'200': {$ref: '#/components/responses/ApiPage'}, '403': {$ref: '#/components/responses/Problem'}, '503': {$ref: '#/components/responses/Problem'}}
+  /admin/provider-credentials/{credentialId}/test-model:
+    post:
+      summary: Invoke a short connectivity test for a model
+      operationId: testProviderModel
+      parameters: [{name: credentialId, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ModelSelection'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}, '503': {$ref: '#/components/responses/Problem'}}
+  /admin/provider-credentials/{credentialId}/deployments:
+    post:
+      summary: Create an evaluator model candidate from a credential
+      operationId: createModelDeployment
+      parameters: [{name: credentialId, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ModelSelection'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/evaluator-models:
+    get:
+      summary: List evaluator model candidates
+      operationId: listEvaluatorModels
+      responses: {'200': {$ref: '#/components/responses/ApiPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/evaluator-models/active:
+    get:
+      summary: Get the active evaluator model
+      operationId: getActiveEvaluatorModel
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/evaluator-models/calibration-target:
+    get:
+      summary: Get the candidate selected for calibration
+      operationId: getCalibrationTarget
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/evaluator-models/events:
+    get:
+      summary: Subscribe to evaluator model changes
+      operationId: streamEvaluatorModelEvents
+      responses: {'200': {description: Server-Sent Events, content: {text/event-stream: {schema: {type: string}}}}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/evaluator-models/{deploymentId}/chat:
+    post:
+      summary: Send an administrator test prompt to a candidate
+      operationId: chatWithEvaluatorModel
+      parameters: [{name: deploymentId, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ChatInput'}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}, '503': {$ref: '#/components/responses/Problem'}}
+  /admin/evaluator-models/{deploymentId}/chat/stream:
+    post:
+      summary: Stream an administrator test prompt to a candidate
+      operationId: streamChatWithEvaluatorModel
+      parameters: [{name: deploymentId, in: path, required: true, schema: {type: string, format: uuid}}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/ChatInput'}}}}
+      responses: {'200': {description: Server-Sent Events, content: {text/event-stream: {schema: {type: string}}}}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/evaluator-models/{deploymentId}/activate:
+    post:
+      summary: Activate an evaluator candidate
+      operationId: activateEvaluatorModel
+      parameters: [{name: deploymentId, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/evaluator-models/{deploymentId}/select-for-calibration:
+    post:
+      summary: Select a candidate as the calibration target
+      operationId: selectEvaluatorModelForCalibration
+      parameters: [{name: deploymentId, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/evaluator-models/{deploymentId}/usage:
+    get:
+      summary: Get evaluator model token usage
+      operationId: getEvaluatorModelUsage
+      parameters: [{name: deploymentId, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}}
+  /admin/evaluator-models/{deploymentId}:
+    delete:
+      summary: Archive an evaluator model candidate
+      operationId: archiveEvaluatorModel
+      parameters: [{name: deploymentId, in: path, required: true, schema: {type: string, format: uuid}}]
+      responses: {'204': {description: Candidate archived}, '403': {$ref: '#/components/responses/Problem'}}
+  /model-assignments/{function}:
+    get:
+      summary: Get the deployment assigned to an internal LLM function
+      operationId: getModelAssignment
+      parameters: [{name: function, in: path, required: true, schema: {type: string}}]
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}}
+    put:
+      summary: Assign a deployment to an internal LLM function
+      operationId: putModelAssignment
+      parameters: [{name: function, in: path, required: true, schema: {type: string}}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {required: true, content: {application/json: {schema: {type: object, required: [modelDeploymentId], properties: {modelDeploymentId: {type: string, format: uuid}}}}}}
+      responses: {'200': {$ref: '#/components/responses/ApiObject'}, '403': {$ref: '#/components/responses/Problem'}}
+  /tutor/interactions:
+    post:
+      summary: Invoke the protected tutor from practice-service
+      description: |
+        Requiere scope `llm.tutor.interact` (M2M, `aud=llm-service`) e identidad delegada. Cualquier fallo del
+        modelo (timeout, proveedor caído, presupuesto agotado, función sin modelo) responde `200` con
+        `state: unavailable`; no hay 429 ni 503 en este endpoint. Un mismo `Idempotency-Key` con el mismo
+        payload devuelve la respuesta original.
+      operationId: createTutorInteraction
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/TutorInteractionInput'}}}}
+      responses:
+        '200': { description: Respuesta del tutor, content: { application/json: { schema: { $ref: '#/components/schemas/TutorInteractionResponse' } } } }
+        '400': { description: Falta el header Idempotency-Key o el cuerpo no es JSON válido, content: { application/problem+json: { schema: { type: object } } } }
+        '401': { description: Servicio o scope incorrecto, content: { application/problem+json: { schema: { type: object } } } }
+        '403': { description: Identidad delegada ausente o inválida, content: { application/problem+json: { schema: { type: object } } } }
+        '409': { description: Misma Idempotency-Key con la solicitud original todavía en curso, content: { application/problem+json: { schema: { type: object } } } }
+        '422': { description: Cuerpo inválido (campo obligatorio ausente, riskLevel fuera de high/medium/low) o Idempotency-Key reusada con otro payload, content: { application/problem+json: { schema: { type: object } } } }
+  /tutor/conversations:
+    get:
+      summary: List tutor conversations for a learner
+      operationId: listTutorConversations
+      parameters:
+        - { name: learnerId, in: query, required: false, schema: { type: string, format: uuid } }
+        - { name: courseCohortId, in: query, required: false, schema: { type: string, format: uuid } }
+        - { name: challengeId, in: query, required: false, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: Conversaciones del alumno, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Conversation' } } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+    post:
+      summary: Create a tutor conversation
+      operationId: createTutorConversation
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CreateConversationRequest' } } } }
+      responses:
+        '201': { description: Conversación creada, content: { application/json: { schema: { $ref: '#/components/schemas/Conversation' } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /tutor/conversations/{conversationId}/messages:
+    get:
+      summary: List messages of a conversation
+      operationId: listTutorConversationMessages
+      parameters:
+        - { name: conversationId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: Mensajes de la conversación, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Message' } } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+    post:
+      summary: Append a message to a conversation
+      operationId: appendTutorConversationMessage
+      parameters:
+        - { name: conversationId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AppendMessageRequest' } } } }
+      responses:
+        '201': { description: Mensaje agregado, content: { application/json: { schema: { $ref: '#/components/schemas/Message' } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /courses/{courseId}/shadow-runs:
+    get:
+      tags: [Administration]
+      summary: Lista las corridas de shadow del evaluador de un curso
+      operationId: listShadowRuns
+      security: [{ serviceJwt: [llm.calibration.manage] }]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200': { description: "Corridas del curso, más recientes primero (máx. 100)", content: { application/json: { schema: { type: object, properties: { items: { type: array, items: { $ref: '#/components/schemas/ShadowRun' } } } } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+    post:
+      tags: [Administration]
+      summary: Pide un shadow del evaluador (E-31)
+      description: |
+        Evalúa una rúbrica candidata y la activa del curso (baseline) sobre las mismas transcripciones ya
+        guardadas y compara los puntajes. **La salida se descarta**: solo se guarda la comparación en tablas
+        propias; no emite scores, eventos ni toca la calibración ni las evaluaciones reales. Es informativo:
+        no activa nada. Exige una calibración activa en el curso (esa rúbrica es la baseline). Asíncrono:
+        consultar el recurso hasta COMPLETED o FAILED. Las transcripciones se anonimizan antes de salir al proveedor.
+      operationId: createShadowRun
+      security: [{ serviceJwt: [llm.calibration.manage] }]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+        - $ref: '#/components/parameters/IdempotencyKey'
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/CreateShadowRunRequest' } } }
+      responses:
+        '202': { description: Corrida aceptada, content: { application/json: { schema: { $ref: '#/components/schemas/ShadowRun' } } } }
+        '400': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '409': { $ref: '#/components/responses/Problem' }
+  /courses/{courseId}/shadow-runs/{shadowRunId}:
+    get:
+      tags: [Administration]
+      summary: Consulta el progreso y la comparación de un shadow
+      operationId: getShadowRun
+      security: [{ serviceJwt: [llm.calibration.manage] }]
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+        - $ref: '#/components/parameters/ShadowRunId'
+      responses:
+        '200': { description: Estado actual, content: { application/json: { schema: { $ref: '#/components/schemas/ShadowRun' } } } }
+        '403': { $ref: '#/components/responses/Problem' }
+        '404': { $ref: '#/components/responses/Problem' }
+  /evaluator-skills:
+    get:
+      summary: List the evaluator skills catalog
+      operationId: listEvaluatorSkillCatalog
+      responses:
+        '200': { description: Catálogo de skills del evaluador, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/EvaluatorSkillResponse' } } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /courses/{courseId}/evaluator-skills:
+    get:
+      summary: List the evaluator skills of a course with their activation state
+      operationId: listCourseEvaluatorSkills
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      responses:
+        '200': { description: Skills del curso con su estado, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/EvaluatorSkillResponse' } } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+    put:
+      summary: Configure the active evaluator skills of a course
+      operationId: updateCourseEvaluatorSkills
+      parameters:
+        - $ref: '#/components/parameters/CourseId'
+      requestBody:
+        required: true
+        content: { application/json: { schema: { $ref: '#/components/schemas/UpdateCourseSkillsRequest' } } }
+      responses:
+        '200': { description: Skills del curso luego de la actualización, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/EvaluatorSkillResponse' } } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+        '422': { $ref: '#/components/responses/Problem' }
+components:
+  securitySchemes:
+    serviceJwt: {type: http, scheme: bearer, bearerFormat: JWT}
+  parameters:
+    IdempotencyKey: {name: Idempotency-Key, in: header, required: true, schema: {type: string, format: uuid}}
+    IfMatch: {name: If-Match, in: header, required: true, schema: {type: integer, minimum: 1}}
+    CourseId: {name: courseId, in: path, required: true, schema: {type: string, format: uuid}}
+    RubricVersionId: {name: rubricVersionId, in: path, required: true, schema: {type: string, format: uuid}}
+    ChallengeId: {name: challengeId, in: path, required: true, schema: {type: string, format: uuid}}
+    OverlayVersionId: {name: versionId, in: path, required: true, schema: {type: string, format: uuid}}
+    GoldenSetVersionId: {name: goldenSetVersionId, in: path, required: true, schema: {type: string, format: uuid}}
+    BatchId: {name: batchId, in: path, required: true, schema: {type: string, format: uuid}}
+    InteractionId: {name: interactionId, in: path, required: true, schema: {type: string, format: uuid}}
+    RunId: {name: runId, in: path, required: true, schema: {type: string, format: uuid}}
+    ShadowRunId: { name: shadowRunId, in: path, required: true, schema: { type: string, format: uuid } }
+    Page: {name: page, in: query, schema: {type: integer, minimum: 0, default: 0}}
+    Size: {name: size, in: query, schema: {type: integer, minimum: 1, maximum: 100, default: 20}}
+  requestBodies:
+    RubricInput: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/RubricInput'}}}}
+    GoldenSetInput: {required: true, content: {application/json: {schema: {type: object, required: [name], properties: {name: {type: string}, copyFromBaseVersionId: {type: string, format: uuid}}}}}}
+    GoldenSetCaseInput: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetCaseInput'}}}}
+    ImportInput: {required: true, content: {application/json: {schema: {type: object, required: [goldenSetVersionId, format, rows], properties: {goldenSetVersionId: {type: string, format: uuid}, format: {type: string, enum: [JSON, CSV], description: 'Formato de origen informado por el cliente'}, rows: {type: array, minItems: 1, items: {$ref: '#/components/schemas/GoldenSetCaseInput'}}}}}}}
+    CalibrationInput: {required: true, content: {application/json: {schema: {type: object, required: [rubricVersionId, goldenSetVersionId], properties: {rubricVersionId: {type: string, format: uuid}, goldenSetVersionId: {type: string, format: uuid}}}}}}
+    ActivationInput: {required: true, content: {application/json: {schema: {type: object, required: [previewToken, challengeIds], properties: {previewToken: {type: string}, challengeIds: {type: array, items: {type: string, format: uuid}}}}}}}
+  responses:
+    Problem: {description: RFC 7807 Problem Details}
+    RubricVersion: {description: Rúbrica, content: {application/json: {schema: {$ref: '#/components/schemas/RubricVersion'}}}}
+    CourseOverlayPage: {description: Página de overlays por desafío del curso, content: {application/json: {schema: {$ref: '#/components/schemas/CourseOverlayPage'}}}}
+    OverlayVersion: {description: Versión de overlay de desafío, content: {application/json: {schema: {$ref: '#/components/schemas/OverlayVersion'}}}}
+    EffectiveProfile: {description: Perfil efectivo del overlay, content: {application/json: {schema: {$ref: '#/components/schemas/EffectiveProfile'}}}}
+    GoldenSetVersion: {description: Golden Set, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetVersion'}}}}
+    GoldenSetCase: {description: Caso, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetCase'}}}}
+    GoldenSetCaseSummary: {description: Resumen del caso creado, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetCaseSummary'}}}}
+    ImportBatch: {description: Lote, content: {application/json: {schema: {$ref: '#/components/schemas/ImportBatch'}}}}
+    CalibrationRun: {description: Corrida, content: {application/json: {schema: {$ref: '#/components/schemas/CalibrationRun'}}}}
+    Job: {description: Trabajo, content: {application/json: {schema: {$ref: '#/components/schemas/Job'}}}}
+    ActivationPreview: {description: Preview, content: {application/json: {schema: {$ref: '#/components/schemas/ActivationPreview'}}}}
+    ActiveCalibration: {description: Activa, content: {application/json: {schema: {$ref: '#/components/schemas/ActiveCalibration'}}}}
+    RubricPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/RubricPage'}}}}
+    GoldenSetPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetPage'}}}}
+    CourseGoldenSetPage: {description: Resumen de versiones y casos del curso, content: {application/json: {schema: {$ref: '#/components/schemas/CourseGoldenSetPage'}}}}
+    EligibleInteractionPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/EligibleInteractionPage'}}}}
+    CalibrationPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/CalibrationPage'}}}}
+    AssignmentPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/AssignmentPage'}}}}
+    ModelAdapter: {description: Adapter, content: {application/json: {schema: {$ref: '#/components/schemas/ModelAdapter'}}}}
+    PendingEvaluationPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/PendingEvaluationPage'}}}}
+    ModelAdapterPage: {description: Página, content: {application/json: {schema: {$ref: '#/components/schemas/ModelAdapterPage'}}}}
+    ApiPage: {description: Página de recursos cuyo detalle se mantiene en el controller, content: {application/json: {schema: {$ref: '#/components/schemas/ApiPage'}}}}
+    ApiObject: {description: Recurso administrativo; sus campos concretos se describen en la operación y en el consumidor de referencia, content: {application/json: {schema: {$ref: '#/components/schemas/ApiObject'}}}}
+  schemas:
+    Dimensions:
+      type: object
+      required: [AUTONOMY, CLARITY, PROGRESSION, COMPLIANCE, EFFICIENCY]
+      properties:
+        AUTONOMY: {type: integer, minimum: 0, maximum: 100}
+        CLARITY: {type: integer, minimum: 0, maximum: 100}
+        PROGRESSION: {type: integer, minimum: 0, maximum: 100}
+        COMPLIANCE: {type: integer, minimum: 0, maximum: 100}
+        EFFICIENCY: {type: integer, minimum: 0, maximum: 100}
+    RubricAnchor:
+      type: object
+      required: [behavior, referenceScore, example]
+      properties: {behavior: {type: string}, referenceScore: {type: integer, minimum: 0, maximum: 100}, example: {type: string}}
+    RubricAnchors:
+      type: object
+      required: [low, medium, high]
+      properties: {low: {$ref: '#/components/schemas/RubricAnchor'}, medium: {$ref: '#/components/schemas/RubricAnchor'}, high: {$ref: '#/components/schemas/RubricAnchor'}}
+    RubricDimension:
+      type: object
+      required: [key, criterion, anchors, weight]
+      properties: {key: {type: string, enum: [AUTONOMY, CLARITY, PROGRESSION, COMPLIANCE, EFFICIENCY]}, label: {type: string}, criterion: {type: string}, anchors: {$ref: '#/components/schemas/RubricAnchors'}, weight: {type: number, exclusiveMinimum: 0, maximum: 100}}
+    RubricCustomDimension:
+      type: object
+      required: [key, label, criterion, anchors, weight]
+      description: Dimensión de una rúbrica modular. La clave es libre y única dentro de la versión.
+      properties: {key: {type: string, minLength: 1}, label: {type: string, minLength: 1}, criterion: {type: string, minLength: 1}, anchors: {$ref: '#/components/schemas/RubricAnchors'}, weight: {type: number, exclusiveMinimum: 0, maximum: 100}}
+    RubricInput:
+      type: object
+      required: [name]
+      description: |-
+        Borrador de rúbrica. Flujo estándar (rubricKind ausente o DEFAULT_INSTITUTIONAL): dimensions con las cinco claves del enum.
+        Flujo modular (rubricKind MODULAR_CUSTOM): customDimensions con N >= 1 claves libres y suma de pesos exactamente 100.
+        userPrompt es el mensaje orientador del docente. Las plantillas institucionales (/admin/rubric-templates) solo admiten el flujo estándar.
+      properties:
+        name: {type: string}
+        rubricKind: {type: string, enum: [DEFAULT_INSTITUTIONAL, MODULAR_CUSTOM], default: DEFAULT_INSTITUTIONAL}
+        userPrompt: {type: string, description: Mensaje orientador del docente para la corrección.}
+        dimensions: {type: array, items: {$ref: '#/components/schemas/RubricDimension'}, description: Cinco dimensiones institucionales (flujo estándar).}
+        customDimensions: {type: array, items: {$ref: '#/components/schemas/RubricCustomDimension'}, description: 'Dimensiones libres del flujo modular (N >= 1).'}
+    RubricVersion:
+      allOf: [{$ref: '#/components/schemas/RubricInput'}, {type: object, required: [id, familyId, version, state, revision, rubricKind, userPrompt], properties: {id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, version: {type: integer}, state: {type: string, enum: [DRAFT, PUBLISHED, SUPERSEDED]}, revision: {type: integer}}}]
+    CreateOverlayDraftRequest:
+      type: object
+      required: [name, baselineVersionId]
+      description: Borrador inicial de un overlay por desafío. baselineVersionId debe ser una rúbrica publicada del curso (referencia de origen; no define las dimensiones del overlay).
+      properties: {name: {type: string, minLength: 1, maxLength: 160}, baselineVersionId: {type: string, format: uuid}}
+    OverlayInput:
+      type: object
+      required: [name, customDimensions]
+      description: Autosave de un overlay. customDimensions son las dimensiones propias del desafío (N >= 1, claves únicas, suma de pesos exactamente 100).
+      properties:
+        name: {type: string, minLength: 1}
+        userPrompt: {type: string, description: Mensaje orientador del docente para la corrección.}
+        customDimensions: {type: array, minItems: 1, items: {$ref: '#/components/schemas/RubricCustomDimension'}}
+    OverlayVersion:
+      allOf: [{$ref: '#/components/schemas/OverlayInput'}, {type: object, required: [id, familyId, version, state, revision, rubricKind, baselineVersionId], properties: {id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, version: {type: integer}, state: {type: string, enum: [DRAFT, PUBLISHED]}, revision: {type: integer}, rubricKind: {type: string, enum: [MODULAR_CUSTOM]}, baselineVersionId: {type: string, format: uuid}}}]
+    CourseOverlayItem:
+      type: object
+      required: [challengeId, id, familyId, version, name, state, revision, rubricKind]
+      properties: {challengeId: {type: string, format: uuid}, id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, version: {type: integer}, name: {type: string}, state: {type: string, enum: [DRAFT, PUBLISHED]}, revision: {type: integer}, rubricKind: {type: string, enum: [MODULAR_CUSTOM]}, baselineVersionId: {type: string, format: uuid}}
+    CourseOverlayPage:
+      type: object
+      required: [items]
+      properties: {items: {type: array, items: {$ref: '#/components/schemas/CourseOverlayItem'}}}
+    EffectiveDimension:
+      type: object
+      required: [key, label, criterion, weight, origin]
+      properties: {key: {type: string}, label: {type: string}, criterion: {type: string}, anchors: {$ref: '#/components/schemas/RubricAnchors'}, weight: {type: number}, origin: {type: string, enum: [OVERLAY]}}
+    EffectiveProfile:
+      type: object
+      required: [dimensions]
+      properties: {dimensions: {type: array, items: {$ref: '#/components/schemas/EffectiveDimension'}}}
+    TranscriptMessage:
+      type: object
+      required: [role, content, position]
+      properties: {role: {type: string, enum: [STUDENT, TUTOR]}, content: {type: string, minLength: 1}, position: {type: integer, minimum: 0}, occurredAt: {type: string, format: date-time}}
+    GoldenSetCaseInput:
+      type: object
+      required: [transcript, referenceScores]
+      properties: {transcript: {type: array, minItems: 1, items: {$ref: '#/components/schemas/TranscriptMessage'}}, challengeContext: {type: object, required: [externalChallengeId, statement], properties: {externalChallengeId: {type: string}, statement: {type: string}}}, metadata: {type: object, additionalProperties: true}, author: {type: string, deprecated: true, description: 'Ignorado: el servidor registra al docente autenticado.'}, referenceScores: {$ref: '#/components/schemas/Dimensions'}, scoreJustifications: {type: object, additionalProperties: {type: string}}}
+    GoldenSetCase:
+      allOf: [{$ref: '#/components/schemas/GoldenSetCaseInput'}, {type: object, required: [id, goldenSetVersionId, order, reviewState], properties: {id: {type: string, format: uuid}, goldenSetVersionId: {type: string, format: uuid}, order: {type: integer}, reviewState: {type: string, enum: [DRAFT, REVIEWED]}}}]
+    GoldenSetVersion:
+      type: object
+      required: [id, familyId, version, state, name]
+      properties: {id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, version: {type: integer}, state: {type: string, enum: [DRAFT, PUBLISHED, SUPERSEDED]}, name: {type: string}, cases: {type: array, items: {$ref: '#/components/schemas/GoldenSetCase'}}}
+    GoldenSetCaseSummary:
+      type: object
+      required: [id, order, author, reviewState]
+      properties: {id: {type: string, format: uuid}, order: {type: integer}, author: {type: string}, reviewState: {type: string, enum: [DRAFT, REVIEWED]}}
+    CourseGoldenSetVersion:
+      type: object
+      required: [id, familyId, name, version, state, cases]
+      properties: {id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, name: {type: string}, version: {type: integer}, state: {type: string, enum: [DRAFT, PUBLISHED, SUPERSEDED]}, basedOnVersionId: {type: string, format: uuid}, cases: {type: array, items: {$ref: '#/components/schemas/GoldenSetCaseSummary'}}}
+    ImportBatch:
+      type: object
+      required: [id, goldenSetVersionId, format, state, rows]
+      properties: {id: {type: string, format: uuid}, goldenSetVersionId: {type: string, format: uuid}, format: {type: string, enum: [JSON, CSV]}, state: {type: string, enum: [DRAFT, VALIDATING, READY, COMMITTED, FAILED]}, rows: {type: integer, minimum: 0, description: 'Cantidad de filas cargadas. El detalle se consulta/edita por la API de staging.'}}
+    CalibrationCaseResult:
+      type: object
+      required: [caseId, modelScores, humanFinalScore, modelFinalScore, dimensionErrors, finalError]
+      properties: {caseId: {type: string, format: uuid}, modelScores: {$ref: '#/components/schemas/Dimensions'}, humanFinalScore: {type: number}, modelFinalScore: {type: number}, dimensionErrors: {$ref: '#/components/schemas/Dimensions'}, finalError: {type: number}}
+    CalibrationRun:
+      type: object
+      required: [id, state, rubricVersionId, goldenSetVersionId, modelDeploymentId, progress]
+      properties: {id: {type: string, format: uuid}, state: {type: string, enum: [QUEUED, RUNNING, PASSED, FAILED, CANCELLED]}, rubricVersionId: {type: string, format: uuid}, goldenSetVersionId: {type: string, format: uuid}, modelDeploymentId: {type: string, format: uuid}, progress: {type: integer, minimum: 0, maximum: 100}, maeFinal: {type: number}, maxIndividualError: {type: integer}, results: {type: array, items: {$ref: '#/components/schemas/CalibrationCaseResult'}}}
+    ActivationPreview: {type: object, required: [previewToken, migrableChallengeIds, lockedChallengeIds], properties: {previewToken: {type: string}, migrableChallengeIds: {type: array, items: {type: string, format: uuid}}, lockedChallengeIds: {type: array, items: {type: string, format: uuid}}}}
+    ActiveCalibration: {type: object, required: [courseId, calibrationRunId, activatedAt], properties: {courseId: {type: string, format: uuid}, calibrationRunId: {type: string, format: uuid}, activatedAt: {type: string, format: date-time}}}
+    EligibleInteraction: {type: object, required: [id], properties: {id: {type: string, format: uuid}, preview: {type: string}}}
+    ChallengeCalibrationAssignment: {type: object, required: [challengeId, calibrationRunId, locked], properties: {challengeId: {type: string, format: uuid}, calibrationRunId: {type: string, format: uuid}, locked: {type: boolean}, lockedAt: {type: string, format: date-time}}}
+    ModelDeployment: {type: object, required: [id, modelId, modelVersion, state], properties: {id: {type: string, format: uuid}, modelId: {type: string}, modelVersion: {type: string}, state: {type: string, enum: [ENABLED, DISABLED]}}}
+    ModelAdapter: {type: object, required: [id, provider, deployments], properties: {id: {type: string, format: uuid}, provider: {type: string}, deployments: {type: array, items: {$ref: '#/components/schemas/ModelDeployment'}}}}
+    PendingEvaluation:
+      type: object
+      required: [id, attemptId, assignmentId, calibrationRunId, state, reason, queuedAt]
+      properties: {id: {type: string, format: uuid}, attemptId: {type: string, format: uuid}, assignmentId: {type: string, format: uuid}, calibrationRunId: {type: string, format: uuid, description: 'Immutable calibration version applied to the attempt'}, state: {type: string, enum: [QUEUED, RUNNING, COMPLETED, FAILED]}, reason: {type: string, enum: [CALIBRATION_UNAVAILABLE]}, queuedAt: {type: string, format: date-time}}
+    Job: {type: object, required: [id, state], properties: {id: {type: string, format: uuid}, state: {type: string, enum: [QUEUED, RUNNING, COMPLETED, FAILED]}}}
+    RubricPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/RubricVersion'}}}}
+    GoldenSetPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/GoldenSetVersion'}}}}
+    CourseGoldenSetPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/CourseGoldenSetVersion'}}}}
+    GoldenSetUpdateProposalPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/GoldenSetUpdateProposal'}}}}
+    GoldenSetUpdateProposal: {type: object, required: [id, courseId, baseVersionId, baseVersion, baseCaseCount, detectedAt], properties: {id: {type: string, format: uuid}, courseId: {type: string, format: uuid}, baseVersionId: {type: string, format: uuid}, baseVersion: {type: integer}, baseCaseCount: {type: integer}, detectedAt: {type: string, format: date-time}}}
+    EligibleInteractionPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/EligibleInteraction'}}}}
+    CalibrationPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/CalibrationRun'}}}}
+    AssignmentPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/ChallengeCalibrationAssignment'}}}}
+    ModelAdapterPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/ModelAdapter'}}}}
+    PendingEvaluationPage: {type: object, required: [items], properties: {items: {type: array, items: {$ref: '#/components/schemas/PendingEvaluation'}}}}
+    ApiPage: {type: object, required: [items], properties: {items: {type: array, items: {type: object, additionalProperties: true}}}}
+    ApiObject: {type: object, additionalProperties: true}
+    ProviderCredentialInput:
+      type: object
+      required: [providerKey, displayName]
+      properties:
+        providerKey: {type: string, minLength: 1}
+        displayName: {type: string, minLength: 1}
+        configuration: {type: object, additionalProperties: {type: string}}
+        secrets: {type: object, additionalProperties: {type: string}, writeOnly: true}
+    ModelSelection:
+      type: object
+      required: [modelId]
+      properties: {modelId: {type: string, minLength: 1}, slot: {type: integer, minimum: 1, maximum: 3}}
+    ChatInput:
+      type: object
+      required: [message]
+      properties: {message: {type: string, minLength: 1}}
+    TutorInteractionInput:
+      type: object
+      required: [attemptId, challengeId, courseCohortId, learnerId, message, riskLevel]
+      properties:
+        attemptId: {type: string, format: uuid}
+        challengeId: {type: string, format: uuid}
+        courseCohortId: {type: string, format: uuid}
+        learnerId: {type: string, format: uuid}
+        message: {type: string, minLength: 1}
+        riskLevel: {type: string, enum: [high, medium, low]}
+        conversacionId: {type: string, format: uuid, description: Opcional. Agrupa turnos de una misma conversación; si se omite el servicio crea una y la devuelve en la respuesta.}
+        expectedSolution: {type: string, writeOnly: true, description: Opcional. Only practice-service may send this field over M2M. Se usa solo en memoria para el guardarraíl anti-fuga; nunca se persiste, audita ni devuelve.}
+    TutorInteractionResponse:
+      type: object
+      required: [message, state, conversacionId]
+      properties:
+        message: {type: string}
+        state: {type: string, enum: [completed, blocked, unavailable], description: "blocked: el guardarraíl anti-fuga descartó la respuesta; unavailable: el modelo no pudo responder (degradación, no error del alumno)."}
+        conversacionId: {type: string, format: uuid}
+    CreateConversationRequest:
+      type: object
+      required: [courseCohortId, challengeId, titulo]
+      properties:
+        courseCohortId: {type: string, format: uuid}
+        learnerId: {type: string, format: uuid, description: Opcional; si se omite, usa la identidad delegada.}
+        challengeId: {type: string, format: uuid}
+        titulo: {type: string, minLength: 1}
+    AppendMessageRequest:
+      type: object
+      required: [contenido]
+      properties:
+        contenido: {type: string, minLength: 1}
+    Conversation:
+      type: object
+      required: [id, courseCohortId, learnerId, challengeId, titulo]
+      properties:
+        id: {type: string, format: uuid}
+        courseCohortId: {type: string, format: uuid}
+        learnerId: {type: string, format: uuid}
+        challengeId: {type: string, format: uuid}
+        titulo: {type: string}
+        createdAt: {type: string, format: date-time}
+    Message:
+      type: object
+      required: [id, conversationId, role, content]
+      properties:
+        id: {type: string, format: uuid}
+        conversationId: {type: string, format: uuid}
+        role: {type: string, enum: [STUDENT, TUTOR]}
+        content: {type: string, minLength: 1}
+        createdAt: {type: string, format: date-time}
+    CreateShadowRunRequest:
+      type: object
+      required: [candidateRubricVersionId, source]
+      properties:
+        candidateRubricVersionId: { type: string, format: uuid, description: Rúbrica a validar (puede ser un borrador del curso). Debe ser distinta de la activa. }
+        source: { type: string, enum: [GOLDEN_SET, TUTOR_CONVERSATIONS], description: GOLDEN_SET reproduce una versión del golden set (con nota humana); TUTOR_CONVERSATIONS reproduce conversaciones reales del tutor del curso. }
+        goldenSetVersionId: { type: string, format: uuid, description: Obligatorio con GOLDEN_SET y prohibido con la otra fuente. }
+        sampleSize: { type: integer, minimum: 1, maximum: 100, description: "Tope configurable (llm.shadow.max-sample-size). Por defecto, el tope." }
+        divergenceThreshold: { type: number, exclusiveMinimum: 0, description: Puntos de diferencia final a partir de los cuales un caso cuenta como divergente. Por defecto 10. }
+    ShadowRun:
+      type: object
+      required: [id, courseId, baselineRubricVersionId, candidateRubricVersionId, source, state, progress, createdAt]
+      properties:
+        id: { type: string, format: uuid }
+        courseId: { type: string, format: uuid }
+        baselineRubricVersionId: { type: string, format: uuid }
+        candidateRubricVersionId: { type: string, format: uuid }
+        source: { type: string, enum: [GOLDEN_SET, TUTOR_CONVERSATIONS] }
+        goldenSetVersionId: { type: [string, 'null'], format: uuid }
+        sampleSize: { type: integer }
+        divergenceThreshold: { type: number }
+        state: { type: string, enum: [QUEUED, RUNNING, COMPLETED, FAILED] }
+        progress: { type: integer, minimum: 0, maximum: 100 }
+        summary: { oneOf: [{ $ref: '#/components/schemas/ShadowSummary' }, { type: 'null' }], description: Solo cuando state es COMPLETED. }
+        failureCode: { type: [string, 'null'], enum: [NO_SAMPLES, INVALID_RUBRIC, SHADOW_EXECUTION_FAILED, null] }
+        createdByUserId: { type: string, format: uuid }
+        createdAt: { type: string, format: date-time }
+        startedAt: { type: [string, 'null'], format: date-time }
+        finishedAt: { type: [string, 'null'], format: date-time }
+    ShadowSummary:
+      type: object
+      description: |
+        Comparación candidata vs. baseline. Cada versión se pondera con los pesos de su propia rúbrica.
+        divergencia = candidata − baseline; sesgo > 0 significa que la candidata puntúa más alto.
+        Los casos fallidos se cuentan pero quedan fuera de las estadísticas.
+      properties:
+        totalCases: { type: integer }
+        comparedCases: { type: integer }
+        failedCases: { type: integer }
+        mae: { type: number, description: Promedio de la divergencia absoluta. }
+        bias: { type: number, description: Promedio de la divergencia con signo. }
+        maxDivergence: { type: number }
+        shareOverThreshold: { type: number, minimum: 0, maximum: 1 }
+        baselineMaeVsHuman: { type: [number, 'null'], description: Solo con fuente GOLDEN_SET. }
+        candidateMaeVsHuman: { type: [number, 'null'], description: Solo con fuente GOLDEN_SET. }
+        mostDivergent:
+          type: array
+          maxItems: 5
+          items: { type: object, properties: { sourceRef: { type: string }, baselineFinal: { type: number }, candidateFinal: { type: number }, delta: { type: number } } }
+        recommendation: { type: string, enum: [PROCEED_TO_CALIBRATION, REVIEW, INSUFFICIENT_DATA], description: "Consejo para el docente, no una decisión automática. PROCEED_TO_CALIBRATION habilita lanzar la calibración PAR-14 formal." }
+    EvaluatorSkillResponse:
+      type: object
+      required: [skillKey, name, description, toolType, isActive]
+      properties:
+        skillKey: {type: string, description: Clave canónica de la skill en el catálogo.}
+        name: {type: string}
+        description: {type: string}
+        toolType: {type: string, description: Tipo de herramienta con que se evalúa la skill.}
+        isActive: {type: boolean, description: Habilitada por defecto (catálogo) o activada para el curso.}
+    UpdateCourseSkillsRequest:
+      type: object
+      required: [activeSkillKeys]
+      properties:
+        activeSkillKeys: {type: array, items: {type: string}, description: Claves del catálogo que quedan activas para el curso. Reemplaza el set anterior.}
