@@ -46,6 +46,7 @@ export const routes: Routes = [
     { path: 'rubricas/new', loadComponent: () => import('./teacher/rubrics-page/rubrics-page').then((m) => m.RubricsPage) },
     { path: 'rubricas/:versionId/edit', loadComponent: () => import('./teacher/rubrics-page/rubrics-page').then((m) => m.RubricsPage) },
     { path: 'rubricas', loadComponent: () => import('./teacher/rubrics-page/rubrics-page').then((m) => m.RubricsPage) },
+    { path: 'desafios/rubricas', loadComponent: () => import('./teacher/challenge-rubric-overlay-page/challenge-rubric-overlay-page').then((m) => m.ChallengeRubricOverlayPage) },
     { path: 'golden-set/new', loadComponent: () => import('./teacher/golden-set-page/golden-set-page').then((m) => m.GoldenSetPage) },
     { path: 'golden-set/:versionId/edit', loadComponent: () => import('./teacher/golden-set-page/golden-set-page').then((m) => m.GoldenSetPage) },
     { path: 'golden-set', loadComponent: () => import('./teacher/golden-set-page/golden-set-page').then((m) => m.GoldenSetPage) },

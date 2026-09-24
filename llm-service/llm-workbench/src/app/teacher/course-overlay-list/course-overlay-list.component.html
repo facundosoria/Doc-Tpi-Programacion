@@ -1,0 +1,74 @@
+<section class="overlay-list" aria-labelledby="overlay-list-title">
+  <h3 id="overlay-list-title">Rúbricas por desafío</h3>
+  <p class="hint">Todas las versiones de overlay del curso. Podés filtrar por nombre o estado.</p>
+
+  <div class="filters">
+    <label class="filter-search">
+      <span class="field-label">Buscar</span>
+      <input type="text" [value]="query()" (input)="onQuery($event)" placeholder="Nombre del desafío u overlay…" autocomplete="off" />
+    </label>
+    <label class="filter-state">
+      <span class="field-label">Estado</span>
+      <select [value]="stateFilter()" (change)="onState($event)">
+        <option value="">Todos</option>
+        <option value="DRAFT">Borrador</option>
+        <option value="PUBLISHED">Publicada</option>
+      </select>
+    </label>
+  </div>
+
+  @if (overlays.isLoading()) {
+    <p role="status">Cargando overlays…</p>
+  } @else if (overlays.error()) {
+    <section class="error" role="alert">
+      <strong>No se pudieron cargar los overlays.</strong>
+      <button type="button" class="secondary" (click)="overlays.reload()">Reintentar</button>
+    </section>
+  } @else if (!filtered().length) {
+    <p class="empty">No hay rúbricas por desafío que coincidan con el filtro.</p>
+  } @else {
+    <div class="table-wrap">
+      <table>
+        <caption>Overlays del curso</caption>
+        <thead>
+          <tr>
+            <th scope="col">Desafío</th>
+            <th scope="col">Overlay</th>
+            <th scope="col">Versión</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Revisión</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (item of pageItems(); track item.id) {
+            <tr>
+              <th scope="row">{{ challengeName(item.challengeId) }}</th>
+              <td>{{ item.name }}</td>
+              <td>v{{ item.version }}</td>
+              <td>
+                <span class="state" [class.published]="item.state === 'PUBLISHED'" [class.draft]="item.state === 'DRAFT'">{{ stateLabel(item.state) }}</span>
+              </td>
+              <td>{{ item.revision }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+<nav class="pagination" aria-label="Paginación">
+      <button type="button" class="secondary" aria-label="Página anterior" [disabled]="page() <= 1" (click)="setPage(page() - 1)">‹</button>
+      @for (p of pages(); track p) {
+        <button
+          type="button"
+          class="page-number"
+          [class.current]="p === page()"
+          [disabled]="p === page()"
+          [attr.aria-current]="p === page() ? 'page' : null"
+          (click)="setPage(p)"
+        >{{ p }}</button>
+      }
+      <button type="button" class="secondary" aria-label="Página siguiente" [disabled]="page() >= pageCount()" (click)="setPage(page() + 1)">›</button>
+      <span class="page-info">Página {{ page() }} de {{ pageCount() }}</span>
+    </nav>
+  }
+</section>

@@ -1,0 +1,154 @@
+<header>
+  <p class="eyebrow">RÚBRICA POR DESAFÍO</p>
+  <h1>Overlay de rúbrica por desafío</h1>
+  <p>Configurá dimensiones propias para un desafío, manteniendo la rúbrica del curso como base.</p>
+</header>
+
+@if (error()) {
+  <section class="error" role="alert">
+    <strong>{{ error() }}</strong>
+    <button type="button" class="secondary" (click)="error.set('')">Descartar</button>
+  </section>
+}
+
+@if (!selectedExercise()) {
+  <section class="select-step" aria-labelledby="select-title">
+    <h2 id="select-title">1 · Elegí el desafío</h2>
+    <app-challenge-selector (selected)="onSelect($event)" />
+  </section>
+} @else {
+  <section class="challenge-header">
+    <div>
+      <h2>{{ selectedExercise()!.title }}</h2>
+      <p class="challenge-meta">
+        <span class="challenge-type" [class.fe]="selectedExercise()!.type === 'FE'">{{ selectedExercise()!.type }}</span>
+        <span>{{ selectedExercise()!.id }}</span>
+        <span>{{ selectedUuid() }}</span>
+      </p>
+    </div>
+    <button type="button" class="secondary" (click)="clearSelection()">Cambiar desafío</button>
+  </section>
+
+  @if (overlays.isLoading()) {
+    <p role="status">Cargando overlays…</p>
+  } @else if (overlays.error()) {
+    <section class="error" role="alert">
+      <strong>{{ overlayLoadError() }}</strong>
+      <button type="button" class="secondary" (click)="overlays.reload()">Reintentar</button>
+    </section>
+  } @else if (!overlays.value().items.length) {
+    <section class="empty">
+      <h3>Aún no hay overlay para este desafío</h3>
+      <p>Creá un borrador a partir de la rúbrica publicada del curso.</p>
+      <div class="create-panel">
+        <label>
+          <span class="field-label">Nombre del overlay *</span>
+          <input type="text" [value]="newOverlayName()" (input)="setNewOverlayName($event)" maxlength="160" placeholder="Ej. Evaluación de algoritmos" />
+        </label>
+        <label>
+          <span class="field-label">Rúbrica base del curso *
+            <span
+              class="info-badge"
+              tabindex="0"
+              role="tooltip"
+              aria-label="La rúbrica base se pide porque el modelo exige que un overlay tenga origen en una rúbrica publicada del curso — aunque hoy no participe del cálculo."
+            >i</span>
+          </span>
+          <select [value]="baselineVersionId()" (change)="setBaseline($event)">
+            <option value="">Elegí una rúbrica publicada</option>
+            @for (baseline of publishedBaselines(); track baseline.id) {
+              <option [value]="baseline.id">{{ baseline.name }} · v{{ baseline.version }}</option>
+            }
+          </select>
+          @if (!publishedBaselines().length) {
+            <p class="notice">El curso no tiene una rúbrica publicada todavía. Publicá una en Rúbricas antes de crear el overlay.</p>
+          }
+        </label>
+        <button type="button" class="save" [disabled]="creating()" (click)="createDraft()">{{ creating() ? 'Creando…' : 'Crear borrador del overlay' }}</button>
+      </div>
+    </section>
+  } @else {
+    <section class="table-wrap">
+      <table>
+        <caption>Versiones del overlay</caption>
+        <thead>
+          <tr>
+            <th scope="col">Nombre</th>
+            <th scope="col">Versión</th>
+            <th scope="col">Estado</th>
+            <th scope="col">Revisión</th>
+            <th scope="col">Acciones</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (version of overlays.value().items; track version.id) {
+            <tr>
+              <th scope="row">{{ version.name }}</th>
+              <td>v{{ version.version }}</td>
+              <td>
+                <span class="state" [class.published]="version.state === 'PUBLISHED'">{{ stateLabel(version.state) }}</span>
+              </td>
+              <td>{{ version.revision }}</td>
+              <td>
+                @if (version.state === 'DRAFT') {
+                  <button type="button" class="edit" (click)="edit(version)">Editar</button>
+                  <button type="button" class="save" (click)="publish(version)">Publicar</button>
+                } @else if (version.state === 'PUBLISHED') {
+                  <span class="immutable">Inmutable</span>
+                  <button type="button" class="secondary" (click)="nextVersion(version)">Nueva versión</button>
+                }
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </section>
+    <button type="button" class="secondary effective-toggle" (click)="toggleEffective()">
+      {{ effectiveVisible() ? 'Ocultar perfil efectivo' : 'Ver perfil efectivo' }}
+    </button>
+  }
+
+  @if (effectiveVisible()) {
+    <section class="effective" aria-labelledby="effective-title">
+      <div class="editor-heading">
+        <div>
+          <p class="eyebrow">PERFIL EFECTIVO</p>
+          <h2 id="effective-title">Dimensiones efectivas</h2>
+        </div>
+      </div>
+      <table>
+        <thead>
+          <tr>
+            <th scope="col">Dimensión</th>
+            <th scope="col">Criterio</th>
+            <th scope="col">Peso</th>
+            <th scope="col">Origen</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (dimension of effective(); track dimension.key) {
+            <tr>
+              <th scope="row">{{ dimension.label || dimension.key }}</th>
+              <td>{{ dimension.criterion }}</td>
+              <td>{{ dimension.weight }}%</td>
+              <td>{{ dimension.origin }}</td>
+            </tr>
+          }
+          @if (!effective().length) {
+            <tr><td colspan="4">El overlay aún no tiene dimensiones guardadas.</td></tr>
+          }
+        </tbody>
+      </table>
+    </section>
+  }
+
+  @if (overlay(); as editingVersion) {
+    @if (editing()) {
+      <app-rubric-dimensions-editor
+        [dimensions]="editingVersion.customDimensions"
+        (save)="save(editingVersion, $event)"
+        (cancel)="closeEditor()"
+      />
+    }
+  }
+}

@@ -26,22 +26,14 @@ public class RubricPublicationService {
   /** Publishes only a complete valid draft. Published versions are immutable in the database. */
   @Transactional
   public void publish(UUID courseId, UUID versionId, CallerIdentity actor) {
-    var standardDimensions = rubrics.dimensionsOfDraft(courseId, versionId);
-    if (!standardDimensions.isEmpty()) {
-      RubricValidator.validateForPublication(standardDimensions);
-      validateAnchors(rubrics.find(courseId, versionId)
-          .orElseThrow(() -> new ResourceNotFoundException("La rúbrica no existe en el curso")).dimensions());
-    } else {
-      var customDims = rubrics.customDimensionsOfDraft(courseId, versionId);
-      if (customDims.isEmpty()) {
-        throw new IllegalStateException("La rúbrica no existe en el curso o ya no es un borrador");
-      }
-      RubricValidator.validateModularRubric(customDims);
-      validateCustomAnchors(rubrics.find(courseId, versionId)
-          .orElseThrow(() -> new ResourceNotFoundException("La rúbrica no existe en el curso")).customDimensions());
+    var dimensions = rubrics.dimensionsOfDraft(courseId, versionId);
+    if (dimensions.isEmpty()) {
+      throw new IllegalStateException("La rúbrica no existe en el curso o ya no es un borrador");
     }
+    RubricValidator.validateForPublication(dimensions);
     var version = rubrics.find(courseId, versionId)
         .orElseThrow(() -> new ResourceNotFoundException("La rúbrica no existe en el curso"));
+    validateAnchors(version.dimensions());
     if (!rubrics.publishDraft(courseId, versionId)) {
       throw new IllegalStateException("La rúbrica fue modificada mientras se publicaba");
     }
@@ -51,20 +43,10 @@ public class RubricPublicationService {
   }
 
   static void validateAnchors(List<RubricDraftService.DimensionInput> dimensions) {
-    if (dimensions == null) return;
-    for (var dimension : dimensions) {
-      validateSingleAnchors(dimension.anchors());
-    }
+    for (var dimension : dimensions) validateAnchor(dimension.anchors());
   }
 
-  static void validateCustomAnchors(List<RubricDraftService.DimensionCustomInput> dimensions) {
-    if (dimensions == null) return;
-    for (var dimension : dimensions) {
-      validateSingleAnchors(dimension.anchors());
-    }
-  }
-
-  private static void validateSingleAnchors(RubricDraftService.Anchors anchors) {
+  private static void validateAnchor(RubricDraftService.Anchors anchors) {
     if (anchors == null || !valid(anchors.low()) || !valid(anchors.medium()) || !valid(anchors.high())) {
       throw new IllegalArgumentException("Cada dimensión debe definir anclas baja, media y alta completas");
     }

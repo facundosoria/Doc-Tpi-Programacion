@@ -139,3 +139,26 @@ textarea:focus-visible {
   outline: 3px solid #f3b426;
   outline-offset: 3px;
 }
+
+.view-tabs {
+  display: flex;
+  gap: 0.4rem;
+  margin: 1rem 0;
+  border-bottom: 1px solid #b9d3d5;
+  padding-bottom: 0.5rem;
+}
+
+.view-tabs button {
+  border: 0;
+  border-radius: 0.45rem 0.45rem 0 0;
+  background: transparent;
+  color: #52666a;
+  font: 600 0.9rem / 1.2 'Roboto', sans-serif;
+  padding: 0.55rem 1rem;
+  cursor: pointer;
+}
+
+.view-tabs button.current {
+  background: #e2f0f1;
+  color: #185c65;
+}

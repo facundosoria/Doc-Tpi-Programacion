@@ -30,22 +30,13 @@ public class RubricController {
   private final RubricDraftService draftService;
   private final GoldenSetAuthorization authorization;
   private final CourseAuthorization courseAuthorization;
-  private final com.fasterxml.jackson.databind.ObjectMapper objectMapper;
 
-  @org.springframework.beans.factory.annotation.Autowired
   public RubricController(RubricPublicationService publicationService, RubricDraftService draftService,
-      GoldenSetAuthorization authorization, CourseAuthorization courseAuthorization,
-      com.fasterxml.jackson.databind.ObjectMapper objectMapper) {
+      GoldenSetAuthorization authorization, CourseAuthorization courseAuthorization) {
     this.publicationService = publicationService;
     this.draftService = draftService;
     this.authorization = authorization;
     this.courseAuthorization = courseAuthorization;
-    this.objectMapper = objectMapper;
-  }
-
-  public RubricController(RubricPublicationService publicationService, RubricDraftService draftService,
-      GoldenSetAuthorization authorization, CourseAuthorization courseAuthorization) {
-    this(publicationService, draftService, authorization, courseAuthorization, new com.fasterxml.jackson.databind.ObjectMapper());
   }
 
   @GetMapping
@@ -75,36 +66,10 @@ public class RubricController {
 
   @PatchMapping("/{versionId}")
   public RubricDraftService.RubricVersion autosave(@PathVariable UUID courseId, @PathVariable UUID versionId,
-      @RequestHeader("If-Match") long revision, @RequestBody com.fasterxml.jackson.databind.JsonNode body,
+      @RequestHeader("If-Match") long revision, @Valid @RequestBody RubricDraftService.RubricInput input,
       @RequestHeader HttpHeaders headers) {
     var actor = authorize(courseId, headers);
-    String kind = body.path("rubricKind").asText("");
-    if ("MODULAR_CUSTOM".equalsIgnoreCase(kind)) {
-      try {
-        var customInput = objectMapper.treeToValue(body, RubricDraftService.RubricCustomInput.class);
-        return draftService.autosaveModular(courseId, versionId, revision, customInput, actor);
-      } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-        throw new IllegalArgumentException("Payload inválido para rúbrica modular", e);
-      }
-    }
-    try {
-      var input = objectMapper.treeToValue(body, RubricDraftService.RubricInput.class);
-      return draftService.autosave(courseId, versionId, revision, input, actor);
-    } catch (com.fasterxml.jackson.core.JsonProcessingException e) {
-      throw new IllegalArgumentException("Payload inválido para rúbrica", e);
-    }
-  }
-
-  public RubricDraftService.RubricVersion autosave(UUID courseId, UUID versionId,
-      long revision, RubricDraftService.RubricInput input, HttpHeaders headers) {
-    var actor = authorize(courseId, headers);
     return draftService.autosave(courseId, versionId, revision, input, actor);
-  }
-
-  public RubricDraftService.RubricVersion autosaveModular(UUID courseId, UUID versionId,
-      long revision, RubricDraftService.RubricCustomInput input, HttpHeaders headers) {
-    var actor = authorize(courseId, headers);
-    return draftService.autosaveModular(courseId, versionId, revision, input, actor);
   }
 
   @PostMapping("/{versionId}/next-version")

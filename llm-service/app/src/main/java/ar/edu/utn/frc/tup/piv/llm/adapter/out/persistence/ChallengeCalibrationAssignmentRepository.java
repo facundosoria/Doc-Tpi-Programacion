@@ -10,6 +10,10 @@ public class ChallengeCalibrationAssignmentRepository {
   private final JdbcTemplate j;
   public ChallengeCalibrationAssignmentRepository(JdbcTemplate j){this.j=j;}
   public boolean assignActive(UUID challenge,UUID course){return j.update("insert into llm.challenge_calibration_assignments(challenge_id,course_id,calibration_run_id) select ?,?,a.calibration_run_id from llm.active_calibrations a join llm.calibration_runs r on r.id=a.calibration_run_id where a.course_id=? and r.state='PASSED'",challenge,course,course)==1;}
+  public boolean belongsToCourse(UUID challenge, UUID course) {
+    Integer count = j.queryForObject("select count(*) from llm.challenge_calibration_assignments where challenge_id = ? and course_id = ?", Integer.class, challenge, course);
+    return count != null && count > 0;
+  }
   public CalibrationMigrationPreview preview(UUID course,UUID next){var rows=j.query("select challenge_id,calibration_run_id,locked_at from llm.challenge_calibration_assignments where course_id=?",(r,n)->new Row(r.getObject(1,UUID.class),r.getObject(2,UUID.class),r.getObject(3,java.time.OffsetDateTime.class)),course);var migrable=new java.util.ArrayList<UUID>();var locked=new java.util.ArrayList<UUID>();for(var x:rows)if(x.lockedAt()==null)migrable.add(x.id());else locked.add(x.id());return new CalibrationMigrationPreview(List.copyOf(migrable),List.copyOf(locked));}
   public int migrate(UUID course,UUID run,Set<UUID> challenges){if(challenges.isEmpty())return 0;return j.update("update llm.challenge_calibration_assignments set calibration_run_id=?,assigned_at=now() where course_id=? and locked_at is null and challenge_id = any(?)",run,course,jdbcArray(challenges));}
   private java.sql.Array jdbcArray(Set<UUID> ids){try{return j.getDataSource().getConnection().createArrayOf("uuid",ids.toArray());}catch(Exception e){throw new IllegalStateException(e);}}

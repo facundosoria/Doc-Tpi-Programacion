@@ -23,7 +23,7 @@ export class SummaryPage {
     { defaultValue: { items: [] } }
   );
 
-  readonly hasActiveCalibration = computed(() => !!this.activeCalibration.value());
+  readonly hasActiveCalibration = computed(() => this.activeCalibration.hasValue() && !!this.activeCalibration.value());
   readonly pendingCount = computed(() => this.pendingEvaluations.value().items.length);
   readonly hasBaseProposal = computed(() => false);
 

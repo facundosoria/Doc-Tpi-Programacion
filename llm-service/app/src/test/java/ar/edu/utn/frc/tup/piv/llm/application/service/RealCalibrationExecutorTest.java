@@ -317,14 +317,14 @@ class RealCalibrationExecutorTest {
     Map<String, Integer> dynamicWeights = Map.of("code_quality", 60, "test_runner", 40);
 
     CalibrationRunRepository.Execution execution = new CalibrationRunRepository.Execution(
-        run, deployment, Map.of(), "RÃºbrica modular", List.of(c), 0L,
-        "MODULAR_CUSTOM", "Enfocarse en buenas prÃ¡cticas de clean code",
+        run, deployment, Map.of(), "Rúbrica modular", List.of(c), 0L,
+        "MODULAR_CUSTOM", "Enfocarse en buenas prácticas de clean code",
         dimensionKeys, dynamicWeights
     );
     when(runs.execution(runId)).thenReturn(execution);
 
     ar.edu.utn.frc.tup.piv.llm.adapter.out.persistence.EvaluatorSkillRepository.EvaluatorSkill activeSkill = new ar.edu.utn.frc.tup.piv.llm.adapter.out.persistence.EvaluatorSkillRepository.EvaluatorSkill(
-        "code_quality", "Revisor de Calidad", "Inspecciona cÃ³digo", "STATIC_ANALYSIS",
+        "code_quality", "Revisor de Calidad", "Inspecciona código", "STATIC_ANALYSIS",
         "Evaluar legibilidad y modularidad estricta.", true
     );
     when(skillRepository.findActiveByCourse(courseId)).thenReturn(List.of(activeSkill));
@@ -339,10 +339,10 @@ class RealCalibrationExecutorTest {
     org.mockito.ArgumentCaptor<String> promptCaptor = org.mockito.ArgumentCaptor.forClass(String.class);
     verify(gateway).invoke(any(), eq("gpt-4o-mini"), promptCaptor.capture(), any(), any());
     String sentPrompt = promptCaptor.getValue();
-    assertThat(sentPrompt).contains("INSTRUCCIONES DOCENTE:\nEnfocarse en buenas prÃ¡cticas de clean code");
-    assertThat(sentPrompt).contains("HABILIDADES TÃ‰CNICAS ACTIVADAS PARA EL ANÃLISIS:");
+    assertThat(sentPrompt).contains("INSTRUCCIONES DOCENTE:\nEnfocarse en buenas prácticas de clean code");
+    assertThat(sentPrompt).contains("HABILIDADES TÉCNICAS ACTIVADAS PARA EL ANÁLISIS:");
     assertThat(sentPrompt).contains("[Revisor de Calidad]: Evaluar legibilidad y modularidad estricta.");
-    assertThat(sentPrompt).contains("RÃºbrica modular");
+    assertThat(sentPrompt).contains("Rúbrica modular");
 
     verify(runs).saveCaseModular(eq(runId), eq(c), eq(Map.of("code_quality", 85, "test_runner", 90)), eq(dynamicWeights));
     verify(runs).finish(eq(runId), eq(true), any(java.math.BigDecimal.class), anyInt());

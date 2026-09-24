@@ -66,7 +66,7 @@ public class RealCalibrationExecutor {
     CalibrationRunRepository.Execution execution = null;
     try {
       execution=runs.execution(runId); int total=execution.cases().size(); int completed=0;
-      var credential=usage.get(execution.deployment().credentialId()).filter(value->"ACTIVE".equals(value.state())).orElseThrow(()->new IllegalStateException("La credencial del deployment no estÃ¡ activa"));
+      var credential=usage.get(execution.deployment().credentialId()).filter(value->"ACTIVE".equals(value.state())).orElseThrow(()->new IllegalStateException("La credencial del deployment no está activa"));
       var settings=policy.resolve(registry.required(execution.deployment().providerKey()).descriptor().capabilities(), execution.seed() == null ? 0L : execution.seed());
       String fingerprint=null;
 
@@ -123,24 +123,24 @@ public class RealCalibrationExecutor {
     }
   }
   private String prompt(String rubric, CalibrationRunRepository.Case item) {
-    return "ActuÃ¡s como evaluador pedagÃ³gico. EvaluÃ¡ la conversaciÃ³n y el contexto con esta rÃºbrica:\n%s\nConversaciÃ³n: %s\nContexto: %s\nRespondÃ© exclusivamente JSON, sin Markdown, con las cinco claves AUTONOMY, CLARITY, PROGRESSION, COMPLIANCE y EFFICIENCY. Cada valor debe ser un entero de 0 a 100.".formatted(rubric,item.transcript(),item.challengeContext());
+    return "Actuás como evaluador pedagógico. Evaluá la conversación y el contexto con esta rúbrica:\n%s\nConversación: %s\nContexto: %s\nRespondé exclusivamente JSON, sin Markdown, con las cinco claves AUTONOMY, CLARITY, PROGRESSION, COMPLIANCE y EFFICIENCY. Cada valor debe ser un entero de 0 a 100.".formatted(rubric,item.transcript(),item.challengeContext());
   }
 
   String promptModular(String rubric, CalibrationRunRepository.Case item, List<EvaluatorSkill> skills, String userPrompt) {
     StringBuilder sb = new StringBuilder();
-    sb.append("ActuÃ¡s como evaluador pedagÃ³gico. EvaluÃ¡ la conversaciÃ³n con esta rÃºbrica personalizada:\n").append(rubric).append("\n");
+    sb.append("Actuás como evaluador pedagógico. Evaluá la conversación con esta rúbrica personalizada:\n").append(rubric).append("\n");
     if (userPrompt != null && !userPrompt.isBlank()) {
       sb.append("\nINSTRUCCIONES DOCENTE:\n").append(userPrompt).append("\n");
     }
     if (skills != null && !skills.isEmpty()) {
-      sb.append("\nHABILIDADES TÃ‰CNICAS ACTIVADAS PARA EL ANÃLISIS:\n");
+      sb.append("\nHABILIDADES TÉCNICAS ACTIVADAS PARA EL ANÁLISIS:\n");
       for (var s : skills) {
         sb.append("- [").append(s.name()).append("]: ").append(s.systemInstruction()).append("\n");
       }
     }
-    sb.append("\nConversaciÃ³n: ").append(item.transcript());
+    sb.append("\nConversación: ").append(item.transcript());
     sb.append("\nContexto: ").append(item.challengeContext());
-    sb.append("\nRespondÃ© exclusivamente JSON, sin Markdown, con las claves de las dimensiones evaluadas. Cada valor entero de 0 a 100.");
+    sb.append("\nRespondé exclusivamente JSON, sin Markdown, con las claves de las dimensiones evaluadas. Cada valor entero de 0 a 100.");
     return sb.toString();
   }
 
@@ -155,11 +155,11 @@ public class RealCalibrationExecutor {
       for(var dimension:Dimension.values()) { 
           JsonNode score=root.get(dimension.name()); 
           if (score == null) score = root.get(dimension.name().toLowerCase());
-          if(score==null||!score.isIntegralNumber()||score.intValue()<0||score.intValue()>100) throw new IllegalArgumentException("Puntaje de proveedor invÃ¡lido"); 
+          if(score==null||!score.isIntegralNumber()||score.intValue()<0||score.intValue()>100) throw new IllegalArgumentException("Puntaje de proveedor inválido"); 
           scores.put(dimension,score.intValue()); 
       }
       return Map.copyOf(scores);
-    } catch (Exception error) { throw new IllegalArgumentException("La respuesta del proveedor no tiene el formato de evaluaciÃ³n requerido",error); }
+    } catch (Exception error) { throw new IllegalArgumentException("La respuesta del proveedor no tiene el formato de evaluación requerido",error); }
   }
 
   Map<String, Integer> parseScoresModular(String value, List<String> dimensionKeys) {
@@ -170,13 +170,13 @@ public class RealCalibrationExecutor {
       for (String key : dimensionKeys) {
         JsonNode score = root.get(key);
         if (score == null || !score.isIntegralNumber() || score.intValue() < 0 || score.intValue() > 100) {
-          throw new IllegalArgumentException("Puntaje de proveedor invÃ¡lido");
+          throw new IllegalArgumentException("Puntaje de proveedor inválido");
         }
         scores.put(key, score.intValue());
       }
       return Map.copyOf(scores);
     } catch (Exception error) {
-      throw new IllegalArgumentException("La respuesta del proveedor no tiene el formato de evaluaciÃ³n requerido", error);
+      throw new IllegalArgumentException("La respuesta del proveedor no tiene el formato de evaluación requerido", error);
     }
   }
 
@@ -196,11 +196,11 @@ public class RealCalibrationExecutor {
 
   private Diagnostic diagnostic(Exception failure) {
     String message = failure.getMessage() == null ? "" : failure.getMessage();
-    if (message.contains("formato de evaluaciÃ³n")) return new Diagnostic("MALFORMED_MODEL_RESPONSE", "El modelo respondiÃ³, pero no devolviÃ³ los cinco puntajes enteros requeridos.");
-    if (message.contains("HTTP 429")) return new Diagnostic("PROVIDER_RATE_LIMIT", "El proveedor limitÃ³ las solicitudes. EsperÃ¡ un momento y reintentÃ¡.");
-    if (message.contains("HTTP 5")) return new Diagnostic("PROVIDER_UNAVAILABLE", "El proveedor tuvo un error temporal. ReintentÃ¡ mÃ¡s tarde.");
-    if (message.contains("No se pudo conectar")) return new Diagnostic("PROVIDER_CONNECTION_FAILED", "No se pudo conectar con el proveedor. VerificÃ¡ la credencial, el modelo y la conectividad.");
-    return new Diagnostic("CALIBRATION_EXECUTION_FAILED", "La calibraciÃ³n no pudo completarse. RevisÃ¡ la configuraciÃ³n del modelo e intentÃ¡ nuevamente.");
+    if (message.contains("formato de evaluación")) return new Diagnostic("MALFORMED_MODEL_RESPONSE", "El modelo respondió, pero no devolvió los cinco puntajes enteros requeridos.");
+    if (message.contains("HTTP 429")) return new Diagnostic("PROVIDER_RATE_LIMIT", "El proveedor limitó las solicitudes. Esperá un momento y reintentá.");
+    if (message.contains("HTTP 5")) return new Diagnostic("PROVIDER_UNAVAILABLE", "El proveedor tuvo un error temporal. Reintentá más tarde.");
+    if (message.contains("No se pudo conectar")) return new Diagnostic("PROVIDER_CONNECTION_FAILED", "No se pudo conectar con el proveedor. Verificá la credencial, el modelo y la conectividad.");
+    return new Diagnostic("CALIBRATION_EXECUTION_FAILED", "La calibración no pudo completarse. Revisá la configuración del modelo e intentá nuevamente.");
   }
   private record Diagnostic(String code, String detail) {}
 }

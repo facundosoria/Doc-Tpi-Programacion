@@ -50,4 +50,30 @@ class ApiExceptionHandlerTest {
     assertThat(problem403.getDetail()).isEqualTo("Identidad delegada ausente");
     assertThat(problem403.getProperties()).containsEntry("requestId", "req-attr-403");
   }
+
+  @Test void mapsConversationOwnershipExceptionToProblemDetail403Forbidden() {
+    request.addHeader("X-Request-Id", "req-test-ownership");
+    java.util.UUID conversationId = java.util.UUID.randomUUID();
+    var exception = new ar.edu.utn.frc.tup.piv.llm.domain.tutor.ConversationOwnershipException(conversationId);
+
+    ProblemDetail problem = handler.conversationOwnership(exception, request);
+
+    assertThat(problem.getStatus()).isEqualTo(403);
+    assertThat(problem.getDetail()).isEqualTo("Conversación no encontrada: " + conversationId);
+    assertThat(problem.getProperties()).containsEntry("error", "forbidden");
+    assertThat(problem.getProperties()).containsEntry("requestId", "req-test-ownership");
+  }
+
+  @Test void mapsChallengeNotActiveExceptionToProblemDetail404NotFound() {
+    request.addHeader("X-Request-Id", "req-test-challenge");
+    java.util.UUID challengeId = java.util.UUID.randomUUID();
+    var exception = new ar.edu.utn.frc.tup.piv.llm.domain.tutor.ChallengeNotActiveException(challengeId);
+
+    ProblemDetail problem = handler.challengeNotActive(exception, request);
+
+    assertThat(problem.getStatus()).isEqualTo(404);
+    assertThat(problem.getDetail()).isEqualTo("Desafío no encontrado o no disponible: " + challengeId);
+    assertThat(problem.getProperties()).containsEntry("error", "challenge_not_found");
+    assertThat(problem.getProperties()).containsEntry("requestId", "req-test-challenge");
+  }
 }

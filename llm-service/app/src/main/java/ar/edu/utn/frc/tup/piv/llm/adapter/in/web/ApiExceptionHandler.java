@@ -9,11 +9,27 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import ar.edu.utn.frc.tup.piv.llm.domain.tutor.ChallengeNotActiveException;
+import ar.edu.utn.frc.tup.piv.llm.domain.tutor.ConversationOwnershipException;
 import ar.edu.utn.frc.tup.piv.llm.application.service.CourseGoldenSetService.GoldenSetSizeException;
 import org.springframework.web.server.ResponseStatusException;
 
 @RestControllerAdvice
 public class ApiExceptionHandler {
+
+  @ExceptionHandler(ConversationOwnershipException.class)
+  ProblemDetail conversationOwnership(ConversationOwnershipException exception, HttpServletRequest request) {
+    ProblemDetail p = problem(HttpStatus.FORBIDDEN, exception.getMessage(), request);
+    p.setProperty("error", "forbidden");
+    return p;
+  }
+
+  @ExceptionHandler(ChallengeNotActiveException.class)
+  ProblemDetail challengeNotActive(ChallengeNotActiveException exception, HttpServletRequest request) {
+    ProblemDetail p = problem(HttpStatus.NOT_FOUND, exception.getMessage(), request);
+    p.setProperty("error", "challenge_not_found");
+    return p;
+  }
 
   @ExceptionHandler(GoldenSetSizeException.class)
   ProblemDetail goldenSetSize(GoldenSetSizeException exception, HttpServletRequest request) {

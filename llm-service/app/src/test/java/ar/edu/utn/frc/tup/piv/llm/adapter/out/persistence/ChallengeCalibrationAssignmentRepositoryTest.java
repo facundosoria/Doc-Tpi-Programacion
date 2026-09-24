@@ -111,6 +111,21 @@ class ChallengeCalibrationAssignmentRepositoryTest {
     assertThat(repository.lockOnFirstAttempt(challenge, attempt)).isFalse();
   }
 
+  @Test
+  void belongsToCourseReportsMembership() {
+    var jdbc = mock(JdbcTemplate.class);
+    var repository = new ChallengeCalibrationAssignmentRepository(jdbc);
+    UUID challenge = UUID.randomUUID();
+    UUID course = UUID.randomUUID();
+    when(jdbc.queryForObject(contains("challenge_calibration_assignments where challenge_id = ? and course_id = ?"),
+        eq(Integer.class), eq(challenge), eq(course))).thenReturn(1);
+    assertThat(repository.belongsToCourse(challenge, course)).isTrue();
+
+    when(jdbc.queryForObject(contains("challenge_calibration_assignments where challenge_id = ? and course_id = ?"),
+        eq(Integer.class), eq(challenge), eq(course))).thenReturn(0);
+    assertThat(repository.belongsToCourse(challenge, course)).isFalse();
+  }
+
   @FunctionalInterface
   private interface ResultSetConfigurer {
     void configure(ResultSet rs) throws SQLException;

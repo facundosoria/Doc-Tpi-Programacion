@@ -66,11 +66,12 @@ class RubricDraftServiceCoverageTest {
     var repository = mock(RubricVersionRepository.class);
     var service = new RubricDraftService(repository);
     UUID course = UUID.randomUUID(), version = UUID.randomUUID();
-    assertThatThrownBy(() -> service.autosave(course, version, 1, null, actor)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> service.autosave(course, version, 1, new RubricInput(null, inputDimensions()), actor)).isInstanceOf(IllegalArgumentException.class).hasMessage("El borrador debe incluir un nombre");
-    assertThatThrownBy(() -> service.autosave(course, version, 1, new RubricInput(" ", inputDimensions()), actor)).isInstanceOf(IllegalArgumentException.class).hasMessage("El borrador debe incluir un nombre");
-    assertThatThrownBy(() -> service.autosave(course, version, 1, new RubricInput("Valid", null), actor)).isInstanceOf(IllegalArgumentException.class);
-    assertThatThrownBy(() -> service.autosave(course, version, 1, new RubricInput("Valid", List.of()), actor)).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> service.autosave(course, version, 1, null, actor)).isInstanceOf(IllegalArgumentException.class).hasMessage("El borrador debe incluir nombre y exactamente las cinco dimensiones");
+    assertThatThrownBy(() -> service.autosave(course, version, 1, new RubricInput(null, inputDimensions()), actor)).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> service.autosave(course, version, 1, new RubricInput(" ", inputDimensions()), actor)).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> service.autosave(course, version, 1, new RubricInput("Rúbrica", null), actor)).isInstanceOf(IllegalArgumentException.class);
+    assertThatThrownBy(() -> service.autosave(course, version, 1, new RubricInput("Rúbrica", inputDimensions().subList(0, 4)), actor)).isInstanceOf(IllegalArgumentException.class);
+    verify(repository, never()).advanceRevision(any(), any(), anyLong());
   }
 
   @Test void autosaveRejectsDuplicateDimensions() {

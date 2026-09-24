@@ -25,10 +25,11 @@ class ConversationControllerTest {
   void authorizesBeforeCreatingAConversation() {
     var service = mock(ConversationService.class);
     var authorization = mock(TutorGatewayAuthorization.class);
-    var actor = new CallerIdentity("practice-service", UUID.randomUUID(), null, null);
+    UUID learnerId = UUID.randomUUID();
+    var actor = new CallerIdentity("practice-service", learnerId, null, null);
     var headers = new HttpHeaders();
     when(authorization.require(headers)).thenReturn(actor);
-    var body = new ConversationController.CreateRequest(UUID.randomUUID(), UUID.randomUUID(), null, "Mi conversación");
+    var body = new ConversationController.CreateRequest(UUID.randomUUID(), learnerId, null, "Mi conversación");
     var idempotencyKey = UUID.randomUUID();
     var expected = Conversation.nueva(body.courseCohortId(), body.learnerId(), null, body.titulo());
     when(service.create(body.courseCohortId(), body.learnerId(), body.challengeId(), body.titulo(), idempotencyKey, actor))
@@ -49,17 +50,40 @@ class ConversationControllerTest {
     var service = mock(ConversationService.class);
     var authorization = mock(TutorGatewayAuthorization.class);
     var headers = new HttpHeaders();
-    when(authorization.require(headers)).thenReturn(new CallerIdentity("practice-service", UUID.randomUUID(), null, null));
     UUID learnerId = UUID.randomUUID();
+    when(authorization.require(headers)).thenReturn(new CallerIdentity("practice-service", learnerId, null, null));
     UUID courseCohortId = UUID.randomUUID();
-    var expected = List.of(Conversation.nueva(courseCohortId, learnerId, null, "t"));
-    when(service.list(learnerId, courseCohortId)).thenReturn(expected);
+    UUID challengeId = UUID.randomUUID();
+    var expected = List.of(Conversation.nueva(courseCohortId, learnerId, challengeId, "t"));
+    when(service.list(learnerId, courseCohortId, challengeId)).thenReturn(expected);
     var controller = new ConversationController(service, authorization);
 
-    var result = controller.list(learnerId, courseCohortId, headers);
+    var result = controller.list(learnerId, courseCohortId, challengeId, headers);
 
     assertThat(result).isEqualTo(expected);
     verify(authorization).require(headers);
+    verify(service).list(learnerId, courseCohortId, challengeId);
+  }
+
+  @Test
+  void authorizesBeforeAppendingMessage() {
+    var service = mock(ConversationService.class);
+    var authorization = mock(TutorGatewayAuthorization.class);
+    var headers = new HttpHeaders();
+    UUID learnerId = UUID.randomUUID();
+    when(authorization.require(headers)).thenReturn(new CallerIdentity("practice-service", learnerId, null, null));
+    UUID conversationId = UUID.randomUUID();
+    var expected = new Message(UUID.randomUUID(), conversationId, "alumno", "hola tutor", OffsetDateTime.now());
+    var actor = new CallerIdentity("practice-service", learnerId, null, null);
+    when(service.appendMessage(conversationId, learnerId, "hola tutor", null, actor)).thenReturn(expected);
+    var controller = new ConversationController(service, authorization);
+
+    var response = controller.appendMessage(conversationId, new ConversationController.AppendMessageRequest("hola tutor"), null, headers);
+
+    assertThat(response.getStatusCode().value()).isEqualTo(201);
+    assertThat(response.getBody()).isEqualTo(expected);
+    verify(authorization).require(headers);
+    verify(service).appendMessage(conversationId, learnerId, "hola tutor", null, actor);
   }
 
   @Test
@@ -67,15 +91,17 @@ class ConversationControllerTest {
     var service = mock(ConversationService.class);
     var authorization = mock(TutorGatewayAuthorization.class);
     var headers = new HttpHeaders();
-    when(authorization.require(headers)).thenReturn(new CallerIdentity("practice-service", UUID.randomUUID(), null, null));
+    UUID learnerId = UUID.randomUUID();
+    when(authorization.require(headers)).thenReturn(new CallerIdentity("practice-service", learnerId, null, null));
     UUID conversationId = UUID.randomUUID();
     var expected = List.of(new Message(UUID.randomUUID(), conversationId, "alumno", "hola", OffsetDateTime.now()));
-    when(service.messages(conversationId)).thenReturn(expected);
+    when(service.messages(conversationId, learnerId)).thenReturn(expected);
     var controller = new ConversationController(service, authorization);
 
     var result = controller.messages(conversationId, headers);
 
     assertThat(result).isEqualTo(expected);
     verify(authorization).require(headers);
+    verify(service).messages(conversationId, learnerId);
   }
 }

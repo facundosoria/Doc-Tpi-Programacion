@@ -34,6 +34,6 @@ describe('EvaluatorShell', () => {
     expect(page.textContent).toContain('Sin calibración activa');
     expect(page.querySelector('[role="alert"]')?.textContent).toContain('Hay 1 evaluación(es) de uso de IA en cola');
     expect([...page.querySelectorAll('.course-nav a')].map((link) => link.textContent?.trim()))
-      .toEqual(['⌂Resumen', '▤Rúbricas', '✦Golden Set', '◌Calibraciones', '⌁LLM API keys', '⌘Asignaciones', '?Cómo usar']);
+      .toEqual(['⌂Resumen', '▤Rúbricas', '◇Rúbrica por desafío', '✦Golden Set', '◌Calibraciones', '⌁LLM API keys', '⌘Asignaciones', '?Cómo usar', '◆Tutor + RAG']);
   });
 });

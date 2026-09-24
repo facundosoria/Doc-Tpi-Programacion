@@ -11,7 +11,11 @@ import ar.edu.utn.frc.tup.piv.llm.adapter.out.persistence.IdempotencyRepository;
 import ar.edu.utn.frc.tup.piv.llm.application.model.CallerIdentity;
 import ar.edu.utn.frc.tup.piv.llm.domain.ai.UntrustedText;
 import ar.edu.utn.frc.tup.piv.llm.domain.ai.ProviderUnavailableException;
+import ar.edu.utn.frc.tup.piv.llm.domain.tutor.ChallengeNotActiveException;
+import ar.edu.utn.frc.tup.piv.llm.domain.tutor.ChallengeStatus;
+import ar.edu.utn.frc.tup.piv.llm.domain.tutor.ChallengeStatusPort;
 import ar.edu.utn.frc.tup.piv.llm.domain.tutor.Conversation;
+import ar.edu.utn.frc.tup.piv.llm.domain.tutor.ConversationOwnershipException;
 import ar.edu.utn.frc.tup.piv.llm.domain.tutor.ConversationRepository;
 import ar.edu.utn.frc.tup.piv.llm.domain.tutor.Message;
 import ar.edu.utn.frc.tup.piv.llm.domain.tutor.MessageRepository;
@@ -73,11 +77,13 @@ public class TutorInteractionService {
   private final Duration timeout;
   private final String systemPrompt;
   private final String userPromptTemplate;
+  private final ChallengeStatusPort challengeStatusPort;
 
   public TutorInteractionService(ModelInvocationService models, IdempotencyRepository idempotency,
       AuditRepository audit, ConversationRepository conversations, MessageRepository messages,
       ObjectMapper mapper,
-      @Value("${llm.tutor.invocation-timeout-ms:8000}") long timeoutMs) {
+      @Value("${llm.tutor.invocation-timeout-ms:8000}") long timeoutMs,
+      ChallengeStatusPort challengeStatusPort) {
     this.models = models;
     this.idempotency = idempotency;
     this.audit = audit;
@@ -87,6 +93,14 @@ public class TutorInteractionService {
     this.timeout = Duration.ofMillis(timeoutMs);
     this.systemPrompt = readPrompt("system-v1.txt");
     this.userPromptTemplate = readPrompt("user-v1.txt");
+    this.challengeStatusPort = challengeStatusPort;
+  }
+
+  public TutorInteractionService(ModelInvocationService models, IdempotencyRepository idempotency,
+      AuditRepository audit, ConversationRepository conversations, MessageRepository messages,
+      ObjectMapper mapper,
+      @Value("${llm.tutor.invocation-timeout-ms:8000}") long timeoutMs) {
+    this(models, idempotency, audit, conversations, messages, mapper, timeoutMs, null);
   }
 
   private String readPrompt(String file) {
@@ -103,6 +117,13 @@ public class TutorInteractionService {
     var replay = idempotency.replay(OPERATION, actor, idempotencyKey, hash);
     if (replay.isPresent()) {
       return parse(replay.get());
+    }
+
+    if (request.challengeId() != null && challengeStatusPort != null) {
+      ChallengeStatus status = challengeStatusPort.consultar(request.challengeId());
+      if (status != ChallengeStatus.ABIERTO) {
+        throw new ChallengeNotActiveException(request.challengeId());
+      }
     }
 
     UUID interactionId = UUID.randomUUID();
@@ -136,8 +157,18 @@ public class TutorInteractionService {
 
   private Conversation resolveConversation(Request request) {
     if (request.conversacionId() != null) {
-      return conversations.findById(request.conversacionId())
+      Conversation conversation = conversations.findById(request.conversacionId())
           .orElseGet(() -> conversations.save(nuevaConversacion(request)));
+      if (conversation.learnerId() != null && !conversation.learnerId().equals(request.learnerId())) {
+        throw new ConversationOwnershipException(request.conversacionId());
+      }
+      if (conversation.challengeId() != null && challengeStatusPort != null) {
+        ChallengeStatus status = challengeStatusPort.consultar(conversation.challengeId());
+        if (status != ChallengeStatus.ABIERTO) {
+          throw new ChallengeNotActiveException(conversation.challengeId());
+        }
+      }
+      return conversation;
     }
     return conversations.save(nuevaConversacion(request));
   }

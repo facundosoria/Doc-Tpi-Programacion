@@ -42,7 +42,13 @@ public class ConversationRepository implements ar.edu.utn.frc.tup.piv.llm.domain
         .findFirst();
   }
 
+  @Override
   public List<Conversation> find(UUID learnerId, UUID courseCohortId) {
+    return find(learnerId, courseCohortId, null);
+  }
+
+  @Override
+  public List<Conversation> find(UUID learnerId, UUID courseCohortId, UUID challengeId) {
     StringBuilder sql = new StringBuilder(
         "select id, course_cohort_id, learner_id, challenge_id, titulo, estado, created_at from llm.conversations where 1 = 1");
     List<Object> params = new ArrayList<>();
@@ -53,6 +59,10 @@ public class ConversationRepository implements ar.edu.utn.frc.tup.piv.llm.domain
     if (courseCohortId != null) {
       sql.append(" and course_cohort_id = ?");
       params.add(courseCohortId);
+    }
+    if (challengeId != null) {
+      sql.append(" and challenge_id = ?");
+      params.add(challengeId);
     }
     sql.append(" order by created_at desc");
     return jdbc.query(sql.toString(), (rs, row) -> new Conversation(

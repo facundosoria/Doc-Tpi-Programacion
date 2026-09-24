@@ -39,24 +39,46 @@ public class ConversationController {
   public ResponseEntity<Conversation> create(@RequestBody CreateRequest body,
       @RequestHeader("Idempotency-Key") UUID idempotencyKey, @RequestHeader HttpHeaders headers) {
     var actor = authorization.require(headers);
-    Conversation conversation = service.create(body.courseCohortId(), body.learnerId(), body.challengeId(),
+    UUID effectiveLearnerId = actor.delegatedUserId() != null ? actor.delegatedUserId() : body.learnerId();
+    if (body.learnerId() != null && actor.delegatedUserId() != null && !body.learnerId().equals(actor.delegatedUserId())) {
+      throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "No puede crear conversaciones para otro alumno");
+    }
+    Conversation conversation = service.create(body.courseCohortId(), effectiveLearnerId, body.challengeId(),
         body.titulo(), idempotencyKey, actor);
     return ResponseEntity.status(HttpStatus.CREATED).body(conversation);
   }
 
   @GetMapping
   public List<Conversation> list(@RequestParam(required = false) UUID learnerId,
-      @RequestParam(required = false) UUID courseCohortId, @RequestHeader HttpHeaders headers) {
-    authorization.require(headers);
-    return service.list(learnerId, courseCohortId);
+      @RequestParam(required = false) UUID courseCohortId,
+      @RequestParam(required = false) UUID challengeId,
+      @RequestHeader HttpHeaders headers) {
+    var actor = authorization.require(headers);
+    UUID effectiveLearnerId = learnerId != null ? learnerId : actor.delegatedUserId();
+    if (learnerId != null && actor.delegatedUserId() != null && !learnerId.equals(actor.delegatedUserId())) {
+      throw new org.springframework.web.server.ResponseStatusException(HttpStatus.FORBIDDEN, "No puede consultar conversaciones de otro alumno");
+    }
+    return service.list(effectiveLearnerId, courseCohortId, challengeId);
   }
 
   @GetMapping("/{id}/messages")
   public List<Message> messages(@PathVariable UUID id, @RequestHeader HttpHeaders headers) {
-    authorization.require(headers);
-    return service.messages(id);
+    var actor = authorization.require(headers);
+    return service.messages(id, actor.delegatedUserId());
+  }
+
+  @PostMapping("/{id}/messages")
+  public ResponseEntity<Message> appendMessage(@PathVariable UUID id,
+      @RequestBody AppendMessageRequest body,
+      @RequestHeader(value = "Idempotency-Key", required = false) UUID idempotencyKey,
+      @RequestHeader HttpHeaders headers) {
+    var actor = authorization.require(headers);
+    Message message = service.appendMessage(id, actor.delegatedUserId(), body.contenido(), idempotencyKey, actor);
+    return ResponseEntity.status(HttpStatus.CREATED).body(message);
   }
 
   /** Espejo de `CreateConversationRequest` del contrato v1. */
   public record CreateRequest(UUID courseCohortId, UUID learnerId, UUID challengeId, String titulo) {}
+
+  public record AppendMessageRequest(String contenido) {}
 }

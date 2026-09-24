@@ -38,13 +38,14 @@
 <div class="course-layout">
   <label class="mobile-section-picker">Sección del curso
     <select [value]="currentSection()" (change)="navigateSection($event)">
-      <option value="resumen">Resumen</option><option value="rubricas">Rúbricas</option><option value="golden-set">Golden Set</option><option value="calibraciones">Calibraciones</option><option value="llm-api-keys">LLM API keys</option><option value="asignaciones">Asignaciones</option><option value="como-usar">Cómo usar</option>
+      <option value="resumen">Resumen</option><option value="rubricas">Rúbricas</option><option value="desafios/rubricas">Rúbrica por desafío</option><option value="golden-set">Golden Set</option><option value="calibraciones">Calibraciones</option><option value="llm-api-keys">LLM API keys</option><option value="asignaciones">Asignaciones</option><option value="como-usar">Cómo usar</option>
     </select>
   </label>
   <nav class="course-nav" aria-label="Secciones del evaluador">
     <p class="nav-caption">GESTIÓN DEL CURSO</p>
     <a routerLink="resumen" routerLinkActive="current"><span aria-hidden="true">⌂</span>Resumen</a>
     <a routerLink="rubricas" routerLinkActive="current"><span aria-hidden="true">▤</span>Rúbricas</a>
+    <a routerLink="desafios/rubricas" routerLinkActive="current"><span aria-hidden="true">◇</span>Rúbrica por desafío</a>
     <a routerLink="golden-set" routerLinkActive="current"><span aria-hidden="true">✦</span>Golden Set</a>
     @if (goldenSetBreadcrumb()) {
       <p class="nav-breadcrumb"><span>Golden Set</span><b aria-hidden="true">›</b>{{ goldenSetBreadcrumb() }}</p>

@@ -5,6 +5,13 @@
   @if (editorRoute) { <nav class="editor-breadcrumb" aria-label="Ubicación en Rúbricas"><a [href]="rubricsPath()">Rúbricas</a><span aria-hidden="true">›</span><strong>{{ creatingRoute ? 'Nueva rúbrica' : 'Editar borrador' }}</strong></nav> }
 </header>
 
+@if (!editorRoute) {
+  <nav class="view-tabs" aria-label="Vistas de rúbricas">
+    <button type="button" [class.current]="view() === 'course'" (click)="view.set('course')">Rúbricas del curso</button>
+    <button type="button" [class.current]="view() === 'challenges'" (click)="view.set('challenges')">Rúbricas por desafío</button>
+  </nav>
+}
+
 @if (returningToRubrics()) {
   <section class="returning-overlay" role="status" aria-live="polite" aria-label="Regresando a Rúbricas">
     <div class="returning-card">
@@ -41,20 +48,23 @@
   </section>
 }
 
-@if (!editorRoute && rubrics.isLoading()) {
-  <p role="status">Cargando rúbricas…</p>
-} @else if (!editorRoute && rubrics.error()) {
-  <section class="error" role="alert">
-    <strong>No se pudieron cargar las rúbricas.</strong>
-    <button type="button" (click)="rubrics.reload()">Reintentar</button>
-  </section>
-} @else if (!editorRoute && !rubrics.value().items.length) {
-  <section class="empty">
-    <h2>Aún no hay rúbricas</h2>
-    <p>Creá un borrador desde una plantilla institucional para preparar la primera calibración del curso.</p>
-    <a [href]="rubricsPath() + '/new'" class="button-link">Elegir plantilla institucional</a>
-  </section>
-} @else if (!editorRoute) {
+@if (view() === 'challenges') {
+  <app-course-overlay-list [courseId]="courseId()" />
+} @else {
+  @if (!editorRoute && rubrics.isLoading()) {
+    <p role="status">Cargando rúbricas…</p>
+  } @else if (!editorRoute && rubrics.error()) {
+    <section class="error" role="alert">
+      <strong>No se pudieron cargar las rúbricas.</strong>
+      <button type="button" (click)="rubrics.reload()">Reintentar</button>
+    </section>
+  } @else if (!editorRoute && !rubrics.value().items.length) {
+    <section class="empty">
+      <h2>Aún no hay rúbricas</h2>
+      <p>Creá un borrador desde una plantilla institucional para preparar la primera calibración del curso.</p>
+      <a [href]="rubricsPath() + '/new'" class="button-link">Elegir plantilla institucional</a>
+    </section>
+  } @else if (!editorRoute) {
   <section class="table-wrap">
     <table>
       <caption>Versiones de rúbrica del curso</caption>
@@ -92,8 +102,9 @@
           </tr>
         }
       </tbody>
-    </table>
+</table>
   </section>
+  }
 }
 
 @if (comparingRubric(); as compRubric) {

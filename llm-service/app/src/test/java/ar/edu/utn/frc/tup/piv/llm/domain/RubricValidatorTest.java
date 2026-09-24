@@ -30,7 +30,7 @@ class RubricValidatorTest {
         .isInstanceOf(IllegalArgumentException.class).hasMessage("A rubric must contain each dimension exactly once");
   }
 
-@Test void validateForPublication_shouldRejectNullOrWrongNumberOfDimensions() {
+  @Test void validateForPublication_shouldRejectNullOrWrongNumberOfDimensions() {
     assertThatThrownBy(() -> RubricValidator.validateForPublication(null))
         .isInstanceOf(IllegalArgumentException.class).hasMessage("A rubric must contain exactly five dimensions");
     assertThatThrownBy(() -> RubricValidator.validateForPublication(List.of(dimension(AUTONOMY, 50), dimension(CLARITY, 50))))
@@ -59,92 +59,53 @@ class RubricValidatorTest {
         .isInstanceOf(IllegalArgumentException.class).hasMessage("Each dimension weight must be between 0 and 100");
   }
 
-  @Test void validateModularRubric_shouldAcceptSingleDimensionWithWeight100() {
-    var dimensions = List.of(customDimension("only_dim", new BigDecimal("100.00")));
-    assertThatCode(() -> RubricValidator.validateModularRubric(dimensions)).doesNotThrowAnyException();
+  @Test void validateModularRubric_shouldAcceptOneDimensionTotallingOneHundred() {
+    assertThatCode(() -> RubricValidator.validateModularRubric(List.of(custom("algoritmos", 100))))
+        .doesNotThrowAnyException();
   }
 
-  @Test void validateModularRubric_shouldAcceptMultipleDimensionsSummingExactly100() {
-    var threeDims = List.of(
-        customDimension("algorithms", new BigDecimal("35.00")),
-        customDimension("clean_code", new BigDecimal("35.00")),
-        customDimension("testing", new BigDecimal("30.00")));
-    assertThatCode(() -> RubricValidator.validateModularRubric(threeDims)).doesNotThrowAnyException();
-
-    var sixDims = List.of(
-        customDimension("d1", new BigDecimal("20.00")),
-        customDimension("d2", new BigDecimal("20.00")),
-        customDimension("d3", new BigDecimal("20.00")),
-        customDimension("d4", new BigDecimal("20.00")),
-        customDimension("d5", new BigDecimal("10.00")),
-        customDimension("d6", new BigDecimal("10.00")));
-    assertThatCode(() -> RubricValidator.validateModularRubric(sixDims)).doesNotThrowAnyException();
+  @Test void validateModularRubric_shouldAcceptNArbitraryDimensionsTotallingOneHundred() {
+    assertThatCode(() -> RubricValidator.validateModularRubric(List.of(
+        custom("algoritmos", 35), custom("modularidad", 25), custom("pruebas", 20), custom("autonomia", 20))))
+        .doesNotThrowAnyException();
   }
 
-  @Test void validateModularRubric_shouldRejectSumNotEqualTo100() {
-    var sum99 = List.of(
-        customDimension("d1", new BigDecimal("50.00")),
-        customDimension("d2", new BigDecimal("49.99")));
-    assertThatThrownBy(() -> RubricValidator.validateModularRubric(sum99))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("El puntaje total de la rúbrica debe sumar exactamente 100 puntos");
-
-    var sum101 = List.of(
-        customDimension("d1", new BigDecimal("50.00")),
-        customDimension("d2", new BigDecimal("50.01")));
-    assertThatThrownBy(() -> RubricValidator.validateModularRubric(sum101))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("El puntaje total de la rúbrica debe sumar exactamente 100 puntos");
+  @Test void validateModularRubric_shouldRejectSumsThatAreNotExactlyOneHundred() {
+    assertThatThrownBy(() -> RubricValidator.validateModularRubric(List.of(custom("algoritmos", 99.99))))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("Rubric weights must total 100");
+    assertThatThrownBy(() -> RubricValidator.validateModularRubric(List.of(custom("a", 60), custom("b", 40.01))))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("Rubric weights must total 100");
+    assertThatThrownBy(() -> RubricValidator.validateModularRubric(List.of(custom("a", 95), custom("b", 5.01))))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("Rubric weights must total 100");
   }
 
-  @Test void validateModularRubric_shouldRejectNullOrEmptyDimensions() {
+  @Test void validateModularRubric_shouldRejectEmptyOrNullCollections() {
     assertThatThrownBy(() -> RubricValidator.validateModularRubric(null))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Una rúbrica modular debe contener al menos una dimensión");
-
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("A modular rubric must contain at least one dimension");
     assertThatThrownBy(() -> RubricValidator.validateModularRubric(List.of()))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Una rúbrica modular debe contener al menos una dimensión");
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("A modular rubric must contain at least one dimension");
   }
 
-  @Test void validateModularRubric_shouldRejectDuplicateKeysCaseInsensitive() {
-    var dimensions = List.of(
-        customDimension("ALGO", new BigDecimal("50.00")),
-        customDimension("algo ", new BigDecimal("50.00")));
-    assertThatThrownBy(() -> RubricValidator.validateModularRubric(dimensions))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessageContaining("Las claves de las dimensiones deben ser únicas");
+  @Test void validateModularRubric_shouldRejectDuplicateOrBlankKeys() {
+    assertThatThrownBy(() -> RubricValidator.validateModularRubric(List.of(custom("algoritmos", 50), custom("algoritmos", 50))))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("Each modular dimension must have a unique key");
+    assertThatThrownBy(() -> RubricValidator.validateModularRubric(List.of(custom(" ", 100))))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("Each modular dimension must have a unique key");
+    assertThatThrownBy(() -> RubricValidator.validateModularRubric(List.of(new RubricValidator.DimensionCustomDefinition(null, BigDecimal.valueOf(100)))))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("Each modular dimension must have a unique key");
   }
 
-  @Test void validateModularRubric_shouldRejectInvalidKeys() {
-    var nullKey = List.of(customDimension(null, new BigDecimal("100.00")));
-    assertThatThrownBy(() -> RubricValidator.validateModularRubric(nullKey))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Cada dimensión debe tener una clave identificadora válida");
-
-    var blankKey = List.of(customDimension("   ", new BigDecimal("100.00")));
-    assertThatThrownBy(() -> RubricValidator.validateModularRubric(blankKey))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("Cada dimensión debe tener una clave identificadora válida");
+  @Test void validateModularRubric_shouldRejectWeightsOutOfRange() {
+    assertThatThrownBy(() -> RubricValidator.validateModularRubric(List.of(custom("a", 0))))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("Each dimension weight must be between 0 and 100");
+    assertThatThrownBy(() -> RubricValidator.validateModularRubric(List.of(custom("a", -5))))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("Each dimension weight must be between 0 and 100");
+    assertThatThrownBy(() -> RubricValidator.validateModularRubric(List.of(new RubricValidator.DimensionCustomDefinition("a", null))))
+        .isInstanceOf(IllegalArgumentException.class).hasMessage("Each dimension weight must be between 0 and 100");
   }
 
-  @Test void validateModularRubric_shouldRejectInvalidWeights() {
-    var zeroWeight = List.of(
-        customDimension("d1", BigDecimal.ZERO),
-        customDimension("d2", new BigDecimal("100.00")));
-    assertThatThrownBy(() -> RubricValidator.validateModularRubric(zeroWeight))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("El peso de cada dimensión debe ser mayor a 0 y menor o igual a 100");
-
-    var negativeWeight = List.of(customDimension("d1", new BigDecimal("-10.00")));
-    assertThatThrownBy(() -> RubricValidator.validateModularRubric(negativeWeight))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("El peso de cada dimensión debe ser mayor a 0 y menor o igual a 100");
-
-    var excessiveWeight = List.of(customDimension("d1", new BigDecimal("150.00")));
-    assertThatThrownBy(() -> RubricValidator.validateModularRubric(excessiveWeight))
-        .isInstanceOf(IllegalArgumentException.class)
-        .hasMessage("El peso de cada dimensión debe ser mayor a 0 y menor o igual a 100");
+  private RubricValidator.DimensionCustomDefinition custom(String key, double weight) {
+    return new RubricValidator.DimensionCustomDefinition(key, BigDecimal.valueOf(weight));
   }
 
   private List<RubricValidator.DimensionDefinition> validDimensions() {
@@ -153,9 +114,5 @@ class RubricValidatorTest {
 
   private RubricValidator.DimensionDefinition dimension(CalibrationMetrics.Dimension key, int weight) {
     return new RubricValidator.DimensionDefinition(key, BigDecimal.valueOf(weight));
-  }
-
-  private RubricValidator.DimensionCustomDefinition customDimension(String key, BigDecimal weight) {
-    return new RubricValidator.DimensionCustomDefinition(key, weight);
   }
 }

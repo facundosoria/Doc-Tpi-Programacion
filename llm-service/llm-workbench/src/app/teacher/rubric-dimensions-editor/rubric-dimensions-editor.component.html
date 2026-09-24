@@ -1,0 +1,78 @@
+<section class="editor" aria-label="Editor de dimensiones">
+  <div class="editor-heading">
+    <div>
+      <p class="eyebrow">DIMENSIONES DEL OVERLAY</p>
+      <h2>Editar dimensiones</h2>
+    </div>
+    <button type="button" class="secondary" (click)="cancel.emit()">Cerrar editor</button>
+  </div>
+
+  <aside class="rubric-summary" aria-label="Resumen de la rúbrica">
+    <p class="weights" [class.invalid]="totalWeight() !== 100">
+      <span>Peso total</span>
+      <strong>{{ totalWeight() }} %</strong>
+    </p>
+    @if (totalWeight() !== 100) {
+      <p class="field-error">Los pesos deben sumar 100 %.</p>
+    } @else {
+      <p class="summary-help">Las dimensiones del overlay suman 100 %.</p>
+    }
+  </aside>
+
+  <div class="dimension-list">
+    @for (dimension of local(); track trackByKey($index, dimension)) {
+      <fieldset class="dimension-panel" [class.collapsed]="isCollapsed(dimension.key)">
+        <div class="dimension-heading">
+          <button
+            type="button"
+            class="collapse-toggle"
+            aria-label="{{ isCollapsed(dimension.key) ? 'Expandir dimensión' : 'Plegar dimensión' }}"
+            [attr.aria-expanded]="!isCollapsed(dimension.key)"
+            (click)="toggleCollapse(dimension.key)"
+          >
+            <span class="chevron" aria-hidden="true">{{ isCollapsed(dimension.key) ? '▸' : '▾' }}</span>
+            <strong>{{ dimension.label || dimension.key }}</strong>
+            <span class="collapse-weight">{{ dimension.weight }} %</span>
+          </button>
+          <button type="button" class="remove" aria-label="Quitar dimensión" (click)="remove(dimension)">×</button>
+        </div>
+        <div class="dimension-body">
+          <label class="dimension-weight">
+            <span class="field-label">Peso *</span>
+            <input type="number" min="0" max="100" step="0.01" required [value]="dimension.weight"
+              (input)="onWeight(dimension, $event)" />
+            <span aria-hidden="true">%</span>
+          </label>
+          <label>
+            <span class="field-label">Criterio *</span>
+            <textarea rows="3" required [value]="dimension.criterion" (input)="onCriterion(dimension, $event)"></textarea>
+          </label>
+          @if (!isCollapsed(dimension.key)) {
+            <fieldset class="anchors-editor">
+              <legend><span class="field-label">Guía de calibración *</span></legend>
+              <div class="anchor-cards">
+                @for (level of anchorLevels; track level) {
+                  <fieldset class="anchor-card" [class.low]="level === 'low'" [class.medium]="level === 'medium'" [class.high]="level === 'high'">
+                    <legend>{{ level === 'low' ? 'Ejemplo de puntaje bajo' : level === 'medium' ? 'Ejemplo de puntaje medio' : 'Ejemplo de puntaje alto' }}</legend>
+                    <label><span class="field-label">¿Qué hace el estudiante? *</span><textarea rows="2" required [value]="dimension.anchors[level].behavior" (input)="onAnchorBehavior(dimension, level, $event)"></textarea></label>
+                    <label><span class="field-label">¿Cuánto puntúa este ejemplo? *</span><input type="number" min="0" max="100" required [value]="dimension.anchors[level].referenceScore" (input)="onAnchorScore(dimension, level, $event)" /></label>
+                    <label><span class="field-label">¿Cómo se vería en una conversación? *</span><textarea rows="3" required [value]="dimension.anchors[level].example" (input)="onAnchorExample(dimension, level, $event)"></textarea></label>
+                  </fieldset>
+                }
+              </div>
+            </fieldset>
+          }
+        </div>
+      </fieldset>
+    }
+  </div>
+
+  <div class="editor-actions">
+    <button type="button" class="secondary" (click)="loadPreset()">Cargar 10 dimensiones de ejemplo</button>
+    <button type="button" class="secondary" (click)="add()">Agregar dimensión</button>
+    <button type="button" class="save" [disabled]="!valid()" (click)="saveLocal()">Guardar borrador</button>
+  </div>
+  @if (!valid() && validationMessage()) {
+    <p class="validation-message" role="alert">{{ validationMessage() }}</p>
+  }
+</section>

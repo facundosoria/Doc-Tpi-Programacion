@@ -11,5 +11,9 @@ public interface ConversationRepository {
 
   Optional<Conversation> findById(UUID id);
 
-  List<Conversation> find(UUID learnerId, UUID courseCohortId);
+  default List<Conversation> find(UUID learnerId, UUID courseCohortId) {
+    return find(learnerId, courseCohortId, null);
+  }
+
+  List<Conversation> find(UUID learnerId, UUID courseCohortId, UUID challengeId);
 }

@@ -84,6 +84,54 @@ paths:
       operationId: createNextRubricVersion
       parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/RubricVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
       responses: {'201': {$ref: '#/components/responses/RubricVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/rubric-overlays:
+    get:
+      summary: List all per-challenge rubric overlays of the course
+      operationId: listCourseRubricOverlays
+      parameters: [{$ref: '#/components/parameters/CourseId'}]
+      responses: {'200': {$ref: '#/components/responses/CourseOverlayPage'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenges/{challengeId}/rubric-overlay:
+    get:
+      summary: List overlay versions of a challenge
+      operationId: listChallengeRubricOverlayVersions
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}]
+      responses: {'200': {$ref: '#/components/responses/CourseOverlayPage'}, '403': {$ref: '#/components/responses/Problem'}}
+    post:
+      summary: Create a challenge overlay draft anchored to a published course rubric
+      operationId: createChallengeRubricOverlayDraft
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/CreateOverlayDraftRequest'}}}}
+      responses: {'201': {$ref: '#/components/responses/OverlayVersion'}, '403': {$ref: '#/components/responses/Problem'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenges/{challengeId}/rubric-overlay/{versionId}:
+    get:
+      summary: Get a challenge overlay version
+      operationId: getChallengeRubricOverlayVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/OverlayVersionId'}]
+      responses: {'200': {$ref: '#/components/responses/OverlayVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+    patch:
+      summary: Update a challenge overlay draft (autosave custom dimensions)
+      operationId: updateChallengeRubricOverlayDraft
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/OverlayVersionId'}, {$ref: '#/components/parameters/IfMatch'}]
+      requestBody: {required: true, content: {application/json: {schema: {$ref: '#/components/schemas/OverlayInput'}}}}
+      responses: {'200': {$ref: '#/components/responses/OverlayVersion'}, '403': {$ref: '#/components/responses/Problem'}, '409': {$ref: '#/components/responses/Problem'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenges/{challengeId}/rubric-overlay/{versionId}/publish:
+    post:
+      summary: Publish a challenge overlay draft
+      operationId: publishChallengeRubricOverlay
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/OverlayVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'204': {description: Overlay published}, '403': {$ref: '#/components/responses/Problem'}, '422': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenges/{challengeId}/rubric-overlay/{versionId}/next-version:
+    post:
+      summary: Clone a published overlay into a new editable draft
+      operationId: createNextChallengeRubricOverlayVersion
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/OverlayVersionId'}, {$ref: '#/components/parameters/IdempotencyKey'}]
+      responses: {'201': {$ref: '#/components/responses/OverlayVersion'}, '403': {$ref: '#/components/responses/Problem'}}
+  /courses/{courseId}/challenges/{challengeId}/rubric-overlay/{versionId}/effective:
+    get:
+      summary: Get the effective evaluation profile of an overlay
+      operationId: getChallengeRubricOverlayEffectiveProfile
+      parameters: [{$ref: '#/components/parameters/CourseId'}, {$ref: '#/components/parameters/ChallengeId'}, {$ref: '#/components/parameters/OverlayVersionId'}]
+      responses: {'200': {$ref: '#/components/responses/EffectiveProfile'}, '403': {$ref: '#/components/responses/Problem'}}
   /courses/{courseId}/golden-sets/copy-from-base/{baseVersionId}:
     post:
       summary: Copy Published Platform Golden Set into Course
@@ -410,6 +458,47 @@ paths:
         '403': { description: Identidad delegada ausente o inválida, content: { application/problem+json: { schema: { type: object } } } }
         '409': { description: Misma Idempotency-Key con la solicitud original todavía en curso, content: { application/problem+json: { schema: { type: object } } } }
         '422': { description: Cuerpo inválido (campo obligatorio ausente, riskLevel fuera de high/medium/low) o Idempotency-Key reusada con otro payload, content: { application/problem+json: { schema: { type: object } } } }
+  /tutor/conversations:
+    get:
+      summary: List tutor conversations for a learner
+      operationId: listTutorConversations
+      parameters:
+        - { name: learnerId, in: query, required: false, schema: { type: string, format: uuid } }
+        - { name: courseCohortId, in: query, required: false, schema: { type: string, format: uuid } }
+        - { name: challengeId, in: query, required: false, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: Conversaciones del alumno, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Conversation' } } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+    post:
+      summary: Create a tutor conversation
+      operationId: createTutorConversation
+      parameters: [{$ref: '#/components/parameters/IdempotencyKey'}]
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/CreateConversationRequest' } } } }
+      responses:
+        '201': { description: Conversación creada, content: { application/json: { schema: { $ref: '#/components/schemas/Conversation' } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+  /tutor/conversations/{conversationId}/messages:
+    get:
+      summary: List messages of a conversation
+      operationId: listTutorConversationMessages
+      parameters:
+        - { name: conversationId, in: path, required: true, schema: { type: string, format: uuid } }
+      responses:
+        '200': { description: Mensajes de la conversación, content: { application/json: { schema: { type: array, items: { $ref: '#/components/schemas/Message' } } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
+    post:
+      summary: Append a message to a conversation
+      operationId: appendTutorConversationMessage
+      parameters:
+        - { name: conversationId, in: path, required: true, schema: { type: string, format: uuid } }
+      requestBody: { required: true, content: { application/json: { schema: { $ref: '#/components/schemas/AppendMessageRequest' } } } }
+      responses:
+        '201': { description: Mensaje agregado, content: { application/json: { schema: { $ref: '#/components/schemas/Message' } } } }
+        '401': { $ref: '#/components/responses/Problem' }
+        '403': { $ref: '#/components/responses/Problem' }
   /courses/{courseId}/shadow-runs:
     get:
       tags: [Administration]
@@ -495,6 +584,8 @@ components:
     IfMatch: {name: If-Match, in: header, required: true, schema: {type: integer, minimum: 1}}
     CourseId: {name: courseId, in: path, required: true, schema: {type: string, format: uuid}}
     RubricVersionId: {name: rubricVersionId, in: path, required: true, schema: {type: string, format: uuid}}
+    ChallengeId: {name: challengeId, in: path, required: true, schema: {type: string, format: uuid}}
+    OverlayVersionId: {name: versionId, in: path, required: true, schema: {type: string, format: uuid}}
     GoldenSetVersionId: {name: goldenSetVersionId, in: path, required: true, schema: {type: string, format: uuid}}
     BatchId: {name: batchId, in: path, required: true, schema: {type: string, format: uuid}}
     InteractionId: {name: interactionId, in: path, required: true, schema: {type: string, format: uuid}}
@@ -512,6 +603,9 @@ components:
   responses:
     Problem: {description: RFC 7807 Problem Details}
     RubricVersion: {description: Rúbrica, content: {application/json: {schema: {$ref: '#/components/schemas/RubricVersion'}}}}
+    CourseOverlayPage: {description: Página de overlays por desafío del curso, content: {application/json: {schema: {$ref: '#/components/schemas/CourseOverlayPage'}}}}
+    OverlayVersion: {description: Versión de overlay de desafío, content: {application/json: {schema: {$ref: '#/components/schemas/OverlayVersion'}}}}
+    EffectiveProfile: {description: Perfil efectivo del overlay, content: {application/json: {schema: {$ref: '#/components/schemas/EffectiveProfile'}}}}
     GoldenSetVersion: {description: Golden Set, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetVersion'}}}}
     GoldenSetCase: {description: Caso, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetCase'}}}}
     GoldenSetCaseSummary: {description: Resumen del caso creado, content: {application/json: {schema: {$ref: '#/components/schemas/GoldenSetCaseSummary'}}}}
@@ -553,12 +647,57 @@ components:
       type: object
       required: [key, criterion, anchors, weight]
       properties: {key: {type: string, enum: [AUTONOMY, CLARITY, PROGRESSION, COMPLIANCE, EFFICIENCY]}, label: {type: string}, criterion: {type: string}, anchors: {$ref: '#/components/schemas/RubricAnchors'}, weight: {type: number, exclusiveMinimum: 0, maximum: 100}}
+    RubricCustomDimension:
+      type: object
+      required: [key, label, criterion, anchors, weight]
+      description: Dimensión de una rúbrica modular. La clave es libre y única dentro de la versión.
+      properties: {key: {type: string, minLength: 1}, label: {type: string, minLength: 1}, criterion: {type: string, minLength: 1}, anchors: {$ref: '#/components/schemas/RubricAnchors'}, weight: {type: number, exclusiveMinimum: 0, maximum: 100}}
     RubricInput:
       type: object
-      required: [name, dimensions]
-      properties: {name: {type: string}, dimensions: {type: array, minItems: 5, maxItems: 5, items: {$ref: '#/components/schemas/RubricDimension'}}}
+      required: [name]
+      description: |-
+        Borrador de rúbrica. Flujo estándar (rubricKind ausente o DEFAULT_INSTITUTIONAL): dimensions con las cinco claves del enum.
+        Flujo modular (rubricKind MODULAR_CUSTOM): customDimensions con N >= 1 claves libres y suma de pesos exactamente 100.
+        userPrompt es el mensaje orientador del docente. Las plantillas institucionales (/admin/rubric-templates) solo admiten el flujo estándar.
+      properties:
+        name: {type: string}
+        rubricKind: {type: string, enum: [DEFAULT_INSTITUTIONAL, MODULAR_CUSTOM], default: DEFAULT_INSTITUTIONAL}
+        userPrompt: {type: string, description: Mensaje orientador del docente para la corrección.}
+        dimensions: {type: array, items: {$ref: '#/components/schemas/RubricDimension'}, description: Cinco dimensiones institucionales (flujo estándar).}
+        customDimensions: {type: array, items: {$ref: '#/components/schemas/RubricCustomDimension'}, description: 'Dimensiones libres del flujo modular (N >= 1).'}
     RubricVersion:
-      allOf: [{$ref: '#/components/schemas/RubricInput'}, {type: object, required: [id, familyId, version, state, revision], properties: {id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, version: {type: integer}, state: {type: string, enum: [DRAFT, PUBLISHED, SUPERSEDED]}, revision: {type: integer}}}]
+      allOf: [{$ref: '#/components/schemas/RubricInput'}, {type: object, required: [id, familyId, version, state, revision, rubricKind, userPrompt], properties: {id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, version: {type: integer}, state: {type: string, enum: [DRAFT, PUBLISHED, SUPERSEDED]}, revision: {type: integer}}}]
+    CreateOverlayDraftRequest:
+      type: object
+      required: [name, baselineVersionId]
+      description: Borrador inicial de un overlay por desafío. baselineVersionId debe ser una rúbrica publicada del curso (referencia de origen; no define las dimensiones del overlay).
+      properties: {name: {type: string, minLength: 1, maxLength: 160}, baselineVersionId: {type: string, format: uuid}}
+    OverlayInput:
+      type: object
+      required: [name, customDimensions]
+      description: Autosave de un overlay. customDimensions son las dimensiones propias del desafío (N >= 1, claves únicas, suma de pesos exactamente 100).
+      properties:
+        name: {type: string, minLength: 1}
+        userPrompt: {type: string, description: Mensaje orientador del docente para la corrección.}
+        customDimensions: {type: array, minItems: 1, items: {$ref: '#/components/schemas/RubricCustomDimension'}}
+    OverlayVersion:
+      allOf: [{$ref: '#/components/schemas/OverlayInput'}, {type: object, required: [id, familyId, version, state, revision, rubricKind, baselineVersionId], properties: {id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, version: {type: integer}, state: {type: string, enum: [DRAFT, PUBLISHED]}, revision: {type: integer}, rubricKind: {type: string, enum: [MODULAR_CUSTOM]}, baselineVersionId: {type: string, format: uuid}}}]
+    CourseOverlayItem:
+      type: object
+      required: [challengeId, id, familyId, version, name, state, revision, rubricKind]
+      properties: {challengeId: {type: string, format: uuid}, id: {type: string, format: uuid}, familyId: {type: string, format: uuid}, version: {type: integer}, name: {type: string}, state: {type: string, enum: [DRAFT, PUBLISHED]}, revision: {type: integer}, rubricKind: {type: string, enum: [MODULAR_CUSTOM]}, baselineVersionId: {type: string, format: uuid}}
+    CourseOverlayPage:
+      type: object
+      required: [items]
+      properties: {items: {type: array, items: {$ref: '#/components/schemas/CourseOverlayItem'}}}
+    EffectiveDimension:
+      type: object
+      required: [key, label, criterion, weight, origin]
+      properties: {key: {type: string}, label: {type: string}, criterion: {type: string}, anchors: {$ref: '#/components/schemas/RubricAnchors'}, weight: {type: number}, origin: {type: string, enum: [OVERLAY]}}
+    EffectiveProfile:
+      type: object
+      required: [dimensions]
+      properties: {dimensions: {type: array, items: {$ref: '#/components/schemas/EffectiveDimension'}}}
     TranscriptMessage:
       type: object
       required: [role, content, position]
@@ -651,6 +790,38 @@ components:
         message: {type: string}
         state: {type: string, enum: [completed, blocked, unavailable], description: "blocked: el guardarraíl anti-fuga descartó la respuesta; unavailable: el modelo no pudo responder (degradación, no error del alumno)."}
         conversacionId: {type: string, format: uuid}
+    CreateConversationRequest:
+      type: object
+      required: [courseCohortId, challengeId, titulo]
+      properties:
+        courseCohortId: {type: string, format: uuid}
+        learnerId: {type: string, format: uuid, description: Opcional; si se omite, usa la identidad delegada.}
+        challengeId: {type: string, format: uuid}
+        titulo: {type: string, minLength: 1}
+    AppendMessageRequest:
+      type: object
+      required: [contenido]
+      properties:
+        contenido: {type: string, minLength: 1}
+    Conversation:
+      type: object
+      required: [id, courseCohortId, learnerId, challengeId, titulo]
+      properties:
+        id: {type: string, format: uuid}
+        courseCohortId: {type: string, format: uuid}
+        learnerId: {type: string, format: uuid}
+        challengeId: {type: string, format: uuid}
+        titulo: {type: string}
+        createdAt: {type: string, format: date-time}
+    Message:
+      type: object
+      required: [id, conversationId, role, content]
+      properties:
+        id: {type: string, format: uuid}
+        conversationId: {type: string, format: uuid}
+        role: {type: string, enum: [STUDENT, TUTOR]}
+        content: {type: string, minLength: 1}
+        createdAt: {type: string, format: date-time}
     CreateShadowRunRequest:
       type: object
       required: [candidateRubricVersionId, source]

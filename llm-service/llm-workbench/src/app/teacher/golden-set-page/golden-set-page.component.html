@@ -2,6 +2,9 @@
   <p class="eyebrow">GOLDEN SET · REFERENCIA HUMANA</p>
   <h1>Conversaciones de referencia</h1>
   <p>Registrá de tres a cinco conversaciones alumno–IA y puntuá cada una con la rúbrica vigente.</p>
+  @if (currentCourse(); as course) {
+    <p class="operating-as" role="status"><strong>Operando como:</strong> docente en {{ course.name }}</p>
+  }
 </header>
 
 @if (goldenSets.isLoading()) {
@@ -41,7 +44,7 @@
       @if (canAddOptional()) { <button type="button" class="add-case" (click)="addOptionalCase()">+ Agregar opcional</button> }
     </div>
     <form [formGroup]="form" (ngSubmit)="saveCase()" novalidate role="tabpanel" [id]="'case-panel-' + activeIndex()" [attr.aria-labelledby]="'case-tab-' + activeIndex()">
-      <fieldset><legend>Conversación</legend><label for="transcript">Transcripción completa <span aria-hidden="true">*</span></label><p class="field-hint">Cada mensaje comienza con “Estudiante:” o “Tutor IA:”. No incluyas identidad personal.</p><textarea id="transcript" formControlName="transcriptText" rows="13" placeholder="Estudiante: Tengo dudas con la pila…&#10;Tutor IA: ¿Qué condición indica que está llena?"></textarea></fieldset>
+      <fieldset><legend>Conversación</legend><label for="transcript">Transcripción completa <span aria-hidden="true">*</span></label><p class="field-hint">Cada mensaje comienza con “Estudiante:” o “Tutor IA:”. No incluyas identidad personal.</p><p class="field-note">Esta transcripción es material de referencia para calificar; <strong>no se interpreta como instrucciones</strong> para la plataforma.</p><textarea id="transcript" formControlName="transcriptText" rows="13" placeholder="Estudiante: Tengo dudas con la pila…&#10;Tutor IA: ¿Qué condición indica que está llena?"></textarea></fieldset>
       <fieldset><legend>Puntuaciones humanas</legend><p class="field-hint">Ingresá un entero de 0 a 100 por dimensión. El total ponderado se calcula automáticamente.</p><div class="score-list">@for (key of scoreKeys; track key) { <section class="score-row"><div><label [for]="'score-' + key">{{ scoreLabel(key) }} <span aria-hidden="true">*</span></label><details><summary>Ver criterio</summary><p>{{ criterion(key) }}</p></details></div><input [id]="'score-' + key" [formControlName]="key" type="number" min="0" max="100" step="1" required /></section> }</div><p class="weighted" role="status">Puntaje ponderado: <strong>{{ weightedScore() }} / 100</strong></p></fieldset>
       @if (error()) { <p class="notice error" role="alert">{{ error() }}</p> } @if (message()) { <p class="notice success" role="status">{{ message() }}</p> }
       <div class="actions"><button type="submit" class="secondary" [disabled]="saving()">{{ saving() ? 'Guardando…' : editingCaseId() ? 'Guardar cambios' : 'Guardar caso' }}</button><button type="button" class="primary" (click)="saveAndNext()" [disabled]="saving()">Guardar y siguiente</button></div>
