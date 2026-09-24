@@ -79,6 +79,7 @@ public class TutorInteractionService {
   private final String userPromptTemplate;
   private final ChallengeStatusPort challengeStatusPort;
 
+  @org.springframework.beans.factory.annotation.Autowired
   public TutorInteractionService(ModelInvocationService models, IdempotencyRepository idempotency,
       AuditRepository audit, ConversationRepository conversations, MessageRepository messages,
       ObjectMapper mapper,

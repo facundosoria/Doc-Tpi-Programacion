@@ -38,6 +38,7 @@ public class ConversationService {
   private final ObjectMapper mapper;
   private final ChallengeStatusPort challengeStatusPort;
 
+  @org.springframework.beans.factory.annotation.Autowired
   public ConversationService(ConversationRepository conversations, MessageRepository messages,
       IdempotencyRepository idempotency, AuditRepository audit, ObjectMapper mapper,
       ChallengeStatusPort challengeStatusPort) {
