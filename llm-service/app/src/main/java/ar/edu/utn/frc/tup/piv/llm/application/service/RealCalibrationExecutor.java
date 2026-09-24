@@ -7,6 +7,11 @@ import ar.edu.utn.frc.tup.piv.llm.adapter.out.ai.ProviderInvocationGateway;
 import ar.edu.utn.frc.tup.piv.llm.adapter.out.ai.ProviderRegistry;
 import ar.edu.utn.frc.tup.piv.llm.adapter.out.persistence.CalibrationRunRepository;
 import ar.edu.utn.frc.tup.piv.llm.adapter.out.persistence.ProviderCredentialRepository;
+import ar.edu.utn.frc.tup.piv.llm.application.service.gateway.GatewayExecutor;
+import ar.edu.utn.frc.tup.piv.llm.application.service.gateway.GatewayUsageLog;
+import ar.edu.utn.frc.tup.piv.llm.domain.ai.ModelFunction;
+import ar.edu.utn.frc.tup.piv.llm.provider.spi.InferenceSettings;
+import ar.edu.utn.frc.tup.piv.llm.provider.spi.ProviderReply;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.util.ArrayList;
@@ -26,14 +31,35 @@ public class RealCalibrationExecutor {
   private final CalibrationRunRepository runs; private final ProviderCredentialRepository usage;
   private final ProviderInvocationGateway gateway; private final ProviderRegistry registry; private final ObjectMapper json; private final CalibrationInferencePolicy policy;
   private final EvaluatorSkillRepository skillRepository;
+  private final GatewayExecutor executor;
 
   @org.springframework.beans.factory.annotation.Autowired
+  public RealCalibrationExecutor(CalibrationRunRepository runs, ProviderCredentialRepository usage, ProviderInvocationGateway gateway, ProviderRegistry registry, ObjectMapper json, CalibrationInferencePolicy policy, EvaluatorSkillRepository skillRepository, GatewayExecutor executor) {
+    this.runs=runs;this.usage=usage;this.gateway=gateway;this.registry=registry;this.json=json;this.policy=policy;this.skillRepository=skillRepository;this.executor=executor;
+  }
+
   public RealCalibrationExecutor(CalibrationRunRepository runs, ProviderCredentialRepository usage, ProviderInvocationGateway gateway, ProviderRegistry registry, ObjectMapper json, CalibrationInferencePolicy policy, EvaluatorSkillRepository skillRepository) {
-    this.runs=runs;this.usage=usage;this.gateway=gateway;this.registry=registry;this.json=json;this.policy=policy;this.skillRepository=skillRepository;
+    this(runs, usage, gateway, registry, json, policy, skillRepository, GatewayExecutor.disabled());
   }
 
   public RealCalibrationExecutor(CalibrationRunRepository runs, ProviderCredentialRepository usage, ProviderInvocationGateway gateway, ProviderRegistry registry, ObjectMapper json, CalibrationInferencePolicy policy) {
     this(runs, usage, gateway, registry, json, policy, null);
+  }
+
+  /** Cada caso de calibración pasa por el GatewayExecutor: reintentos, breaker por proveedor, presupuesto y registro de uso. */
+  private ProviderReply viaGateway(ProviderCredentialRepository.Credential credential, String modelId, String prompt, InferenceSettings settings) {
+    try {
+      return executor.run(new GatewayExecutor.Spec<>(ModelFunction.EVALUATOR, credential.providerKey(), modelId,
+        GatewayUsageLog.estimateTokens(prompt), Duration.ofSeconds(90),
+        () -> gateway.invoke(credential, modelId, prompt, settings, Duration.ofSeconds(90)),
+        reply -> new int[] {reply.inputTokens(), reply.outputTokens()}, reply -> { },
+        "El proveedor no respondió a tiempo", "El proveedor no pudo evaluar el caso",
+          IllegalStateException::new, true));
+    } catch (IllegalStateException failure) {
+      // El diagnóstico de la corrida se arma con el mensaje del error del proveedor, no con el envoltorio del gateway.
+      if (failure.getCause() instanceof RuntimeException original) throw original;
+      throw failure;
+    }
   }
 
   public void execute(UUID runId) {
@@ -48,7 +74,7 @@ public class RealCalibrationExecutor {
       if ("DEFAULT_INSTITUTIONAL".equalsIgnoreCase(execution.rubricKind()) || execution.rubricKind() == null) {
         List<CalibrationMetrics.CaseScores> all=new ArrayList<>();
         for(var item:execution.cases()) {
-          var reply=gateway.invoke(credential,execution.deployment().modelId(),prompt(execution.rubric(),item),settings.settings(),Duration.ofSeconds(90));
+          var reply=viaGateway(credential,execution.deployment().modelId(),prompt(execution.rubric(),item),settings.settings());
           Map<Dimension,Integer> model=parseScores(reply.text());
           if (reply.providerFingerprint()!=null) fingerprint=reply.providerFingerprint();
           runs.saveCase(runId,item,model,execution.weights()); usage.recordUsage(execution.deployment().id(),"EVALUATION",reply.inputTokens(),reply.outputTokens());
@@ -64,7 +90,7 @@ public class RealCalibrationExecutor {
         List<Map<String, Integer>> allModel = new ArrayList<>();
         for (var item : execution.cases()) {
           String prompt = promptModular(execution.rubric(), item, activeSkills, execution.userPrompt());
-          var reply = gateway.invoke(credential, execution.deployment().modelId(), prompt, settings.settings(), Duration.ofSeconds(90));
+          var reply = viaGateway(credential, execution.deployment().modelId(), prompt, settings.settings());
           Map<String, Integer> dynamicScores = parseScoresModular(reply.text(), execution.dimensionKeys());
           if (reply.providerFingerprint() != null) fingerprint = reply.providerFingerprint();
           runs.saveCaseModular(runId, item, dynamicScores, execution.dynamicWeights());

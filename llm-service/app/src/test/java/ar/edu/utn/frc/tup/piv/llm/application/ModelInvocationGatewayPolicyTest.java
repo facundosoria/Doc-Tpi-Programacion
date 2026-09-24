@@ -94,6 +94,35 @@ class ModelInvocationGatewayPolicyTest {
   }
 
   @Test
+  void recoversThroughHalfOpenAndClosesTheBreakerWhenTheProviderAnswersAgain() throws InterruptedException {
+    var calls = new AtomicInteger();
+    var providerUp = new java.util.concurrent.atomic.AtomicBoolean(false);
+    var service = service(new GatewayPolicy(1, Duration.ZERO, 2, 50f, Duration.ofMillis(100)), req -> {
+      calls.incrementAndGet();
+      if (!providerUp.get()) throw new IllegalStateException("caído");
+      return new ModelInvocationResult("ok", "fake", "m");
+    });
+
+    for (int i = 0; i < 2; i++) {
+      assertThatThrownBy(() -> service.invoke(ModelFunction.TUTOR, "s", "p", Duration.ofSeconds(1)))
+          .isInstanceOf(IllegalStateException.class);
+    }
+    assertThatThrownBy(() -> service.invoke(ModelFunction.TUTOR, "s", "p", Duration.ofSeconds(1)))
+        .isInstanceOf(ProviderUnavailableException.class);
+    assertThat(calls).hasValue(2);
+
+    providerUp.set(true);
+    Thread.sleep(200);
+
+    // Pasada la espera, el breaker pasa a half-open y deja llegar las llamadas de prueba al proveedor.
+    for (int i = 0; i < 12; i++) {
+      assertThat(service.invoke(ModelFunction.TUTOR, "s", "p", Duration.ofSeconds(1)).text()).isEqualTo("ok");
+      assertThat(usage.recent(1).get(0).outcome()).isEqualTo(Outcome.OK);
+    }
+    assertThat(calls).hasValue(14);
+  }
+
+  @Test
   void refusesTheCallWhenTheFunctionBudgetIsExhausted() {
     budget.setLimit(ModelFunction.TUTOR, new GatewayBudget.Limit(1, 100.0));
     var service = service(FAST, req -> new ModelInvocationResult("ok", "fake", "m"));

@@ -151,4 +151,20 @@ class ArchitectureTest {
             ar.edu.utn.frc.tup.piv.llm.application.service.CalibrationActivationService.class));
     rule.check(classes);
   }
+
+  /**
+   * EP-02·H03: toda llamada a un proveedor pasa por GatewayExecutor. Solo el adaptador de texto y el
+   * controller de credenciales (que envuelve sus invocaciones en executor.run) tocan el gateway de proveedores.
+   */
+  @Test
+  void onlyTheModelAdapterAndCredentialControllerUseTheProviderInvocationGateway() {
+    ArchRule rule = noClasses()
+        .that().doNotHaveFullyQualifiedName(ar.edu.utn.frc.tup.piv.llm.adapter.out.ai.LangChain4jModelAdapter.class.getName())
+        .and().doNotHaveFullyQualifiedName(ProviderCredentialController.class.getName())
+        .and().doNotHaveFullyQualifiedName(ar.edu.utn.frc.tup.piv.llm.application.service.RealCalibrationExecutor.class.getName())
+        .and().haveNameNotMatching(".*ProviderInvocationGateway.*")
+        .should().dependOnClassesThat().haveFullyQualifiedName(
+            ar.edu.utn.frc.tup.piv.llm.adapter.out.ai.ProviderInvocationGateway.class.getName());
+    rule.check(classes);
+  }
 }
